@@ -1,0 +1,33 @@
+[package]
+name = "particle_sim"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "particle_sim"
+path = "src/main.rs"
+
+# Photon laboratory: one photon made of grains (rotate + translate)
+[[bin]]
+name = "fotone"
+path = "src/photon/main.rs"
+
+[dependencies]
+bevy      = { version = "0.15" }
+bevy_egui = "0.31"
+rand      = "0.8"
+rayon     = "1"
+wgpu      = { version = "23", features = ["wgsl"] }
+bytemuck  = { version = "1", features = ["derive"] }
+pollster  = "0.3"
+
+[profile.dev]
+opt-level = 1
+
+[profile.dev.package."*"]
+opt-level = 3
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
