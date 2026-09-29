@@ -17,6 +17,7 @@ use bevy_egui::{EguiContexts, EguiPlugin};
 mod complex;
 mod config;
 mod entangle;
+mod gpu;
 mod haze;
 mod physics;
 mod render;
