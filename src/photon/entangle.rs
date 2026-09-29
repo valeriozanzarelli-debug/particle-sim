@@ -17,6 +17,7 @@ use crate::complex::{linear, Jones, C};
 
 const HALF_PI: f32 = std::f32::consts::FRAC_PI_2;
 
+#[derive(Clone)]
 pub struct Pair {
     /// Joint state, index 2·iA + iB over the basis {H, V} of each beam.
     psi: [C; 4],

@@ -286,6 +286,7 @@ enum Element {
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum Fate { InFlight, AbsorbedWall, AbsorbedPolarizer(usize), Finished }
 
+#[derive(Clone)]
 pub struct Photon {
     pub id:     u64,
     /// 0 = travels +z (Alice), 1 = travels −z (Bob).
@@ -299,7 +300,7 @@ pub struct Photon {
     screen:     ScreenAccum,
 }
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 struct ScreenAccum {
     sum:   Vec<Jones>,
     self_: Vec<f32>,
@@ -393,6 +394,22 @@ pub struct Sim {
     pub stats:   Stats,
     rng:         StdRng,
     next_id:     u64,
+}
+
+/// A full copy of the laboratory state (grains, pair, statistics, RNG), used
+/// by the reversible timeline (`timeline.rs`) for its keyframes. Not physics.
+impl Clone for Sim {
+    fn clone(&self) -> Self {
+        Self {
+            lab: self.lab.clone(),
+            photons: self.photons.clone(),
+            pair: self.pair.clone(),
+            clock: self.clock,
+            stats: self.stats.clone(),
+            rng: self.rng.clone(),
+            next_id: self.next_id,
+        }
+    }
 }
 
 impl Sim {

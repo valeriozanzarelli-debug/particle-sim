@@ -20,9 +20,9 @@ pub struct CloudMeshes {
 }
 
 /// Where dead grains are parked (outside any view).
-const PARKED: [f32; 3] = [1.0e7, 1.0e7, 1.0e7];
+pub(crate) const PARKED: [f32; 3] = [1.0e7, 1.0e7, 1.0e7];
 
-fn point_mesh(n: usize) -> Mesh {
+pub(crate) fn point_mesh(n: usize) -> Mesh {
     let mut mesh = Mesh::new(
         PrimitiveTopology::PointList,
         RenderAssetUsages::MAIN_WORLD | RenderAssetUsages::RENDER_WORLD,
@@ -120,7 +120,7 @@ pub fn update_meshes(
     }
 }
 
-fn set_points(mesh: &mut Mesh, pos: Vec<[f32; 3]>, col: Vec<[f32; 4]>) {
+pub(crate) fn set_points(mesh: &mut Mesh, pos: Vec<[f32; 3]>, col: Vec<[f32; 4]>) {
     if let Some(VertexAttributeValues::Float32x3(p)) = mesh.attribute_mut(Mesh::ATTRIBUTE_POSITION) { *p = pos; }
     if let Some(VertexAttributeValues::Float32x4(c)) = mesh.attribute_mut(Mesh::ATTRIBUTE_COLOR) { *c = col; }
 }

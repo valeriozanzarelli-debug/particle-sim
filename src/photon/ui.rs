@@ -1,10 +1,13 @@
-//! HUD of the photon laboratory: controls, live plots, live validation.
+//! HUD of the photon laboratory: a minimal time bar over the 3D scene, and
+//! one panel (hidden by default: Tab or ☰) with controls, plots, validation.
 
 use bevy::prelude::*;
 use bevy_egui::{egui, EguiContexts};
 use egui::Color32;
 
-use crate::config::NM_PER_UNIT;
+use crate::config::*;
+use crate::haze::wien_peak_um;
+use crate::timeline::{light_clock, Mode, Op};
 use crate::entangle::{correlation_local, correlation_quantum};
 use crate::physics::*;
 use crate::LabState;
@@ -25,32 +28,139 @@ pub struct RefCache {
     visibility: f32,
 }
 
-pub fn draw_hud(mut ctx: EguiContexts, mut state: ResMut<LabState>, mut cache: Local<RefCache>) {
+/// Minimal HUD: the 3D scene, a time bar at the bottom and a ☰ button.
+/// Everything else lives in one panel, hidden by default (Tab or ☰).
+pub fn draw_hud(
+    mut ctx: EguiContexts,
+    mut state: ResMut<LabState>,
+    mut cache: Local<RefCache>,
+    keys: Res<ButtonInput<KeyCode>>,
+) {
     let state = &mut *state;
-    egui::Window::new("Photon Lab")
-        .default_width(340.0)
-        .default_pos([12.0, 12.0])
-        .show(ctx.ctx_mut(), |ui| {
-            egui::ScrollArea::vertical().max_height(860.0).show(ui, |ui| {
-                experiment_picker(ui, state);
-                ui.separator();
-                controls(ui, state);
-                ui.separator();
-                photon_params(ui, state);
-                ui.separator();
-                match state.sim.lab.experiment {
-                    Experiment::FreeBeam   => free_beam(ui, state),
-                    Experiment::DoubleSlit => double_slit(ui, state, &mut cache),
-                    Experiment::Polarizers => polarizers(ui, state),
-                    Experiment::Bell       => bell(ui, state),
-                }
-                ui.separator();
-                legend(ui);
+    let ctx = ctx.ctx_mut();
+    if keys.just_pressed(KeyCode::Tab) && !ctx.wants_keyboard_input() {
+        state.panel_open = !state.panel_open;
+    }
+
+    // ☰ in the top-left corner
+    egui::Area::new(egui::Id::new("menu_button"))
+        .anchor(egui::Align2::LEFT_TOP, [10.0, 10.0])
+        .show(ctx, |ui| {
+            let b = egui::Button::new(egui::RichText::new("☰").size(16.0))
+                .fill(Color32::from_black_alpha(90))
+                .selected(state.panel_open);
+            if ui.add(b).on_hover_text("settings (Tab)").clicked() {
+                state.panel_open = !state.panel_open;
+            }
+        });
+
+    time_bar(ctx, state);
+
+    if state.panel_open {
+        let mut open = true;
+        egui::Window::new("Photon Lab")
+            .open(&mut open)
+            .default_width(340.0)
+            .default_pos([12.0, 48.0])
+            .show(ctx, |ui| {
+                egui::ScrollArea::vertical().max_height(760.0).show(ui, |ui| panel(ui, state, &mut cache));
+            });
+        if !open { state.panel_open = false; }
+    }
+}
+
+/// The collapsible panel: every setting and readout of the laboratory.
+fn panel(ui: &mut egui::Ui, state: &mut LabState, cache: &mut RefCache) {
+    if experiment_picker(ui, state) { return; }
+    // Any change to the laboratory makes the shown frame the present.
+    let before = format!("{:?}", state.sim.lab);
+    ui.separator();
+    controls(ui, state);
+    ui.separator();
+    photon_params(ui, state);
+    ui.separator();
+    match state.sim.lab.experiment {
+        Experiment::FreeBeam   => free_beam(ui, state),
+        Experiment::DoubleSlit => double_slit(ui, state, cache),
+        Experiment::Polarizers => polarizers(ui, state),
+        Experiment::Bell       => bell(ui, state),
+    }
+    ui.separator();
+    legend(ui);
+    memory(ui, state);
+    if format!("{:?}", state.sim.lab) != before {
+        state.edited();
+    }
+}
+
+fn time_bar(ctx: &egui::Context, state: &mut LabState) {
+    let frame = egui::Frame::none()
+        .fill(Color32::from_rgba_unmultiplied(10, 12, 20, 170))
+        .rounding(6.0)
+        .inner_margin(egui::Margin::symmetric(10.0, 5.0));
+    egui::Area::new(egui::Id::new("time_bar"))
+        .anchor(egui::Align2::CENTER_BOTTOM, [0.0, -10.0])
+        .show(ctx, |ui| {
+            frame.show(ui, |ui| {
+                ui.horizontal(|ui| {
+                    ui.spacing_mut().slider_width = 110.0;
+                    let mut scrub_to = None;
+                    let t = &mut state.time;
+                    let mode = t.mode;
+                    if ui.selectable_label(mode == Mode::Rewind, "⏮").on_hover_text("rewind").clicked() {
+                        t.mode = if mode == Mode::Rewind { Mode::Pause } else { Mode::Rewind };
+                    }
+                    let playing = matches!(mode, Mode::Play | Mode::FastForward);
+                    let (icon, tip) = if playing { ("⏸", "pause") } else { ("▶", "play (towards the present)") };
+                    if ui.button(icon).on_hover_text(tip).clicked() {
+                        t.mode = if playing { Mode::Pause } else { Mode::Play };
+                    }
+                    if ui.selectable_label(mode == Mode::FastForward, "⏭")
+                        .on_hover_text(format!("fast-forward ×{FAST_FORWARD:.0}")).clicked()
+                    {
+                        t.mode = if mode == Mode::FastForward { Mode::Play } else { Mode::FastForward };
+                    }
+                    ui.add(egui::Slider::new(&mut t.factor, SPEED_MIN..=SPEED_MAX)
+                        .logarithmic(true)
+                        .prefix("×")
+                        .custom_formatter(|v, _| if v < 10.0 { format!("{v:.1}") } else { format!("{v:.0}") }))
+                        .on_hover_text(format!(
+                            "speed: ×1 = a photon crosses the bench in {CROSSING_SECONDS:.0} s; \
+                             from ×{TURBO_FACTOR:.0} whole photons run without animation"));
+
+                    // Scrub through the kept history
+                    let (base, head, cur) = (t.history.base(), t.history.head(), t.history.cursor());
+                    if head > base {
+                        let mut c = cur as f64;
+                        let r = ui.add(egui::Slider::new(&mut c, base as f64..=head as f64).show_value(false))
+                            .on_hover_text(format!("history: {} frames back", head - cur));
+                        if r.changed() {
+                            t.mode = Mode::Pause;
+                            scrub_to = Some(c.round() as u64);
+                        }
+                    }
+
+                    if let Some(target) = scrub_to { state.scrub(target); }
+
+                    ui.separator();
+                    let (lambdas, fs) = light_clock(&state.sim);
+                    ui.label(egui::RichText::new(format!("ct = {lambdas:>7.1} λ · {fs:>6.1} fs")).monospace().color(CYAN))
+                        .on_hover_text(format!("distance light has travelled since emission (1 unit = {NM_PER_UNIT:.0} nm)"));
+
+                    ui.separator();
+                    ui.label("T");
+                    ui.add(egui::DragValue::new(&mut state.temperature).range(0.0..=T_MAX).speed(5.0).max_decimals(0).suffix(" K"))
+                        .on_hover_text("temperature of the environment (visual only for now)");
+                    let peak = wien_peak_um(state.temperature)
+                        .map_or("—".to_string(), |p| if p >= 1.0 { format!("{p:.1} µm") } else { format!("{:.0} nm", p * 1000.0) });
+                    ui.label(egui::RichText::new(format!("λpeak {peak}")).small().color(GREY));
+                });
             });
         });
 }
 
-fn experiment_picker(ui: &mut egui::Ui, state: &mut LabState) {
+/// Returns true if the experiment was switched (the old state is gone).
+fn experiment_picker(ui: &mut egui::Ui, state: &mut LabState) -> bool {
     let current = state.sim.lab.experiment;
     let mut pick = current;
     ui.horizontal_wrapped(|ui| {
@@ -60,29 +170,24 @@ fn experiment_picker(ui: &mut egui::Ui, state: &mut LabState) {
         ui.selectable_value(&mut pick, Experiment::Bell,       "Entanglement");
     });
     if pick != current {
-        let (auto, speed, arrows) = (state.auto, state.speed, state.show_arrows);
-        *state = LabState::new(pick);
-        state.auto = auto;
-        state.speed = speed;
-        state.show_arrows = arrows;
+        state.switch(pick);
+        return true;
     }
+    false
 }
 
 fn controls(ui: &mut egui::Ui, state: &mut LabState) {
     ui.horizontal(|ui| {
         let busy = state.sim.in_flight();
         if ui.add_enabled(!busy, egui::Button::new("▶ Emit one photon")).clicked() {
-            state.sim.launch();
+            state.do_op(Op::Launch);
         }
         ui.checkbox(&mut state.auto, "continuous");
         if ui.button("↺ Clear counts").clicked() {
             state.sim.reset_stats();
+            state.edited();
         }
     });
-    ui.label("Slow motion: light moves this far per frame");
-    ui.add(egui::Slider::new(&mut state.speed, 0.05..=20.0).logarithmic(true).suffix(" λ-units"));
-    ui.label("Fast count: whole photons per frame (no animation)");
-    ui.add(egui::Slider::new(&mut state.turbo, 0..=200));
     ui.checkbox(&mut state.show_arrows, "show the E-field arrows (the rotation)");
 
     let s = &state.sim.stats;
@@ -90,6 +195,14 @@ fn controls(ui: &mut egui::Ui, state: &mut LabState) {
         "emitted {}   detected {}   absorbed {}   off-screen {}",
         s.emitted, s.detected, s.absorbed_wall + s.absorbed_pol.iter().sum::<u64>(), s.missed,
     )).monospace().small());
+}
+
+fn memory(ui: &mut egui::Ui, state: &LabState) {
+    let h = &state.time.history;
+    ui.label(egui::RichText::new(format!(
+        "time memory: {} frames, {} keyframes (every {}), {:.0} MB",
+        h.head() - h.base(), h.keyframes(), h.interval(), h.bytes() as f64 / (1u64 << 20) as f64,
+    )).small().weak());
 }
 
 fn photon_params(ui: &mut egui::Ui, state: &mut LabState) {
