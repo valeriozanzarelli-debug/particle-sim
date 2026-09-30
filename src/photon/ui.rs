@@ -217,7 +217,7 @@ fn photon_params(ui: &mut egui::Ui, state: &mut LabState) {
         )).small().weak());
         ui.label("grains per photon");
         let mut g = lab.grains as f32;
-        ui.add(egui::Slider::new(&mut g, 1_000.0..=120_000.0).logarithmic(true));
+        ui.add(egui::Slider::new(&mut g, 1_000.0..=2_000_000.0).logarithmic(true));
         lab.grains = g as usize;
         ui.label("beam waist w0");
         ui.add(egui::Slider::new(&mut lab.waist, 1.5..=12.0).step_by(0.1));

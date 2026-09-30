@@ -10,6 +10,8 @@ pub const CAM_RADIUS_MAX: f32     = 900.0;
 pub const MAX_ARROWS: usize = 1500;
 /// Arrow length per unit of |E|.
 pub const ARROW_LEN: f32 = 2.5;
+/// Grains drawn at most (all are simulated; see `render::update_meshes`).
+pub const MAX_GRAINS_DRAWN: usize = 250_000;
 /// Clicks drawn on the screen.
 pub const MAX_CLICKS_DRAWN: usize = 20_000;
 

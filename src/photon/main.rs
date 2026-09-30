@@ -49,7 +49,11 @@ pub struct LabState {
 
 impl LabState {
     pub fn new(e: Experiment) -> Self {
-        let sim = Sim::new(Lab::preset(e));
+        Self::from_lab(Lab::preset(e))
+    }
+
+    pub fn from_lab(lab: Lab) -> Self {
+        let sim = Sim::new(lab);
         let time = TimeCtl::new(&sim);
         Self { sim, auto: true, show_arrows: true, time, temperature: config::T_DEFAULT, panel_open: false }
     }
@@ -84,7 +88,7 @@ fn main() {
         }))
         .add_plugins(EguiPlugin)
         .insert_resource(ClearColor(Color::srgb(0.015, 0.02, 0.035)))
-        .insert_resource(LabState::new(Experiment::DoubleSlit))
+        .insert_resource(LabState::from_lab(lab_from_args()))
         .insert_resource(OrbitState { yaw: 1.15, pitch: 0.35, radius: config::CAM_RADIUS_DEFAULT, focus: Vec3::new(0.0, 0.0, 60.0) })
         .init_resource::<PointerOverHud>()
         .add_systems(Startup, (setup_scene, render::setup_render, haze::setup_haze))
@@ -98,6 +102,30 @@ fn main() {
             orbit_camera.run_if(|p: Res<PointerOverHud>| !p.0),
         ))
         .run();
+}
+
+/// Command line: `--esperimento libero|fenditure|polarizzatori|entanglement`,
+/// `--palline N`, `--polarizzazione h|v|d|a|c+|c-`.
+fn lab_from_args() -> Lab {
+    let args: Vec<String> = std::env::args().collect();
+    let value = |name: &str| args.iter().position(|a| a == name).and_then(|i| args.get(i + 1)).cloned();
+    let experiment = match value("--esperimento").as_deref() {
+        Some("libero") => Experiment::FreeBeam,
+        Some("polarizzatori") => Experiment::Polarizers,
+        Some("entanglement") => Experiment::Bell,
+        _ => Experiment::DoubleSlit,
+    };
+    let mut lab = Lab::preset(experiment);
+    if let Some(n) = value("--palline").and_then(|v| v.parse::<usize>().ok()) {
+        lab.grains = n.clamp(100, 4_000_000);
+    }
+    if let Some(p) = value("--polarizzazione") {
+        use physics::Polarization::*;
+        lab.polarization = match p.as_str() {
+            "h" => H, "v" => V, "d" => D, "a" => A, "c-" => CircMinus, _ => CircPlus,
+        };
+    }
+    lab
 }
 
 fn setup_scene(mut commands: Commands) {

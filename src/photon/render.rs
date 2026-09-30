@@ -4,7 +4,7 @@
 use bevy::{
     prelude::*,
     render::{
-        mesh::{PrimitiveTopology, VertexAttributeValues},
+        mesh::PrimitiveTopology,
         render_asset::RenderAssetUsages,
     },
 };
@@ -13,30 +13,54 @@ use crate::config::*;
 use crate::physics::{Experiment, TAU};
 use crate::LabState;
 
-#[derive(Resource)]
-pub struct CloudMeshes {
-    grains: Handle<Mesh>,
-    clicks: Handle<Mesh>,
+/// Which point cloud an entity draws.
+#[derive(Component, Clone, Copy, PartialEq, Eq)]
+pub enum Cloud { Grains, Clicks, Haze }
+
+/// Give the cloud a new mesh and remove the old one.
+///
+/// Bevy 0.15 never frees the GPU allocation of a mesh that is *modified*
+/// (only of one that is *removed*), so editing a mesh in place every frame
+/// leaks its whole size each time. Swapping the asset frees the old one.
+pub(crate) fn swap_mesh(
+    which: Cloud,
+    mesh: Mesh,
+    meshes: &mut Assets<Mesh>,
+    clouds: &mut Query<(&Cloud, &mut Mesh3d)>,
+) {
+    for (cloud, mut mesh3d) in clouds.iter_mut() {
+        if *cloud == which {
+            let old = mesh3d.0.id();
+            mesh3d.0 = meshes.add(mesh);
+            meshes.remove(old);
+            return;
+        }
+    }
+}
+
+/// A point cloud with the given positions and colours.
+pub(crate) fn cloud_mesh(pos: Vec<[f32; 3]>, col: Vec<[f32; 4]>) -> Mesh {
+    let n = pos.len();
+    let mut mesh = Mesh::new(PrimitiveTopology::PointList, RenderAssetUsages::RENDER_WORLD);
+    mesh.insert_attribute(Mesh::ATTRIBUTE_POSITION, pos);
+    mesh.insert_attribute(Mesh::ATTRIBUTE_COLOR,    col);
+    mesh.insert_attribute(Mesh::ATTRIBUTE_NORMAL,   vec![[0.0f32, 1.0, 0.0]; n]);
+    mesh.insert_attribute(Mesh::ATTRIBUTE_UV_0,     vec![[0.0f32; 2]; n]);
+    mesh
+}
+
+/// What the clouds last drew, to skip the upload when nothing changed.
+#[derive(Resource, Default)]
+pub struct Drawn {
+    grains: Option<(u64, f32, usize)>,
+    clicks: Option<(usize, Option<[f32; 3]>)>,
 }
 
 /// Where dead grains are parked (outside any view).
 pub(crate) const PARKED: [f32; 3] = [1.0e7, 1.0e7, 1.0e7];
 
 pub(crate) fn point_mesh(n: usize) -> Mesh {
-    let mut mesh = Mesh::new(
-        PrimitiveTopology::PointList,
-        RenderAssetUsages::MAIN_WORLD | RenderAssetUsages::RENDER_WORLD,
-    );
-    resize(&mut mesh, n);
-    mesh
-}
-
-/// Every attribute must have the same length, or Bevy draws the shortest.
-fn resize(mesh: &mut Mesh, n: usize) {
-    mesh.insert_attribute(Mesh::ATTRIBUTE_POSITION, vec![PARKED; n]);
-    mesh.insert_attribute(Mesh::ATTRIBUTE_COLOR,    vec![[0.0f32; 4]; n]);
-    mesh.insert_attribute(Mesh::ATTRIBUTE_NORMAL,   vec![[0.0f32, 1.0, 0.0]; n]);
-    mesh.insert_attribute(Mesh::ATTRIBUTE_UV_0,     vec![[0.0f32; 2]; n]);
+    cloud_mesh(vec![PARKED; n], vec![[0.0; 4]; n])
 }
 
 pub fn setup_render(
@@ -45,11 +69,9 @@ pub fn setup_render(
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
     let mat = materials.add(StandardMaterial { base_color: Color::WHITE, unlit: true, ..default() });
-    let grains = meshes.add(point_mesh(1));
-    let clicks = meshes.add(point_mesh(1));
-    commands.spawn((Mesh3d(grains.clone()), MeshMaterial3d(mat.clone()), Transform::default()));
-    commands.spawn((Mesh3d(clicks.clone()), MeshMaterial3d(mat), Transform::default()));
-    commands.insert_resource(CloudMeshes { grains, clicks });
+    commands.spawn((Cloud::Grains, Mesh3d(meshes.add(point_mesh(1))), MeshMaterial3d(mat.clone()), Transform::default()));
+    commands.spawn((Cloud::Clicks, Mesh3d(meshes.add(point_mesh(1))), MeshMaterial3d(mat), Transform::default()));
+    commands.init_resource::<Drawn>();
 }
 
 /// Phase colour wheel: the colour of a grain is the angle of its arrow.
@@ -72,26 +94,28 @@ fn phase_color(angle: f32) -> [f32; 4] {
 
 pub fn update_meshes(
     state: Res<LabState>,
-    handles: Option<Res<CloudMeshes>>,
+    drawn: Option<ResMut<Drawn>>,
     mut meshes: ResMut<Assets<Mesh>>,
+    mut clouds: Query<(&Cloud, &mut Mesh3d)>,
 ) {
-    let Some(h) = handles else { return };
+    let Some(mut drawn) = drawn else { return };
     let sim = &state.sim;
     let k = sim.lab.k();
 
     // ── grains ──
-    let n: usize = sim.photons.iter().map(|p| p.grains.len()).sum::<usize>().max(1);
-    if let Some(mesh) = meshes.get_mut(&h.grains) {
-        if mesh.count_vertices() != n { resize(mesh, n); }
+    // All grains are simulated; at most MAX_GRAINS_DRAWN are drawn (every
+    // `stride`-th one), because the cloud is uploaded again every frame.
+    let total: usize = sim.photons.iter().map(|p| p.grains.len()).sum();
+    let first_id = sim.photons.first().map_or(u64::MAX, |p| p.id);
+    let key = (first_id, sim.clock, total);
+    if drawn.grains != Some(key) {
+        drawn.grains = Some(key);
+        let stride = total.div_ceil(MAX_GRAINS_DRAWN).max(1);
+        let n = total.div_ceil(stride).max(1);
         let mut pos: Vec<[f32; 3]> = Vec::with_capacity(n);
         let mut col: Vec<[f32; 4]> = Vec::with_capacity(n);
         for ph in &sim.photons {
-            for g in &ph.grains {
-                if !g.alive {
-                    pos.push(PARKED);
-                    col.push([0.0; 4]);
-                    continue;
-                }
+            for g in ph.grains.iter().step_by(stride).filter(|g| g.alive) {
                 pos.push(g.pos.to_array());
                 let mut c = phase_color(g.phase(k) - k * sim.clock);
                 if !ph.pol_defined {
@@ -101,28 +125,24 @@ pub fn update_meshes(
                 col.push(c);
             }
         }
-        pos.resize(n, PARKED);
-        col.resize(n, [0.0; 4]);
-        set_points(mesh, pos, col);
+        if pos.is_empty() {
+            pos.push(PARKED);
+            col.push([0.0; 4]);
+        }
+        swap_mesh(Cloud::Grains, cloud_mesh(pos, col), &mut meshes, &mut clouds);
     }
 
     // ── clicks on the screen ──
     let clicks = &sim.stats.clicks;
-    let m = clicks.len().min(MAX_CLICKS_DRAWN).max(1);
-    if let Some(mesh) = meshes.get_mut(&h.clicks) {
-        if mesh.count_vertices() != m { resize(mesh, m); }
+    let key = (clicks.len(), clicks.last().map(|c| c.to_array()));
+    if drawn.clicks != Some(key) {
+        drawn.clicks = Some(key);
         let start = clicks.len().saturating_sub(MAX_CLICKS_DRAWN);
         let mut pos: Vec<[f32; 3]> = clicks[start..].iter().map(|c| c.to_array()).collect();
-        let mut col: Vec<[f32; 4]> = vec![[0.75, 1.0, 0.6, 1.0]; pos.len()];
-        pos.resize(m, PARKED);
-        col.resize(m, [0.0; 4]);
-        set_points(mesh, pos, col);
+        if pos.is_empty() { pos.push(PARKED); }
+        let col = vec![[0.75, 1.0, 0.6, 1.0]; pos.len()];
+        swap_mesh(Cloud::Clicks, cloud_mesh(pos, col), &mut meshes, &mut clouds);
     }
-}
-
-pub(crate) fn set_points(mesh: &mut Mesh, pos: Vec<[f32; 3]>, col: Vec<[f32; 4]>) {
-    if let Some(VertexAttributeValues::Float32x3(p)) = mesh.attribute_mut(Mesh::ATTRIBUTE_POSITION) { *p = pos; }
-    if let Some(VertexAttributeValues::Float32x4(c)) = mesh.attribute_mut(Mesh::ATTRIBUTE_COLOR) { *c = col; }
 }
 
 /// Optical bench and E-field arrows.

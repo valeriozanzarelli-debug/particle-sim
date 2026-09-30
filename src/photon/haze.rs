@@ -19,7 +19,7 @@ use bevy::prelude::*;
 use rand::{rngs::StdRng, Rng, SeedableRng};
 
 use crate::config::*;
-use crate::render::{point_mesh, set_points, PARKED};
+use crate::render::{cloud_mesh, point_mesh, swap_mesh, Cloud, PARKED};
 use crate::timeline::base_speed;
 use crate::LabState;
 
@@ -29,7 +29,6 @@ const BOX_MAX: Vec3 = Vec3::new(90.0, 50.0, 190.0);
 
 #[derive(Resource)]
 pub struct Haze {
-    mesh:   Handle<Mesh>,
     /// (start position, unit direction) of each haze photon.
     seeds:  Vec<(Vec3, Vec3)>,
     /// Distance the haze photons have flown (signed: rewinding flies back).
@@ -51,10 +50,10 @@ pub fn setup_haze(
         let r = (1.0 - z * z).sqrt();
         (p, Vec3::new(r * a.cos(), r * a.sin(), z))
     }).collect();
-    let mesh = meshes.add(point_mesh(HAZE_MAX_POINTS));
+    let mesh = meshes.add(point_mesh(1));
     let mat = materials.add(StandardMaterial { base_color: Color::WHITE, unlit: true, ..default() });
-    commands.spawn((Mesh3d(mesh.clone()), MeshMaterial3d(mat), Transform::default()));
-    commands.insert_resource(Haze { mesh, seeds, flown: 0.0, drawn: usize::MAX });
+    commands.spawn((Cloud::Haze, Mesh3d(mesh), MeshMaterial3d(mat), Transform::default()));
+    commands.insert_resource(Haze { seeds, flown: 0.0, drawn: usize::MAX });
 }
 
 /// Number of haze points drawn at temperature `t` (∝ T³).
@@ -87,6 +86,7 @@ pub fn update_haze(
     state: Res<LabState>,
     haze: Option<ResMut<Haze>>,
     mut meshes: ResMut<Assets<Mesh>>,
+    mut clouds: Query<(&Cloud, &mut Mesh3d)>,
 ) {
     let Some(mut haze) = haze else { return };
     let n = haze_count(state.temperature);
@@ -98,18 +98,16 @@ pub fn update_haze(
     }
     if !moved && n == haze.drawn { return; }
     haze.drawn = n;
-    let Some(mesh) = meshes.get_mut(&haze.mesh) else { return };
 
     let size = BOX_MAX - BOX_MIN;
     let col = thermal_color(state.temperature);
-    let mut pos = Vec::with_capacity(HAZE_MAX_POINTS);
+    let mut pos = Vec::with_capacity(n.max(1));
     for &(p0, dir) in &haze.seeds[..n] {
         let p = p0 + dir * haze.flown - BOX_MIN;
         let w = Vec3::new(p.x.rem_euclid(size.x), p.y.rem_euclid(size.y), p.z.rem_euclid(size.z));
         pos.push((BOX_MIN + w).to_array());
     }
-    let mut cols = vec![col; n];
-    pos.resize(HAZE_MAX_POINTS, PARKED);
-    cols.resize(HAZE_MAX_POINTS, [0.0; 4]);
-    set_points(mesh, pos, cols);
+    if pos.is_empty() { pos.push(PARKED); }
+    let cols = vec![col; pos.len()];
+    swap_mesh(Cloud::Haze, cloud_mesh(pos, cols), &mut meshes, &mut clouds);
 }
