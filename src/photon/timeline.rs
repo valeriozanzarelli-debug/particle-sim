@@ -59,12 +59,18 @@ pub fn apply(sim: &mut Sim, op: Op) {
 }
 
 /// Approximate heap + inline size of a keyframe.
+/// Pilot rule: the grains are the wave balls; the photon ball adds its trail;
+/// the fans (`pilot::Bench`) are shared by every keyframe (`Arc`), not copied.
 pub fn keyframe_bytes(sim: &Sim) -> usize {
     let grains: usize = sim.photons.iter().map(|p| p.grains.len()).sum();
     let bins = sim.lab.bins;
+    let pilot: usize = sim.photons.iter().filter_map(|p| p.pilot.as_ref())
+        .map(|pp| std::mem::size_of::<crate::pilot::PilotPhoton>() + pp.trail.len() * 12)
+        .sum();
     std::mem::size_of::<Sim>()
         + grains * (std::mem::size_of::<Grain>() + 8)   // grains + screen hits (upper bound)
         + sim.photons.len() * bins * 24                  // per-photon screen accumulators
+        + pilot
         + sim.stats.clicks.len() * 12
         + bins * 12
 }

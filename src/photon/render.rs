@@ -221,13 +221,41 @@ pub fn draw_bench(state: Res<LabState>, mut gizmos: Gizmos) {
     // E-field arrows on a subset of grains: rotate + translate made visible
     if state.show_arrows {
         let k = lab.k();
+        // pilot rule: dimmer, bluish arrows, so the white photon ball stands out
+        let arrow = if lab.pilot() { Color::srgba(0.6, 0.75, 1.0, 0.3) } else { Color::srgba(1.0, 1.0, 1.0, 0.55) };
         for ph in sim.photons.iter().filter(|p| p.pol_defined) {
             let alive: Vec<_> = ph.grains.iter().filter(|g| g.alive).collect();
             let stride = (alive.len() / MAX_ARROWS).max(1);
             for g in alive.iter().step_by(stride) {
                 let e = g.e_field(k, sim.clock) * ARROW_LEN;
-                gizmos.line(g.pos, g.pos + e, Color::srgba(1.0, 1.0, 1.0, 0.55));
+                gizmos.line(g.pos, g.pos + e, arrow);
             }
+        }
+    }
+}
+
+/// Gizmos of the photon ball: drawn on top of the wave balls, thicker.
+#[derive(Default, Reflect, GizmoConfigGroup)]
+pub struct PhotonBallGizmos;
+
+pub fn photon_ball_gizmo_config() -> GizmoConfig {
+    GizmoConfig { line_width: 3.0, depth_bias: -1.0, ..default() }
+}
+
+/// Pilot rule: the photon ball (white sphere + star) and its recent path.
+pub fn draw_photon_ball(state: Res<LabState>, mut gizmos: Gizmos<PhotonBallGizmos>) {
+    let white = Color::srgb(1.0, 1.0, 1.0);
+    for pp in state.sim.photons.iter().filter_map(|p| p.pilot.as_ref()) {
+        let n = pp.trail.len().max(1) as f32;
+        gizmos.linestrip_gradient(pp.trail.iter().enumerate().map(|(i, p)| {
+            let a = 0.2 + 0.8 * (i as f32 + 1.0) / n;
+            (*p, Color::srgba(1.0, 1.0, 1.0, a))
+        }));
+        let c = pp.pos();
+        gizmos.sphere(Isometry3d::from_translation(c), 1.6, white);
+        gizmos.sphere(Isometry3d::from_translation(c), 0.6, white);
+        for d in [Vec3::X, Vec3::Y, Vec3::Z] {
+            gizmos.line(c - d * 4.5, c + d * 4.5, white);
         }
     }
 }

@@ -379,3 +379,77 @@ correlazione, errori sulle frange, χ², visibilità, campionatore ideale), `lab
 (la regola), `lab/exact_guide2.py`, `lab/neighbour_study.py`, `lab/validate.py`,
 `lab/isolated_ball.py`. I vecchi `rules.py`, `pilot.py`, `pilot_batch.py`, `exact_guide.py` non sono
 stati modificati.
+
+---
+
+## 10. Regola pilota nel programma (`fotone`, Rust)
+
+La regola dei §3 e §8 è ora una modalità del programma: `src/photon/pilot.rs` (la regola),
+`src/photon/pilot_validation.rs` (i test). Si sceglie nel pannello nascosto (Tab / ☰: "rule:
+pilot (local, 2-D) / classic") o da riga di comando `--regola pilota|classica`; è la scelta
+predefinita per fascio libero, doppia fenditura e polarizzatori (l'entanglement resta classico).
+La modalità classica è intatta: `Lab::preset` la usa ancora e i suoi 14 test passano invariati.
+
+**Cosa si vede.** Le palline-onda (colore = fase, come prima) partono dalla sorgente come un ventaglio
+a reticolo; quando il fronte arriva a un oggetto nasce il ventaglio nuovo (200 origini × 314 direzioni
+= 62.800 palline dietro le fenditure). La pallina-fotone è la stella bianca con la sua scia: viaggia
+dentro la sua onda, muore intera sulla parete o al bordo (moneta locale), e il clic è dove tocca lo
+schermo. Il pannello scrive "2-D": la regola vive nel piano x–z; lo spessore in y delle palline-onda
+(±1,5) e dei clic (±12) è **solo disegno**. Le palline che escono di lato oltre |x| = 100 non si
+disegnano più (non cambia nulla per la pallina-fotone, vedi sotto). Il tempo reversibile funziona
+(stato clonabile, `Arc` per i ventagli condivisi, stima della dimensione dei keyframe aggiornata).
+Nessuna passata globale in questa modalità: `wall_decision`, `measure_single` e il campionamento del
+clic da tutto il disegno in `finalize` non vengono mai chiamati.
+
+**Test Rust** (`cargo test --bin fotone pilot -- --nocapture --test-threads=1`, profilo dev
+opt-level 3, seed fissi, i5-10300H 4 core):
+
+| test | Rust | Python (§5–§6) | soglia | tempo |
+|---|---|---|---|---|
+| Hankel H0, H1 contro scipy (32 punti, u = 0,01…1000) | errore relativo max 1,85·10⁻⁷ / 2,18·10⁻⁷ (a u = 12) | — | < 10⁻⁶ | < 0,1 s |
+| pallina isolata: nessun vicino / una sola origine | scarto dal raggio 1,2·10⁻¹⁴ λ / 2,1·10⁻¹⁴ λ | ≤ 4·10⁻¹³ λ | < 10⁻⁶ λ | < 0,1 s |
+| fascio libero w0 = 3, 20.000 fotoni, larghezza a z = 0,5 / zR / 2zR / 5zR | +0,31% / +0,38% / +0,42% / +0,44% (stat. ±0,5%) | +0,10% / +0,15% / +0,18% (4000 fotoni) | 3% | 15 s |
+| doppia fenditura, 16.384 fotoni, 3210 clic | corr 0,9930; frange rms 2,8%, max 5,1% | 0,9949; 3,9% / 4,7% (5858 clic) | ≥ 0,98; ≤ 8% | 18 s |
+| … frazione assorbita alla parete | 78,9% (persi alla sorgente 0,04%) | 78,9% | ±2 punti | |
+| which-path paralleli / ortogonali (1689 / 1682 clic) | V = 0,924 / −0,043 (teoria 0,907 / 0,029) | 0,925 / −0,023 | > 0,85 / < 0,15 | 34 s |
+| Malus, polarizzatore assorbente 0° / 45° / 90° (≈ 2000 fotoni ciascuno) | 1,0000 / 0,5145 / 0,0000 (σ a 45° = 0,011: 1,3σ) | 0,9962 / 0,4885 / 0 | max(3σ, 1%) | 7 s |
+| corsa "live" (palline-onda memorizzate) = corsa senza palline, 20 fotoni | identiche bit per bit (1133 passi) | — | | 0,2 s |
+| tempo all'indietro e ripetizione, 300 fotogrammi | esatti | — | | 0,5 s |
+| costo di un passo a velocità ×1 (62.800 + 62.744 palline) | 0,30–0,37 ms medio, 4–5 ms peggiore | — | < 50 ms | |
+
+Il programma vero (`fotone.exe --esperimento fenditure --fps`, build dev, velocità ×1) gira a
+92–121 fotogrammi/s con 62.744–125.544 palline-onda in volo (tutto incluso: fisica, disegno,
+interfaccia), nessun panic; memoria privata ogni 5 s: 614 → 676 → 677 → 681 MB (e in un'altra
+corsa 612 → 676 → 681 → 678 → 675 MB): piatta dopo il riempimento della storia del tempo.
+
+**Differenze rispetto al Python, dette chiaramente.**
+1. **Φ_in letto nello stesso punto di Φ_out.** Il §8.4 dice "Φ_in nel punto d'arrivo"; così il primo
+   Malus in Rust dava 0,9890 a 0° (fallito): il polarizzatore qui è a z = 20 con la vita del fascio a
+   z = 0, e in δ = 0,5 il fascio si allarga dello 0,8% (d ln w/dz · δ), quindi Φ_out/Φ_in < 1 per
+   tutti (nel Python il polarizzatore era a z = 5: 0,3%, da cui 0,9962). Ora Φ_in è il flusso delle
+   palline in arrivo (quelle che toccano l'oggetto) valutato **nella posizione della pallina-fotone
+   dietro l'oggetto**, come Φ_out — è la lettera del §3.2 ("entrambi letti nella sua posizione").
+   Alle fenditure (alla vita del fascio) non cambia nulla: stessi numeri prima e dopo.
+2. **Hankel a 6 termini** per kR ≥ 12 (il Python ne usa 4: errore ~7·10⁻⁶ a u = 12, non passerebbe
+   10⁻⁶); sotto 12 Abramowitz–Stegun 9.4.1–9.4.6 (9.4.3/9.4.6 tra 3 e 12).
+3. **La sorgente non è alla vita del fascio** (doppia fenditura: sorgente a z = −40, vita sulla parete;
+   polarizzatori: −20 e 0). Il ventaglio della sorgente porta il fascio gaussiano 2-D complesso su
+   quel piano; l'onda sulla parete è quindi propagata dalle palline, non scritta a mano: la sua
+   figura sullo schermo coincide con quella esatta del Python (correlazione 1,00000). La
+   pallina-fotone nasce con probabilità |a_i|² (più uno spostamento uniforme entro ds) e alla
+   sorgente fa la moneta del flusso con Φ_in = k|U_src|², come `validate.py` (perdite 0,04–0,2%).
+4. **Impulso e "chi sente chi".** Un ventaglio nasce quando il fronte sull'asse raggiunge l'oggetto.
+   Come chiede il §8.3 conta solo che il *raggio* della pallina passi accanto al fotone; il raggio
+   è "chiuso" solo se la sua pallina è morta contro un oggetto **prima del piano z del fotone**
+   (gli oggetti sono piani ⊥ z; tolleranza 0,01 λ perché le palline muoiono proprio sull'oggetto
+   dove il fotone legge Φ_in). Un primo tentativo con il criterio "raggio di morte ≥ R" sbagliava
+   con ventagli radi (dθ = 0,1) e il test live = senza palline lo ha scoperto. In questi esperimenti
+   nessun raggio viene mai chiuso prima del fotone, quindi la corsa senza palline (test, velocità
+   ≥ ×50) è identica bit per bit a quella disegnata.
+5. **Palline per origine** = palline per fotone del pannello / numero di origini (minimo 31 = dθ 0,1,
+   variante H): la guida (E2) non dipende da dθ.
+6. **Somme deterministiche**: la somma sulle origini è fatta a blocchi fissi di 32 (in parallelo con
+   rayon nella corsa live) e sommata in ordine, quindi il risultato non dipende dal numero di thread
+   (serve al tempo reversibile).
+7. Restano valide le note del §7 (moneta al bordo come correzione di Kirchhoff, solo 2-D, Malus con
+   moneta locale; l'entanglement resta in `entangle.rs`).

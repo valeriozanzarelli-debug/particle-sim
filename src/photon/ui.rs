@@ -74,6 +74,7 @@ fn panel(ui: &mut egui::Ui, state: &mut LabState, cache: &mut RefCache) {
     if experiment_picker(ui, state) { return; }
     // Any change to the laboratory makes the shown frame the present.
     let before = format!("{:?}", state.sim.lab);
+    rule_picker(ui, state);
     ui.separator();
     controls(ui, state);
     ui.separator();
@@ -176,6 +177,27 @@ fn experiment_picker(ui: &mut egui::Ui, state: &mut LabState) -> bool {
     false
 }
 
+/// Classic grains or the local pilot rule (not for the Bell test).
+fn rule_picker(ui: &mut egui::Ui, state: &mut LabState) {
+    let lab = &mut state.sim.lab;
+    if lab.experiment == Experiment::Bell { return; }
+    ui.horizontal(|ui| {
+        ui.label("rule:");
+        ui.selectable_value(&mut lab.rule, Rule::Pilot, "pilot (local, 2-D)")
+            .on_hover_text("wave balls + ONE photon ball that rides the current of its wave and makes the click itself");
+        ui.selectable_value(&mut lab.rule, Rule::Classic, "classic")
+            .on_hover_text("grains + photon-level Born decisions (the original model)");
+    });
+    if lab.rule == Rule::Pilot {
+        ui.label(egui::RichText::new(
+            "2-D: the rule lives in the x–z plane (slits long in y). The y spread of the
+             wave balls and of the clicks is drawn only to make them visible.
+             White star + trail = the photon ball. No global decision: it is absorbed
+             or clicks only where it is, with a local coin at absorbing edges.",
+        ).small().color(GOLD));
+    }
+}
+
 fn controls(ui: &mut egui::Ui, state: &mut LabState) {
     ui.horizontal(|ui| {
         let busy = state.sim.in_flight();
@@ -195,6 +217,18 @@ fn controls(ui: &mut egui::Ui, state: &mut LabState) {
         "emitted {}   detected {}   absorbed {}   off-screen {}",
         s.emitted, s.detected, s.absorbed_wall + s.absorbed_pol.iter().sum::<u64>(), s.missed,
     )).monospace().small());
+    if state.sim.lab.pilot() {
+        if let Some(pp) = state.sim.photons.first().and_then(|p| p.pilot.as_ref()) {
+            let coin = pp.last_coin.map_or("—".to_string(), |(p, ok)| format!("p = {p:.3} → {}", if ok { "passed" } else { "absorbed" }));
+            ui.label(egui::RichText::new(format!(
+                "photon ball: x = {:+.2}, z = {:.1}, dx/dz = {:+.4}; wave balls {}; last coin {coin}",
+                pp.x, pp.z, pp.u, state.sim.photons[0].grains.iter().filter(|g| g.alive).count(),
+            )).monospace().small());
+        }
+        if s.lost_source > 0 {
+            ui.label(egui::RichText::new(format!("lost at the source by the flux coin: {}", s.lost_source)).small().weak());
+        }
+    }
 }
 
 fn memory(ui: &mut egui::Ui, state: &LabState) {
@@ -215,7 +249,7 @@ fn photon_params(ui: &mut egui::Ui, state: &mut LabState) {
             "scale 1 unit = {NM_PER_UNIT:.0} nm  →  λ = {nm:.0} nm,  ν = {:.0} THz,\nE = hν = {:.2} eV,  p = h/λ = {:.2} eV/c",
             299_792.458 / nm, 1239.84 / nm, 1239.84 / nm,
         )).small().weak());
-        ui.label("grains per photon");
+        ui.label(if lab.pilot() { "wave balls per fan (≈)" } else { "grains per photon" });
         let mut g = lab.grains as f32;
         ui.add(egui::Slider::new(&mut g, 1_000.0..=2_000_000.0).logarithmic(true));
         lab.grains = g as usize;
@@ -244,8 +278,14 @@ fn free_beam(ui: &mut egui::Ui, state: &mut LabState) {
          once per λ: with circular light the arrows form a helix.",
     ).small().weak());
 
+    if lab.pilot() {
+        ui.label(egui::RichText::new(
+            "Pilot rule: the photon ball follows the current of its Gaussian wave;
+             its landing points spread like w(z) (validated within 0.2–0.3%).",
+        ).small().weak());
+    }
     // Live width of the photon in flight vs Gaussian-beam theory
-    if let Some(ph) = sim.photons.first() {
+    if let Some(ph) = sim.photons.first().filter(|p| p.pilot.is_none()) {
         let alive: Vec<_> = ph.grains.iter().filter(|g| g.alive).collect();
         if alive.len() > 100 {
             let n = alive.len() as f32;
@@ -281,6 +321,9 @@ fn double_slit(ui: &mut egui::Ui, state: &mut LabState, cache: &mut RefCache) {
             ui.selectable_value(&mut lab.which_path, WhichPath::Parallel, "∥ ∥");
             ui.selectable_value(&mut lab.which_path, WhichPath::Orthogonal, "∥ ⊥");
         });
+    }
+    if state.sim.lab.pilot() {
+        return double_slit_pilot(ui, state);
     }
     let sim = &state.sim;
     let lab = &sim.lab;
@@ -322,6 +365,41 @@ fn double_slit(ui: &mut egui::Ui, state: &mut LabState, cache: &mut RefCache) {
     }
 }
 
+/// Pilot rule: the clicks are the photon balls' landing points; grey is the
+/// flux j_z of the program's own wave on the screen (what they must build).
+fn double_slit_pilot(ui: &mut egui::Ui, state: &mut LabState) {
+    let bench = state.sim.bench();
+    let sim = &state.sim;
+    let lab = &sim.lab;
+    let hist: Vec<f32> = sim.stats.hist.iter().map(|&h| h as f32).collect();
+    ui.label(egui::RichText::new(
+        "grey = flux of the wave on the screen (2-D Rayleigh–Sommerfeld) · green = clicks",
+    ).small().weak());
+    plot(ui, &[(&bench.screen_flux, GREY, false), (&hist, GREEN, true)]);
+    if sim.stats.detected >= 100 {
+        let coarse = |v: &[f32]| v.chunks(8).map(|c| c.iter().sum::<f32>()).collect::<Vec<f32>>();
+        let corr = correlation(&coarse(&hist), &coarse(&bench.screen_flux));
+        row(ui, "clicks vs wave flux (8-bin)", format!("{corr:.3}  ({} clicks)", sim.stats.detected), corr > 0.97);
+        let p = lab.lambda * (lab.screen_z - lab.wall_z) / lab.slit_sep;
+        let v = visibility_at(lab, &hist, p);
+        let vt = visibility_at(lab, &bench.screen_flux, p);
+        row(ui, "fringe visibility of the clicks", format!("{v:.2}  (wave {vt:.2})"), (v - vt).abs() < 0.1);
+    } else {
+        ui.label(egui::RichText::new("need ≥ 100 clicks for the checks").small().weak());
+    }
+    let finished = sim.stats.detected + sim.stats.absorbed_wall + sim.stats.missed + sim.stats.lost_source;
+    if finished > 0 {
+        ui.label(format!(
+            "{:.1}% of the photon balls were absorbed at the wall (opaque part or edge coin) — whole.",
+            100.0 * sim.stats.absorbed_wall as f32 / finished as f32,
+        ));
+    }
+    ui.label(egui::RichText::new(format!(
+        "fans: {}",
+        bench.fans.iter().map(|f| format!("{} origins × {} directions", f.xs.len(), f.nu)).collect::<Vec<_>>().join(" → "),
+    )).small().weak());
+}
+
 fn polarizers(ui: &mut egui::Ui, state: &mut LabState) {
     ui.heading("Polarizers — Malus");
     {
@@ -345,10 +423,14 @@ fn polarizers(ui: &mut egui::Ui, state: &mut LabState) {
         row(ui, "photons through", format!("{m:.3}  (theory {theory:.3}, {finished} photons)"), (m - theory).abs() <= tol);
         ui.label(format!("absorbed at P1 {}  P2 {}  P3 {}", s.absorbed_pol[0], s.absorbed_pol[1], s.absorbed_pol[2]));
     }
-    ui.label(egui::RichText::new(
+    ui.label(egui::RichText::new(if sim.lab.pilot() {
+        "Pilot rule: at each polarizer the photon ball tosses a LOCAL coin\n\
+         p = Φ_out/Φ_in read where it is (= cos²θ): it passes whole or not at all.\n\
+         Try P1 0°, P3 90°: nothing passes. Add P2 at 45°: a quarter passes."
+    } else {
         "Each photon passes whole or not at all, with probability cos²θ.\n\
-         Try P1 0°, P3 90°: nothing passes. Add P2 at 45°: a quarter passes.",
-    ).small().weak());
+         Try P1 0°, P3 90°: nothing passes. Add P2 at 45°: a quarter passes."
+    }).small().weak());
 }
 
 fn bell(ui: &mut egui::Ui, state: &mut LabState) {
@@ -439,7 +521,10 @@ fn legend(ui: &mut egui::Ui) {
              Pale grains = entangled, polarization not defined yet.\n\
              Green dots on the screen = where each photon was detected.\n\n\
              Grains never push each other: light does not interact with light.\n\
-             They see each other only where they cross, by comparing phases.",
+             They see each other only where they cross, by comparing phases.\n\n\
+             Pilot rule: the points are wave balls (a fan re-emitted at every\n\
+             object); the white star is the photon ball, the white line the path\n\
+             it followed along the current of its wave; it lands = the click.",
         ).small());
     });
 }

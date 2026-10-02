@@ -35,8 +35,11 @@ use bevy::math::Vec3;
 use rand::{rngs::StdRng, Rng, SeedableRng};
 use rayon::prelude::*;
 
+use std::sync::Arc;
+
 use crate::complex::{inner, jones_norm2, linear, Jones, C};
 use crate::entangle::{self, Pair};
+use crate::pilot::{self, Bench, Outcome, PilotPhoton};
 
 pub const TAU: f32 = std::f32::consts::TAU;
 const DEG: f32 = std::f32::consts::PI / 180.0;
@@ -88,6 +91,17 @@ impl Polarization {
             Self::CircMinus => "circular, helicity −1",
         }
     }
+}
+
+/// Which rule moves the photon.
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+pub enum Rule {
+    /// Grains + photon-level Born decisions (wall, polarizer, click drawn
+    /// from the whole pattern). The original model of this file.
+    Classic,
+    /// The local "two roles" rule of `pilot.rs` (2-D): wave balls + one
+    /// photon ball guided by the current; no global decision anywhere.
+    Pilot,
 }
 
 /// Polarizers placed on the two slits to mark which path the photon took.
@@ -149,6 +163,8 @@ pub struct Lab {
 
     pub bell: BellCfg,
     pub seed: u64,
+    /// Rule that moves the photon (`Pilot` is not available for Bell).
+    pub rule: Rule,
 }
 
 impl Lab {
@@ -184,6 +200,7 @@ impl Lab {
                 dist_b: 70.0,
             },
             seed: 1,
+            rule: Rule::Classic,
         };
         match experiment {
             Experiment::FreeBeam => Lab {
@@ -200,6 +217,23 @@ impl Lab {
             },
         }
     }
+
+    /// The laboratory as the program opens it: the pilot rule for the
+    /// double slit, the free beam and the polarizers (`preset` keeps the
+    /// classic rule, which the classic tests use).
+    pub fn default_for(experiment: Experiment) -> Self {
+        let mut lab = Self::preset(experiment);
+        if experiment != Experiment::Bell {
+            lab.rule = Rule::Pilot;
+        }
+        if experiment == Experiment::DoubleSlit {
+            lab.grains = 62_800;      // 200 origins x 314 directions behind the slits
+        }
+        lab
+    }
+
+    /// True when this laboratory runs the pilot rule.
+    #[inline] pub fn pilot(&self) -> bool { self.rule == Rule::Pilot && self.experiment != Experiment::Bell }
 
     #[inline] pub fn k(&self) -> f32 { TAU / self.lambda }
     /// Rayleigh range z_R = π w0² / λ.
@@ -224,7 +258,7 @@ impl Lab {
     pub fn bin_x(&self, b: usize) -> f32 {
         -self.screen_half + (b as f32 + 0.5) * 2.0 * self.screen_half / self.bins as f32
     }
-    fn bin_of(&self, x: f32) -> Option<usize> {
+    pub fn bin_of(&self, x: f32) -> Option<usize> {
         let f = (x + self.screen_half) / (2.0 * self.screen_half);
         (0.0..1.0).contains(&f).then(|| (f * self.bins as f32) as usize)
     }
@@ -298,6 +332,8 @@ pub struct Photon {
     /// False while the photon is half of an unmeasured entangled pair.
     pub pol_defined: bool,
     screen:     ScreenAccum,
+    /// Pilot rule only: the photon ball (the grains are then its wave balls).
+    pub pilot:  Option<PilotPhoton>,
 }
 
 #[derive(Default, Clone)]
@@ -359,6 +395,8 @@ pub struct Stats {
     pub absorbed_wall:  u64,
     pub absorbed_pol:   [u64; 3],
     pub missed:         u64,
+    /// Pilot rule: photon balls removed by the flux coin at the source.
+    pub lost_source:    u64,
     /// Click histogram on the screen.
     pub hist:           Vec<u32>,
     /// Average over photons of each photon's own (normalized) intensity.
@@ -376,7 +414,7 @@ pub const MAX_CLICKS_KEPT: usize = 30_000;
 impl Stats {
     fn new(bins: usize) -> Self {
         Self {
-            emitted: 0, detected: 0, absorbed_wall: 0, absorbed_pol: [0; 3], missed: 0,
+            emitted: 0, detected: 0, absorbed_wall: 0, absorbed_pol: [0; 3], missed: 0, lost_source: 0,
             hist: vec![0; bins], mean_intensity: vec![0.0; bins], photons_in_mean: 0,
             clicks: Vec::new(), bell: BellStats::default(), last_bell: None,
         }
@@ -394,6 +432,11 @@ pub struct Sim {
     pub stats:   Stats,
     rng:         StdRng,
     next_id:     u64,
+    /// Pilot rule: the wave of the current laboratory (shared by all photons).
+    bench:       Option<Arc<Bench>>,
+    /// Pilot rule: do not store/move wave balls (the photon ball does not need
+    /// them; used by tests and by whole-photon runs at high speed).
+    pub headless: bool,
 }
 
 /// A full copy of the laboratory state (grains, pair, statistics, RNG), used
@@ -408,6 +451,8 @@ impl Clone for Sim {
             stats: self.stats.clone(),
             rng: self.rng.clone(),
             next_id: self.next_id,
+            bench: self.bench.clone(),
+            headless: self.headless,
         }
     }
 }
@@ -416,7 +461,20 @@ impl Sim {
     pub fn new(lab: Lab) -> Self {
         let rng = StdRng::seed_from_u64(lab.seed);
         let stats = Stats::new(lab.bins);
-        Self { lab, photons: Vec::new(), pair: None, clock: 0.0, stats, rng, next_id: 0 }
+        Self { lab, photons: Vec::new(), pair: None, clock: 0.0, stats, rng, next_id: 0, bench: None, headless: false }
+    }
+
+    /// The pilot-rule wave of the current laboratory (built when it changes).
+    pub fn bench(&mut self) -> Arc<Bench> {
+        let key = Bench::key_of(&self.lab);
+        match &self.bench {
+            Some(b) if b.key == key => b.clone(),
+            _ => {
+                let b = Arc::new(Bench::new(&self.lab));
+                self.bench = Some(b.clone());
+                b
+            }
+        }
     }
 
     pub fn in_flight(&self) -> bool { !self.photons.is_empty() }
@@ -444,12 +502,35 @@ impl Sim {
                 }
                 self.pair = Some(pair);
             }
+            _ if lab.pilot() => {
+                let ph = self.emit_pilot();
+                self.photons.push(ph);
+            }
             _ => {
                 let ph = self.emit(0, lab.polarization.jones(), true);
                 self.photons.push(ph);
             }
         }
         self.stats.emitted += 1;
+    }
+
+    /// Pilot rule: the photon ball on the source plane and (unless headless)
+    /// the wave balls of the source fan.
+    fn emit_pilot(&mut self) -> Photon {
+        let bench = self.bench();
+        let id = self.next_id;
+        self.next_id += 1;
+        let mut pp = PilotPhoton::new(bench.clone(), self.lab.seed, id);
+        let grains = if self.headless {
+            Vec::new()
+        } else {
+            pp.emitted = 1;
+            bench.emit_balls(0, 0.0, hash3(self.lab.seed, id, 0))
+        };
+        Photon {
+            id, side: 0, grains, elems: Vec::new(), next_elem: 0, fate: Fate::InFlight,
+            pol_defined: true, screen: ScreenAccum::default(), pilot: Some(pp),
+        }
     }
 
     fn emit(&mut self, side: usize, jones: Jones, pol_defined: bool) -> Photon {
@@ -502,7 +583,7 @@ impl Sim {
         self.next_id += 1;
         Photon {
             id, side, grains, elems, next_elem: 0, fate: Fate::InFlight, pol_defined,
-            screen: ScreenAccum::new(lab.bins),
+            screen: ScreenAccum::new(lab.bins), pilot: None,
         }
     }
 
@@ -511,7 +592,9 @@ impl Sim {
     pub fn step(&mut self, dist: f32) {
         // 1 ─ photon-level events: the front of a photon reaches an element
         for p in 0..self.photons.len() {
-            self.front_events(p, dist);
+            if self.photons[p].pilot.is_none() {
+                self.front_events(p, dist);
+            }
         }
 
         // 2 ─ grain-level motion (parallel)
@@ -520,6 +603,10 @@ impl Sim {
         let seed = lab.seed;
         for ph in self.photons.iter_mut() {
             if ph.fate != Fate::InFlight { continue; }
+            if ph.pilot.is_some() {
+                step_pilot(ph, dist, self.clock, self.headless, seed);
+                continue;
+            }
             let elems = ph.elems.clone();
             let pid = ph.id;
             let deposits: Vec<Deposit> = ph.grains
@@ -561,6 +648,15 @@ impl Sim {
 
     /// Launch a photon and run it to completion with large exact steps.
     pub fn run_one(&mut self) {
+        // Pilot rule: nothing is drawn, so the wave balls are not needed;
+        // the photon ball moves exactly as in a live run (see `pilot::Heard`).
+        let headless = self.headless;
+        if self.lab.pilot() { self.headless = true; }
+        self.run_one_inner();
+        self.headless = headless;
+    }
+
+    fn run_one_inner(&mut self) {
         self.launch();
         let big = 40.0;
         let mut guard = 0;
@@ -687,6 +783,9 @@ impl Sim {
     }
 
     fn finalize(&mut self, ph: Photon) {
+        if let Some(pp) = &ph.pilot {
+            return self.finalize_pilot(pp);
+        }
         match ph.fate {
             Fate::AbsorbedWall => { self.stats.absorbed_wall += 1; return; }
             Fate::AbsorbedPolarizer(i) => { self.stats.absorbed_pol[i] += 1; return; }
@@ -731,6 +830,67 @@ impl Sim {
         self.stats.detected += 1;
         if self.stats.clicks.len() >= MAX_CLICKS_KEPT { self.stats.clicks.remove(0); }
         self.stats.clicks.push(Vec3::new(x, y, self.lab.screen_z));
+    }
+}
+
+impl Sim {
+    /// Pilot rule: the click is where the photon ball landed. Nothing else.
+    fn finalize_pilot(&mut self, pp: &PilotPhoton) {
+        match pp.outcome {
+            Some(Outcome::Click(x)) => match self.lab.bin_of(x as f32) {
+                Some(bin) => {
+                    self.stats.hist[bin] += 1;
+                    self.stats.detected += 1;
+                    if self.stats.clicks.len() >= MAX_CLICKS_KEPT { self.stats.clicks.remove(0); }
+                    self.stats.clicks.push(Vec3::new(x as f32, pp.click_y(), self.lab.screen_z));
+                }
+                None => self.stats.missed += 1,
+            },
+            Some(Outcome::Missed(_)) | None => self.stats.missed += 1,
+            Some(Outcome::Wall) => self.stats.absorbed_wall += 1,
+            Some(Outcome::Polarizer(i)) => self.stats.absorbed_pol[i] += 1,
+            Some(Outcome::Source) => self.stats.lost_source += 1,
+        }
+    }
+}
+
+/// Pilot rule, one step of light-clock `dist`: wave balls fly straight (new
+/// fans appear when the front reaches an object), then the photon ball moves
+/// along the current of the balls it hears.
+fn step_pilot(ph: &mut Photon, dist: f32, clock: f32, headless: bool, seed: u64) {
+    let Photon { grains, pilot: pil, id, fate, .. } = ph;
+    let pp = pil.as_mut().unwrap();
+    let bench = pp.bench.clone();
+    let t1 = clock + dist;
+    if !headless {
+        for m in 0..pp.emitted {
+            let f = &bench.fans[m];
+            let z_kill = f.z_kill as f32;
+            grains[f.offset..f.offset + f.n_balls()].par_iter_mut().for_each(|g| pilot::fly(g, dist, z_kill));
+        }
+        while pp.emitted < bench.fans.len() && bench.fans[pp.emitted].t_emit as f32 <= t1 {
+            let m = pp.emitted;
+            let age = t1 - bench.fans[m].t_emit as f32;
+            grains.extend(bench.emit_balls(m, age, hash3(seed, *id, m as u64)));
+            pp.emitted += 1;
+        }
+    }
+    let lam = bench.lambda;
+    let balls: &[Grain] = grains;
+    let heard = |m: usize, i: usize, j: usize, z: f64| -> bool {
+        let f = &bench.fans[m];
+        match balls.get(f.offset + i * f.nu + j) {
+            None => true,
+            Some(g) => g.alive || g.pos.z as f64 >= z - pilot::HEARD_TOL_LAMBDA * lam,
+        }
+    };
+    let h: pilot::Heard = if headless { None } else { Some(&heard) };
+    if pp.advance(dist as f64, h, !headless, None) {
+        *fate = match pp.outcome {
+            Some(Outcome::Wall) => Fate::AbsorbedWall,
+            Some(Outcome::Polarizer(i)) => Fate::AbsorbedPolarizer(i),
+            _ => Fate::Finished,
+        };
     }
 }
 
