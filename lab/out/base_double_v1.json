@@ -1,0 +1,79 @@
+{
+ "rule": {
+  "version": "v1",
+  "eta": 2.0,
+  "eps": 0.001,
+  "delta": 0.02,
+  "atol": 0.0001,
+  "hmax": 2.0,
+  "hmin": 1e-06
+ },
+ "derived": {
+  "r0": 1.0994033983191416,
+  "ds0": 0.25,
+  "lmax": 7,
+  "sds": 0.0625,
+  "dtouch": 0.005
+ },
+ "meta": {
+  "photons": 27000,
+  "clicks": 5809,
+  "counts": {
+   "click": 5809,
+   "absorbed (opaque part)": 20545,
+   "absorbed (local coin)": 606,
+   "left the lab": 29,
+   "step limit": 0,
+   "source coin": 11
+  },
+  "balls": {
+   "per_fan": "source: 147 origins x 147 dir; wall: 16 origins x 40 dir",
+   "balls_level0": 22249,
+   "balls_all_levels": 5673495,
+   "lmax": 7
+  },
+  "runtime": 33.69236207008362,
+  "chi2": 1.498675797857119,
+  "per_fringe": [
+   -0.046430844358685275,
+   -0.0032445139712319326,
+   0.020021981453493876,
+   -0.02300250488452249,
+   0.07087938906290359
+  ]
+ },
+ "rows": [
+  {
+   "name": "Young double slit: correlation with exact flux",
+   "measured": 0.9965,
+   "theory": "1 (ideal sampler 0.9973\u00b10.0010)",
+   "tol": ">= 0.98",
+   "ok": true,
+   "extra": "REGOLA_FOTONE: 0.9949"
+  },
+  {
+   "name": "Young double slit: bright-fringe population error rms / max",
+   "measured": "4.0% / 7.1%",
+   "theory": "0 (ideal sampler rms 3.2%)",
+   "tol": "rms <= 8%",
+   "ok": true,
+   "extra": "REGOLA_FOTONE: 3.9% / 4.7%"
+  },
+  {
+   "name": "Young double slit: absorbed fraction",
+   "measured": 0.7849,
+   "theory": 0.7806,
+   "tol": "\u00b10.02",
+   "ok": true,
+   "extra": "REGOLA_FOTONE: 0.789"
+  },
+  {
+   "name": "Taylor build-up: correlation vs number of clicks",
+   "measured": "N=10: 0.247 (ideal 0.487\u00b10.139); N=50: 0.843 (ideal 0.783\u00b10.072); N=200: 0.959 (ideal 0.929\u00b10.024); N=1000: 0.989 (ideal 0.984\u00b10.006); N=3000: 0.993 (ideal 0.995\u00b10.002); N=5809: 0.997 (ideal 0.997\u00b10.001)",
+   "theory": "ideal sampler",
+   "tol": "within 3\u03c3 of the ideal sampler at every N",
+   "ok": true,
+   "extra": ""
+  }
+ ]
+}

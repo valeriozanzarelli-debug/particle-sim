@@ -1,0 +1,170 @@
+{
+ "rule": {
+  "version": "v1",
+  "eta": 2.0,
+  "eps": 0.001,
+  "delta": 0.02,
+  "atol": 0.0001,
+  "hmax": 2.0,
+  "hmin": 1e-06
+ },
+ "derived": {
+  "r0": 1.0994033983191416,
+  "ds0": 0.25,
+  "lmax": 7,
+  "sds": 0.0625,
+  "dtouch": 0.005
+ },
+ "meta": {
+  "runs": [
+   {
+    "angle": 0,
+    "photons": 1500,
+    "clicks": 1497,
+    "counts": {
+     "click": 1497,
+     "absorbed (opaque part)": 0,
+     "absorbed (local coin)": 0,
+     "left the lab": 0,
+     "step limit": 0,
+     "source coin": 3
+    },
+    "balls": {
+     "per_fan": "source: 1389 origins x 1453 dir; polarizer 0.0\u00b0: 1648 origins x 1662 dir",
+     "balls_level0": 4757193,
+     "balls_all_levels": 103920881085,
+     "lmax": 7
+    },
+    "runtime": 13.022599697113037,
+    "wall_fraction": 0.0
+   },
+   {
+    "angle": 22.5,
+    "photons": 1500,
+    "clicks": 1278,
+    "counts": {
+     "click": 1278,
+     "absorbed (opaque part)": 0,
+     "absorbed (local coin)": 216,
+     "left the lab": 0,
+     "step limit": 0,
+     "source coin": 6
+    },
+    "balls": {
+     "per_fan": "source: 1389 origins x 1453 dir; polarizer 22.5\u00b0: 1648 origins x 1662 dir",
+     "balls_level0": 4757193,
+     "balls_all_levels": 103920881085,
+     "lmax": 7
+    },
+    "runtime": 12.229188442230225,
+    "wall_fraction": 0.0
+   },
+   {
+    "angle": 45,
+    "photons": 1500,
+    "clicks": 732,
+    "counts": {
+     "click": 732,
+     "absorbed (opaque part)": 0,
+     "absorbed (local coin)": 762,
+     "left the lab": 0,
+     "step limit": 0,
+     "source coin": 6
+    },
+    "balls": {
+     "per_fan": "source: 1389 origins x 1453 dir; polarizer 45.0\u00b0: 1648 origins x 1662 dir",
+     "balls_level0": 4757193,
+     "balls_all_levels": 103920881085,
+     "lmax": 7
+    },
+    "runtime": 10.169477701187134,
+    "wall_fraction": 0.0
+   },
+   {
+    "angle": 67.5,
+    "photons": 1500,
+    "clicks": 220,
+    "counts": {
+     "click": 220,
+     "absorbed (opaque part)": 0,
+     "absorbed (local coin)": 1272,
+     "left the lab": 0,
+     "step limit": 0,
+     "source coin": 8
+    },
+    "balls": {
+     "per_fan": "source: 1389 origins x 1453 dir; polarizer 67.5\u00b0: 1648 origins x 1662 dir",
+     "balls_level0": 4757193,
+     "balls_all_levels": 103920881085,
+     "lmax": 7
+    },
+    "runtime": 8.151387691497803,
+    "wall_fraction": 0.0
+   },
+   {
+    "angle": 90,
+    "photons": 1500,
+    "clicks": 0,
+    "counts": {
+     "click": 0,
+     "absorbed (opaque part)": 0,
+     "absorbed (local coin)": 1488,
+     "left the lab": 0,
+     "step limit": 0,
+     "source coin": 12
+    },
+    "balls": {
+     "per_fan": "source: 1389 origins x 1453 dir; polarizer 90.0\u00b0: 1648 origins x 1662 dir",
+     "balls_level0": 4757193,
+     "balls_all_levels": 103920881085,
+     "lmax": 7
+    },
+    "runtime": 7.295762777328491,
+    "wall_fraction": 0.0
+   }
+  ],
+  "runtime": 51.07329559326172
+ },
+ "rows": [
+  {
+   "name": "Malus (absorbing polarizer, 3-D) \u03b8=0\u00b0: P(pass)",
+   "measured": "1.0000",
+   "theory": "1.0000 = cos\u00b2\u03b8",
+   "tol": "max(3\u03c3=0.0020, 0.01)",
+   "ok": true,
+   "extra": "1497/1497 photons"
+  },
+  {
+   "name": "Malus (absorbing polarizer, 3-D) \u03b8=22.5\u00b0: P(pass)",
+   "measured": "0.8554",
+   "theory": "0.8536 = cos\u00b2\u03b8",
+   "tol": "max(3\u03c3=0.0274, 0.01)",
+   "ok": true,
+   "extra": "1278/1494 photons"
+  },
+  {
+   "name": "Malus (absorbing polarizer, 3-D) \u03b8=45\u00b0: P(pass)",
+   "measured": "0.4900",
+   "theory": "0.5000 = cos\u00b2\u03b8",
+   "tol": "max(3\u03c3=0.0388, 0.01)",
+   "ok": true,
+   "extra": "732/1494 photons"
+  },
+  {
+   "name": "Malus (absorbing polarizer, 3-D) \u03b8=67.5\u00b0: P(pass)",
+   "measured": "0.1475",
+   "theory": "0.1464 = cos\u00b2\u03b8",
+   "tol": "max(3\u03c3=0.0275, 0.01)",
+   "ok": true,
+   "extra": "220/1492 photons"
+  },
+  {
+   "name": "Malus (absorbing polarizer, 3-D) \u03b8=90\u00b0: P(pass)",
+   "measured": "0.0000",
+   "theory": "0.0000 = cos\u00b2\u03b8",
+   "tol": "max(3\u03c3=0.0020, 0.01)",
+   "ok": true,
+   "extra": "0/1488 photons"
+  }
+ ]
+}

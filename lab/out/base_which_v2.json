@@ -1,0 +1,77 @@
+{
+ "rule": {
+  "version": "v2",
+  "eta": 2.0,
+  "eps": 0.001,
+  "delta": 0.02,
+  "atol": 0.0001,
+  "hmax": 2.0,
+  "hmin": 1e-06,
+  "edge_zone": 0.5
+ },
+ "derived": {
+  "r0": 1.0994033983191416,
+  "ds0": 0.25,
+  "lmax": 7,
+  "sds": 0.0625,
+  "dtouch": 0.005
+ },
+ "meta": {
+  "parallel": {
+   "photons": 30000,
+   "clicks": 3264,
+   "counts": {
+    "click": 3264,
+    "absorbed (opaque part)": 22873,
+    "absorbed (local coin)": 3833,
+    "left the lab": 22,
+    "step limit": 0,
+    "source coin": 8
+   },
+   "balls": {
+    "per_fan": "source: 147 origins x 147 dir; wall0+pol: 8 origins x 8 dir; wall1+pol: 8 origins x 8 dir; wall1+pol(-): 8 origins x 8 dir",
+    "balls_level0": 21801,
+    "balls_all_levels": 5559255,
+    "lmax": 7
+   },
+   "runtime": 37.11411118507385
+  },
+  "orthogonal": {
+   "photons": 30000,
+   "clicks": 3238,
+   "counts": {
+    "click": 3238,
+    "absorbed (opaque part)": 22892,
+    "absorbed (local coin)": 3837,
+    "left the lab": 21,
+    "step limit": 0,
+    "source coin": 12
+   },
+   "balls": {
+    "per_fan": "source: 147 origins x 147 dir; wall0+pol: 8 origins x 8 dir; wall1+pol: 8 origins x 8 dir",
+    "balls_level0": 21737,
+    "balls_all_levels": 5542935,
+    "lmax": 7
+   },
+   "runtime": 34.78651475906372
+  }
+ },
+ "rows": [
+  {
+   "name": "which-path, parallel polarizers: fringe visibility",
+   "measured": "0.920 \u00b1 0.015",
+   "theory": 0.907,
+   "tol": "> 0.85",
+   "ok": true,
+   "extra": "corr with exact 0.9937; 3264 clicks"
+  },
+  {
+   "name": "which-path, orthogonal polarizers: fringe visibility",
+   "measured": "-0.009 \u00b1 0.042",
+   "theory": 0.029,
+   "tol": "< 0.15",
+   "ok": true,
+   "extra": "corr with exact 0.9857; 3238 clicks"
+  }
+ ]
+}

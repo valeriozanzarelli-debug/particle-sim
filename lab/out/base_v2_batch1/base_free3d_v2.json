@@ -1,0 +1,89 @@
+{
+ "rule": {
+  "version": "v2",
+  "eta": 2.0,
+  "eps": 0.001,
+  "delta": 0.02,
+  "atol": 0.0001,
+  "hmax": 2.0,
+  "hmin": 1e-06,
+  "edge_zone": 0.5
+ },
+ "derived": {
+  "r0": 1.0994033983191416,
+  "ds0": 0.25,
+  "lmax": 7,
+  "sds": 0.0625,
+  "dtouch": 0.005
+ },
+ "meta": {
+  "photons": 10000,
+  "clicks": 9976,
+  "counts": {
+   "click": 9976,
+   "absorbed (opaque part)": 0,
+   "absorbed (local coin)": 0,
+   "left the lab": 0,
+   "step limit": 0,
+   "source coin": 24
+  },
+  "balls": {
+   "per_fan": "source: 3125 origins x 3118 dir",
+   "balls_level0": 9743750,
+   "balls_all_levels": 212852218750,
+   "lmax": 7
+  },
+  "runtime": 361.6515598297119,
+  "wall_fraction": 0.0
+ },
+ "rows": [
+  {
+   "name": "3-D free beam width at z=1 zR",
+   "measured": 4.2907,
+   "theory": 4.2426,
+   "tol": "max(3\u03c3=0.015, 0.02)",
+   "ok": true,
+   "extra": "err +1.13%  n=9976"
+  },
+  {
+   "name": "3-D free beam width at z=2 zR",
+   "measured": 6.7897,
+   "theory": 6.7082,
+   "tol": "max(3\u03c3=0.015, 0.02)",
+   "ok": true,
+   "extra": "err +1.22%  n=9976"
+  },
+  {
+   "name": "3-D free beam width at z=5 zR",
+   "measured": 15.4909,
+   "theory": 15.2971,
+   "tol": "max(3\u03c3=0.015, 0.02)",
+   "ok": true,
+   "extra": "err +1.27%  n=9976"
+  },
+  {
+   "name": "3-D free beam, same photons: expansion w(1 zR)/w(1\u03bb)",
+   "measured": 1.4154,
+   "theory": 1.4133,
+   "tol": "\u00b10.02 rel.",
+   "ok": true,
+   "extra": "w(1\u03bb) = 3.0315"
+  },
+  {
+   "name": "3-D free beam, same photons: expansion w(2 zR)/w(1\u03bb)",
+   "measured": 2.2397,
+   "theory": 2.2347,
+   "tol": "\u00b10.02 rel.",
+   "ok": true,
+   "extra": "w(1\u03bb) = 3.0315"
+  },
+  {
+   "name": "3-D free beam, same photons: expansion w(5 zR)/w(1\u03bb)",
+   "measured": 5.11,
+   "theory": 5.0958,
+   "tol": "\u00b10.02 rel.",
+   "ok": true,
+   "extra": "w(1\u03bb) = 3.0315"
+  }
+ ]
+}

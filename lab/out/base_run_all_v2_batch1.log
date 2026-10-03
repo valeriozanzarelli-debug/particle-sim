@@ -1,0 +1,216 @@
+### base_test.py
+== 1. Rust vs numpy reference
+  2-D: max rel diff Rust/numpy 6.26e-08   (Rust 0.6 ms for 40 points)
+  2-D source side: max rel diff 1.38e-07
+  3-D: max rel diff Rust/numpy E 2.25e-15  dE 1.90e-15
+  3-D: |div E| / (k|E|) max 4.65e-16  (transversality of the vector RS field)
+== 2. 2-D double slit: balls' field vs exact RS (incident = Gaussian waist, exact)
+  z=  0.02: max|U-U_RS|/max|U_RS| 3.32e-04   rms(j_z err)/max j_z 3.61e-04
+  z=   0.1: max|U-U_RS|/max|U_RS| 7.61e-04   rms(j_z err)/max j_z 3.20e-04
+  z=   0.5: max|U-U_RS|/max|U_RS| 3.70e-03   rms(j_z err)/max j_z 8.22e-04
+  z=     2: max|U-U_RS|/max|U_RS| 9.37e-03   rms(j_z err)/max j_z 4.00e-03
+  z=    10: max|U-U_RS|/max|U_RS| 7.47e-03   rms(j_z err)/max j_z 5.19e-03
+  z=   160: max|U-U_RS|/max|U_RS| 3.87e-03   rms(j_z err)/max j_z 1.95e-03
+  ball count: {'per_fan': 'source: 147 origins x 147 dir; wall: 16 origins x 40 dir', 'balls_level0': 22249, 'balls_all_levels': 5673495, 'lmax': 7}
+== 3. 3-D -> 2-D reduction of the kernel: a y-line of 3-D origins vs the 2-D Hankel wavelet
+  z=0.3: 3-D strip (|y|<50) E_x = -0.1953+1.1389j   2-D strip U = -0.1953+1.1390j   rel diff 1.07e-04
+  z=1.0: 3-D strip (|y|<50) E_x = 0.8190-0.4378j   2-D strip U = 0.8190-0.4375j   rel diff 3.98e-04
+  z=3.0: 3-D strip (|y|<50) E_x = 0.4437-0.3621j   2-D strip U = 0.4437-0.3621j   rel diff 4.63e-05
+== 4. speed
+  2-D: 2000 points x 163 level-0 origins: 5 ms  (72 M pairs/s, 4 threads)
+  3-D: 2000 points x 132 level-0 origins: 5 ms  (50 M pairs/s)
+  3-D near field (z=0.03, all levels): 0.155 ms per point
+wall 37 s
+### base_conv.py wave
+2-D double slit: max|U_balls − U_RS| / max|U_RS|  (and rms j_z error / max j_z) at distance z behind the slits
+   eta   origins(l=0)  z=0.02    z=0.1     z=0.5     z=2.0     z=10.0    z=160.0 
+   0.5        4        2.9e-02/1.6e-02  6.2e-02/1.9e-02  3.0e-01/3.8e-02  6.0e-01/1.4e-01  2.1e-01/1.4e-01  6.7e-02/3.5e-02
+   1.0        8        3.1e-03/2.1e-03  7.0e-03/2.2e-03  2.6e-02/6.4e-03  4.3e-02/1.7e-02  3.3e-02/2.3e-02  1.6e-02/8.0e-03
+   2.0       16        3.1e-04/3.8e-04  8.5e-04/3.1e-04  3.7e-03/8.2e-04  9.4e-03/4.0e-03  7.5e-03/5.2e-03  3.9e-03/2.0e-03
+   4.0       32        7.0e-05/5.5e-05  1.6e-04/6.3e-05  8.3e-04/1.7e-04  2.3e-03/9.8e-04  1.8e-03/1.3e-03  9.6e-04/4.8e-04
+3-D circular aperture D=6: relative error of |E_x|² and of j_z vs exact vector RS (fine polar quadrature)
+   z=0.05: η=0.5: 36 origins, |E| err 1.3e-01, j_z err 4.7e-01   η=1.0: 132 origins, |E| err 6.2e-03, j_z err 5.4e-03   η=2.0: 484 origins, |E| err 2.0e-03, j_z err 1.5e-03   η=4.0: 1884 origins, |E| err 8.4e-04, j_z err 8.0e-04
+   z=2.0: η=0.5: 36 origins, |E| err 4.4e-01, j_z err 2.3e-01   η=1.0: 132 origins, |E| err 1.0e-01, j_z err 5.1e-02   η=2.0: 484 origins, |E| err 2.6e-02, j_z err 1.2e-02   η=4.0: 1884 origins, |E| err 6.6e-03, j_z err 2.9e-03
+   z=50.0: η=0.5: 36 origins, |E| err 1.3e-02, j_z err 4.8e-03   η=1.0: 132 origins, |E| err 3.3e-03, j_z err 1.2e-03   η=2.0: 484 origins, |E| err 9.4e-04, j_z err 6.3e-04   η=4.0: 1884 origins, |E| err 2.9e-04, j_z err 1.1e-04
+saved C:\Users\valer\Desktop\Programma di simulazione\particle_sim\lab\out\base_conv_wave_v2.json
+== conv wave [11s]
+wall 12 s
+### base_conv.py photons 0.5
+  eta=0.5: lmax 7, balls/photon (level 0) 1409, all levels 3.59e+05; 1725 clicks: corr 0.5713  chi2/dof 44.84  fringe rms 68.3% max 106.0%  per fringe [48, 37, -79, 46, 106]  absorbed 0.8562  [212s]
+  ideal sampler with the same number of clicks: corr 0.9905±0.0034, fringe rms 5.7%; exact absorbed 0.7806
+saved C:\Users\valer\Desktop\Programma di simulazione\particle_sim\lab\out\base_conv_eta_0.5_v2.json
+== conv photons [212s]
+wall 213 s
+### base_conv.py photons 1 2 4
+  eta=1.0: lmax 7, balls/photon (level 0) 5636, all levels 1.44e+06; 2584 clicks: corr 0.9912  chi2/dof 1.39  fringe rms 10.7% max 23.1%  per fringe [-4, -2, 0, -4, 23]  absorbed 0.7847  [15s]
+  eta=2.0: lmax 7, balls/photon (level 0) 22249, all levels 5.67e+06; 2571 clicks: corr 0.9949  chi2/dof 0.96  fringe rms 6.6% max 13.1%  per fringe [-13, 0, -2, 0, 7]  absorbed 0.7857  [23s]
+  eta=4.0: lmax 7, balls/photon (level 0) 89585, all levels 2.28e+07; 2574 clicks: corr 0.9919  chi2/dof 1.31  fringe rms 6.6% max 11.7%  per fringe [-12, -1, -1, 0, 9]  absorbed 0.7855  [36s]
+  ideal sampler with the same number of clicks: corr 0.9937±0.0024, fringe rms 4.8%; exact absorbed 0.7806
+saved C:\Users\valer\Desktop\Programma di simulazione\particle_sim\lab\out\base_conv_eta_v2.json
+== conv photons [74s]
+wall 75 s
+### base_conv.py eps
+  eps=0.01: lmax 7, balls/photon (level 0) 15040, all levels 3.84e+06; 2569 clicks: corr 0.9940  chi2/dof 1.14  fringe rms 5.7% max 12.1%  per fringe [-12, 0, 0, 0, 4]  absorbed 0.7859  [19s]
+  eps=0.001: lmax 7, balls/photon (level 0) 22249, all levels 5.67e+06; 2571 clicks: corr 0.9949  chi2/dof 0.96  fringe rms 6.6% max 13.1%  per fringe [-13, 0, -2, 0, 7]  absorbed 0.7857  [22s]
+  eps=0.0001: lmax 8, balls/photon (level 0) 29540, all levels 1.51e+07; 2578 clicks: corr 0.9944  chi2/dof 1.01  fringe rms 5.2% max 9.4%  per fringe [-9, -1, -3, 0, 6]  absorbed 0.7852  [25s]
+  ideal sampler with the same number of clicks: corr 0.9936±0.0024, fringe rms 4.7%; exact absorbed 0.7806
+saved C:\Users\valer\Desktop\Programma di simulazione\particle_sim\lab\out\base_conv_eps_v2.json
+== conv eps [67s]
+wall 68 s
+### base_exp2d.py free
+free 2-D: {'per_fan': 'source: 63 origins x 63 dir', 'balls_level0': 3969, 'balls_all_levels': 1012095, 'lmax': 7}
+  RESULT 2-D free beam width at z=1 zR: measured 4.2438  theory 4.2426  tol max(3σ=0.015, 0.02)  -> PASS  err +0.03%  n=19975
+  RESULT 2-D free beam width at z=2 zR: measured 6.7123  theory 6.7082  tol max(3σ=0.015, 0.02)  -> PASS  err +0.06%  n=19975
+  RESULT 2-D free beam width at z=5 zR: measured 15.3098  theory 15.2971  tol max(3σ=0.015, 0.02)  -> PASS  err +0.08%  n=19975
+saved C:\Users\valer\Desktop\Programma di simulazione\particle_sim\lab\out\base_free2d_v2.json
+== free: PASS  [28s]
+wall 28 s
+### base_exp2d.py double
+double slit: 5844 clicks of 27000 photons; corr 0.9962 (ideal 0.9971±0.0011), chi2/dof 1.37, fringe rms 4.3% max 7.6% (ideal rms 3.2%), per fringe [-5, -1, 1, -3, 8]
+  RESULT Young double slit: correlation with exact flux: measured 0.9962  theory 1 (ideal sampler 0.9971±0.0011)  tol >= 0.98  -> PASS  REGOLA_FOTONE: 0.9949
+  RESULT Young double slit: bright-fringe population error rms / max: measured 4.3% / 7.6%  theory 0 (ideal sampler rms 3.2%)  tol rms <= 8%  -> PASS  REGOLA_FOTONE: 3.9% / 4.7%
+  RESULT Young double slit: absorbed fraction: measured 0.7836  theory 0.7806  tol ±0.02  -> PASS  REGOLA_FOTONE: 0.789
+build-up (Taylor 1909):
+  after    10 clicks: corr 0.166   ideal sampler 0.487 ± 0.139  ok
+  after    50 clicks: corr 0.818   ideal sampler 0.783 ± 0.072  ok
+  after   200 clicks: corr 0.942   ideal sampler 0.929 ± 0.024  ok
+  after  1000 clicks: corr 0.986   ideal sampler 0.984 ± 0.006  ok
+  after  3000 clicks: corr 0.996   ideal sampler 0.995 ± 0.002  ok
+  after  5844 clicks: corr 0.996   ideal sampler 0.997 ± 0.001  ok
+  RESULT Taylor build-up: correlation vs number of clicks: measured N=10: 0.166 (ideal 0.487±0.139); N=50: 0.818 (ideal 0.783±0.072); N=200: 0.942 (ideal 0.929±0.024); N=1000: 0.986 (ideal 0.984±0.006); N=3000: 0.996 (ideal 0.995±0.002); N=5844: 0.996 (ideal 0.997±0.001)  theory ideal sampler  tol within 3σ of the ideal sampler at every N  -> PASS  
+saved C:\Users\valer\Desktop\Programma di simulazione\particle_sim\lab\out\base_double_v2.json
+== double: PASS  [81s]
+wall 82 s
+### base_exp2d.py which
+  RESULT which-path, parallel polarizers: fringe visibility: measured 0.920 ± 0.015  theory 0.907  tol > 0.85  -> PASS  corr with exact 0.9937; 3264 clicks
+  RESULT which-path, orthogonal polarizers: fringe visibility: measured -0.009 ± 0.042  theory 0.029  tol < 0.15  -> PASS  corr with exact 0.9857; 3238 clicks
+saved C:\Users\valer\Desktop\Programma di simulazione\particle_sim\lab\out\base_which_v2.json
+== which: PASS  [102s]
+wall 103 s
+### base_exp2d.py single
+single slit: {'per_fan': 'slit: 16 origins x 16 dir', 'balls_level0': 256, 'balls_all_levels': 65280, 'lmax': 7}
+  RESULT single slit a=4.0: minimum m=1 (mean of ±): measured 104.17 ± 0.52  theory 103.28 = L·tan(asin(mλ/a)) [paraxial mλL/a = 100.0; exact RS 103.28]  tol max(3σ, 2%)  -> PASS  err +0.86%; same estimator on ideal samples of the exact pattern: 103.49 ± 0.41
+  RESULT single slit a=4.0: minimum m=2 (mean of ±): measured 231.49 ± 1.62  theory 230.94 = L·tan(asin(mλ/a)) [paraxial mλL/a = 200.0; exact RS 230.95]  tol max(3σ, 2%)  -> PASS  err +0.24%; same estimator on ideal samples of the exact pattern: 231.07 ± 1.61
+saved C:\Users\valer\Desktop\Programma di simulazione\particle_sim\lab\out\base_single_v2.json
+== single: PASS  [179s]
+wall 180 s
+### base_exp2d.py grating
+grating: {'per_fan': 'grating: 40 origins x 136 dir', 'balls_level0': 5440, 'balls_all_levels': 1387200, 'lmax': 7}
+  RESULT grating N=5, d=8.0: principal maximum m=1 (centroid, mean of ±): measured 25.204 ± 0.011  theory 25.198 = L·tan(asin(mλ/d)) [paraxial 25.00]  tol max(3σ, 1%)  -> PASS  err +0.02%
+  RESULT grating N=5, d=8.0: principal maximum m=2 (centroid, mean of ±): measured 51.612 ± 0.019  theory 51.640 = L·tan(asin(mλ/d)) [paraxial 50.00]  tol max(3σ, 1%)  -> PASS  err -0.05%
+  RESULT grating N=5: secondary maxima between order 0 and ±1: measured 3 (+), 3 (−)  theory 3  tol exact  -> PASS  zeros every λL/(Nd) = 5.0; same counter on 20 ideal samples of the exact pattern: 3.00 (min 3)
+saved C:\Users\valer\Desktop\Programma di simulazione\particle_sim\lab\out\base_grating_v2.json
+== grating: PASS  [97s]
+wall 98 s
+### base_exp2d.py talbot
+talbot: {'per_fan': 'grating: 216 origins x 840 dir', 'balls_level0': 181440, 'balls_all_levels': 46267200, 'lmax': 7}
+  z/zT, contrast clicks, contrast exact: 0.40:0.080/0.082 0.45:0.004/0.004 0.50:0.002/0.002 0.55:0.036/0.033 0.60:0.151/0.148 0.65:0.242/0.246 0.70:0.397/0.399 0.75:0.404/0.397 0.80:0.242/0.235 0.85:0.294/0.283 0.90:0.470/0.459 0.95:0.768/0.768 1.00:0.788/0.787 1.05:0.614/0.609 1.10:0.405/0.391 1.15:0.350/0.337 1.20:0.423/0.411
+  RESULT Talbot self-image: z of best image (clicks): measured 125.4  theory 128.0 = 2d²/λ  [exact RS best plane 125.4]  tol ±2.6  -> PASS  image fraction in the slit windows at best plane 0.824 (open fraction a/d = 0.25; exact 0.825)
+  RESULT Talbot half-distance: the image is shifted by d/2 (contrast minimum near zT/2): measured 61.4  theory 64.0  tol ±2.6  -> PASS  contrast there 0.000
+saved C:\Users\valer\Desktop\Programma di simulazione\particle_sim\lab\out\base_talbot_v2.json
+== talbot: PASS  [228s]
+wall 228 s
+### base_exp2d.py edge
+edge: {'per_fan': 'edge: 210 origins x 210 dir', 'balls_level0': 44100, 'balls_all_levels': 11245500, 'lmax': 7}
+  RESULT Fresnel edge: I(0)/I0 at the geometric shadow edge: measured 0.2610 ± 0.0110  theory 0.25  tol max(3σ, 0.02)  -> PASS  (window |x|<0.25; ideal sampler of the exact pattern, normalised to its own clicks: 0.2564 ± 0.0113)
+  RESULT Fresnel edge: first maximum position: measured 8.438 ± 0.219  theory 8.748 (exact RS, this beam) [plane-wave Fresnel u=1.2172: 8.607]  tol max(3σ, 2%)  -> PASS  ideal sampler of the exact pattern 8.724 ± 0.198
+  RESULT Fresnel edge: first maximum height I/I0 (window ±0.1·sqrt(λL/2)): measured 1.4516 ± 0.0166  theory 1.4465 (exact RS, this beam) [plane-wave Fresnel 1.3615]  tol max(3σ, 0.02)  -> PASS  
+  RESULT Fresnel edge: first minimum position: measured 13.423 ± 0.097  theory 13.347 (exact RS, this beam) [plane-wave Fresnel u=1.8725: 13.241]  tol max(3σ, 2%)  -> PASS  ideal sampler of the exact pattern 13.348 ± 0.115
+  RESULT Fresnel edge: first minimum height I/I0 (window ±0.1·sqrt(λL/2)): measured 0.6637 ± 0.0143  theory 0.6893 (exact RS, this beam) [plane-wave Fresnel 0.7920]  tol max(3σ, 0.02)  -> PASS  
+  RESULT Fresnel edge: second maximum position: measured 16.679 ± 0.137  theory 16.720 (exact RS, this beam) [plane-wave Fresnel u=2.3445: 16.578]  tol max(3σ, 2%)  -> PASS  ideal sampler of the exact pattern 16.783 ± 0.118
+  RESULT Fresnel edge: second maximum height I/I0 (window ±0.1·sqrt(λL/2)): measured 1.3985 ± 0.0273  theory 1.3755 (exact RS, this beam) [plane-wave Fresnel 1.1822]  tol max(3σ, 0.02)  -> PASS  
+saved C:\Users\valer\Desktop\Programma di simulazione\particle_sim\lab\out\base_edge_v2.json
+== edge: PASS  [359s]
+wall 360 s
+### base_exp3d.py free
+free 3-D: {'per_fan': 'source: 3125 origins x 3118 dir', 'balls_level0': 9743750, 'balls_all_levels': 212852218750, 'lmax': 7}
+  RESULT 3-D free beam width at z=1 zR: measured 4.2907  theory 4.2426  tol max(3σ=0.015, 0.02)  -> PASS  err +1.13%  n=9976
+  RESULT 3-D free beam width at z=2 zR: measured 6.7897  theory 6.7082  tol max(3σ=0.015, 0.02)  -> PASS  err +1.22%  n=9976
+  RESULT 3-D free beam width at z=5 zR: measured 15.4909  theory 15.2971  tol max(3σ=0.015, 0.02)  -> PASS  err +1.27%  n=9976
+  RESULT 3-D free beam, same photons: expansion w(1 zR)/w(1λ): measured 1.4154  theory 1.4133  tol ±0.02 rel.  -> PASS  w(1λ) = 3.0315
+  RESULT 3-D free beam, same photons: expansion w(2 zR)/w(1λ): measured 2.2397  theory 2.2347  tol ±0.02 rel.  -> PASS  w(1λ) = 3.0315
+  RESULT 3-D free beam, same photons: expansion w(5 zR)/w(1λ): measured 5.11  theory 5.0958  tol ±0.02 rel.  -> PASS  w(1λ) = 3.0315
+saved C:\Users\valer\Desktop\Programma di simulazione\particle_sim\lab\out\base_free3d_v2.json
+== free: PASS  [362s]
+wall 363 s
+### base_exp3d.py gouy
+gouy: {'per_fan': 'source: 13896 origins x 13893 dir', 'balls_level0': 193057128, 'balls_all_levels': 4217332961160, 'lmax': 7}
+  RESULT Gouy phase on axis, ζ(+zR) − ζ(−zR) (read by a photon ball on the axis): measured 1.5722 rad  theory π/2 = 1.5708 (paraxial); exact RS 1.5707  tol ±0.03  -> PASS  max |ζ − atan(z/zR)| over ±2zR: 0.0476 rad; vs exact RS 1.74e-03
+  RESULT Gouy phase on axis, ζ(+2zR) − ζ(−2zR): measured 2.2080 rad  theory 2·atan(2) = 2.2143  tol ±0.03  -> PASS  
+saved C:\Users\valer\Desktop\Programma di simulazione\particle_sim\lab\out\base_gouy_v2.json
+== gouy: PASS  [4s]
+wall 4 s
+### base_exp3d.py slit3d
+slit3d: {'per_fan': 'slits: 1332 origins x 2671 dir', 'balls_level0': 3557772, 'balls_all_levels': 77719529340, 'lmax': 7}
+  RESULT 3-D long double slit (x-marginal) vs exact 2-D flux: correlation: measured 0.9952  theory 1 (ideal sampler 0.9971±0.0010); 2-D rule: see Young  tol >= 0.98  -> PASS  
+  RESULT 3-D long double slit: bright-fringe error rms / max: measured 3.9% / 6.6%  theory 0 (ideal rms 3.2%)  tol rms <= 8%  -> PASS  per fringe [-3, 1, 1, -7, 5]
+  RESULT 3-D long double slit: absorbed fraction: measured 0.7723  theory 0.7806 (exact 2-D RS)  tol ±0.02  -> PASS  wall 0.7618
+saved C:\Users\valer\Desktop\Programma di simulazione\particle_sim\lab\out\base_slit3d_v2.json
+== slit3d: PASS  [190s]
+wall 192 s
+### base_exp3d.py airy
+airy: {'per_fan': 'aperture: 484 origins x 453 dir', 'balls_level0': 219252, 'balls_all_levels': 4789559940, 'lmax': 7}
+  RESULT Airy disk D=6.0: first zero radius: measured 41.63 ± 0.24  theory 41.52 = L·tan(asin(1.22λ/D)) [paraxial 1.22λL/D = 40.67; exact RS 41.52]  tol max(3σ, 2%)  -> PASS  err +0.26%; same estimator on ideal samples of the exact pattern 41.60 ± 0.22; fraction inside the first zero 0.863 (exact 0.916 within 2.2 r1)
+saved C:\Users\valer\Desktop\Programma di simulazione\particle_sim\lab\out\base_airy_v2.json
+== airy: PASS  [199s]
+wall 200 s
+### base_exp3d.py arago
+arago: {'per_fan': 'disk: 8720 origins x 8993 dir', 'balls_level0': 78418960, 'balls_all_levels': 1713062181200, 'lmax': 7}
+  RESULT Arago spot (disk a=3.0, beam w=5.0, L=12.0): fraction of clicks within r < 0.77: measured 0.0286 ± 0.0017  theory 0.0293 (exact RS)  tol max(3σ, 10%)  -> PASS  271 clicks in the spot; exact I(0)/I_free(0) = 0.444
+  RESULT Arago spot: density in the spot / density in the shadow ring: measured 3.3  theory 4.1 (exact RS)  tol > 3.0  -> PASS  
+saved C:\Users\valer\Desktop\Programma di simulazione\particle_sim\lab\out\base_arago_v2.json
+== arago: PASS  [420s]
+wall 421 s
+### base_exp3d.py malus
+  RESULT Malus (absorbing polarizer, 3-D) θ=0°: P(pass): measured 1.0000  theory 1.0000 = cos²θ  tol max(3σ=0.0020, 0.01)  -> PASS  1497/1497 photons
+  RESULT Malus (absorbing polarizer, 3-D) θ=22.5°: P(pass): measured 0.8554  theory 0.8536 = cos²θ  tol max(3σ=0.0274, 0.01)  -> PASS  1278/1494 photons
+  RESULT Malus (absorbing polarizer, 3-D) θ=45°: P(pass): measured 0.4900  theory 0.5000 = cos²θ  tol max(3σ=0.0388, 0.01)  -> PASS  732/1494 photons
+  RESULT Malus (absorbing polarizer, 3-D) θ=67.5°: P(pass): measured 0.1475  theory 0.1464 = cos²θ  tol max(3σ=0.0275, 0.01)  -> PASS  220/1492 photons
+  RESULT Malus (absorbing polarizer, 3-D) θ=90°: P(pass): measured 0.0000  theory 0.0000 = cos²θ  tol max(3σ=0.0020, 0.01)  -> PASS  0/1488 photons
+saved C:\Users\valer\Desktop\Programma di simulazione\particle_sim\lab\out\base_malus_v2.json
+== malus: PASS  [72s]
+wall 73 s
+### base_exp3d.py three
+  RESULT three polarizers 0/45/90°, light polarized at 0°: P(pass): measured 0.2490  theory 0.2500  tol max(3σ=0.0206, 0.01)  -> PASS  989/3972
+  RESULT two crossed polarizers 0/90° (the middle one removed): P(pass): measured 0.0000  theory 0  tol 0 exactly  -> PASS  0/1987
+  RESULT three polarizers 0/45/90°, unpolarized light: P(pass): measured 0.1239  theory 0.1250  tol max(3σ=0.0157, 0.01)  -> PASS  493/3978 (H: 493/2008, V: 0/1970)
+saved C:\Users\valer\Desktop\Programma di simulazione\particle_sim\lab\out\base_three_v2.json
+== three: PASS  [164s]
+wall 165 s
+### base_mz.py phase 0 90
+MZ: {'per_fan': 'source: 119 origins x 119 dir; BS1: 124 origins x 125 dir; BS1(-): 124 origins x 125 dir; plate A: 69 origins x 69 dir; plate B: 80 origins x 80 dir; plate B(-): 77 origins x 79 dir; M_A(-): 103 origins x 113 dir; M_B: 144 origins x 145 dir; M_B(-): 144 origins x 145 dir; BS2: 144 origins x 145 dir; BS2(-): 144 origins x 145 dir', 'balls_level0': 157564, 'balls_all_levels': 40178820, 'lmax': 7}
+  φ=0.000: C 0  D 1493  of 1498 (lost at mirrors 4; {'click': 1493, 'absorbed (opaque part)': 4, 'step limit': 1, 'source coin': 2}) [187s]
+  RESULT Mach–Zehnder φ=0°: P(D): measured 0.9967  theory 1.0000  tol max(3σ=0.0020, 0.02)  -> PASS  1493/1498 (C: 0)
+  φ=1.571: C 742  D 748  of 1498 (lost at mirrors 7; {'click': 1490, 'absorbed (opaque part)': 7, 'step limit': 1, 'source coin': 2}) [98s]
+  RESULT Mach–Zehnder φ=90°: P(D): measured 0.4993  theory 0.5000  tol max(3σ=0.0388, 0.02)  -> PASS  748/1498 (C: 742)
+saved C:\Users\valer\Desktop\Programma di simulazione\particle_sim\lab\out\base_mz_phase_0_90_v2.json
+== phase ['0', '90']: PASS  [285s]
+wall 286 s
+### base_mz.py phase 180 270
+MZ: {'per_fan': 'source: 119 origins x 119 dir; BS1: 124 origins x 125 dir; BS1(-): 124 origins x 125 dir; plate A: 69 origins x 69 dir; plate B: 80 origins x 80 dir; plate B(-): 77 origins x 79 dir; M_A(-): 103 origins x 113 dir; M_B: 144 origins x 145 dir; M_B(-): 144 origins x 145 dir; BS2: 144 origins x 145 dir; BS2(-): 144 origins x 145 dir', 'balls_level0': 157564, 'balls_all_levels': 40178820, 'lmax': 7}
+  φ=3.142: C 1488  D 0  of 1492 (lost at mirrors 3; {'click': 1488, 'absorbed (opaque part)': 3, 'step limit': 1, 'source coin': 8}) [111s]
+  RESULT Mach–Zehnder φ=180°: P(D): measured 0.0000  theory 0.0000  tol max(3σ=0.0020, 0.02)  -> PASS  0/1492 (C: 1488)
+  φ=4.712: C 736  D 756  of 1499 (lost at mirrors 6; {'click': 1492, 'absorbed (opaque part)': 6, 'step limit': 1, 'source coin': 1}) [153s]
+  RESULT Mach–Zehnder φ=270°: P(D): measured 0.5043  theory 0.5000  tol max(3σ=0.0387, 0.02)  -> PASS  756/1499 (C: 736)
+saved C:\Users\valer\Desktop\Programma di simulazione\particle_sim\lab\out\base_mz_phase_180_270_v2.json
+== phase ['180', '270']: PASS  [264s]
+wall 265 s
+### base_mz.py bomb
+bomb: {'per_fan': 'source: 119 origins x 119 dir; BS1: 124 origins x 125 dir; BS1(-): 124 origins x 125 dir; plate A: 69 origins x 69 dir; plate B: 80 origins x 80 dir; plate B(-): 77 origins x 79 dir; M_A(-): 103 origins x 113 dir; M_B: 110 origins x 145 dir; M_B(-): 139 origins x 145 dir; BS2: 144 origins x 145 dir; BS2(-): 144 origins x 145 dir', 'balls_level0': 151909, 'balls_all_levels': 38736795, 'lmax': 7}
+  explode 1524, C 701, D 770 of 2995; lost at mirrors 0; {'click': 1471, 'absorbed (opaque part)': 1524, 'source coin': 5}
+  RESULT bomb tester: P(explosion): measured 0.5088  theory 0.5000  tol max(3σ=0.0274, 0.02)  -> PASS  1524/2995 
+  RESULT bomb tester: P(C) = bomb detected without interaction (dark port): measured 0.2341  theory 0.2500  tol max(3σ=0.0237, 0.02)  -> PASS  701/2995 
+  RESULT bomb tester: P(D): measured 0.2571  theory 0.2500  tol max(3σ=0.0237, 0.02)  -> PASS  770/2995 
+  RESULT same interferometer without bomb: P(C) (dark port): measured 0.0000  theory 0.0000  tol max(3σ=0.0030, 0.02)  -> PASS  0/999 
+saved C:\Users\valer\Desktop\Programma di simulazione\particle_sim\lab\out\base_bomb_v2.json
+== bomb: PASS  [145s]
+wall 146 s
+### base_mz.py wheeler
+  BS2 inserted after the photon passed BS1: C 0, D 743 of 747; lost at mirrors 3; {'click': 743, 'absorbed (opaque part)': 3, 'step limit': 1, 'source coin': 1} [147s]
+  RESULT Wheeler, BS2 inserted after the photon passed BS1: P(D): measured 0.9946  theory 1.0000  tol max(3σ=0.0040, 0.02)  -> PASS  743/747 (C: 0) — QM with BS2 present: cos²(0) = 1
+  BS2 removed after the photon passed BS1: C 368, D 379 of 750; lost at mirrors 3; {'click': 747, 'absorbed (opaque part)': 3, 'source coin': 2} [24s]
+  RESULT Wheeler, BS2 removed after the photon passed BS1: P(D): measured 0.5053  theory 0.5000  tol max(3σ=0.0548, 0.02)  -> PASS  379/750 (C: 368) — QM with BS2 absent: 1/2
+  RESULT Wheeler, BS2 removed after the photon passed BS1: fraction of photons whose detector is the straight continuation of their arm (C⇔A, D⇔B): measured 0.0000  theory 0.0000  tol max(3σ=0.0040, 0.02)  -> PASS  0/747 — dBB prediction 0 (no crossing of trajectories); QM: no prediction
+saved C:\Users\valer\Desktop\Programma di simulazione\particle_sim\lab\out\base_wheeler_v2.json
+== wheeler: PASS  [172s]
+wall 173 s

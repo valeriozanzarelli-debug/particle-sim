@@ -1,0 +1,79 @@
+{
+ "rule": {
+  "version": "v2",
+  "eta": 2.0,
+  "eps": 0.001,
+  "delta": 0.02,
+  "atol": 0.0001,
+  "hmax": 2.0,
+  "hmin": 1e-06,
+  "edge_zone": 0.5
+ },
+ "derived": {
+  "r0": 1.0994033983191416,
+  "ds0": 0.25,
+  "lmax": 7,
+  "sds": 0.0625,
+  "dtouch": 0.005
+ },
+ "meta": [
+  {
+   "phi": 3.141592653589793,
+   "photons": 1500,
+   "clicks": 1488,
+   "counts": {
+    "click": 1488,
+    "absorbed (opaque part)": 3,
+    "absorbed (local coin)": 0,
+    "left the lab": 0,
+    "step limit": 1,
+    "source coin": 8
+   },
+   "runtime": 110.83574533462524,
+   "balls": {
+    "per_fan": "source: 119 origins x 119 dir; BS1: 124 origins x 125 dir; BS1(-): 124 origins x 125 dir; plate A: 69 origins x 69 dir; plate B: 80 origins x 80 dir; plate B(-): 77 origins x 79 dir; M_A(-): 103 origins x 113 dir; M_B: 144 origins x 145 dir; M_B(-): 144 origins x 145 dir; BS2: 144 origins x 145 dir; BS2(-): 144 origins x 145 dir",
+    "balls_level0": 157564,
+    "balls_all_levels": 40178820,
+    "lmax": 7
+   }
+  },
+  {
+   "phi": 4.71238898038469,
+   "photons": 1500,
+   "clicks": 1492,
+   "counts": {
+    "click": 1492,
+    "absorbed (opaque part)": 6,
+    "absorbed (local coin)": 0,
+    "left the lab": 0,
+    "step limit": 1,
+    "source coin": 1
+   },
+   "runtime": 153.0860891342163,
+   "balls": {
+    "per_fan": "source: 119 origins x 119 dir; BS1: 124 origins x 125 dir; BS1(-): 124 origins x 125 dir; plate A: 69 origins x 69 dir; plate B: 80 origins x 80 dir; plate B(-): 77 origins x 79 dir; M_A(-): 103 origins x 113 dir; M_B: 144 origins x 145 dir; M_B(-): 144 origins x 145 dir; BS2: 144 origins x 145 dir; BS2(-): 144 origins x 145 dir",
+    "balls_level0": 157564,
+    "balls_all_levels": 40178820,
+    "lmax": 7
+   }
+  }
+ ],
+ "rows": [
+  {
+   "name": "Mach\u2013Zehnder \u03c6=180\u00b0: P(D)",
+   "measured": "0.0000",
+   "theory": "0.0000",
+   "tol": "max(3\u03c3=0.0020, 0.02)",
+   "ok": true,
+   "extra": "0/1492 (C: 1488)"
+  },
+  {
+   "name": "Mach\u2013Zehnder \u03c6=270\u00b0: P(D)",
+   "measured": "0.5043",
+   "theory": "0.5000",
+   "tol": "max(3\u03c3=0.0387, 0.02)",
+   "ok": true,
+   "extra": "756/1499 (C: 736)"
+  }
+ ]
+}

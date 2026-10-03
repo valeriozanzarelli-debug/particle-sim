@@ -1,0 +1,96 @@
+{
+ "rule": {
+  "version": "v2",
+  "eta": 2.0,
+  "eps": 0.001,
+  "delta": 0.02,
+  "atol": 0.0001,
+  "hmax": 2.0,
+  "hmin": 1e-06,
+  "edge_zone": 0.5
+ },
+ "derived": {
+  "r0": 1.0994033983191416,
+  "ds0": 0.25,
+  "lmax": 7,
+  "sds": 0.0625,
+  "dtouch": 0.005
+ },
+ "meta": {
+  "photons": 59724,
+  "clicks": 59255,
+  "counts": {
+   "click": 59255,
+   "absorbed (opaque part)": 0,
+   "absorbed (local coin)": 0,
+   "left the lab": 0,
+   "step limit": 0,
+   "source coin": 469
+  },
+  "balls": {
+   "per_fan": "edge: 210 origins x 210 dir",
+   "balls_level0": 44100,
+   "balls_all_levels": 11245500,
+   "lmax": 7
+  },
+  "runtime": 176.28414583206177
+ },
+ "rows": [
+  {
+   "name": "Fresnel edge: I(0)/I0 at the geometric shadow edge",
+   "measured": "0.2610 \u00b1 0.0110",
+   "theory": 0.25,
+   "tol": "max(3\u03c3, 0.02)",
+   "ok": true,
+   "extra": "(window |x|<0.25; ideal sampler of the exact pattern, normalised to its own clicks: 0.2564 \u00b1 0.0113)"
+  },
+  {
+   "name": "Fresnel edge: first maximum position",
+   "measured": "8.438 \u00b1 0.219",
+   "theory": "8.748 (exact RS, this beam) [plane-wave Fresnel u=1.2172: 8.607]",
+   "tol": "max(3\u03c3, 2%)",
+   "ok": true,
+   "extra": "ideal sampler of the exact pattern 8.724 \u00b1 0.198"
+  },
+  {
+   "name": "Fresnel edge: first maximum height I/I0 (window \u00b10.1\u00b7sqrt(\u03bbL/2))",
+   "measured": "1.4516 \u00b1 0.0166",
+   "theory": "1.4465 (exact RS, this beam) [plane-wave Fresnel 1.3615]",
+   "tol": "max(3\u03c3, 0.02)",
+   "ok": true,
+   "extra": ""
+  },
+  {
+   "name": "Fresnel edge: first minimum position",
+   "measured": "13.423 \u00b1 0.097",
+   "theory": "13.347 (exact RS, this beam) [plane-wave Fresnel u=1.8725: 13.241]",
+   "tol": "max(3\u03c3, 2%)",
+   "ok": true,
+   "extra": "ideal sampler of the exact pattern 13.348 \u00b1 0.115"
+  },
+  {
+   "name": "Fresnel edge: first minimum height I/I0 (window \u00b10.1\u00b7sqrt(\u03bbL/2))",
+   "measured": "0.6637 \u00b1 0.0143",
+   "theory": "0.6893 (exact RS, this beam) [plane-wave Fresnel 0.7920]",
+   "tol": "max(3\u03c3, 0.02)",
+   "ok": true,
+   "extra": ""
+  },
+  {
+   "name": "Fresnel edge: second maximum position",
+   "measured": "16.679 \u00b1 0.137",
+   "theory": "16.720 (exact RS, this beam) [plane-wave Fresnel u=2.3445: 16.578]",
+   "tol": "max(3\u03c3, 2%)",
+   "ok": true,
+   "extra": "ideal sampler of the exact pattern 16.783 \u00b1 0.118"
+  },
+  {
+   "name": "Fresnel edge: second maximum height I/I0 (window \u00b10.1\u00b7sqrt(\u03bbL/2))",
+   "measured": "1.3985 \u00b1 0.0273",
+   "theory": "1.3755 (exact RS, this beam) [plane-wave Fresnel 1.1822]",
+   "tol": "max(3\u03c3, 0.02)",
+   "ok": true,
+   "extra": ""
+  }
+ ]
+}

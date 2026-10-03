@@ -1,0 +1,95 @@
+{
+ "rule": {
+  "version": "v1",
+  "eta": 2.0,
+  "eps": 0.001,
+  "delta": 0.02,
+  "atol": 0.0001,
+  "hmax": 2.0,
+  "hmin": 1e-06
+ },
+ "derived": {
+  "r0": 1.0994033983191416,
+  "ds0": 0.25,
+  "lmax": 7,
+  "sds": 0.0625,
+  "dtouch": 0.005
+ },
+ "meta": {
+  "photons": 60000,
+  "clicks": 59504,
+  "counts": {
+   "click": 59504,
+   "absorbed (opaque part)": 0,
+   "absorbed (local coin)": 0,
+   "left the lab": 0,
+   "step limit": 0,
+   "source coin": 496
+  },
+  "balls": {
+   "per_fan": "edge: 210 origins x 210 dir",
+   "balls_level0": 44100,
+   "balls_all_levels": 11245500,
+   "lmax": 7
+  },
+  "runtime": 168.01454949378967
+ },
+ "rows": [
+  {
+   "name": "Fresnel edge: I(0)/I0 at the geometric shadow edge",
+   "measured": "0.2628 \u00b1 0.0110",
+   "theory": 0.25,
+   "tol": "max(3\u03c3, 0.02)",
+   "ok": true,
+   "extra": "(window |x|<0.25; ideal sampler of the exact pattern, normalised to its own clicks: 0.2566 \u00b1 0.0113)"
+  },
+  {
+   "name": "Fresnel edge: first maximum position",
+   "measured": "8.550 \u00b1 0.232",
+   "theory": "8.607 (u=1.2172)",
+   "tol": "max(3\u03c3, 2%)",
+   "ok": true,
+   "extra": "ideal sampler of the exact pattern 8.725 \u00b1 0.197"
+  },
+  {
+   "name": "Fresnel edge: first maximum height I/I0 (window \u00b10.1\u00b7sqrt(\u03bbL/2))",
+   "measured": "1.4544 \u00b1 0.0163",
+   "theory": "1.3615",
+   "tol": "max(3\u03c3, 0.02)",
+   "ok": false,
+   "extra": ""
+  },
+  {
+   "name": "Fresnel edge: first minimum position",
+   "measured": "13.403 \u00b1 0.098",
+   "theory": "13.241 (u=1.8725)",
+   "tol": "max(3\u03c3, 2%)",
+   "ok": true,
+   "extra": "ideal sampler of the exact pattern 13.347 \u00b1 0.115"
+  },
+  {
+   "name": "Fresnel edge: first minimum height I/I0 (window \u00b10.1\u00b7sqrt(\u03bbL/2))",
+   "measured": "0.6702 \u00b1 0.0139",
+   "theory": "0.7920",
+   "tol": "max(3\u03c3, 0.02)",
+   "ok": false,
+   "extra": ""
+  },
+  {
+   "name": "Fresnel edge: second maximum position",
+   "measured": "16.794 \u00b1 0.128",
+   "theory": "16.578 (u=2.3445)",
+   "tol": "max(3\u03c3, 2%)",
+   "ok": true,
+   "extra": "ideal sampler of the exact pattern 16.784 \u00b1 0.119"
+  },
+  {
+   "name": "Fresnel edge: second maximum height I/I0 (window \u00b10.1\u00b7sqrt(\u03bbL/2))",
+   "measured": "1.4002 \u00b1 0.0279",
+   "theory": "1.1822",
+   "tol": "max(3\u03c3, 0.02)",
+   "ok": false,
+   "extra": ""
+  }
+ ]
+}

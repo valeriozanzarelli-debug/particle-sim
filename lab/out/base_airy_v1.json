@@ -1,0 +1,48 @@
+{
+ "rule": {
+  "version": "v1",
+  "eta": 2.0,
+  "eps": 0.001,
+  "delta": 0.02,
+  "atol": 0.0001,
+  "hmax": 2.0,
+  "hmin": 1e-06
+ },
+ "derived": {
+  "r0": 1.0994033983191416,
+  "ds0": 0.25,
+  "lmax": 7,
+  "sds": 0.0625,
+  "dtouch": 0.005
+ },
+ "meta": {
+  "photons": 9952,
+  "clicks": 9459,
+  "counts": {
+   "click": 9459,
+   "absorbed (opaque part)": 0,
+   "absorbed (local coin)": 0,
+   "left the lab": 0,
+   "step limit": 0,
+   "source coin": 493
+  },
+  "balls": {
+   "per_fan": "aperture: 484 origins x 453 dir",
+   "balls_level0": 219252,
+   "balls_all_levels": 4789559940,
+   "lmax": 7
+  },
+  "runtime": 80.0120747089386,
+  "wall_fraction": 0.2152777777777778
+ },
+ "rows": [
+  {
+   "name": "Airy disk D=6.0: first zero radius",
+   "measured": "41.76 \u00b1 0.23",
+   "theory": "41.52 = L\u00b7tan(asin(1.22\u03bb/D)) [paraxial 1.22\u03bbL/D = 40.67; exact RS 41.52]",
+   "tol": "max(3\u03c3, 2%)",
+   "ok": true,
+   "extra": "err +0.56%; same estimator on ideal samples of the exact pattern 41.60 \u00b1 0.22; fraction inside the first zero 0.879 (exact 0.916 within 2.2 r1)"
+  }
+ ]
+}

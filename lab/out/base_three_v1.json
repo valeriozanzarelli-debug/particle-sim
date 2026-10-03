@@ -1,0 +1,109 @@
+{
+ "rule": {
+  "version": "v1",
+  "eta": 2.0,
+  "eps": 0.001,
+  "delta": 0.02,
+  "atol": 0.0001,
+  "hmax": 2.0,
+  "hmin": 1e-06
+ },
+ "derived": {
+  "r0": 1.0994033983191416,
+  "ds0": 0.25,
+  "lmax": 7,
+  "sds": 0.0625,
+  "dtouch": 0.005
+ },
+ "meta": {
+  "runs": [
+   {
+    "photons": 4000,
+    "clicks": 989,
+    "counts": {
+     "click": 989,
+     "absorbed (opaque part)": 0,
+     "absorbed (local coin)": 2983,
+     "left the lab": 0,
+     "step limit": 0,
+     "source coin": 28
+    },
+    "balls": {
+     "per_fan": "source: 1389 origins x 1453 dir; polarizer 0.0\u00b0: 1648 origins x 1662 dir; polarizer 45.0\u00b0: 2313 origins x 2376 dir; polarizer 90.0\u00b0: 3520 origins x 3422 dir",
+     "balls_level0": 22298321,
+     "balls_all_levels": 487106822245,
+     "lmax": 7
+    },
+    "runtime": 56.91556406021118,
+    "wall_fraction": 0.0
+   },
+   {
+    "photons": 2019,
+    "clicks": 493,
+    "counts": {
+     "click": 493,
+     "absorbed (opaque part)": 0,
+     "absorbed (local coin)": 1515,
+     "left the lab": 0,
+     "step limit": 0,
+     "source coin": 11
+    },
+    "balls": {
+     "per_fan": "source: 1389 origins x 1453 dir; polarizer 0.0\u00b0: 1648 origins x 1662 dir; polarizer 45.0\u00b0: 2313 origins x 2376 dir; polarizer 90.0\u00b0: 3520 origins x 3422 dir",
+     "balls_level0": 22298321,
+     "balls_all_levels": 487106822245,
+     "lmax": 7
+    },
+    "runtime": 33.799243450164795,
+    "wall_fraction": 0.0
+   },
+   {
+    "photons": 1981,
+    "clicks": 0,
+    "counts": {
+     "click": 0,
+     "absorbed (opaque part)": 0,
+     "absorbed (local coin)": 1970,
+     "left the lab": 0,
+     "step limit": 0,
+     "source coin": 11
+    },
+    "balls": {
+     "per_fan": "source: 1389 origins x 1453 dir; polarizer 45.0\u00b0: 2252 origins x 2291 dir; polarizer 90.0\u00b0: 3529 origins x 3526 dir",
+     "balls_level0": 19620803,
+     "balls_all_levels": 428616441535,
+     "lmax": 7
+    },
+    "runtime": 12.936531782150269,
+    "wall_fraction": 0.0
+   }
+  ],
+  "runtime": 125.61464357376099
+ },
+ "rows": [
+  {
+   "name": "three polarizers 0/45/90\u00b0, light polarized at 0\u00b0: P(pass)",
+   "measured": "0.2490",
+   "theory": "0.2500",
+   "tol": "max(3\u03c3=0.0206, 0.01)",
+   "ok": true,
+   "extra": "989/3972"
+  },
+  {
+   "name": "two crossed polarizers 0/90\u00b0 (the middle one removed): P(pass)",
+   "measured": "0.0000",
+   "theory": "0",
+   "tol": "0 exactly",
+   "ok": true,
+   "extra": "0/1987"
+  },
+  {
+   "name": "three polarizers 0/45/90\u00b0, unpolarized light: P(pass)",
+   "measured": "0.1239",
+   "theory": "0.1250",
+   "tol": "max(3\u03c3=0.0157, 0.01)",
+   "ok": true,
+   "extra": "493/3978 (H: 493/2008, V: 0/1970)"
+  }
+ ]
+}

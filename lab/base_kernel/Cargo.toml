@@ -1,0 +1,14 @@
+[package]
+name = "base_kernel"
+version = "0.1.0"
+edition = "2021"
+description = "Field sums of the base photon rule (lab/base_rule.py): the same arithmetic as the numpy reference, multithreaded."
+
+[lib]
+crate-type = ["cdylib"]
+path = "src/lib.rs"
+
+[profile.release]
+opt-level = 3
+codegen-units = 1
+lto = true

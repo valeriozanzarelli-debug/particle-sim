@@ -1,0 +1,85 @@
+{
+ "rule": {
+  "version": "v2",
+  "eta": 2.0,
+  "eps": 0.001,
+  "delta": 0.02,
+  "atol": 0.0001,
+  "hmax": 2.0,
+  "hmin": 1e-06,
+  "edge_zone": 0.5
+ },
+ "derived": {
+  "r0": 1.0994033983191416,
+  "ds0": 0.25,
+  "lmax": 7,
+  "sds": 0.0625,
+  "dtouch": 0.005
+ },
+ "meta": [
+  {
+   "mode": "inserted after the photon passed BS1",
+   "photons": 748,
+   "counts": {
+    "click": 743,
+    "absorbed (opaque part)": 3,
+    "absorbed (local coin)": 0,
+    "left the lab": 0,
+    "step limit": 1,
+    "source coin": 1
+   },
+   "balls": {
+    "per_fan": "source: 119 origins x 119 dir; BS1: 124 origins x 125 dir; BS1(-): 124 origins x 125 dir; plate A: 69 origins x 69 dir; plate B: 80 origins x 80 dir; plate B(-): 77 origins x 79 dir; M_A(-): 103 origins x 113 dir; M_B: 144 origins x 145 dir; M_B(-): 144 origins x 145 dir; BS2: 144 origins x 145 dir; BS2(-): 144 origins x 145 dir",
+    "balls_level0": 157564,
+    "balls_all_levels": 40178820,
+    "lmax": 7
+   },
+   "runtime": 185.82013082504272
+  },
+  {
+   "mode": "removed after the photon passed BS1",
+   "photons": 752,
+   "counts": {
+    "click": 747,
+    "absorbed (opaque part)": 3,
+    "absorbed (local coin)": 0,
+    "left the lab": 0,
+    "step limit": 0,
+    "source coin": 2
+   },
+   "balls": {
+    "per_fan": "source: 119 origins x 119 dir; BS1: 124 origins x 125 dir; BS1(-): 124 origins x 125 dir; plate A: 69 origins x 69 dir; plate B: 80 origins x 80 dir; plate B(-): 77 origins x 79 dir; M_A(-): 103 origins x 113 dir; M_B: 144 origins x 145 dir; M_B(-): 144 origins x 145 dir; BS2: 144 origins x 145 dir; BS2(-): 144 origins x 145 dir",
+    "balls_level0": 157564,
+    "balls_all_levels": 40178820,
+    "lmax": 7
+   },
+   "runtime": 32.4848735332489
+  }
+ ],
+ "rows": [
+  {
+   "name": "Wheeler, BS2 inserted after the photon passed BS1: P(D)",
+   "measured": "0.9946",
+   "theory": "1.0000",
+   "tol": "max(3\u03c3=0.0040, 0.02)",
+   "ok": true,
+   "extra": "743/747 (C: 0) \u2014 QM with BS2 present: cos\u00b2(0) = 1"
+  },
+  {
+   "name": "Wheeler, BS2 removed after the photon passed BS1: P(D)",
+   "measured": "0.5053",
+   "theory": "0.5000",
+   "tol": "max(3\u03c3=0.0548, 0.02)",
+   "ok": true,
+   "extra": "379/750 (C: 368) \u2014 QM with BS2 absent: 1/2"
+  },
+  {
+   "name": "Wheeler, BS2 removed after the photon passed BS1: fraction of photons whose detector is the straight continuation of their arm (C\u21d4A, D\u21d4B)",
+   "measured": "0.0000",
+   "theory": "0.0000",
+   "tol": "max(3\u03c3=0.0040, 0.02)",
+   "ok": true,
+   "extra": "0/747 \u2014 dBB prediction 0 (no crossing of trajectories); QM: no prediction"
+  }
+ ]
+}

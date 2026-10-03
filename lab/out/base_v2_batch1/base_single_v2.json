@@ -1,0 +1,56 @@
+{
+ "rule": {
+  "version": "v2",
+  "eta": 2.0,
+  "eps": 0.001,
+  "delta": 0.02,
+  "atol": 0.0001,
+  "hmax": 2.0,
+  "hmin": 1e-06,
+  "edge_zone": 0.5
+ },
+ "derived": {
+  "r0": 1.0994033983191416,
+  "ds0": 0.25,
+  "lmax": 7,
+  "sds": 0.0625,
+  "dtouch": 0.005
+ },
+ "meta": {
+  "photons": 58172,
+  "clicks": 55197,
+  "counts": {
+   "click": 55197,
+   "absorbed (opaque part)": 0,
+   "absorbed (local coin)": 0,
+   "left the lab": 195,
+   "step limit": 0,
+   "source coin": 2780
+  },
+  "balls": {
+   "per_fan": "slit: 16 origins x 16 dir",
+   "balls_level0": 256,
+   "balls_all_levels": 65280,
+   "lmax": 7
+  },
+  "runtime": 114.57931542396545
+ },
+ "rows": [
+  {
+   "name": "single slit a=4.0: minimum m=1 (mean of \u00b1)",
+   "measured": "104.17 \u00b1 0.52",
+   "theory": "103.28 = L\u00b7tan(asin(m\u03bb/a)) [paraxial m\u03bbL/a = 100.0; exact RS 103.28]",
+   "tol": "max(3\u03c3, 2%)",
+   "ok": true,
+   "extra": "err +0.86%; same estimator on ideal samples of the exact pattern: 103.49 \u00b1 0.41"
+  },
+  {
+   "name": "single slit a=4.0: minimum m=2 (mean of \u00b1)",
+   "measured": "231.49 \u00b1 1.62",
+   "theory": "230.94 = L\u00b7tan(asin(m\u03bb/a)) [paraxial m\u03bbL/a = 200.0; exact RS 230.95]",
+   "tol": "max(3\u03c3, 2%)",
+   "ok": true,
+   "extra": "err +0.24%; same estimator on ideal samples of the exact pattern: 231.07 \u00b1 1.61"
+  }
+ ]
+}

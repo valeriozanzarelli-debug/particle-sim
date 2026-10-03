@@ -1,0 +1,48 @@
+{
+ "rule": {
+  "version": "v1",
+  "eta": 2.0,
+  "eps": 0.001,
+  "delta": 0.02,
+  "atol": 0.0001,
+  "hmax": 2.0,
+  "hmin": 1e-06
+ },
+ "derived": {
+  "r0": 1.0994033983191416,
+  "ds0": 0.25,
+  "lmax": 7,
+  "sds": 0.0625,
+  "dtouch": 0.005
+ },
+ "meta": {
+  "photons": 0,
+  "clicks": 0,
+  "balls": {
+   "per_fan": "source: 13896 origins x 13893 dir",
+   "balls_level0": 193057128,
+   "balls_all_levels": 4217332961160,
+   "lmax": 7
+  },
+  "runtime": 2.8211350440979004,
+  "note": "wave-ball field read on the axis; no photons needed"
+ },
+ "rows": [
+  {
+   "name": "Gouy phase on axis, \u03b6(+zR) \u2212 \u03b6(\u2212zR) (read by a photon ball on the axis)",
+   "measured": "1.5722 rad",
+   "theory": "\u03c0/2 = 1.5708 (paraxial); exact RS 1.5707",
+   "tol": "\u00b10.03",
+   "ok": true,
+   "extra": "max |\u03b6 \u2212 atan(z/zR)| over \u00b12zR: 0.0476 rad; vs exact RS 1.74e-03"
+  },
+  {
+   "name": "Gouy phase on axis, \u03b6(+2zR) \u2212 \u03b6(\u22122zR)",
+   "measured": "2.2080 rad",
+   "theory": "2\u00b7atan(2) = 2.2143",
+   "tol": "\u00b10.03",
+   "ok": true,
+   "extra": ""
+  }
+ ]
+}

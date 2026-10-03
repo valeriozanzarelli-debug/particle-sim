@@ -1,0 +1,71 @@
+{
+ "rule": {
+  "version": "v2",
+  "eta": 2.0,
+  "eps": 0.001,
+  "delta": 0.02,
+  "atol": 0.0001,
+  "hmax": 2.0,
+  "hmin": 1e-06,
+  "edge_zone": 0.5
+ },
+ "derived": {
+  "r0": 1.0994033983191416,
+  "ds0": 0.25,
+  "lmax": 7,
+  "sds": 0.0625,
+  "dtouch": 0.005
+ },
+ "meta": {
+  "photons": 3000,
+  "counts": {
+   "click": 1471,
+   "absorbed (opaque part)": 1524,
+   "absorbed (local coin)": 0,
+   "left the lab": 0,
+   "step limit": 0,
+   "source coin": 5
+  },
+  "balls": {
+   "per_fan": "source: 119 origins x 119 dir; BS1: 124 origins x 125 dir; BS1(-): 124 origins x 125 dir; plate A: 69 origins x 69 dir; plate B: 80 origins x 80 dir; plate B(-): 77 origins x 79 dir; M_A(-): 103 origins x 113 dir; M_B: 110 origins x 145 dir; M_B(-): 139 origins x 145 dir; BS2: 144 origins x 145 dir; BS2(-): 144 origins x 145 dir",
+   "balls_level0": 151909,
+   "balls_all_levels": 38736795,
+   "lmax": 7
+  },
+  "runtime": 138.7445101737976
+ },
+ "rows": [
+  {
+   "name": "bomb tester: P(explosion)",
+   "measured": "0.5088",
+   "theory": "0.5000",
+   "tol": "max(3\u03c3=0.0274, 0.02)",
+   "ok": true,
+   "extra": "1524/2995 "
+  },
+  {
+   "name": "bomb tester: P(C) = bomb detected without interaction (dark port)",
+   "measured": "0.2341",
+   "theory": "0.2500",
+   "tol": "max(3\u03c3=0.0237, 0.02)",
+   "ok": true,
+   "extra": "701/2995 "
+  },
+  {
+   "name": "bomb tester: P(D)",
+   "measured": "0.2571",
+   "theory": "0.2500",
+   "tol": "max(3\u03c3=0.0237, 0.02)",
+   "ok": true,
+   "extra": "770/2995 "
+  },
+  {
+   "name": "same interferometer without bomb: P(C) (dark port)",
+   "measured": "0.0000",
+   "theory": "0.0000",
+   "tol": "max(3\u03c3=0.0030, 0.02)",
+   "ok": true,
+   "extra": "0/999 "
+  }
+ ]
+}

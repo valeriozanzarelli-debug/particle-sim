@@ -1,0 +1,77 @@
+{
+ "rule": {
+  "version": "v2",
+  "eta": 2.0,
+  "eps": 0.001,
+  "delta": 0.02,
+  "atol": 0.0001,
+  "hmax": 2.0,
+  "hmin": 1e-06,
+  "edge_zone": 0.5
+ },
+ "derived": {
+  "r0": 1.0994033983191416,
+  "ds0": 0.25,
+  "lmax": 7,
+  "sds": 0.0625,
+  "dtouch": 0.005
+ },
+ "meta": {
+  "ideal": [
+   0.9937212362612634,
+   0.002372193184420725,
+   0.04820318798925807,
+   0.08138822074697934
+  ]
+ },
+ "rows": [
+  {
+   "eta": 1.0,
+   "clicks": 2584,
+   "corr": 0.9912499450896921,
+   "chi2": 1.389986932457039,
+   "rms": 0.10673012504487613,
+   "max": 0.2312371815377665,
+   "absorbed": 0.7846666666666666,
+   "balls": {
+    "per_fan": "source: 74 origins x 74 dir; wall: 8 origins x 20 dir",
+    "balls_level0": 5636,
+    "balls_all_levels": 1437180,
+    "lmax": 7
+   },
+   "runtime": 9.9796781539917
+  },
+  {
+   "eta": 2.0,
+   "clicks": 2571,
+   "corr": 0.9949078469113999,
+   "chi2": 0.957229065136672,
+   "rms": 0.06628089906619151,
+   "max": 0.13090408286227173,
+   "absorbed": 0.78575,
+   "balls": {
+    "per_fan": "source: 147 origins x 147 dir; wall: 16 origins x 40 dir",
+    "balls_level0": 22249,
+    "balls_all_levels": 5673495,
+    "lmax": 7
+   },
+   "runtime": 15.472388982772827
+  },
+  {
+   "eta": 4.0,
+   "clicks": 2574,
+   "corr": 0.991931005177757,
+   "chi2": 1.3124120783884097,
+   "rms": 0.06597533110954729,
+   "max": 0.1170059008777895,
+   "absorbed": 0.7855,
+   "balls": {
+    "per_fan": "source: 295 origins x 295 dir; wall: 32 origins x 80 dir",
+    "balls_level0": 89585,
+    "balls_all_levels": 22844175,
+    "lmax": 7
+   },
+   "runtime": 25.782816410064697
+  }
+ ]
+}

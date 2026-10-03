@@ -1,0 +1,64 @@
+{
+ "rule": {
+  "version": "v1",
+  "eta": 2.0,
+  "eps": 0.001,
+  "delta": 0.02,
+  "atol": 0.0001,
+  "hmax": 2.0,
+  "hmin": 1e-06
+ },
+ "derived": {
+  "r0": 1.0994033983191416,
+  "ds0": 0.25,
+  "lmax": 7,
+  "sds": 0.0625,
+  "dtouch": 0.005
+ },
+ "meta": {
+  "photons": 4000,
+  "clicks": 3987,
+  "counts": {
+   "click": 3987,
+   "absorbed (opaque part)": 0,
+   "absorbed (local coin)": 0,
+   "left the lab": 0,
+   "step limit": 0,
+   "source coin": 13
+  },
+  "balls": {
+   "per_fan": "source: 3125 origins x 3118 dir",
+   "balls_level0": 9743750,
+   "balls_all_levels": 212852218750,
+   "lmax": 7
+  },
+  "runtime": 103.44144368171692,
+  "wall_fraction": 0.0
+ },
+ "rows": [
+  {
+   "name": "3-D free beam width at z=1 zR",
+   "measured": 4.3402,
+   "theory": 4.2426,
+   "tol": "max(3\u03c3=0.024, 0.02)",
+   "ok": true,
+   "extra": "err +2.30%  n=3987"
+  },
+  {
+   "name": "3-D free beam width at z=2 zR",
+   "measured": 6.8684,
+   "theory": 6.7082,
+   "tol": "max(3\u03c3=0.024, 0.02)",
+   "ok": false,
+   "extra": "err +2.39%  n=3987"
+  },
+  {
+   "name": "3-D free beam width at z=5 zR",
+   "measured": 15.6709,
+   "theory": 15.2971,
+   "tol": "max(3\u03c3=0.024, 0.02)",
+   "ok": false,
+   "extra": "err +2.44%  n=3987"
+  }
+ ]
+}

@@ -1,0 +1,57 @@
+{
+ "rule": {
+  "version": "v2",
+  "eta": 2.0,
+  "eps": 0.001,
+  "delta": 0.02,
+  "atol": 0.0001,
+  "hmax": 2.0,
+  "hmin": 1e-06,
+  "edge_zone": 0.5
+ },
+ "derived": {
+  "r0": 1.0994033983191416,
+  "ds0": 0.25,
+  "lmax": 7,
+  "sds": 0.0625,
+  "dtouch": 0.005
+ },
+ "meta": {
+  "photons": 6829,
+  "clicks": 6627,
+  "counts": {
+   "click": 6627,
+   "absorbed (opaque part)": 0,
+   "absorbed (local coin)": 0,
+   "left the lab": 20,
+   "step limit": 0,
+   "source coin": 182
+  },
+  "balls": {
+   "per_fan": "disk: 8720 origins x 8993 dir",
+   "balls_level0": 78418960,
+   "balls_all_levels": 1713062181200,
+   "lmax": 7
+  },
+  "runtime": 180.74646639823914,
+  "wall_fraction": 0.5129481749048213
+ },
+ "rows": [
+  {
+   "name": "Arago spot (disk a=3.0, beam w=5.0, L=12.0): fraction of clicks within r < 0.77",
+   "measured": "0.0294 \u00b1 0.0022",
+   "theory": "0.0293 (exact RS)",
+   "tol": "max(3\u03c3, 10%)",
+   "ok": true,
+   "extra": "195 clicks in the spot; exact I(0)/I_free(0) = 0.444"
+  },
+  {
+   "name": "Arago spot: density in the spot / density in the shadow ring",
+   "measured": "3.3",
+   "theory": "4.1 (exact RS)",
+   "tol": "> 3.0",
+   "ok": true,
+   "extra": ""
+  }
+ ]
+}

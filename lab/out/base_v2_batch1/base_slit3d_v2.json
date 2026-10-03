@@ -1,0 +1,65 @@
+{
+ "rule": {
+  "version": "v2",
+  "eta": 2.0,
+  "eps": 0.001,
+  "delta": 0.02,
+  "atol": 0.0001,
+  "hmax": 2.0,
+  "hmin": 1e-06,
+  "edge_zone": 0.5
+ },
+ "derived": {
+  "r0": 1.0994033983191416,
+  "ds0": 0.25,
+  "lmax": 7,
+  "sds": 0.0625,
+  "dtouch": 0.005
+ },
+ "meta": {
+  "photons": 5895,
+  "clicks": 5635,
+  "counts": {
+   "click": 5635,
+   "absorbed (opaque part)": 0,
+   "absorbed (local coin)": 0,
+   "left the lab": 129,
+   "step limit": 0,
+   "source coin": 131
+  },
+  "balls": {
+   "per_fan": "slits: 1332 origins x 2671 dir",
+   "balls_level0": 3557772,
+   "balls_all_levels": 77719529340,
+   "lmax": 7
+  },
+  "runtime": 189.5336630344391,
+  "wall_fraction": 0.7617623471637459
+ },
+ "rows": [
+  {
+   "name": "3-D long double slit (x-marginal) vs exact 2-D flux: correlation",
+   "measured": 0.9952,
+   "theory": "1 (ideal sampler 0.9971\u00b10.0010); 2-D rule: see Young",
+   "tol": ">= 0.98",
+   "ok": true,
+   "extra": ""
+  },
+  {
+   "name": "3-D long double slit: bright-fringe error rms / max",
+   "measured": "3.9% / 6.6%",
+   "theory": "0 (ideal rms 3.2%)",
+   "tol": "rms <= 8%",
+   "ok": true,
+   "extra": "per fringe [-3, 1, 1, -7, 5]"
+  },
+  {
+   "name": "3-D long double slit: absorbed fraction",
+   "measured": 0.7723,
+   "theory": "0.7806 (exact 2-D RS)",
+   "tol": "\u00b10.02",
+   "ok": true,
+   "extra": "wall 0.7618"
+  }
+ ]
+}
