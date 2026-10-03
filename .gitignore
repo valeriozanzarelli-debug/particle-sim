@@ -1,3 +1,4 @@
 /target
 *.npy
 __pycache__/
+lab/out/
