@@ -72,6 +72,20 @@ Dettagli da definire nei prossimi briefing.
 4. **Motore grafico unico** per tutte le piattaforme: Rust + wgpu (già in uso)
    gira su Windows, macOS, Linux, Android, iOS e nel browser.
 
+## Principio: ogni proprietà in tabella è un debito
+
+Un materiale non deve avere proprietà "impostate": un pezzo di ferro deve
+rispondere ai fotoni, ai colpi e al calore come ferro perché è fatto di atomi
+di ferro. Finché i livelli sotto non sanno calcolarle, il motore usa proprietà
+misurate (con la fonte). Ognuna è un debito: quando il livello sotto la
+ricalcola e coincide con la misura entro l'errore dichiarato, la tabella si
+toglie. Le misure diventano gli esami dei livelli sotto.
+
+Attenzione: le proprietà meccaniche non dipendono solo dagli atomi ma anche
+dalla microstruttura (grani, difetti, carbonio disciolto), cioè dalla storia
+del materiale (fusione, tempra, forgiatura). Il livello "oggetto" deve quindi
+ricordare la storia, o meglio ancora simularla.
+
 ## Primi tasselli (in ordine)
 
 1. Fotone validato sugli esperimenti del catalogo (in corso).
