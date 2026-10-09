@@ -1,0 +1,16 @@
+[   0.1s] (i-a) NLS 1+1: solitone sech
+[  63.3s]   ampiezza 1.0: picco lungo z = [1.414, 1.414, 1.414, 1.414, 1.414, 1.414, 1.414, 1.414, 1.414, 1.414, 1.414]
+[  63.3s]                FWHM(|psi|^2)  = [1.797, 1.797, 1.797, 1.797, 1.797, 1.797, 1.797, 1.797, 1.797, 1.797, 1.797]
+[ 131.2s]   ampiezza 1.3: picco lungo z = [1.838, 2.176, 2.23, 2.263, 2.301, 2.323, 2.29, 2.337, 2.298, 2.29, 2.218]
+[ 131.2s]                FWHM(|psi|^2)  = [1.797, 1.172, 1.172, 1.172, 1.016, 1.016, 1.016, 1.016, 1.016, 1.016, 1.172]
+[ 131.2s] (i-b) NLS 2+1: solitone di Townes (critico) e saturabile
+[ 182.8s]   Townes: R(0) = 2.20620, potenza critica P_cr = 11.7009 (letteratura 11.70)
+[ 219.8s]   Townes x 0.95: picco ogni 0.5 in z: [2.1, 1.9, 1.69, 1.48, 1.3, 1.15, 1.02, 0.91, 0.81, 0.74, 0.67, 0.63, 0.57, 0.53, 0.5, 0.48, 0.43, 0.4, 0.38, 0.35, 0.35]  -> DIFFRAZIONE (picco < 1/2 iniziale)
+[ 254.1s]   Townes x 1.0: picco ogni 0.5 in z: [2.21, 2.21, 2.21, 2.21, 2.21, 2.2, 2.2, 2.2, 2.2, 2.2, 2.2, 2.2, 2.2, 2.2, 2.2, 2.2, 2.19, 2.19, 2.19, 2.19, 2.19]  -> resta circa uguale
+[ 270.2s]   Townes x 1.05: picco ogni 0.5 in z: [2.32, 2.62, 3.4, 12.18, 9.74, 10.08, 15.45, 15.65, 12.85, 16.63, 16.36, 14.95, 12.6, 12.9, 15.27, 15.67, 14.32, 13.01, 14.25, 16.27, 13.31]  -> COLLASSO (picco > 4x iniziale; poi limitato dalla griglia)
+[ 279.9s]   raggio dove R < 1e-3 R(0): 10.99 (box +/- 20)
+[ 279.9s]   saturabile (beta = 0.5): R(0) = 2.5560, potenza 107.735
+[ 311.6s]   saturabile perturbato (+10%, ellittico 5%): picco ogni 10 in z: [2.952, 2.777, 2.768, 2.773, 2.773, 2.775, 2.779, 2.771, 2.758, 2.773, 2.774]
+[ 311.6s]      <r^2>: [5.361, 5.583, 5.641, 5.652, 5.621, 5.6, 5.607, 5.629, 5.656, 5.626, 5.584]   (profilo esatto: picco 2.556)
+[ 311.6s] (ii) anello di luce FERMO in un mezzo di Kerr istantaneo, Maxwell 2D completo
+[ 311.6s] scritto lab/out/trap_kerr_beam.json

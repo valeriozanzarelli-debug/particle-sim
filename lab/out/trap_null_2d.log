@@ -1,0 +1,12 @@
+[   0.0s] 2D anello circolante (modo TM), propagatore esatto
+[   5.6s]   R=  1.0 w=0.5 m=   6  t1/2(anello)=  1.74 [raggio  1.73]  t1/2(disco 2R)=  1.74 [raggio  1.73]  frazione finale disco=0.000  deriva energia=2.2e-16
+[  11.3s]   R=  2.0 w=0.5 m=  13  t1/2(anello)=  2.24 [raggio  2.24]  t1/2(disco 2R)=  3.47 [raggio  3.46]  frazione finale disco=0.000  deriva energia=2.2e-16
+[  16.7s]   R=  2.0 w=1.0 m=  13  t1/2(anello)=  3.45 [raggio  3.46]  t1/2(disco 2R)=  3.45 [raggio  3.46]  frazione finale disco=0.000  deriva energia=0.0e+00
+[  22.2s]   R=  4.0 w=0.5 m=  25  t1/2(anello)=  2.99 [raggio  3.00]  t1/2(disco 2R)=  6.93 [raggio  6.93]  frazione finale disco=0.005  deriva energia=0.0e+00
+[  27.8s]   R=  4.0 w=1.0 m=  25  t1/2(anello)=  4.47 [raggio  4.47]  t1/2(disco 2R)=  6.94 [raggio  6.93]  frazione finale disco=0.000  deriva energia=0.0e+00
+[  31.4s]   controllo palline (Poisson) vs spettrale a t=3.0: errore max 1.91e-02 (rel. al max del campo)
+[  37.8s]   R=  4.0 w=2.0 m=  25  t1/2(anello)=  6.83 [raggio  6.93]  t1/2(disco 2R)=  6.83 [raggio  6.93]  frazione finale disco=0.000  deriva energia=-1.1e-16
+[  64.6s]   R=  8.0 w=1.0 m=  50  t1/2(anello)=  6.02 [raggio  6.00]  t1/2(disco 2R)= 13.87 [raggio 13.86]  frazione finale disco=0.000  deriva energia=-3.3e-16
+[  92.4s]   R=  8.0 w=2.0 m=  50  t1/2(anello)=  8.90 [raggio  8.94]  t1/2(disco 2R)= 13.84 [raggio 13.86]  frazione finale disco=0.000  deriva energia=0.0e+00
+[ 125.3s]   R= 16.0 w=1.0 m= 101  t1/2(anello)=  8.26 [raggio  8.25]  t1/2(disco 2R)= 27.72 [raggio 27.71]  frazione finale disco=0.001  deriva energia=0.0e+00
+[ 125.4s] scritto lab/out/trap_null_2d.json

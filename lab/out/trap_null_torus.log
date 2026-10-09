@@ -1,0 +1,6 @@
+[   0.0s] 3D fotone toroidale (anello in un tubo), Maxwell vettoriale esatto
+[  44.0s]   R=2 w=0.75 m=13: t1/2(tubo)= 2.75 [raggio  2.87]  t1/2(sfera 2R)= 3.44 [raggio  3.46]  frazione nel tubo a t=7.0: 0.000
+[  90.4s]   R=4 w=0.75 m=25: t1/2(tubo)= 3.51 [raggio  3.77]  t1/2(sfera 2R)= 6.92 [raggio  6.93]  frazione nel tubo a t=11.0: 0.000
+[ 142.3s]   R=6 w=0.75 m=38: t1/2(tubo)= 4.07 [raggio  4.50]  t1/2(sfera 2R)=10.39 [raggio 10.39]  frazione nel tubo a t=12.0: 0.000
+[ 209.6s]   R=4 w=1.5 m=25: t1/2(tubo)= 5.54 [raggio  5.74]  t1/2(sfera 2R)= 6.85 [raggio  6.93]  frazione nel tubo a t=12.0: 0.000
+[ 209.6s] scritto lab/out/trap_null_torus.json

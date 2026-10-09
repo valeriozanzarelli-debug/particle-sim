@@ -1,0 +1,47 @@
+[   0.0s] (A) Derrick: solitone scalare 3D senza topologia
+[  76.5s]   Q(0) = 4.33739 (letteratura 4.3374);  T = 28.346, V2 = 9.449, V4 = 18.897;  Derrick/Pohozaev: T + 3(V2-V4) = -1.16e-06 (deve essere 0)
+[  76.5s]   E(mu) per mu = [0.8, 0.9, 0.95, 1.0, 1.05, 1.1, 1.2]: [16.978, 18.5343, 18.8174, 18.8973, 18.834, 18.6701, 18.1536]  -> massimo a mu=1: instabile
+[  76.5s]   d2E/dmu2 a mu=1 = -56.692 (< 0)
+[  77.0s]   partenza 0.999 x Q: SI DISPERDE (phi(0) < 5% di Q0) a t = 5.01
+[  77.1s]   partenza 1.0 x Q: COLLASSO (phi(0) > 50) a t = 2.16
+[  77.2s]   partenza 1.001 x Q: COLLASSO (phi(0) > 50) a t = 1.74
+[  77.2s] (B) Skyrmione 3D a riccio (unita' x = e F_pi r)
+[ 118.9s]   pendenza al centro a = 1.004833 (in unita' e f_pi r: 2.0097; letteratura 2.007), coda F = 7.974/x^2 da x = 12.63
+[ 118.9s]   M = 36.463 F_pi/e (ANW 36.5);  M / limite di Bogomolny (12 pi^2 F_pi/(4e) = 29.609 F_pi/e) = 1.2315 (letteratura 1.232)
+[ 118.9s]   E2 = 18.206, E4 = 18.257 (viriale di Derrick: uguali), B = 1.000000, Lambda = 49.610 (ANW 50.9)
+[ 118.9s]   energia sotto dilatazione mu = [0.8, 0.9, 1.0, 1.1, 1.25]: [37.363, 36.66, 36.463, 36.633, 37.386] -> MINIMO a mu=1: stabile
+[ 129.3s]   SENZA termine di Skyrme: energia 0.6581 (partenza 9.357), raggio dove F = pi/2: 0.0600 (partenza 0.881) -> il riccio collassa fino al passo di griglia (0.010)
+[ 129.3s]   FIT (2 numeri usati: M_N = 938.92, M_Delta = 1232.0): F_pi = 128.4 MeV (misura 184 con la convenzione F_pi = 2 f_pi; ANW 129), e = 5.408 (ANW 5.45)
+[ 129.3s]   PREDIZIONI a F_pi, e fissati: raggio isoscalare 0.600 fm (ANW 0.59; misura 0.77 = sqrt(r_p^2 + r_n^2)), mu_p = 1.885 (2.793), mu_n = -1.319 (-1.913), |mu_p/mu_n| = 1.429 (1.46), g_A = 0.640 (ANW 0.61; 1.275)
+[ 129.3s] (C) baby-skyrmione 2D sul campo completo (nessuna simmetria imposta)
+[ 129.4s]   controllo gradiente: analitico 17.9191969  differenze finite 17.9191969
+[ 394.5s]   partenza deformata (ellisse 35% + rumore 2%): Q = -0.9835, E = 38.9517, anisotropia 1.033
+[ 394.5s]     iter      0: E = 38.88322  Q = -0.9835  raggio(n3<0) = 1.3788
+[ 394.5s]     iter   2000: E = 19.64438  Q = -0.9713  raggio(n3<0) = 1.5365
+[ 394.5s]     iter   4000: E = 19.63347  Q = -0.9797  raggio(n3<0) = 1.5791
+[ 394.5s]     iter   6000: E = 19.63313  Q = -0.9818  raggio(n3<0) = 1.5874
+[ 394.5s]     iter   8000: E = 19.63313  Q = -0.9818  raggio(n3<0) = 1.5874
+[ 394.5s]     iter  10000: E = 19.63313  Q = -0.9817  raggio(n3<0) = 1.5874
+[ 394.5s]     iter  11999: E = 19.63313  Q = -0.9817  raggio(n3<0) = 1.5874
+[ 394.5s]     iter  11999: E = 19.63313  Q = -0.9817  raggio(n3<0) = 1.5874
+[ 394.5s]   finale: E = 19.6331 = E2 13.6447 (>= 4pi|Q| = 12.3370) + E4 3.1371 + E0 2.8514 (viriale di Derrick 2D: E4 = E0), Q = -0.9817, anisotropia residua 7.94e-03
+[ 456.2s]   profilo radiale (1D, quasi continuo): E = 19.6576  -> differenza col 2D completo -1.24e-03 (errore della griglia 2D, h = 0.167)
+[ 493.8s]     kappa=0  iter      0: E = 16.23663  Q = -0.9901  raggio(n3<0) = 1.3820
+[ 493.8s]     kappa=0  iter    150: E = 15.73096  Q = -0.9899  raggio(n3<0) = 1.3561
+[ 493.8s]     kappa=0  iter    300: E = 15.52174  Q = -0.9887  raggio(n3<0) = 1.2616
+[ 493.8s]     kappa=0  iter    450: E = 15.17041  Q = -0.9860  raggio(n3<0) = 1.1439
+[ 493.8s]     kappa=0  iter    600: E = 14.73601  Q = -0.9808  raggio(n3<0) = 0.9951
+[ 493.8s]     kappa=0  iter    750: E = 14.25786  Q = -0.9713  raggio(n3<0) = 0.8197
+[ 493.8s]     kappa=0  iter    900: E = 13.74751  Q = -0.9533  raggio(n3<0) = 0.6237
+[ 493.8s]     kappa=0  iter   1050: E = 13.17424  Q = -0.9133  raggio(n3<0) = 0.4607
+[ 493.8s]     kappa=0  iter   1200: E = 12.29659  Q = -0.7792  raggio(n3<0) = 0.3257
+[ 493.8s]     kappa=0  iter   1350: E = 1.95025  Q = -0.0018  raggio(n3<0) = 0.0000
+[ 493.8s]     kappa=0  iter   1500: E = 0.64404  Q = -0.0000  raggio(n3<0) = 0.0000
+[ 493.8s]     kappa=0  iter   1650: E = 0.36366  Q = -0.0000  raggio(n3<0) = 0.0000
+[ 493.8s]     kappa=0  iter   1800: E = 0.28317  Q = -0.0000  raggio(n3<0) = 0.0000
+[ 493.8s]     kappa=0  iter   1950: E = 0.19655  Q = -0.0000  raggio(n3<0) = 0.0000
+[ 493.8s]     kappa=0  iter   2100: E = 0.16005  Q = -0.0000  raggio(n3<0) = 0.0000
+[ 493.8s]     kappa=0  iter   2250: E = 0.12620  Q = -0.0000  raggio(n3<0) = 0.0000
+[ 493.8s]     kappa=0  iter   2399: E = 0.11204  Q = -0.0000  raggio(n3<0) = 0.0000
+[ 493.8s]   SENZA termine di Skyrme: vedi raggio e Q qui sopra (Derrick 2D: E2 invariante di scala, E0 ~ raggio^2)
+[ 493.9s] scritto lab/out/trap_derrick.json

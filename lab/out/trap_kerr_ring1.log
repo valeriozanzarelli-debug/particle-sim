@@ -1,0 +1,16 @@
+[   0.1s] (ii) anello di luce FERMO in un mezzo di Kerr istantaneo, Maxwell 2D completo
+[   0.2s]      t=  0.0  frazione entro 2R 1.0000  energia totale 1.0000  picco |E| 0.200
+[  18.6s]      t=  2.0  frazione entro 2R 0.9995  energia totale 0.9997  picco |E| 0.192
+[  34.6s]      t=  4.0  frazione entro 2R 0.9582  energia totale 0.9986  picco |E| 0.169
+[  50.7s]      t=  6.0  frazione entro 2R 0.0510  energia totale 0.9966  picco |E| 0.144
+[  66.7s]      t=  8.0  frazione entro 2R 0.0010  energia totale 0.9793  picco |E| 0.125
+[  82.3s]      t= 10.0  frazione entro 2R 0.0007  energia totale 0.6731  picco |E| 0.114
+[  97.8s]      t= 12.0  frazione entro 2R 0.0004  energia totale 0.2107  picco |E| 0.104
+[ 114.2s]      t= 14.0  frazione entro 2R 0.0003  energia totale 0.0277  picco |E| 0.062
+[ 129.4s]      t= 16.0  frazione entro 2R 0.0002  energia totale 0.0010  picco |E| 0.009
+[ 143.7s]      t= 18.0  frazione entro 2R 0.0001  energia totale 0.0003  picco |E| 0.002
+[ 155.0s]      t= 20.0  frazione entro 2R 0.0001  energia totale 0.0002  picco |E| 0.002
+[ 166.8s]      t= 22.0  frazione entro 2R 0.0001  energia totale 0.0002  picco |E| 0.002
+[ 176.9s]      t= 24.0  frazione entro 2R 0.0000  energia totale 0.0001  picco |E| 0.001
+[ 176.9s]   cubic p=1.0 A=0.2: t1/2(r<2R)=  5.01  frazione a t=10: nan  a t=24: 0.0000  picco |E| max=0.20
+[ 177.0s] scritto lab/out/trap_kerr_ring1.json

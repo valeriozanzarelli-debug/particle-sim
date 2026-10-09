@@ -1,0 +1,13 @@
+[   0.0s] 3D hopfione (campo annodato di Ranada / Irvine-Bouwmeester), scala a = 1
+[   4.2s]   max|div E|=5.7e-02 max|div B|=5.7e-02 max|E.B|/max|E|^2=1.7e-17 (|E|=|B| ovunque: 4.4e-16)
+[  90.2s]   t=  0.0  frazione r<1: 0.6923  r<2: 0.9649  r<4: 0.9983  picco del guscio a r= 0.38  elicita' (m,e)=(3.9999,3.9999)
+[  90.2s]   t=  2.0  frazione r<1: 0.0101  r<2: 0.3763  r<4: 0.9926  picco del guscio a r= 2.12  elicita' (m,e)=(3.9999,3.9999)
+[  90.2s]   t=  4.0  frazione r<1: 0.0000  r<2: 0.0011  r<4: 0.4503  picco del guscio a r= 4.12  elicita' (m,e)=(3.9999,3.9999)
+[  90.2s]   t=  6.0  frazione r<1: 0.0000  r<2: 0.0000  r<4: 0.0019  picco del guscio a r= 6.12  elicita' (m,e)=(3.9999,3.9999)
+[  90.2s]   t=  8.0  frazione r<1: 0.0000  r<2: 0.0000  r<4: 0.0001  picco del guscio a r= 8.12  elicita' (m,e)=(3.9999,3.9999)
+[  90.2s]   t= 10.0  frazione r<1: 0.0000  r<2: 0.0000  r<4: 0.0000  picco del guscio a r= 9.88  elicita' (m,e)=(3.9999,3.9999)
+[  90.2s]   t= 12.0  frazione r<1: 0.0000  r<2: 0.0000  r<4: 0.0000  picco del guscio a r=12.12  elicita' (m,e)=(3.9999,3.9999)
+[  90.2s]   t= 14.0  frazione r<1: 0.0000  r<2: 0.0000  r<4: 0.0000  picco del guscio a r=14.12  elicita' (m,e)=(3.9999,3.9999)
+[  90.2s]   t= 16.0  frazione r<1: 0.0000  r<2: 0.0000  r<4: 0.0000  picco del guscio a r=16.12  elicita' (m,e)=(3.9999,3.9999)
+[  90.2s]   t1/2: r<1 0.45, r<2 1.77, r<4 3.90;  deriva energia -1.2e-06, deriva elicita' -4.2e-08
+[  90.2s] scritto lab/out/trap_null_hopf.json

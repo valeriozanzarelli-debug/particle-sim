@@ -1,0 +1,40 @@
+
+=== H ===
+  energia totale (riposo) = 938.783073 MeV
+  nucleus_rest          :   9.382721e+08 eV  =  9.995e-01 del totale
+  electron_rest         :   5.109989e+05 eV  =  5.443e-04 del totale
+  electron_kinetic      :   1.359089e+01 eV  =  1.448e-08 del totale
+  field_net             :   9.270151e+05 eV  =  9.875e-04 del totale
+  field_nucleus_alone   :   9.270338e+05 eV  =  9.875e-04 del totale
+  point_electron_field  :   7.199823e+09 eV  =  7.669e+00 del totale
+  campo netto - campo del nucleo da solo = -18.698 eV (= autoenergia classica della nuvola + interazione nucleo-nuvola; la MQ NON conta la prima)
+     atteso: +(5/16) e^2/(4 pi eps0 a) = 8.499 eV  - e^2/(4 pi eps0 a) = -27.197 eV
+  energia di Coulomb nucleo-elettroni U_en = -27.197 eV (H: -27.21 attesi); cinetica = 13.591 eV
+  campo classico di un elettrone puntiforme fuori da 1e-18 m: 719.7 MeV (contro m c^2 = 0.511 MeV)
+  per regione (eV):
+    r < 3 fm (nucleo)      nucleo 9.3816e+08  e-riposo 1.2383e-07  e-cinetica 3.2933e-12  campo netto 6.8699e+05
+    3 fm - 1 pm            nucleo 1.0765e+05  e-riposo 4.4577e+00  e-cinetica 1.1856e-04  campo netto 2.3917e+05
+    1 pm - 10 nm (atomo)   nucleo 0.0000e+00  e-riposo 5.1099e+05  e-cinetica 1.3591e+01  campo netto 7.0108e+02
+  energia di legame elettronica -13.598434 eV = 1.449e-08 del totale
+
+=== He4 ===
+  energia totale (riposo) = 3728.401325 MeV
+  nucleus_rest          :   3.727379e+09 eV  =  9.997e-01 del totale
+  electron_rest         :   1.021998e+06 eV  =  2.741e-04 del totale
+  electron_kinetic      :   7.748867e+01 eV  =  2.078e-08 del totale
+  field_net             :   1.676798e+06 eV  =  4.497e-04 del totale
+  field_nucleus_alone   :   1.676924e+06 eV  =  4.498e-04 del totale
+  point_electron_field  :   7.199823e+09 eV  =  1.931e+00 del totale
+  campo netto - campo del nucleo da solo = -126.278 eV (= autoenergia classica della nuvola + interazione nucleo-nuvola; la MQ NON conta la prima)
+  energia di Coulomb nucleo-elettroni U_en = -183.677 eV (H: -27.21 attesi); cinetica = 77.489 eV
+  campo classico di un elettrone puntiforme fuori da 1e-18 m: 719.7 MeV (contro m c^2 = 0.511 MeV)
+  per regione (eV):
+    r < 3 fm (nucleo)      nucleo 3.6436e+09  e-riposo 1.1919e-06  e-cinetica 9.0374e-11  campo netto 7.2043e+05
+    3 fm - 1 pm            nucleo 8.3346e+07  e-riposo 4.2086e+01  e-cinetica 3.1910e-03  campo netto 9.5303e+05
+    1 pm - 10 nm (atomo)   nucleo 0.0000e+00  e-riposo 1.0220e+06  e-cinetica 7.7485e+01  campo netto 2.7529e+03
+  di cui nel nucleo: energia di legame nucleare -28.29566 MeV = 0.7589% del totale
+  energia di legame elettronica -79.00515 eV = 2.119e-08 del totale
+  autoenergia QED dell'elettrone con taglio 1 TeV: dm/m = 0.050
+  autoenergia QED dell'elettrone con taglio scala di Planck 1.22e19 GeV: dm/m = 0.180
+
+scritte lab/out/trap_atom_energy_H.npz, _He4.npz, trap_atom_energy.png
