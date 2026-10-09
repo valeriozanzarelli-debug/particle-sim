@@ -1,0 +1,12 @@
+KK2: train e, mu -> M = 0.51099895 MeV, 1/R2 = 105.657 MeV
+     exam tau: predicted 211.3 MeV, measured 1776.86 +- 0.12: off by factor 8.41 (13046 sigma) -> FAIL
+     exam count: charged leptons below 2 GeV predicted 37 (|n2| <= 18, each n2 != 0 twice), measured 3 -> FAIL
+KK2-free: tau level n2 = j free: need j = 16.817; nearest j = 17 -> 1796.2 MeV (161 sigma) -> FAIL even with the extra discrete choice
+KK2 x second circle, levels = p^2+q^2 <= 2000: 0 discrete choices (j_mu, j_tau) put the tau within 1 sigma, e.g. []
+KK2 x second circle, levels = p^2+q^2 <= 20000: 21 discrete choices (j_mu, j_tau) put the tau within 1 sigma, e.g. [(13, 3677), (16, 4525), (17, 4808)]
+KK2 x second circle, levels = p^2+q^2 <= 200000: 1464 discrete choices (j_mu, j_tau) put the tau within 1 sigma, e.g. [(13, 3677), (16, 4525), (17, 4808)]
+     -> the more hidden levels we allow, the more 'fits': with free levels it is a FIT, not a prediction
+KOIDE leptons: train e, mu -> predicted tau 1776.969 MeV; measured 1776.86 +- 0.12 (+0.9 sigma), PDG 2024 1776.93 +- 0.09 (+0.4 sigma) -> PASS (pre-reg 3 sigma)
+     Q(measured) = 0.666661 (2/3 = 0.666667)
+KOIDE up-type quarks: train 2.16, 1273.0 MeV -> predicted heaviest 19.89 GeV, measured 172.57 GeV (-88 %) -> FAIL; Q(measured) = 0.849
+KOIDE down-type quarks: train 4.7, 93.5 MeV -> predicted heaviest 2.21 GeV, measured 4.18 GeV (-47 %) -> FAIL; Q(measured) = 0.731

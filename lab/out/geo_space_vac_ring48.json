@@ -1,0 +1,57 @@
+{
+ "mode": "vac",
+ "shape": "ring48",
+ "name": "anello 48",
+ "Ns": 48,
+ "pieces_found": 1,
+ "pieces": [
+  {
+   "n": 48,
+   "betti": [
+    1,
+    1
+   ],
+   "D_small": 1.298407977554216,
+   "D_large": 1.113347944837029,
+   "h": 0.7922060126197165,
+   "diam": 19.012944302873212,
+   "R_est": 6.052007959381356,
+   "R_over_diam": 0.3183098768383172,
+   "big_hole_death": 12.67529582977295,
+   "pearson_drawn": 0.9999999999999997,
+   "spearman_drawn": 0.9991524676481026,
+   "pearson_causal": 0.9999999999999999,
+   "spearman_causal": 0.9991524676481026,
+   "top_H1_bars": [
+    [
+     0.7922059893608093,
+     12.67529582977295
+    ]
+   ],
+   "mds_eigs": [
+    1760.5990332208771,
+    1760.599033220875,
+    197.87278364486295,
+    197.87278364486284,
+    72.88851808961081,
+    72.88851808961068
+   ]
+  }
+ ],
+ "grade": {
+  "pieces_vs_doubled": true,
+  "pieces_vs_drawn": true,
+  "b01_vs_doubled": true,
+  "b01_vs_drawn": true,
+  "fidelity_causal>=0.9": true,
+  "dimension": true,
+  "radius_err": [
+   3.102996643788991e-05
+  ],
+  "radius<15%": true
+ },
+ "seconds": 8.451602935791016,
+ "gap_min_abs_sin_omega": 0.4794255386042023,
+ "filled": 96,
+ "modes": 192
+}

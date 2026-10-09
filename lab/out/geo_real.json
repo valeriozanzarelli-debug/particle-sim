@@ -1,0 +1,103 @@
+{
+ "KK2": {
+  "params": 2,
+  "train": [
+   "e",
+   "mu"
+  ],
+  "pred_tau": 211.31489747155854,
+  "meas_tau": 1776.86,
+  "n_below_2GeV": 37,
+  "verdict": "FAIL"
+ },
+ "KK2_free": {
+  "j_needed": 16.817225316473714,
+  "j_nearest": 17,
+  "pred": 1796.17144950154,
+  "hits_within_1sigma": {
+   "2000": 0,
+   "20000": 21,
+   "200000": 1464
+  },
+  "examples": {
+   "2000": [],
+   "20000": [
+    [
+     13,
+     3677
+    ],
+    [
+     16,
+     4525
+    ],
+    [
+     17,
+     4808
+    ]
+   ],
+   "200000": [
+    [
+     13,
+     3677
+    ],
+    [
+     16,
+     4525
+    ],
+    [
+     17,
+     4808
+    ]
+   ]
+  }
+ },
+ "KOIDE": {
+  "leptons": {
+   "params": 2,
+   "pred": 1776.9690270830142,
+   "meas": 1776.86,
+   "sigma": 0.9085590251193784,
+   "sigma_pdg24": 0.4336342557129077,
+   "verdict": "PASS"
+  },
+  "up": {
+   "params": 2,
+   "pred": 19892.674473787585,
+   "meas": 172570.0,
+   "rel_err": -0.8847269254575675,
+   "Q": 0.8487935475760557,
+   "verdict": "FAIL"
+  },
+  "down": {
+   "params": 2,
+   "pred": 2213.2294976817984,
+   "meas": 4183.0,
+   "rel_err": -0.4708989964901271,
+   "Q": 0.7312875768271713,
+   "verdict": "FAIL"
+  }
+ },
+ "ledger": [
+  {
+   "family": "KK2 (2-torus, levels 0,1,2)",
+   "params": 2,
+   "trained_on": 2,
+   "exams": 2,
+   "passed": 0
+  },
+  {
+   "family": "KK2 with free levels",
+   "params": "2 + discrete",
+   "trained_on": 3,
+   "exams": 0,
+   "passed": 0
+  },
+  {
+   "family": "Koide circle (amplitude sqrt2 fixed post hoc)",
+   "params": "2 per sector (+1 hidden)",
+   "trained_on": 6,
+   "exams": 3,
+   "passed": 1
+  }
+ ]
+}

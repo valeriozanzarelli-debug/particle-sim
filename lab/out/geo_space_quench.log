@@ -1,0 +1,20 @@
+[quench] catena 48: Ns=48 pieces=1 ({'T': 34, 'arrived_fraction': 1.0})
+   n=48 betti=[1, 1] D_small=1.30 D_large=1.09 spearman drawn=0.580 causal=0.580 R/diam=0.3184378839753408 H1 top=[[0.9, 14.32]]
+   grade: {'pieces_vs_doubled': True, 'pieces_vs_drawn': True, 'b01_vs_doubled': True, 'b01_vs_drawn': False, 'fidelity_causal>=0.9': False, 'dimension': True} (3 s)
+[quench] anello 48: Ns=48 pieces=2 ({'T': 20, 'arrived_fraction': 0.5})
+   n=24 betti=[1, 1] D_small=1.28 D_large=1.09 spearman drawn=0.996 causal=0.996 R/diam=0.3187081871051952 H1 top=[[0.9, 7.17]]
+   n=24 betti=[1, 1] D_small=1.31 D_large=1.11 spearman drawn=0.996 causal=0.996 R/diam=0.3184958978401683 H1 top=[[0.9, 7.16]]
+   grade: {'pieces_vs_doubled': True, 'pieces_vs_drawn': False, 'b01_vs_doubled': True, 'b01_vs_drawn': True, 'fidelity_causal>=0.9': True, 'dimension': True, 'radius_err': [0.0012823974401356963, 0.0006154503304061087], 'radius<15%': True} (2 s)
+[quench] toro 16x16: Ns=256 pieces=4 ({'T': 12, 'arrived_fraction': 0.25})
+   n=64 betti=[1, 2, 1] D_small=2.09 D_large=0.91 spearman drawn=0.984 causal=0.955 R/diam=0.35272417152498226 H1 top=[[0.91, 2.72], [0.91, 2.71]]
+   n=64 betti=[1, 2, 1] D_small=2.09 D_large=0.91 spearman drawn=0.981 causal=0.955 R/diam=0.3536910855050147 H1 top=[[0.91, 2.71], [0.91, 2.71]]
+   n=64 betti=[1, 2, 1] D_small=2.09 D_large=0.92 spearman drawn=0.984 causal=0.955 R/diam=0.35402144102077937 H1 top=[[0.91, 2.72], [0.91, 2.71]]
+   n=64 betti=[1, 2, 1] D_small=2.09 D_large=0.92 spearman drawn=0.979 causal=0.955 R/diam=0.3537525580562946 H1 top=[[0.91, 2.71], [0.91, 2.71]]
+   grade: {'pieces_vs_doubled': True, 'pieces_vs_drawn': False, 'b01_vs_doubled': True, 'b01_vs_drawn': True, 'fidelity_causal>=0.9': True, 'dimension': True} (11 s)
+[quench] stadio con buco 30x16: Ns=392 pieces=1 ({'T': 30, 'arrived_fraction': 0.9971235943356934})
+   n=392 betti=[1, 4, 0] D_small=2.35 D_large=1.82 spearman drawn=0.927 causal=0.944 R/diam=0.09565765156768462 H1 top=[[0.91, 4.54], [0.91, 3.63]]
+   grade: {'pieces_vs_doubled': True, 'pieces_vs_drawn': True, 'b01_vs_doubled': False, 'b01_vs_drawn': False, 'fidelity_causal>=0.9': True, 'dimension': True} (23 s)
+[quench] linea 36 x cerchio 18: Ns=648 pieces=2 ({'T': 26, 'arrived_fraction': 0.5})
+   n=324 betti=[1, 2, 0] D_small=2.09 D_large=1.04 spearman drawn=0.598 causal=0.998 R/diam=0.07933115003100466 H1 top=[[0.91, 10.87], [0.91, 2.71]]
+   n=324 betti=[1, 2, 0] D_small=2.09 D_large=1.04 spearman drawn=0.594 causal=0.998 R/diam=0.07941735250249704 H1 top=[[0.91, 10.87], [0.91, 2.72]]
+   grade: {'pieces_vs_doubled': True, 'pieces_vs_drawn': False, 'b01_vs_doubled': True, 'b01_vs_drawn': False, 'fidelity_causal>=0.9': True, 'dimension': True, 'D_large=1': True, 'radius_err': [-0.030787162795756884, -0.02973400093012779], 'radius<15%': True} (140 s)

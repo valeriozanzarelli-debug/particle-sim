@@ -1,0 +1,48 @@
+{
+ "mode": "vac",
+ "shape": "chain48",
+ "name": "catena 48",
+ "Ns": 48,
+ "pieces_found": 1,
+ "pieces": [
+  {
+   "n": 48,
+   "betti": [
+    1,
+    0
+   ],
+   "D_small": 1.3256296682363404,
+   "D_large": 0.8476125702100907,
+   "h": 0.7726886197973004,
+   "diam": 36.17310498953087,
+   "R_est": NaN,
+   "R_over_diam": null,
+   "big_hole_death": NaN,
+   "pearson_drawn": 0.9999974605669301,
+   "spearman_drawn": 0.9995572640063899,
+   "pearson_causal": 0.9999974605669298,
+   "spearman_causal": 0.9995572640063899,
+   "top_H1_bars": [],
+   "mds_eigs": [
+    5494.506309355156,
+    2.2183858859416283e-12,
+    1.2719172899527312e-12,
+    9.39550870275413e-13,
+    7.027024164249113e-13,
+    6.681671942288438e-13
+   ]
+  }
+ ],
+ "grade": {
+  "pieces_vs_doubled": true,
+  "pieces_vs_drawn": true,
+  "b01_vs_doubled": true,
+  "b01_vs_drawn": true,
+  "fidelity_causal>=0.9": true,
+  "dimension": true
+ },
+ "seconds": 7.245511054992676,
+ "gap_min_abs_sin_omega": 0.4794255386042028,
+ "filled": 96,
+ "modes": 192
+}

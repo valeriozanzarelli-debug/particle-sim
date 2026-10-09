@@ -1,0 +1,16 @@
+[vac] catena 48: Ns=48 pieces=1 ({'gap_min_abs_sin_omega': 0.4794255386042028, 'filled': 96, 'modes': 192})
+   n=48 betti=[1, 0] D_small=1.33 D_large=0.85 spearman drawn=1.000 causal=1.000 R/diam=None H1 top=[]
+   grade: {'pieces_vs_doubled': True, 'pieces_vs_drawn': True, 'b01_vs_doubled': True, 'b01_vs_drawn': True, 'fidelity_causal>=0.9': True, 'dimension': True} (7 s)
+[vac] anello 48: Ns=48 pieces=1 ({'gap_min_abs_sin_omega': 0.4794255386042023, 'filled': 96, 'modes': 192})
+   n=48 betti=[1, 1] D_small=1.30 D_large=1.11 spearman drawn=0.999 causal=0.999 R/diam=0.3183098768383172 H1 top=[[0.79, 12.68]]
+   grade: {'pieces_vs_doubled': True, 'pieces_vs_drawn': True, 'b01_vs_doubled': True, 'b01_vs_drawn': True, 'fidelity_causal>=0.9': True, 'dimension': True, 'radius_err': [3.102996643788991e-05], 'radius<15%': True} (8 s)
+[vac] toro 16x16: Ns=256 pieces=2 ({'gap_min_abs_sin_omega': 0.4794255386042022, 'filled': 512, 'modes': 1024})
+   n=128 betti=[1, 2, 1] D_small=2.11 D_large=1.72 spearman drawn=0.949 causal=0.987 R/diam=0.35809862895847716 H1 top=[[1.62, 9.72], [1.62, 9.72]]
+   n=128 betti=[1, 2, 1] D_small=2.15 D_large=1.77 spearman drawn=0.949 causal=0.987 R/diam=0.3580986289584772 H1 top=[[1.62, 9.72], [1.62, 9.72]]
+   grade: {'pieces_vs_doubled': True, 'pieces_vs_drawn': False, 'b01_vs_doubled': True, 'b01_vs_drawn': True, 'fidelity_causal>=0.9': True, 'dimension': True} (14 s)
+[vac] stadio con buco 30x16: Ns=392 pieces=1 ({'gap_min_abs_sin_omega': 1.314434172426208e-16, 'filled': 784, 'modes': 1568})
+   n=392 betti=[1, 1, 1] D_small=2.16 D_large=1.52 spearman drawn=0.961 causal=0.997 R/diam=0.1474137603307606 H1 top=[[1.63, 14.51], [1.83, 3.47]]
+   grade: {'pieces_vs_doubled': True, 'pieces_vs_drawn': True, 'b01_vs_doubled': False, 'b01_vs_drawn': True, 'fidelity_causal>=0.9': True, 'dimension': True} (19 s)
+[vac] linea 36 x cerchio 18: Ns=648 pieces=1 ({'gap_min_abs_sin_omega': 0.08325137110560608, 'filled': 1296, 'modes': 2592})
+   n=648 betti=[1, 2, 0] D_small=2.22 D_large=1.00 spearman drawn=0.586 causal=1.000 R/diam=0.0792311037388996 H1 top=[[1.87, 39.12], [1.62, 9.72]]
+   grade: {'pieces_vs_doubled': True, 'pieces_vs_drawn': True, 'b01_vs_doubled': True, 'b01_vs_drawn': False, 'fidelity_causal>=0.9': True, 'dimension': True, 'D_large=1': True, 'radius_err': [-0.03200945883690853], 'radius<15%': True} (68 s)

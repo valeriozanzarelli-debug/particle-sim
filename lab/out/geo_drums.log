@@ -1,0 +1,15 @@
+gluing (points): {'a': [3, 1, 5, 0, 4, 2, 6], 'b': [0, 3, 4, 1, 2, 5, 6], 'c': [0, 1, 2, 4, 3, 6, 5]}
+gluing (lines):  {'a': [3, 1, 5, 0, 4, 2, 6], 'b': [0, 3, 4, 1, 2, 5, 6], 'c': [4, 1, 6, 3, 0, 5, 2]}
+centroid-distance fingerprints differ: True
+n=16: eigenvalues drum 1 [10.24136, 14.75627, 20.94766, 26.43619, 29.37872, 37.39611]
+      eigenvalues drum 2 [10.24136, 14.75627, 20.94766, 26.43619, 29.37872, 37.39611]
+      max relative difference (12 modes) 3.0e-15
+      couplings drum 1 {'g3': 0.9780690024920797, 'g4': 1.0477586968479613, 'g123': 0.14844635272969556, 'umax': 1.3856091428829138}
+      couplings drum 2 {'g3': 0.8930780203386729, 'g4': 0.8673738538512762, 'g123': 0.1975270881327779, 'umax': 1.2636223979162662}
+n=32: eigenvalues drum 1 [10.18193, 14.66339, 20.77886, 26.22524, 29.10341, 36.98387]
+      eigenvalues drum 2 [10.18193, 14.66339, 20.77886, 26.22524, 29.10341, 36.98387]
+      max relative difference (12 modes) 3.6e-15
+      couplings drum 1 {'g3': 0.9693912426914615, 'g4': 1.0341788510441705, 'g123': 0.14870571117306863, 'umax': 1.381189021852932}
+      couplings drum 2 {'g3': 0.8869619784733302, 'g4': 0.8597238206057738, 'g123': 0.1962791716446567, 'umax': 1.2610139987379554}
+PRE-REG isospectral (< 1e-8 at same n): True
+PRE-REG tie broken by couplings: {'g3': {'drum_difference': 0.08242926421813124, 'discretization_change': 0.008677759800618245, 'broken': False}, 'g4': {'drum_difference': 0.17445503043839672, 'discretization_change': 0.013579845803790791, 'broken': True}, 'g123': {'drum_difference': 0.04757346047158806, 'discretization_change': 0.001247916488121198, 'broken': True}}
