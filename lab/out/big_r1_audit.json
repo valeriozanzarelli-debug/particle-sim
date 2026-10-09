@@ -1,0 +1,102 @@
+{
+ "vac_chain48": {
+  "old_b1": 0,
+  "drawn_b1": 0,
+  "new_holes_G0": 0,
+  "rel_top3": [],
+  "new_holes_from_MI": 0,
+  "pieces": 1
+ },
+ "vac_ring48": {
+  "old_b1": 1,
+  "drawn_b1": 1,
+  "new_holes_G0": 1,
+  "rel_top3": [
+   0.6249999816502056
+  ],
+  "new_holes_from_MI": 1,
+  "pieces": 1
+ },
+ "vac_torus16": {
+  "old_b1": 2,
+  "drawn_b1": 2,
+  "new_holes_G0": 2,
+  "rel_top3": [
+   0.6250000183546702,
+   0.6250000183546702,
+   0.12499999630968245
+  ],
+  "new_holes_from_MI": 2,
+  "pieces": 2
+ },
+ "vac_cyl36x18": {
+  "old_b1": 2,
+  "drawn_b1": 1,
+  "new_holes_G0": 1,
+  "rel_top3": [
+   0.5851357563953563,
+   0.1106267846232326,
+   0.05531251278195597
+  ],
+  "new_holes_from_MI": 1,
+  "pieces": 1
+ },
+ "vac_stadium30x16": {
+  "old_b1": 1,
+  "drawn_b1": 1,
+  "new_holes_G0": 0,
+  "rel_top3": [
+   0.24019058417432887,
+   0.0345269186036432,
+   0.03452451973731217
+  ],
+  "new_holes_from_MI": 0,
+  "pieces": 1
+ },
+ "quench_chain48": {
+  "old_b1": 0,
+  "drawn_b1": 0,
+  "new_holes_G0": 1,
+  "rel_top3": [
+   0.6248463016095901
+  ]
+ },
+ "quench_ring48": {
+  "old_b1": 1,
+  "drawn_b1": 1,
+  "new_holes_G0": 1,
+  "rel_top3": [
+   0.5833535669366313
+  ]
+ },
+ "quench_torus16": {
+  "old_b1": 2,
+  "drawn_b1": 2,
+  "new_holes_G0": 2,
+  "rel_top3": [
+   0.49339813457552817,
+   0.4914488255125764,
+   0.005177151747045748
+  ]
+ },
+ "quench_cyl36x18": {
+  "old_b1": 2,
+  "drawn_b1": 1,
+  "new_holes_G0": 1,
+  "rel_top3": [
+   0.6096460571217955,
+   0.1108017284370444,
+   0.05574922663777434
+  ]
+ },
+ "quench_stadium30x16": {
+  "old_b1": 4,
+  "drawn_b1": 1,
+  "new_holes_G0": 0,
+  "rel_top3": [
+   0.2659448497575807,
+   0.19911484161032011,
+   0.13363875759002702
+  ]
+ }
+}
