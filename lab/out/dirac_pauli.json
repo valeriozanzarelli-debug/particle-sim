@@ -1,0 +1,50 @@
+{
+ "rows": [
+  {
+   "sigma": 5.0,
+   "k0": 0.2,
+   "T": 12.5,
+   "rms_D_minus_P_over_sigma": 0.03212437723859554,
+   "rms_D_minus_S_over_sigma": 0.3342570294027793,
+   "vmax": 0.4878840214666857,
+   "runtime": 24.898284196853638
+  },
+  {
+   "sigma": 7.0710678118654755,
+   "k0": 0.1414213562373095,
+   "T": 25.000000000000004,
+   "rms_D_minus_P_over_sigma": 0.017311387058927073,
+   "rms_D_minus_S_over_sigma": 0.35600674522424786,
+   "vmax": 0.3574291119470362,
+   "runtime": 46.18571186065674
+  },
+  {
+   "sigma": 10.0,
+   "k0": 0.1,
+   "T": 50.0,
+   "rms_D_minus_P_over_sigma": 0.00887007513891842,
+   "rms_D_minus_S_over_sigma": 0.344935787375187,
+   "vmax": 0.20777791153378514,
+   "runtime": 77.09087991714478
+  }
+ ],
+ "ratios": [
+  1.8556789891674081,
+  1.9516618278656375
+ ],
+ "verdict": [
+  [
+   "P1 Dirac -> Pauli at second order in v/c",
+   true
+  ],
+  [
+   "P2 smallest eps: Dirac and Pauli surfers coincide",
+   true
+  ],
+  [
+   "P3 the spin term is needed (Schroedinger-only rule differs at O(1))",
+   true
+  ]
+ ],
+ "runtime_s": 148.18386912345886
+}

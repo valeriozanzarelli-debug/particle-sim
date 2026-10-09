@@ -1,0 +1,17 @@
+[PASS] H1 1s1/2 numerical vs Dirac formula: E - mc^2 = -13.605874258 eV (formula -13.605874258), rel diff 5.2e-12  [54.5 s]
+[PASS] H1 2s1/2 numerical vs Dirac formula: E - mc^2 = -3.401479886 eV (formula -3.401479886), rel diff 7.1e-12  [33.0 s]
+[PASS] H1 2p1/2 numerical vs Dirac formula: E - mc^2 = -3.401479886 eV (formula -3.401479886), rel diff 7.1e-12  [39.6 s]
+[PASS] H1 2p3/2 numerical vs Dirac formula: E - mc^2 = -3.401434601 eV (formula -3.401434601), rel diff 8.6e-12  [41.2 s]
+[PASS] H1 3d5/2 numerical vs Dirac formula: E - mc^2 = -1.511745917 eV (formula -1.511745917), rel diff 4.5e-11  [61.6 s]
+1s binding: Bohr (inf. mass) 13.605693 eV; Dirac 13.605874 eV (relativistic correction -1.811e-04 eV); Dirac x reduced mass 13.598468 eV; exp 13.598435 eV; Dirac - exp = 3.370e-05 eV = 8.15 GHz (1s Lamb shift ~ 8.17 GHz)
+2p3/2 - 2p1/2: Dirac 10.94965 GHz (inf. mass), 10.94369 GHz (reduced mass); exp 10.96905 GHz; diff -25.4 MHz
+[PASS] H2 fine structure within 0.5% of experiment: 10.94369 vs 10.96905 GHz (-0.231 %)
+2s1/2 - 2p1/2 (Lamb shift): Dirac 3.663e-06 MHz (exactly degenerate), exp 1057.845 MHz -> NOT in Dirac
+1S-2S: Dirac x mu 2.466069e+15 Hz, exp 2.466061413187e15 Hz, diff 7.11 GHz (QED: 1s Lamb 8.17 GHz - 2s Lamb 1.05 GHz ~ 7.1 GHz)
+[PASS] H3 1s: F/G constant = -sqrt((1-gamma)/(1+gamma)): F/G in [-0.0036487249, -0.0036487249], theory -0.0036487249
+[PASS] H4 1s surfer speed = Z alpha c sin(theta), independent of r: |v|/(alpha c) at theta=90 deg in [1.000000000, 1.000000000] -> 2.1877e+06 m/s
+1s surfer: circles about the spin axis, speed alpha c sin(theta) = 2.1877e+06 m/s * sin(theta); angular velocity alpha c / r: at r = a0 4.134e+16 rad/s (period 1.520e-16 s)
+2s surfer: speed at the equator peaks at 0.9352 c at r = 2.0052 a0 (near the node of the large component, where |G| = |F|)
+Pauli limit (Schroedinger 1s + spin current): |v| = 1.000000 alpha c sin(theta); Schroedinger without spin term: v = 0 (real wave function)
+[PASS] H5 1s surfer ensemble: |v| <= c, circles (z, r_perp conserved): max|v| = 7.297353e-03 c, max dz = 0.0e+00 a0, max d(r_perp) = 5.6e-11 a0 over one period at a0
+=== 9/9 PASS, runtime 253.4 s ===

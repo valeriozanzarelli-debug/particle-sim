@@ -1,0 +1,114 @@
+{
+ "1s1/2": {
+  "eps_mc2": -2.6626031733117594e-05,
+  "eps_eV": -13.605874258187638,
+  "formula_eV": -13.605874258116904,
+  "rel_err": 5.198730335109758e-12
+ },
+ "2s1/2": {
+  "eps_mc2": -6.656530087975728e-06,
+  "eps_eV": -3.401479885573471,
+  "formula_eV": -3.401479885597528,
+  "rel_err": 7.072342711467172e-12
+ },
+ "2p1/2": {
+  "eps_mc2": -6.6565300879757575e-06,
+  "eps_eV": -3.4014798855734867,
+  "formula_eV": -3.401479885597528,
+  "rel_err": 7.0679018193686716e-12
+ },
+ "2p3/2": {
+  "eps_mc2": -6.656441469190178e-06,
+  "eps_eV": -3.4014346014671055,
+  "formula_eV": -3.401434601437786,
+  "rel_err": 8.619771563189715e-12
+ },
+ "3d5/2": {
+  "eps_mc2": -2.9584129605852514e-06,
+  "eps_eV": -1.511745916514107,
+  "formula_eV": -1.5117459165822102,
+  "rel_err": 4.5049408647912514e-11
+ },
+ "1s": {
+  "bind_dirac_inf": 13.605874258187638,
+  "bohr": 13.605693122967756,
+  "rel_corr": -0.0001811352198828331,
+  "bind_dirac_mu": 13.598468300884818,
+  "exp": 13.598434599702,
+  "diff_eV": 3.37011828186462e-05,
+  "diff_GHz": 8.148909751922728
+ },
+ "fine_structure_GHz": {
+  "dirac_inf": 10.949648209096646,
+  "dirac_mu": 10.943688090284827,
+  "exp": 10.969045,
+  "diff_MHz": -25.356909715172904
+ },
+ "lamb_MHz": {
+  "dirac": 3.66304893106398e-06,
+  "exp": 1057.845
+ },
+ "1s2s_Hz": {
+  "dirac_mu": 2466068519156796.0,
+  "exp": 2466061413187035.0,
+  "diff_GHz": 7.105969761
+ },
+ "surfer_1s": {
+  "speed_over_alpha_min": 0.9999999999999383,
+  "speed_over_alpha_max": 1.0000000000000013,
+  "speed_SI_equator": 2187691.2636430627,
+  "mean_speed_over_c": 0.005731327305591871,
+  "omega_at_a0_rad_s": 4.134137336043264e+16,
+  "period_at_a0_s": 1.5198298451287424e-16,
+  "direction": "sign(G F) < 0 -> v along +phi_hat (counter-clockwise about +z, spin up)"
+ },
+ "surfer_2s": {
+  "max_speed_over_c": 0.9352387652934798,
+  "r_of_max_over_a0": 2.0052152511781185
+ },
+ "pauli_1s_speed_over_alpha": 1.0,
+ "ensemble_1s": {
+  "vmax": 0.007297352558634571,
+  "dz": 0.0,
+  "dr": 5.6051190736542534e-11
+ },
+ "verdict": [
+  [
+   "H1 1s1/2 numerical vs Dirac formula",
+   true
+  ],
+  [
+   "H1 2s1/2 numerical vs Dirac formula",
+   true
+  ],
+  [
+   "H1 2p1/2 numerical vs Dirac formula",
+   true
+  ],
+  [
+   "H1 2p3/2 numerical vs Dirac formula",
+   true
+  ],
+  [
+   "H1 3d5/2 numerical vs Dirac formula",
+   true
+  ],
+  [
+   "H2 fine structure within 0.5% of experiment",
+   true
+  ],
+  [
+   "H3 1s: F/G constant = -sqrt((1-gamma)/(1+gamma))",
+   true
+  ],
+  [
+   "H4 1s surfer speed = Z alpha c sin(theta), independent of r",
+   true
+  ],
+  [
+   "H5 1s surfer ensemble: |v| <= c, circles (z, r_perp conserved)",
+   true
+  ]
+ ],
+ "runtime_s": 253.35735774040222
+}

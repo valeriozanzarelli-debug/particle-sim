@@ -1,0 +1,11 @@
+eps = 1/sigma = k0 = 0.200, T = 12.5: RMS|x_D - x_Pauli|/sigma = 3.212e-02, RMS|x_D - x_Schroedinger(no spin)|/sigma = 3.343e-01, max|v_D| = 0.4879 c  [24.9 s]
+eps = 1/sigma = k0 = 0.141, T = 25.0: RMS|x_D - x_Pauli|/sigma = 1.731e-02, RMS|x_D - x_Schroedinger(no spin)|/sigma = 3.560e-01, max|v_D| = 0.3574 c  [46.2 s]
+eps = 1/sigma = k0 = 0.100, T = 50.0: RMS|x_D - x_Pauli|/sigma = 8.870e-03, RMS|x_D - x_Schroedinger(no spin)|/sigma = 3.449e-01, max|v_D| = 0.2078 c  [77.1 s]
+[PASS] P1 Dirac -> Pauli at second order in v/c: ratios 1.86, 1.95 (expected 2 per factor sqrt2 in eps)
+[PASS] P2 smallest eps: Dirac and Pauli surfers coincide: 8.87e-03 sigma
+[PASS] P3 the spin term is needed (Schroedinger-only rule differs at O(1)): 0.334, 0.356, 0.345 sigma
+=== 3/3 PASS, runtime 148.2 s ===
+
+real	2m36.169s
+user	0m0.061s
+sys	0m0.061s

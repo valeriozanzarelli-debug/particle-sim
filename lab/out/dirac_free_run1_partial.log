@@ -1,0 +1,24 @@
+=== 1+1 D, sigma = 5 lambda_C, spinor (1,1)/sqrt2 ===
+positive-energy weight of the mixed packet: 0.5000
+C:\Users\valer\Desktop\Programma di simulazione\particle_sim\lab\dirac_free.py:43: OptimizeWarning: Covariance of the parameters could not be estimated
+  p, _ = curve_fit(f, t[sel], x[sel], p0=p0, maxfev=20000)
+[PASS] Z1a 1D ZBW frequency: omega = 2.00952 mc^2/hbar (2<E> = 2.00993; 2mc^2/hbar = 2) -> 1.5601e+21 rad/s
+[PASS] Z1b 1D ZBW amplitude: A = 0.4905 lambda_C (hbar/2mc = 0.5) -> 1.8941e-13 m
+[PASS] Z1c 1D no ZBW after P+: max |<x> - smooth trend| = 2.22e-15
+1D surfers: 2000 x 2000 steps in 10.2 s
+[PASS] S1a 1D |v| <= c: max |v| = 1.000000000000
+[PASS] S2a 1D quantile conservation: max |F(x_i(t),t) - F(x_i(0),0)| = 1.47e-05 (cell-quantile resolution 5e-04 not needed: deterministic)
+[PASS] S2b 1D ensemble <x>(t) = field <x>(t): max dev 0.0512, SE 0.1465
+central surfer (x0 = -0.003): jitter amplitude 0.4942, omega 2.0190
+[PASS] S3 1D drift k0=0.5 positive: surfer drift 0.44656 c, predicted 0.44656 c (v_g(k0) = 0.44721), max|v| 0.5318933107
+[PASS] S3 1D drift k0=0.5 mixed: surfer drift 0.19190 c, predicted 0.20139 c (v_g(k0) = 0.44721), max|v| 1.0000000000
+[PASS] S3 1D drift k0=1.0 positive: surfer drift 0.70518 c, predicted 0.70521 c (v_g(k0) = 0.70711), max|v| 0.7355070177
+[PASS] S3 1D drift k0=1.0 mixed: surfer drift 0.47580 c, predicted 0.49754 c (v_g(k0) = 0.70711), max|v| 1.0000000000
+[PASS] S3 1D drift k0=2.0 positive: surfer drift 0.89394 c, predicted 0.89393 c (v_g(k0) = 0.89443), max|v| 0.8969506594
+[PASS] S3 1D drift k0=2.0 mixed: surfer drift 0.80324 c, predicted 0.79912 c (v_g(k0) = 0.89443), max|v| 1.0000000000
+=== 2+1 D, sigma = 4 lambda_C ===
+C:\Users\valer\Desktop\Programma di simulazione\particle_sim\lab\dirac_free.py:43: OptimizeWarning: Covariance of the parameters could not be estimated
+  p, _ = curve_fit(f, t[sel], x[sel], p0=p0, maxfev=20000)
+[FAIL] Z1d 2D ZBW mixed_k0: x: A=0.4752 w=2.0288; y: A=0.4745 w=2.0288  (circle of radius hbar/2mc = 0.5 at 2mc^2/hbar)
+[PASS] Z1d 2D ZBW mixed_k05: x: A=0.2729 w=2.2329; y: A=0.3014 w=2.2315  (circle of radius hbar/2mc = 0.5 at 2mc^2/hbar)
+[FAIL] Z1e 2D no ZBW after P+: max |<r>(t) - <r>(0)| = 2.21e-01

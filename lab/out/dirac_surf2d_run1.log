@@ -1,0 +1,15 @@
+2D surfers: 3000 x 1200 steps in 68.3 s
+[PASS] S1b 2D |v| <= c: max |v| = 1.000000000000
+[FAIL] S2c 2D equivariance chi2 t=0.0: chi2 = 132.1 / 81 dof, p = 0.000
+[PASS] S2c 2D equivariance chi2 t=12.0: chi2 = 116.8 / 89 dof, p = 0.026
+[PASS] S2c 2D equivariance chi2 t=24.0: chi2 = 123.9 / 106 dof, p = 0.113
+[PASS] S2d 2D ensemble mean = field <r>(t): max dev 0.0867, SE 0.0899
+20 central surfers, first 2 ZBW periods: loop radius 0.4859 lambda_C (1.876e-13 m), omega 2.0596, mean speed 0.9999 c
+[PASS] S3 2D drift k0=0.5 positive: surfer drift 0.44484 c, predicted 0.44363 c (v_g(0.5) = 0.44721)
+[PASS] S3 2D drift k0=0.5 mixed: surfer drift 0.19847 c, predicted 0.19991 c (v_g(0.5) = 0.44721)
+[FAIL] G2 surfers rotate with Omega = 1/(2 m sigma^2): Omega = 0.02721 (pred 0.03125) mc^2/hbar; speed at r = sigma: 0.1088 c
+=== 6/8 PASS, runtime 258.2 s ===
+
+real	4m23.904s
+user	0m0.031s
+sys	0m0.125s

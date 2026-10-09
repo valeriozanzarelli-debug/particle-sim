@@ -1,0 +1,79 @@
+{
+ "2d": {
+  "equivariance": {
+   "0.0": [
+    102.53500229450465,
+    87.0,
+    0.12221893639859922
+   ],
+   "12.0": [
+    73.23282822806199,
+    89.0,
+    0.8866787636323543
+   ],
+   "24.0": [
+    101.73000932337287,
+    110.0,
+    0.7008783089386713
+   ]
+  },
+  "central_surfers": {
+   "loop_radius_mean": 0.4859349931022995,
+   "omega_mean": 2.059572356858945,
+   "speed_mean_first_2periods": 0.9999294737078712
+  },
+  "drift_positive": {
+   "drift": 0.44484366559956345,
+   "pred": 0.4436310766596602,
+   "vmax": 0.721853188712082
+  },
+  "drift_mixed": {
+   "drift": 0.19847324608594785,
+   "pred": 0.19991417311220136,
+   "vmax": 1.0000000000000004
+  },
+  "spin_rotation": {
+   "Omega": 0.027208744420810567,
+   "Omega_pred_pauli": 0.03125,
+   "vmax": 0.474161520611731,
+   "vphi_at_sigma": 0.10883497768324227,
+   "vphi_at_sigma_SI": 32627905.476034343,
+   "Omega_pred_with_spreading_posthoc": 0.02792996576717812
+  }
+ },
+ "verdict": [
+  [
+   "S1b 2D |v| <= c",
+   true
+  ],
+  [
+   "S2c 2D equivariance chi2 t=0.0",
+   true
+  ],
+  [
+   "S2c 2D equivariance chi2 t=12.0",
+   true
+  ],
+  [
+   "S2c 2D equivariance chi2 t=24.0",
+   true
+  ],
+  [
+   "S2d 2D ensemble mean = field <r>(t)",
+   true
+  ],
+  [
+   "S3 2D drift k0=0.5 positive",
+   true
+  ],
+  [
+   "S3 2D drift k0=0.5 mixed",
+   true
+  ],
+  [
+   "G2 surfers rotate with Omega = 1/(2 m sigma^2)",
+   false
+  ]
+ ],
+ "runtime_s": 245.72141242027283
+}
