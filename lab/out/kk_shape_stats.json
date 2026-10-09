@@ -1,0 +1,60 @@
+{
+ "reference": {
+  "Poisson": 0.3863,
+  "GOE": 0.5307,
+  "GUE": 0.5996
+ },
+ "laplacian quarter disk": {
+  "levels": 285,
+  "r_mean": 0.4201780919586946,
+  "sites": 11999
+ },
+ "laplacian quarter stadium": {
+  "levels": 286,
+  "r_mean": 0.5053019553985183,
+  "sites": 12001
+ },
+ "laplacian golden rectangle": {
+  "levels": 283,
+  "r_mean": 0.39247768492844903,
+  "sites": 11954
+ },
+ "laplacian PASS": true,
+ "seconds": 0.0061244964599609375,
+ "scar": {
+  "mode_index": 160,
+  "k": 0.5170293836895219,
+  "enhancement_caps_tube": 3.6081158603356975,
+  "median_enhancement": 0.7318155283046668,
+  "n_modes_above_3": 7,
+  "PASS": true,
+  "stadium": {
+   "a": 33.46936370807062,
+   "r": 33.46936370807062
+  }
+ },
+ "walk qstadium sharp wall (pre-registered)": {
+  "levels": 820,
+  "r_raw": 0.5140404367330196,
+  "r_pairs_merged": 0.685544478370786,
+  "median_split_over_spacing": 0.45283029309344786,
+  "worst_split_over_gap": 2.1678273035119488e+295
+ },
+ "walk qdisk soft wall w=8 (post-hoc)": {
+  "levels": 631,
+  "r_raw": 0.3358391469007681,
+  "r_pairs_merged": 0.5993587072421458
+ },
+ "walk qstadium soft wall w=8 (post-hoc)": {
+  "levels": 625,
+  "r_raw": 0.2746710317117361,
+  "r_pairs_merged": 0.6341164158959567,
+  "median_split_over_spacing": 0.16292813611992188,
+  "worst_split_over_gap": 14.802083191454047
+ },
+ "merge_artifact": {
+  "poisson": 0.386676413522844,
+  "poisson_pair_merged": 0.5865698717149757,
+  "true_doublets_merged": 0.40167520839157367
+ }
+}

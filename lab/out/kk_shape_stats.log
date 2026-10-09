@@ -1,0 +1,15 @@
+[Laplacian] quarter disk     285 levels  <r~> = 0.420  (22s)
+[Laplacian] quarter stadium  286 levels  <r~> = 0.505  (45s)
+[Laplacian] golden rectangle 283 levels  <r~> = 0.392  (68s)
+  PASS (integrable < 0.45, stadium in [0.49, 0.57]): True
+done 68s
+[scar] full stadium, 400 modes: best mode #160 (k = 0.517) has 3.61x the uniform weight in the caps part of the tube around the unstable horizontal orbit; median 0.73; modes >= 3x: 7  PASS True
+done 14s
+[walk] quarter stadium, sharp wall (pre-registered): 820 levels, <r~> raw = 0.514, doubler pairs merged = 0.686  (median pair splitting / spacing 0.453)  (123s)
+done 123s
+[walk] quarter disk, soft wall: 631 levels, <r~> raw = 0.336, pairs merged = 0.599
+done 192s
+[walk] quarter stadium, soft wall w=8 (post-hoc): 625 levels, <r~> raw = 0.275, doubler pairs merged = 0.634  (median pair splitting / spacing 0.163)  (133s)
+done 133s
+[control] pair-merging a Poisson sequence gives <r~> = 0.587 ; true doublets of a Poisson sequence, merged: 0.402
+done 0s

@@ -1,0 +1,38 @@
+[disk R=10] E*R_eff (pair midpoints) [1.314 2.229 2.939 3.149 3.692 4.107]  continuum [1.435 2.63  3.113 3.769 4.478 4.68 ]  max|err| 0.176  doubler splitting*R [0.313 0.022 0.117]  (0s)
+[disk R=20] E*R_eff (pair midpoints) [1.355 2.426 2.999 3.458 4.239 4.369]  continuum [1.435 2.63  3.113 3.769 4.478 4.68 ]  max|err| 0.082  doubler splitting*R [0.101 0.319 0.097]  (1s)
+[disk R=40] E*R_eff (pair midpoints) [1.392 2.512 3.054 3.591 4.388 4.483]  continuum [1.435 2.63  3.113 3.769 4.478 4.68 ]  max|err| 0.047  doubler splitting*R [0.051 0.008 0.025]  (2s)
+  POST-HOC Richardson 2 x(40) - x(20): [1.429 2.598 3.108 3.723 4.538 4.597] rel err [-0.004  -0.012  -0.0015 -0.0122  0.0134 -0.0177]
+  disk PASS (err<5% at R=20 and decreasing): False [0.1756 0.0825 0.0473]
+[disk      ] E*R_eff (R=40) [1.392 2.512 3.054 3.591 4.388 4.483]  change 20->40 0.037  m2/m1 1.805 m3/m1 2.193 Q 0.3417  (4s)
+[ellipse_1.5] E*R_eff (R=40) [1.42  2.402 3.286 3.435 4.193 4.463]  change 20->40 0.039  m2/m1 1.692 m3/m1 2.315 Q 0.3427  (5s)
+[ellipse_2 ] E*R_eff (R=40) [1.489 2.326 3.213 3.646 4.114 4.405]  change 20->40 0.039  m2/m1 1.563 m3/m1 2.159 Q 0.3413  (7s)
+[ellipse_3 ] E*R_eff (R=40) [1.635 2.285 2.996 3.706 4.266 4.48 ]  change 20->40 0.045  m2/m1 1.397 m3/m1 1.832 Q 0.3383  (8s)
+[triangle  ] E*R_eff (R=40) [1.511 2.587 3.016 3.874 4.04  4.523]  change 20->40 0.048  m2/m1 1.713 m3/m1 1.996 Q 0.3400  (11s)
+[stadium_1 ] E*R_eff (R=40) [1.49  2.305 3.27  3.655 4.183 4.324]  change 20->40 0.047  m2/m1 1.547 m3/m1 2.195 Q 0.3417  (13s)
+[Laplacian R=60] disk rel err [-0.0123 -0.0124 -0.0124 -0.0146 -0.0107 -0.0127]  triangle [-0.0162 -0.0166 -0.0165 -0.017  -0.0168 -0.0167]
+[Laplacian R=30] disk rel err [-0.0244 -0.025  -0.025  -0.0266 -0.025  -0.0261]  triangle rel err [-0.0331 -0.0342 -0.0333 -0.0346 -0.0354 -0.034 ]  PASS False
+[circle(N0=64) x disk] n=0 [0.0676 0.121 ]  n=1 [0.1156 0.1514] vs sqrt(k0^2+E0^2) [0.1192 0.1558]  rel err n=1 [-0.0297 -0.0282] n=2 [-0.0529 -0.0606]
+[circle(N0=64) x stadium_1] n=0 [0.0739 0.1122]  n=1 [0.1188 0.1449] vs sqrt(k0^2+E0^2) [0.1229 0.1491]  rel err n=1 [-0.0331 -0.0277] n=2 [-0.0668 -0.0573]
+[circle(N0=64) x triangle] n=0 [0.0727 0.1236]  n=1 [0.12   0.1548] vs sqrt(k0^2+E0^2) [0.1222 0.1578]  rel err n=1 [-0.0175 -0.0193] n=2 [-0.0319 -0.0425]
+  caveat: N0=24, n=1 lowest level 0.2403 < k0 = 0.2618 (lattice wall effect)
+[charge, loop only] circle   mass=curvature  max drift of n over 400 ticks: 3.331e-16
+[charge, loop only] circle   daCosta         max drift of n over 400 ticks: 0.000e+00
+[charge, loop only] ellipse  mass=curvature  max drift of n over 400 ticks: 1.965e+00
+[charge, loop only] ellipse  daCosta         max drift of n over 400 ticks: 1.980e+00
+[charge, loop only] trefoil  mass=curvature  max drift of n over 400 ticks: 2.670e+00
+[charge, loop only] trefoil  daCosta         max drift of n over 400 ticks: 9.567e-02
+[charge, loop only] stadium  mass=curvature  max drift of n over 400 ticks: 2.375e+00
+[charge, loop only] stadium  daCosta         max drift of n over 400 ticks: 1.950e+00
+[charge, shape only, wall w=0] disk       J_z(0) = 1.500  max drift 2.157
+[charge, shape only, wall w=0] ellipse_2  J_z(0) = 1.500  max drift 4.249
+[charge, shape only, wall w=0] triangle   J_z(0) = 1.500  max drift 2.612
+[charge, shape only, wall w=0] stadium_1  J_z(0) = 1.500  max drift 3.861
+[charge, shape only, wall w=8] disk       J_z(0) = 1.500  max drift 0.248
+[charge, shape only, wall w=8] ellipse_2  J_z(0) = 1.500  max drift 2.147
+[charge, shape only, wall w=8] triangle   J_z(0) = 1.500  max drift 2.359
+[charge, shape only, wall w=8] stadium_1  J_z(0) = 1.500  max drift 1.477
+[charge, circle x shape] disk       n(0) = 1.000  max drift 0.00e+00
+[charge, circle x shape] ellipse_2  n(0) = 1.000  max drift 0.00e+00
+[charge, circle x shape] triangle   n(0) = 1.000  max drift 0.00e+00
+[charge, circle x shape] stadium_1  n(0) = 1.000  max drift 0.00e+00
+done 40s

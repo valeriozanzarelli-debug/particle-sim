@@ -1,0 +1,20 @@
+targets: m_mu/m_e = 206.768, m_tau/m_e = 3477.2, Koide Q = 0.666661
+[E0] walk shape modes: fixed shapes m2/m1 in [1.40, 1.80], Q in [0.338, 0.343]; ellipse aspect 1..8: max m2/m1 = 1.79, max m3/m1 = 2.29  -> FAIL (need 206.8)
+     theorem (Laplacian, any 2-D shape): m2/m1 = sqrt(lambda2/lambda1) <= 1.593
+     charge sector (k0 R = 0,1,2,5): m2/m1 = [1.805, 1.577, 1.318, 1.078]
+[E1 mass=curvature] ellipse : fit mu = 1.516e-04 (mu N = 0.030) to m2/m1 = 206.77 -> PREDICTS m3/m1 = 207.7 (obs 3477.2), Q = 0.4681 (obs 0.6667)
+[E1 mass=curvature] trefoil : fit mu = 1.519e-04 (mu N = 0.030) to m2/m1 = 206.77 -> PREDICTS m3/m1 = 413.5 (obs 3477.2), Q = 0.4871 (obs 0.6667)  [curvature < 0 somewhere: theta changes sign]
+[E1 mass=curvature] trefoil : fit mu = 7.352e-01 (mu N = 147.040) to m2/m1 = 206.77 -> PREDICTS m3/m1 = 239411.8 (obs 3477.2), Q = 0.9918 (obs 0.6667)  [curvature < 0 somewhere: theta changes sign]
+[E1 mass=curvature] stadium : fit mu = 1.516e-04 (mu N = 0.030) to m2/m1 = 206.77 -> PREDICTS m3/m1 = 207.8 (obs 3477.2), Q = 0.4681 (obs 0.6667)
+[E1 mass=curvature] egg     : fit mu = 1.518e-04 (mu N = 0.030) to m2/m1 = 206.77 -> PREDICTS m3/m1 = 207.2 (obs 3477.2), Q = 0.4681 (obs 0.6667)  [curvature < 0 somewhere: theta changes sign]
+[E1 mass=curvature] egg     : fit mu = 9.821e-01 (mu N = 196.426) to m2/m1 = 206.77 -> PREDICTS m3/m1 = 461.0 (obs 3477.2), Q = 0.8405 (obs 0.6667)  [curvature < 0 somewhere: theta changes sign]
+[E1 signed] ellipse : lowest masses at mu = 0.2: [1.038e-05 2.171e-04 1.233e-01 1.233e-01 1.368e-01 1.370e-01]  (sum of theta = 8.9e-15)
+[E1 signed] trefoil : lowest masses at mu = 0.2: [1.962e-05 2.570e-04 2.579e-04 1.976e-01 1.976e-01 1.978e-01]  (sum of theta = -7.1e-15)
+[E1 signed] stadium : lowest masses at mu = 0.2: [1.913e-06 1.227e-04 1.389e-01 1.389e-01 1.662e-01 1.663e-01]  (sum of theta = 1.9e-14)
+[E1 signed] egg     : lowest masses at mu = 0.2: [2.082e-05 1.056e-03 2.154e-02 1.147e-01 1.424e-01 1.441e-01]  (sum of theta = -3.6e-14)
+[E2 localization, 1:2:3 segments] ln(m2/m1) grows linearly with M d (slope 1.098; ideal 1): EXPONENTIAL hierarchy.
+     fit M d = 5.096 to m2/m1 = 206.77 -> PREDICTS m3/m1 = 42756 (obs 3477; geometric (m2/m1)^2 = 42753), Q = 0.8705 (obs 0.6667)
+     (instead fitting Q = 2/3: M d = 3.081 gives m2/m1 = 22.9, m3/m1 = 526: wrong ratios)
+     with free segment lengths (2 parameters) both ratios fit by construction; Q is then a function of the two fitted ratios (= 0.666661), NOT a prediction.
+[analytic] geometric family m_i ~ q^i: r3 = r2^2 = 42753, Q(q = 206.77) = 0.8705; Q = 2/3 needs q = 22.96; observed ln r3/ln r2 = 1.5294
+done 119s
