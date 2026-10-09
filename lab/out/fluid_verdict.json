@@ -1,0 +1,54 @@
+{
+ "F1": {
+  "E1": true,
+  "E2": false,
+  "ratios": [
+   0.8953882347469808,
+   0.8037562599900832,
+   0.7377917221186223
+  ],
+  "E3": true,
+  "slope": 0.9110520295766409,
+  "E4": true,
+  "E4_rel": 0.020009076846547832,
+  "posthoc_inviscid_compressible_at_sR_over_c_1": 0.5884139173405109
+ },
+ "F2": {
+  "E2a": true,
+  "E2b": true,
+  "E2c": true
+ },
+ "F3": {
+  "E3a": true,
+  "E3b": true,
+  "E3c": false,
+  "E3d_prediction_held": true
+ },
+ "F4": {
+  "E4a": false,
+  "E4b": true
+ },
+ "f4": {
+  "balls": 5844,
+  "primitives": 168,
+  "loops": 1,
+  "compression": 0.028747433264887063,
+  "centroid_offset": 0.07441852012020655,
+  "N_miss_field": 265.72512873879225,
+  "N_miss_profile": 268.19708161644496,
+  "N_rel": -0.009216926831395966,
+  "exams": {
+   "E4a": false,
+   "E4b": true
+  },
+  "vortex": {
+   "grid_cells": 40000,
+   "atoms_in_box": 2500.0,
+   "primitives": 36
+  },
+  "kink": {
+   "balls": 1600,
+   "primitives": 1
+  }
+ }
+}
