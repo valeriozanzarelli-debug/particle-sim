@@ -91,11 +91,13 @@ def apsp(m, w):
 def measure(m, w, x):
     nb = m.nbr[x]
     z = np.array([b for b, _ in nb]); wz = np.array([w[k] for _, k in nb])
-    p = np.exp(-wz**2); p = (1 - ALPHA) * p / p.sum()
+    p = np.exp(-(wz**2 - np.min(wz**2))); p = (1 - ALPHA) * p / p.sum()   # shifted: same measure, no underflow
     return np.r_[x, z], np.r_[ALPHA, p]
 
 
 def w1(cost, a, b):
+    """exact W1 (transport LP, HiGHS). If HiGHS presolve wrongly declares the problem infeasible (seen when some
+    masses are ~1e-7), retry once without presolve (same LP)."""
     na, nb = len(a), len(b)
     Aeq = np.zeros((na + nb, na * nb))
     for i in range(na):
@@ -103,6 +105,11 @@ def w1(cost, a, b):
     for j in range(nb):
         Aeq[na + j, j::nb] = 1
     r = linprog(cost.ravel(), A_eq=Aeq, b_eq=np.r_[a, b], bounds=(0, None), method="highs")
+    if r.status != 0:
+        r = linprog(cost.ravel(), A_eq=Aeq, b_eq=np.r_[a, b], bounds=(0, None), method="highs",
+                    options={"presolve": False})
+    if r.status != 0:
+        raise RuntimeError(f"W1 linear program failed: {r.message}")
     return r.fun
 
 
@@ -156,6 +163,8 @@ def hopping(m, w):
 
 # ------------------------------------------------------------------ the flow
 def flow(m, w0, log=print, maxit=MAXIT):
+    import time
+    t0 = time.time()
     w = np.array(w0, float); total = w.sum()
     hist = []
     k = ollivier(m, w)
@@ -170,7 +179,7 @@ def flow(m, w0, log=print, maxit=MAXIT):
         w = wn
         k = ollivier(m, w)
         log(f"  it {it:3d} k_mean {hist[-1]['k_mean']:+.4f} k_std {hist[-1]['k_std']:.4f} "
-            f"w_std {hist[-1]['w_std']:.4f} maxrel {rel:.2e}")
+            f"w_std {hist[-1]['w_std']:.4f} maxrel {rel:.2e} {time.time()-t0:.0f}s")
         if rel < TOL:
             stop = "tol"
             break
