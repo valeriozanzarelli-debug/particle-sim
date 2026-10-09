@@ -1,0 +1,97 @@
+{
+ "meta": {
+  "written": "2026-10-09T22:45:03",
+  "git_head_before": "e73737eaa19a89efc759329692a4dbdcda5abfab"
+ },
+ "prereg": {
+  "F1": {
+   "model": "2D MD, WCA balls (m = sigma = eps = 1, cut 2^(1/6)), periodic L x L, triangular start at rho0 = 0.75, T = 1 (velocity rescale every 10 steps during equilibration 2000 steps and during waits; NVE during kicks), dt = 0.005, Verlet list skin 0.4. Hole = free disk of radius R_w whose wall is a WCA in s = r - R_w (smooth, radial force only = slip wall), bare mass M0.",
+   "sizes": {
+    "R_w": [
+     3,
+     6,
+     10
+    ],
+    "L": [
+     40,
+     60,
+     90
+    ],
+    "replicas": [
+     40,
+     24,
+     10
+    ],
+    "seeds": [
+     20261011,
+     20261012,
+     20261013
+    ]
+   },
+   "kick": "from an equilibrium state: two copies, disk V += +dV x and -dV x (dV = 1), response V(t) = (V+ - V-)/2, t_max = L / c_S; replicas separated by 400 thermostatted steps",
+   "M0": "M0 = rho0 pi R_w^2 (nominal, formula fixed in advance); bare-mass check: R_w = 6 with M0 = 0.25 rho0 pi R_w^2 and dV = 2, 24 replicas, seed 20261014",
+   "c_S": "thermodynamic route on pure fluid L = 32: c_T^2 = dP/drho|T (rho0 * 0.97 / 1.03), c_S^2 = c_T^2 + T (dP/dT|rho)^2 / (rho^2 c_v) (T = 0.95 / 1.05), 1500 + 4000 steps each, virial pressure",
+   "N_miss": "radial profile around the disk during waits; rho_b = mean density in r in [R_w + 8, L/2 - 1]; N_miss = rho_b pi (R_w + 6)^2 - <count in r < R_w + 6>; R_eff = sqrt(N_miss / (pi rho_b))",
+   "estimator": "Laplace-domain fluid mass M_fl(s) = P / (s Vhat(s)) - M0, Vhat(s) = int_0^tmax V e^{-st} dt (trapezoid), s* = c_S / R_eff",
+   "exams": {
+    "E1_bracket": "m N_miss in [M_fl(2 c/R_eff), M_fl(c/(2 R_eff))] for all 3 sizes",
+    "E2_point": "M_fl(s*) / (m N_miss) in [0.75, 1.25] for all 3 sizes",
+    "E3_scaling": "log-log slope of M_fl(s*) vs N_miss over the 3 sizes in [0.85, 1.15]",
+    "E4_bare_mass": "R_w = 6: |M_fl(s*; M0) - M_fl(s*; M0/4)| / M_fl(s*; M0) < 0.10"
+   },
+   "prediction": "ideal 2D potential flow: added mass of a cylinder = rho pi R^2 = mass of the missing balls (ratio 1). Expected deviation in MD: viscous (raises M at low s) and compressible (lowers at high s)."
+  },
+  "F2": {
+   "model": "radial Gross-Pitaevskii vortex, psi = f(r) e^{i theta}, hbar = m = g n = 1 (xi = 1, c = 1, n = 1); Newton on r in (0, 400], dr = 0.02, f(400) = 1",
+   "R": [
+    10,
+    20,
+    40,
+    80,
+    160
+   ],
+   "exams": {
+    "E2a_log": "slope of E(R) vs ln R = pi (pi n hbar^2/m) within 1 %",
+    "E2b_core": "A in E = pi ln(A R / xi): within 2 % of 1.464 sqrt(2) = 2.070 (Fetter 2009 convention converted)",
+    "E2c_missing_balls": "slope of [E_swirl(R) - m c^2 N_miss(R)] vs ln R: |.| < 0.02 pi (swirl energy = missing balls x c^2 up to an R-independent constant: Bernoulli). Constant reported."
+   },
+   "vortex_mass": "NOT measured dynamically (debt). Reported: candidate masses E/c^2 (Popov / Duan, log-divergent), core missing mass, literature disagreement stated."
+  },
+  "F3": {
+   "model": "Frenkel-Kontorova in sine-Gordon units: phi_n'' = (phi_{n+1} - 2 phi_n + phi_{n-1})/h^2 - sin phi_n; free ends; c = 1 = sound speed of the chain without substrate; velocity Verlet dt = 0.2 h",
+   "h_main": 0.25,
+   "h_secondary": [
+    0.5,
+    1.0
+   ],
+   "single_kink": "start = continuum moving kink 4 atan exp(gamma (x - x0)), Lx = 400, T = 60; fit 4 atan exp((x-X)/w) every time unit for t > 10; v = slope of X(t); E = energy within |x - X| < 15",
+   "v0": [
+    0,
+    0.2,
+    0.4,
+    0.6,
+    0.8,
+    0.9
+   ],
+   "exams": {
+    "E3a_contraction": "h = 0.25: |w gamma / w(0) - 1| < 0.05 for every v0 <= 0.8",
+    "E3b_energy": "h = 0.25: |E / (gamma E(0)) - 1| < 0.05 for every v0 <= 0.8",
+    "E3c_limit": "h = 0.25 driven-damped phi'' += F - alpha phi', alpha = 0.05, F in {0.05, 0.1, 0.2, 0.4, 0.8}, kink from rest, T = 150, v from last 50: all v < 1, v(F=0.8) > 0.95, and |v / v_MS - 1| < 0.02 with McLaughlin-Scott v_MS = 1/sqrt(1 + (4 alpha / (pi F))^2)",
+    "E3d_annihilation": "kink at -10 + antikink at +10 moving towards each other; h in {0.25, 1.0}; v in {0.05, 0.1, 0.2, 0.4, 0.8}; run d/v + 1000. Final: lumps = greedy windows of +-10 with energy > 2; frac_rad = 1 - E_lumps/E. Class: 'annihilated into phonons' if frac_rad > 0.5; 'bound (breather)' if one lump at |x| < 10; 'pass-through' if two lumps. PREDICTION: h = 0.25 pass-through at all v (near-integrable sine-Gordon); h = 1 bound at v <= 0.4; NO case annihilates within the run. Breather decay rate reported."
+   }
+  },
+  "F4": {
+   "what": "draw only the defects: F1 = isoline rho_cg = rho_b / 2 of the Gaussian-smoothed density (width 1.5, grid 0.5) of one snapshot of R_w = 10; F2 = isoline |psi|^2 = 1/2 (one circle); F3 = one marker per kink (phi crossing pi + 2 pi k)",
+   "exams": {
+    "E4a_compression": "F1: drawn primitives (isoline segments) / balls < 0.01",
+    "E4b_fidelity": "F1: centroid of the deficit field within 1 sigma of the true disk centre, and deficit count from the field within 20 % of N_miss (profile)"
+   }
+  },
+  "parameters": {
+   "F1": "physical: rho0, T (2) + sizes R_w (the variable); numerical: dt, skin, dV, waits, r-window for N_miss (+6)",
+   "F2": "0 free (units hbar = m = g n = 1)",
+   "F3": "h (1 physical: discreteness); alpha, F for E3c only",
+   "F4": "smoothing width, grid, iso level (3 rendering choices)"
+  }
+ }
+}
