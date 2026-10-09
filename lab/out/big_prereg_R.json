@@ -1,0 +1,40 @@
+{
+ "R1_reader": {
+  "definition": "big_core.read_shape: largest informational piece (geo_core.components, I > 1e-10) -> d = -log(I/I0) -> geo_core.geodesic (Isomap, factor 1.5) -> diameter D = max geodesic -> max-min landmarks (<= 220) -> ripser Vietoris-Rips H1 with the FULL filtration (no threshold; every H1 bar dies at a finite scale). rel = (death - birth)/D. HOLE = bar with rel > 0.4. holes = number of such bars. 'shape with a hole' = holes >= 1.",
+  "b2": "NOT part of the reader. Declared consequence: the reader cannot see cavities (sphere-like); a torus is recognised through H1 only; the old geo_core b2 claims are neither confirmed nor refuted by it.",
+  "nulls_fresh": {
+   "base": "vacuum MI of the 24x24 box (pre_core.LatticeWalk, mirror edges, theta = 0.125, all interior link weights w = 0.3 = the start geometry of phase B), 576 sites",
+   "shuffle": "25 draws: off-diagonal values of the base MI randomly permuted (symmetric), diagonal kept",
+   "noise": "25 draws: log I ~ Gaussian with mean/std of log I (I > 1e-10) of the base, same fraction above the floor, the rest 0; diagonal = base diagonal",
+   "random_graph": "25 draws: random 4-regular graph on 576 nodes, one fermion mode per site, H = -A, half filling, MI of the ground state",
+   "random_state": "25 draws: Haar-random Gaussian state of 576 modes, 288 filled, one mode per site",
+   "seeds": "numpy default_rng(20261009 + 7777) -- never used before"
+  },
+  "known_shapes": {
+   "ring": "geo_core ring 48, vacuum, theta = 0.5",
+   "torus_wilson": "16x16 torus, theta = 0.5, Wilson-like k-space coin r = 1 (pre_p4.vacuum_bloch), vacuum",
+   "line_x_hidden_circle": "geo_core cylinder 36 (open line) x 18 (periodic hidden circle), vacuum, theta = 0.5",
+   "true_positive": "holes >= 1 (every drawn shape has at least one non-contractible loop)"
+  },
+  "pass": "false-positive rate (holes >= 1) <= 5 % in EACH null class (i.e. <= 1 of 25) AND 3/3 true positives",
+  "alternative_if_fail": "ONE pre-declared alternative: bootstrap stability (big_core.read_shape_boot): a hole counts only if rel > 0.4 on the full data AND holes >= 1 on >= 8 of 10 random 70 % site subsamples (geodesic recomputed). Same pass rule. If it also fails: STOP, no big step.",
+  "predictions_not_graded": [
+   "line x hidden circle: the hidden-circle H1 bar (the significant bar that dies first) has rel < 0.4, so the relative-to-diameter reader CANNOT see a small hidden circle; any hole it finds there is the long loop made by the sheet gluing at the open ends (rule shape), not the drawn hidden circle.",
+   "the hidden radius from the early-dying bar and the MDS circle are a different measurement (scale of a bar, not a hole count) and are not affected by the repair."
+  ],
+  "audit_of_old_geo_claims": "apply the same H1-relative criterion to the stored geodesic matrices G0 of all lab/out/geo_space_{vac,quench}_*.npz (piece 0), and read_shape on the stored vacuum MI ('raw'); report which old b1 claims survive. Not graded."
+ },
+ "R2_fake_mixing": {
+  "setup": "box n = 24 (mirror edges, all w = 1), lam = 0 (Bell minimal flow, also on walls: no teleport), N = 20000 surfers, cells 4x4 (36 cells, F = 0.000875), uniform start, omega0 = 1.8 theta, psi phase seed 101 (new), surfer seeds 201, 202, 203 (new); T = 200/theta ticks (theta = 0.125: 1600; theta = 0.0625: 3200), H sampled every 5 (0.5/theta) ticks. Curves averaged over the 3 surfer seeds before grading.",
+  "thetas": [
+   0.125,
+   0.0625
+  ],
+  "pass_per_theta": "tau(M=1) >= 3 tau(M=16)  OR  [H_M1(T)/H_M1(0) > 0.10 AND H_M16(T)/H_M16(0) < 0.03]; tau = first time (H - F) <= (H0 - F)/e (pre_core.fit_tau); never -> inf",
+  "use_in_B": "phase B uses the LARGEST theta in {0.125, 0.0625} that passes. If none passes: theta = 0.125, the Born-pinning exam is declared NOT meaningful and B is run for shape only."
+ },
+ "_meta": {
+  "written": "2026-10-09T18:54:04",
+  "git_head": "bd9ea7865e6eae07495ce35a461a9d5be2d07cdb"
+ }
+}
