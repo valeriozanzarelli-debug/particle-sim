@@ -17,6 +17,11 @@ path = "src/photon/main.rs"
 name = "molecole"
 path = "src/molecole/main.rs"
 
+# Compton: one photon hits one free electron at rest (Klein–Nishina input, surfers pick one pair)
+[[bin]]
+name = "compton"
+path = "src/compton/main.rs"
+
 [dependencies]
 bevy      = { version = "0.15" }
 bevy_egui = "0.31"
