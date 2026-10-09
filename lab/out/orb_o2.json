@@ -1,0 +1,203 @@
+{
+ "T2/Z3 L=6": {
+  "fixed_points": 3,
+  "fixed": [
+   [
+    0,
+    0
+   ],
+   [
+    2,
+    2
+   ],
+   [
+    4,
+    4
+   ]
+  ],
+  "betti_T2": [
+   1,
+   2,
+   1
+  ],
+  "betti_quotient": [
+   1,
+   0,
+   1
+  ],
+  "chi_quotient": 2,
+  "harmonic_traces_rotation": [
+   1.0000000000000002,
+   -1.0000000000000007,
+   0.9999999999999999
+  ],
+  "H1_rotation_eigenvalues": [
+   [
+    -0.5000000000000002,
+    0.8660254037844392
+   ],
+   [
+    -0.5000000000000002,
+    -0.8660254037844392
+   ]
+  ],
+  "chi_orb": 8.0
+ },
+ "T2/Z3 L=9": {
+  "fixed_points": 3,
+  "fixed": [
+   [
+    0,
+    0
+   ],
+   [
+    3,
+    3
+   ],
+   [
+    6,
+    6
+   ]
+  ],
+  "betti_T2": [
+   1,
+   2,
+   1
+  ],
+  "betti_quotient": [
+   1,
+   0,
+   1
+  ],
+  "chi_quotient": 2,
+  "harmonic_traces_rotation": [
+   1.0000000000000004,
+   -1.0000000000000009,
+   1.0
+  ],
+  "H1_rotation_eigenvalues": [
+   [
+    -0.5000000000000003,
+    0.8660254037844393
+   ],
+   [
+    -0.5000000000000003,
+    -0.8660254037844393
+   ]
+  ],
+  "chi_orb": 8.0
+ },
+ "T6/Z3": {
+  "betti_quotient": [
+   1,
+   0,
+   9,
+   2,
+   9,
+   0,
+   1
+  ],
+  "chi_quotient": 18,
+  "fixed_points_brute": 27,
+  "fixed_points_product": 27,
+  "h_pq_untwisted": [
+   [
+    1,
+    0,
+    0,
+    1
+   ],
+   [
+    0,
+    9,
+    0,
+    0
+   ],
+   [
+    0,
+    0,
+    9,
+    0
+   ],
+   [
+    1,
+    0,
+    0,
+    1
+   ]
+  ],
+  "h11": 36,
+  "h21": 0,
+  "chi_orb": 72.0,
+  "chi_resolved": 72,
+  "net_generations_standard_embedding": 36,
+  "note": "twisted sector adds one (1,1) class per fixed point and no (2,1) class (textbook, not computed by balls); resolution of C3/Z3 replaces a point (chi 1) by P2 (chi 3): +2"
+ },
+ "T4/Z2 n=4": {
+  "fixed_points": 16,
+  "betti_T4": [
+   1,
+   4,
+   6,
+   4,
+   1
+  ],
+  "betti_quotient": [
+   1,
+   0,
+   6,
+   0,
+   1
+  ],
+  "chi_quotient": 8,
+  "chi_orb": 24.0,
+  "chi_resolved": 24,
+  "b2_resolved": 22
+ },
+ "T4/Z2 n=6": {
+  "fixed_points": 16,
+  "chi_T4_from_cells": 0,
+  "chi_quotient_lefschetz": 8.0,
+  "note": "Betti by full rank computation only at n = 4 (n = 6 dense ranks too slow for the budget)"
+ },
+ "Dirac T4/Z2 n=4": {
+  "sector_dim": 512,
+  "zero_modes": 2,
+  "chirality": [
+   0.9999999999999993,
+   0.9999999999999993
+  ],
+  "gap": 1.41421356237309,
+  "zero_modes_full_T4": 4
+ },
+ "Dirac T4/Z2 n=6": {
+  "sector_dim": 2592,
+  "zero_modes": 2,
+  "chirality": [
+   1.000000000000003,
+   1.000000000000004
+  ],
+  "gap": 0.9999999999999898,
+  "zero_modes_full_T4": "4 (k=0 only)"
+ },
+ "Dirac T2/Z3 L=6": {
+  "sector_dim": 22,
+  "zero_modes": 0,
+  "zero_modes_full_T2": 2,
+  "commutator": 2.2887833992611187e-16
+ },
+ "Dirac T2/Z3 L=9": {
+  "sector_dim": 52,
+  "zero_modes": 0,
+  "zero_modes_full_T2": 2,
+  "commutator": 2.2887833992611187e-16
+ },
+ "grading": {
+  "T2/Z3": true,
+  "T4/Z2": true,
+  "T6/Z3": true,
+  "PASS": true,
+  "note": "T4/Z2 Betti by full rank only at n = 4 (n = 6: fixed points and Lefschetz chi only) - deviation from prereg 'both sizes'"
+ },
+ "seconds": 29.743996143341064
+}

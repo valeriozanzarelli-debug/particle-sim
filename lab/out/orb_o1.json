@@ -1,0 +1,444 @@
+{
+ "K3: T4/Z2 x->-x (angles pi,pi)": [
+  {
+   "n": 4,
+   "dim_solution_space": 1,
+   "lifts": {
+    "+": {
+     "S_commutes_with_walk": true,
+     "n_fixed_point_loops": 1,
+     "max_residual_all_fixed_points": 2.668600690842535e-16,
+     "S_order2_is_identity": true,
+     "eigenvalues": [
+      [
+       -1.0,
+       0.0
+      ],
+      [
+       -1.0,
+       -0.0
+      ],
+      [
+       1.0,
+       0.0
+      ],
+      [
+       1.0,
+       0.0
+      ]
+     ],
+     "invariant_spinors": 2,
+     "chirality_of_invariant": [
+      1.0,
+      1.0
+     ]
+    },
+    "-": {
+     "S_commutes_with_walk": true,
+     "n_fixed_point_loops": 1,
+     "max_residual_all_fixed_points": 2.60694285087213e-16,
+     "S_order2_is_identity": true,
+     "eigenvalues": [
+      [
+       1.0,
+       -0.0
+      ],
+      [
+       1.0,
+       0.0
+      ],
+      [
+       -1.0,
+       -0.0
+      ],
+      [
+       -1.0,
+       -0.0
+      ]
+     ],
+     "invariant_spinors": 2,
+     "chirality_of_invariant": [
+      -1.0,
+      -1.0
+     ]
+    }
+   },
+   "with_extra_U1_phase_max_invariant": 2
+  },
+  {
+   "n": 6,
+   "dim_solution_space": 1,
+   "lifts": {
+    "+": {
+     "S_commutes_with_walk": true,
+     "n_fixed_point_loops": 1,
+     "max_residual_all_fixed_points": 2.6040702873205343e-16,
+     "S_order2_is_identity": true,
+     "eigenvalues": [
+      [
+       -1.0,
+       0.0
+      ],
+      [
+       -1.0,
+       -0.0
+      ],
+      [
+       1.0,
+       0.0
+      ],
+      [
+       1.0,
+       0.0
+      ]
+     ],
+     "invariant_spinors": 2,
+     "chirality_of_invariant": [
+      1.0,
+      1.0
+     ]
+    },
+    "-": {
+     "S_commutes_with_walk": true,
+     "n_fixed_point_loops": 1,
+     "max_residual_all_fixed_points": 2.5761282657135604e-16,
+     "S_order2_is_identity": true,
+     "eigenvalues": [
+      [
+       1.0,
+       -0.0
+      ],
+      [
+       1.0,
+       0.0
+      ],
+      [
+       -1.0,
+       -0.0
+      ],
+      [
+       -1.0,
+       -0.0
+      ]
+     ],
+     "invariant_spinors": 2,
+     "chirality_of_invariant": [
+      -1.0,
+      -1.0
+     ]
+    }
+   },
+   "with_extra_U1_phase_max_invariant": 2
+  }
+ ],
+ "control: Z2 on one complex coord (pi,0)": [
+  {
+   "n": 4,
+   "dim_solution_space": 1,
+   "lifts": {
+    "+": {
+     "S_commutes_with_walk": true,
+     "n_fixed_point_loops": 1,
+     "max_residual_all_fixed_points": 2.4295423914019014e-16,
+     "S_order2_is_identity": false,
+     "eigenvalues": [
+      [
+       0.0,
+       1.0
+      ],
+      [
+       0.0,
+       -1.0
+      ],
+      [
+       0.0,
+       1.0
+      ],
+      [
+       0.0,
+       -1.0
+      ]
+     ],
+     "invariant_spinors": 0,
+     "chirality_of_invariant": []
+    },
+    "-": {
+     "S_commutes_with_walk": true,
+     "n_fixed_point_loops": 1,
+     "max_residual_all_fixed_points": 2.4662726132839495e-16,
+     "S_order2_is_identity": false,
+     "eigenvalues": [
+      [
+       -0.0,
+       -1.0
+      ],
+      [
+       -0.0,
+       1.0
+      ],
+      [
+       -0.0,
+       -1.0
+      ],
+      [
+       -0.0,
+       1.0
+      ]
+     ],
+     "invariant_spinors": 0,
+     "chirality_of_invariant": []
+    }
+   },
+   "with_extra_U1_phase_max_invariant": 2
+  },
+  {
+   "n": 6,
+   "dim_solution_space": 1,
+   "lifts": {
+    "+": {
+     "S_commutes_with_walk": true,
+     "n_fixed_point_loops": 1,
+     "max_residual_all_fixed_points": 2.319952676891611e-16,
+     "S_order2_is_identity": false,
+     "eigenvalues": [
+      [
+       0.0,
+       1.0
+      ],
+      [
+       0.0,
+       -1.0
+      ],
+      [
+       0.0,
+       1.0
+      ],
+      [
+       0.0,
+       -1.0
+      ]
+     ],
+     "invariant_spinors": 0,
+     "chirality_of_invariant": []
+    },
+    "-": {
+     "S_commutes_with_walk": true,
+     "n_fixed_point_loops": 1,
+     "max_residual_all_fixed_points": 2.350164991543865e-16,
+     "S_order2_is_identity": false,
+     "eigenvalues": [
+      [
+       -0.0,
+       -1.0
+      ],
+      [
+       -0.0,
+       1.0
+      ],
+      [
+       -0.0,
+       -1.0
+      ],
+      [
+       -0.0,
+       1.0
+      ]
+     ],
+     "invariant_spinors": 0,
+     "chirality_of_invariant": []
+    }
+   },
+   "with_extra_U1_phase_max_invariant": 2
+  }
+ ],
+ "control: reflection x1->-x1": [
+  {
+   "n": 4,
+   "dim_solution_space": 0,
+   "dim_solution_space_massless": 1
+  },
+  {
+   "n": 6,
+   "dim_solution_space": 0,
+   "dim_solution_space_massless": 1
+  }
+ ],
+ "K3_packet_60_ticks": {
+  "max_leak_out_of_orbifold_sector": 1.889111728389596e-15,
+  "norm": 0.9999999999999545
+ },
+ "T2/Z3": {
+  "L": 6,
+  "tori": 1,
+  "rotated": [
+   true
+  ],
+  "fixed_points_T2": [
+   [
+    0,
+    0
+   ],
+   [
+    2,
+    2
+   ],
+   [
+    4,
+    4
+   ]
+  ],
+  "dim_solution_space": 1,
+  "lifts": {
+   "+": {
+    "S_commutes_with_walk": true,
+    "S_cubed_is_identity": false,
+    "fixed_point_loops_tested": 3,
+    "max_residual": 5.355896319745633e-16,
+    "invariant_spinors": 0
+   },
+   "-": {
+    "S_commutes_with_walk": true,
+    "S_cubed_is_identity": true,
+    "fixed_point_loops_tested": 3,
+    "max_residual": 6.032866535993467e-16,
+    "invariant_spinors": 0
+   }
+  },
+  "with_extra_U1_phase_max_invariant": 1
+ },
+ "T6/Z3 (w,w,w)": {
+  "L": 3,
+  "tori": 3,
+  "rotated": [
+   true,
+   true,
+   true
+  ],
+  "fixed_points_T2": [
+   [
+    0,
+    0
+   ],
+   [
+    1,
+    1
+   ],
+   [
+    2,
+    2
+   ]
+  ],
+  "dim_solution_space": 1,
+  "lifts": {
+   "+": {
+    "S_commutes_with_walk": true,
+    "S_cubed_is_identity": true,
+    "fixed_point_loops_tested": 9,
+    "max_residual": 1.6247055784719815e-14,
+    "invariant_spinors": 2
+   },
+   "-": {
+    "S_commutes_with_walk": true,
+    "S_cubed_is_identity": false,
+    "fixed_point_loops_tested": 9,
+    "max_residual": 1.614060416955124e-14,
+    "invariant_spinors": 0
+   }
+  },
+  "with_extra_U1_phase_max_invariant": 3
+ },
+ "control: T6, Z3 on one T2 (w,0,0)": {
+  "L": 3,
+  "tori": 3,
+  "rotated": [
+   true,
+   false,
+   false
+  ],
+  "fixed_points_T2": [
+   [
+    0,
+    0
+   ],
+   [
+    1,
+    1
+   ],
+   [
+    2,
+    2
+   ]
+  ],
+  "dim_solution_space": 1,
+  "lifts": {
+   "+": {
+    "S_commutes_with_walk": true,
+    "S_cubed_is_identity": false,
+    "fixed_point_loops_tested": 3,
+    "max_residual": 1.7078539978917354e-14,
+    "invariant_spinors": 0
+   },
+   "-": {
+    "S_commutes_with_walk": true,
+    "S_cubed_is_identity": true,
+    "fixed_point_loops_tested": 3,
+    "max_residual": 1.711096043667901e-14,
+    "invariant_spinors": 0
+   }
+  },
+  "with_extra_U1_phase_max_invariant": 4
+ },
+ "T2/Z3 (lift via -4pi/3)": {
+  "L": 6,
+  "tori": 1,
+  "rotated": [
+   true
+  ],
+  "fixed_points_T2": [
+   [
+    0,
+    0
+   ],
+   [
+    2,
+    2
+   ],
+   [
+    4,
+    4
+   ]
+  ],
+  "dim_solution_space": 1,
+  "lifts": {
+   "+": {
+    "S_commutes_with_walk": true,
+    "S_cubed_is_identity": true,
+    "fixed_point_loops_tested": 3,
+    "max_residual": 6.313548212139635e-16,
+    "invariant_spinors": 0
+   },
+   "-": {
+    "S_commutes_with_walk": true,
+    "S_cubed_is_identity": false,
+    "fixed_point_loops_tested": 3,
+    "max_residual": 5.887840505932966e-16,
+    "invariant_spinors": 0
+   }
+  },
+  "with_extra_U1_phase_max_invariant": 1
+ },
+ "grading": {
+  "K3 invariant spinors (walk commutes, all 16 loops)": 2,
+  "K3 residual max": 2.668600690842535e-16,
+  "T6/Z3 invariant": 2,
+  "T2/Z3 invariant": 0,
+  "control one-coord Z2 invariant": 0,
+  "control one-coord Z3 invariant": 0,
+  "control reflection solution dim (massive)": [
+   0,
+   0
+  ],
+  "PASS": true
+ },
+ "seconds": 3.7882707118988037
+}
