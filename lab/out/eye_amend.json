@@ -1,0 +1,13 @@
+{
+ "meta": {
+  "written": "2026-10-09T21:42:21",
+  "git_head_before": "7bfd02244e0aea94ccd2f11bab454c882d6ce9ed"
+ },
+ "amendment": {
+  "THR2_from_calibration": "see eye_calib.json: max rel2 over 40 calibration nulls 0.190 -> THR2 = 0.237",
+  "v1_status": "kept and graded exactly as pre-registered (expected to FAIL the shuffle class)",
+  "cone_rule_v2": "scales (1.5, 2.5, 3.5) h: rho < 0.7 at ALL THREE, nn <= 1.2 h, local minimum of rho_bar in its 2.5 h ball; HOMOGENEITY GATE: if the fraction of sites meeting the low-volume condition exceeds 5 %, the eye refuses to read cones (reports 0 and 'refused'). Angle = 2 pi rho_bar (mean of 3 scales).",
+  "v2_grading": "same pass criteria as v1 (exam nulls <= 5 % per class; T2/Z3 3 cones rho_bar in [0.2,0.5] at distinct fixed orbits; T4/Z2 16 cones rho_bar in [0.35,0.7]; controls 0). Reported side by side with v1. L1 'PASS (v2)' is labelled as post-calibration, not as the original pre-registration.",
+  "L2_uses": "the L2 eye readings use THR2 = 0.237 and report both cone rules"
+ }
+}

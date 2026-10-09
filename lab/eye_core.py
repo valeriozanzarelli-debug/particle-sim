@@ -183,13 +183,16 @@ def eye(I, thr2=THR2_DEFAULT, do_h2=True, keep=False):
     cn = cones(Gm)
     out.update(cones=cn["cones"], cone_rho=cn["cone_rho"], rho_min=cn["rho_min"], h=cn["h"],
                cone_sites=idx[cn["cone_sites"]].tolist())
+    c2 = cones_v2(Gm)
+    out.update(cones_v2=c2["cones"], cone_rho_v2=c2["cone_rho"], f_low_v2=c2["f_low"], refused_v2=bool(c2["refused"]),
+               cone_sites_v2=idx[c2["cone_sites"]].tolist())
     if keep:
-        out.update(Gm=Gm, sites=idx, rho=cn["rho"])
+        out.update(Gm=Gm, sites=idx, rho=cn["rho"], rho_v2=c2["rho"])
     return out
 
 
 def strip(r):
-    return {k: v for k, v in r.items() if k not in ("Gm", "sites", "rho")}
+    return {k: v for k, v in r.items() if k not in ("Gm", "sites", "rho", "rho_v2")}
 
 
 # ------------------------------------------------------------------ nulls (R1 classes, fresh seeds)
@@ -223,3 +226,34 @@ def make_null(cls, Ib, rng):
 
 
 CLASSES = ("shuffle", "noise", "random_graph", "random_state")
+
+# ---- v2 (amendment after CALIBRATION, before any exam): three scales + homogeneity gate
+SCALES_V2 = (1.5, 2.5, 3.5)
+HOMOG_GATE = 0.05   # if more than 5 % of sites look 'low-volume', the space is not a manifold with isolated cones
+
+
+def cones_v2(Gm, scales=SCALES_V2, rho_thr=RHO_THR, nn_gate=NN_GATE, gate=HOMOG_GATE):
+    n = len(Gm)
+    Gd = Gm + np.diag(np.full(n, np.inf))
+    nn = Gd.min(axis=1)
+    h = float(np.median(nn))
+    R = []
+    for c in scales:
+        V = (Gm <= c * h + 1e-12).sum(1).astype(float)
+        R.append(V / np.median(V))
+    R = np.array(R)
+    rbar = R.mean(0)
+    low = np.all(R < rho_thr, axis=0) & (nn <= nn_gate * h)
+    f_low = float(low.mean())
+    inb = Gm <= scales[1] * h + 1e-12
+    cand = []
+    if f_low <= gate:
+        for x in np.argsort(rbar, kind="stable"):
+            if not low[x]:
+                continue
+            nb = np.where(inb[x])[0]
+            if all((rbar[x] < rbar[y]) or (rbar[x] == rbar[y] and x <= y) for y in nb):
+                cand.append(int(x))
+    return dict(h=h, rho=rbar, rho_scales=R, cone_sites=cand, cones=len(cand), f_low=f_low, refused=f_low > gate,
+                cone_rho=[float(rbar[c]) for c in cand])
+
