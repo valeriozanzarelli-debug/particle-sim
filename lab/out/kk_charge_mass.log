@@ -1,0 +1,26 @@
+TEST 1a  random hidden profile: 17 spectral peaks; max |peak - integer-n level| = 6.96e-04 (resolution 1.53e-03); closest peak to a half-integer level = 4.04e-02
+TEST 1b  smooth hidden circle   n=+1: Q(0) = +1.000000000000, max |Q(t)-Q(0)| over 300 ticks = 0.00e+00
+TEST 1b  smooth hidden circle   n=-1: Q(0) = -1.000000000000, max |Q(t)-Q(0)| over 300 ticks = 0.00e+00
+TEST 1b  smooth hidden circle   n=+2: Q(0) = +2.000000000000, max |Q(t)-Q(0)| over 300 ticks = 0.00e+00
+TEST 1b  LUMPY hidden circle    n=+1: Q(0) = +1.000000000000, max |Q(t)-Q(0)| over 300 ticks = 1.35e+00
+TEST 1b  LUMPY hidden circle    n=-1: Q(0) = -1.000000000000, max |Q(t)-Q(0)| over 300 ticks = 8.54e-01
+TEST 1b  LUMPY hidden circle    n=+2: Q(0) = +2.000000000000, max |Q(t)-Q(0)| over 300 ticks = 2.25e+00
+TEST 2  N= 16 R= 0.25 lambda_C  n=0: E_walk = 0.100000, sqrt(m^2+(n/R)^2) = 0.100000  (E/m =  1.000, rel.err +0.0e+00)
+TEST 2  N= 16 R= 0.25 lambda_C  n=1: E_walk = 0.404590, sqrt(m^2+(n/R)^2) = 0.405232  (E/m =  4.046, rel.err -1.6e-03)
+TEST 2  N= 16 R= 0.25 lambda_C  n=2: E_walk = 0.790382, sqrt(m^2+(n/R)^2) = 0.791739  (E/m =  7.904, rel.err -1.7e-03)
+TEST 2  N= 32 R= 0.51 lambda_C  n=0: E_walk = 0.100000, sqrt(m^2+(n/R)^2) = 0.100000  (E/m =  1.000, rel.err +1.4e-16)
+TEST 2  N= 32 R= 0.51 lambda_C  n=1: E_walk = 0.220055, sqrt(m^2+(n/R)^2) = 0.220348  (E/m =  2.201, rel.err -1.3e-03)
+TEST 2  N= 32 R= 0.51 lambda_C  n=2: E_walk = 0.404590, sqrt(m^2+(n/R)^2) = 0.405232  (E/m =  4.046, rel.err -1.6e-03)
+TEST 2  N= 63 R= 1.00 lambda_C  n=0: E_walk = 0.100000, sqrt(m^2+(n/R)^2) = 0.100000  (E/m =  1.000, rel.err +1.4e-16)
+TEST 2  N= 63 R= 1.00 lambda_C  n=1: E_walk = 0.141115, sqrt(m^2+(n/R)^2) = 0.141233  (E/m =  1.411, rel.err -8.3e-04)
+TEST 2  N= 63 R= 1.00 lambda_C  n=2: E_walk = 0.222831, sqrt(m^2+(n/R)^2) = 0.223129  (E/m =  2.228, rel.err -1.3e-03)
+TEST 2  N=126 R= 2.01 lambda_C  n=0: E_walk = 0.100000, sqrt(m^2+(n/R)^2) = 0.100000  (E/m =  1.000, rel.err +0.0e+00)
+TEST 2  N=126 R= 2.01 lambda_C  n=1: E_walk = 0.111707, sqrt(m^2+(n/R)^2) = 0.111744  (E/m =  1.117, rel.err -3.3e-04)
+TEST 2  N=126 R= 2.01 lambda_C  n=2: E_walk = 0.141115, sqrt(m^2+(n/R)^2) = 0.141233  (E/m =  1.411, rel.err -8.3e-04)
+TEST 2  N=252 R= 4.01 lambda_C  n=0: E_walk = 0.100000, sqrt(m^2+(n/R)^2) = 0.100000  (E/m =  1.000, rel.err -1.4e-16)
+TEST 2  N=252 R= 4.01 lambda_C  n=1: E_walk = 0.103051, sqrt(m^2+(n/R)^2) = 0.103061  (E/m =  1.031, rel.err -9.8e-05)
+TEST 2  N=252 R= 4.01 lambda_C  n=2: E_walk = 0.111707, sqrt(m^2+(n/R)^2) = 0.111744  (E/m =  1.117, rel.err -3.3e-04)
+KK  R >= hbar/(m_e c) = 3.8616e-13 m to keep the n=1 cost below m_e c^2
+KK  R needed for alpha = 1/137: 2 l_P / sqrt(alpha) = 3.784e-34 m  -> first charged mode 5.21e+17 GeV (1.0e+21 x m_e)
+KK  with R = hbar/(m_e c) the coupling would be 4 l_P^2/R^2 = 7.01e-45 (instead of 7.3e-3)
+time 19.7 s

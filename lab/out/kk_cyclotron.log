@@ -1,0 +1,6 @@
+(a) n=+1: density PEAK: circle radius  18.69 (pred 20.00), centre x =  41.8, period  196.6 ticks (pred 204.0), sense counter-clockwise
+(a) n=+1: CENTROID radius fit  17.18 cells (pred p/(|n|b) = 20.00), centre x =   44.4 (start 64), sense counter-clockwise, period  232.4 ticks (pred 204.0)
+(a) n=-1: density PEAK: circle radius  18.03 (pred 20.00), centre x =  86.5, period  183.9 ticks (pred 204.0), sense clockwise
+(a) n=-1: CENTROID radius fit  16.04 cells (pred p/(|n|b) = 20.00), centre x =   83.8 (start 64), sense clockwise, period  220.6 ticks (pred 204.0)
+(a) n= 0: max sideways deviation 6.49e-01 cells over 95.6 cells travelled (straight)
+time 122.8 s

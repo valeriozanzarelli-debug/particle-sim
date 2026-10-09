@@ -1,0 +1,25 @@
+(b) n=+1 Phi=0.000: AB phase (interference term) +0.00000, fringe fit +0.0000, n*Phi mod 2pi = +0.00000
+(b) n=+1 Phi=0.785: AB phase (interference term) +0.78540, fringe fit -0.7902, n*Phi mod 2pi = +0.78540
+(b) n=+1 Phi=1.571: AB phase (interference term) +1.57080, fringe fit -1.5793, n*Phi mod 2pi = +1.57080; one-link vs spread twist: max|drho|/max rho = 2.6e-14
+(b) n=+1 Phi=3.142: AB phase (interference term) +3.14159, fringe fit +3.1416, n*Phi mod 2pi = +3.14159
+(b) n=+1 Phi=4.712: AB phase (interference term) -1.57080, fringe fit +1.5793, n*Phi mod 2pi = -1.57080
+(b) n=+1 Phi=6.283: AB phase (interference term) +0.00000, fringe fit -0.0000, n*Phi mod 2pi = -0.00000
+(b) n=-1 Phi=0.000: AB phase (interference term) +0.00000, fringe fit +0.0000, n*Phi mod 2pi = -0.00000
+(b) n=-1 Phi=0.785: AB phase (interference term) -0.78540, fringe fit +0.7902, n*Phi mod 2pi = -0.78540
+(b) n=-1 Phi=1.571: AB phase (interference term) -1.57080, fringe fit +1.5793, n*Phi mod 2pi = -1.57080; one-link vs spread twist: max|drho|/max rho = 2.7e-14
+(b) n=-1 Phi=3.142: AB phase (interference term) +3.14159, fringe fit +3.1416, n*Phi mod 2pi = -3.14159
+(b) n=-1 Phi=4.712: AB phase (interference term) +1.57080, fringe fit -1.5793, n*Phi mod 2pi = +1.57080
+(b) n=-1 Phi=6.283: AB phase (interference term) +0.00000, fringe fit -0.0000, n*Phi mod 2pi = +0.00000
+(b) n=+0 Phi=0.000: AB phase (interference term) +0.00000, fringe fit +0.0000, n*Phi mod 2pi = +0.00000
+(b) n=+0 Phi=0.785: AB phase (interference term) +0.00000, fringe fit +0.0000, n*Phi mod 2pi = +0.00000
+(b) n=+0 Phi=1.571: AB phase (interference term) +0.00000, fringe fit +0.0000, n*Phi mod 2pi = +0.00000; one-link vs spread twist: max|drho|/max rho = 0.0e+00
+(b) n=+0 Phi=3.142: AB phase (interference term) +0.00000, fringe fit +0.0000, n*Phi mod 2pi = +0.00000
+(b) n=+0 Phi=4.712: AB phase (interference term) +0.00000, fringe fit +0.0000, n*Phi mod 2pi = +0.00000
+(b) n=+0 Phi=6.283: AB phase (interference term) +0.00000, fringe fit +0.0000, n*Phi mod 2pi = +0.00000
+(b) n=+2 Phi=0.000: AB phase (interference term) +0.00000, fringe fit +0.0000, n*Phi mod 2pi = +0.00000
+(b) n=+2 Phi=0.785: AB phase (interference term) +1.57080, fringe fit -1.5848, n*Phi mod 2pi = +1.57080
+(b) n=+2 Phi=1.571: AB phase (interference term) -3.14159, fringe fit -3.1416, n*Phi mod 2pi = +3.14159; one-link vs spread twist: max|drho|/max rho = 3.2e-14
+(b) n=+2 Phi=3.142: AB phase (interference term) +0.00000, fringe fit +0.0000, n*Phi mod 2pi = -0.00000
+(b) n=+2 Phi=4.712: AB phase (interference term) -3.14159, fringe fit -3.1416, n*Phi mod 2pi = +3.14159
+(b) n=+2 Phi=6.283: AB phase (interference term) -0.00000, fringe fit +0.0000, n*Phi mod 2pi = -0.00000
+time 72.0 s
