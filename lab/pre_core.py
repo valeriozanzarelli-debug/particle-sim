@@ -99,14 +99,35 @@ class LatticeWalk:
             psi = self.axis_step(psi, j)
         return self.coin(psi)
 
-    def matrix(self):
+    def matrix(self, dense_max=24):
         """one-tick unitary as sparse matrix, index a*Ns + (x*n + y) (same ordering as geo_core)"""
         n = self.n
-        D = 4 * n * n
-        E = np.eye(D, dtype=complex).reshape(4, n, n, D)
-        U = self.tick(E).reshape(D, D)
-        U[np.abs(U) < 1e-14] = 0
-        return sp.csr_matrix(U)
+        Ns = n * n
+        D = 4 * Ns
+        if n <= dense_max:
+            E = np.eye(D, dtype=complex).reshape(4, n, n, D)
+            U = self.tick(E).reshape(D, D)
+            U[np.abs(U) < 1e-14] = 0
+            return sp.csr_matrix(U)
+        # large n: probing with a colouring (the tick moves at most one site per axis)
+        s = 3 if n % 3 == 0 else 4
+        assert n % s == 0
+        xs = np.arange(n)
+        rows, cols, vals = [], [], []
+        for a in range(4):
+            for cx in range(s):
+                for cy in range(s):
+                    v = np.zeros((4, n, n), complex)
+                    v[a][np.ix_(xs % s == cx, xs % s == cy)] = 1.0
+                    out = self.tick(v)
+                    c, x2, y2 = np.nonzero(np.abs(out) > 1e-14)
+                    # the unique source site of colour (cx, cy) within distance 1 (with wrap)
+                    dx = (cx - x2) % s; dx = np.where(dx == s - 1, -1, dx)
+                    dy = (cy - y2) % s; dy = np.where(dy == s - 1, -1, dy)
+                    sx = (x2 + dx) % n; sy = (y2 + dy) % n
+                    rows.append(c * Ns + x2 * n + y2); cols.append(a * Ns + sx * n + sy)
+                    vals.append(out[c, x2, y2])
+        return sp.csr_matrix((np.concatenate(vals), (np.concatenate(rows), np.concatenate(cols))), shape=(D, D))
 
 
 def modes_state(walk, M, omega0=0.9, seed=1):
@@ -114,7 +135,10 @@ def modes_state(walk, M, omega0=0.9, seed=1):
     U = walk.matrix().tocsc()
     D = U.shape[0]
     k = max(M, 2)
-    vals, vecs = spl.eigs(U, k=k, sigma=np.exp(-1j * omega0), which="LM", tol=1e-10)
+    # fixed ARPACK start vector (fix after the first runs: the random default start made degenerate
+    # eigen-pairs, hence psi, differ from run to run)
+    v0 = np.random.default_rng(seed + 7).normal(size=D) + 0j
+    vals, vecs = spl.eigs(U, k=k, sigma=np.exp(-1j * omega0), which="LM", tol=1e-10, v0=v0)
     om = -np.angle(vals)
     o = np.argsort(np.abs(om - omega0))[:M]
     vecs = vecs[:, o]

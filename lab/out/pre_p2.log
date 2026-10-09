@@ -1,0 +1,26 @@
+control {'pieces': 2, 'size': 72, 'betti': [1, 2, 0], 'D': 2.2174401562353334, 'D_large': 2.5139137142995827, 'p1_rel': 0.5000000143258303, 'p1_rel_2nd': 0.5000000143258303, 'all_pieces_betti_full_geo_core': [[1, 2, 1], [1, 2, 1]]}
+0 4s
+1 6s
+2 7s
+3 8s
+4 10s
+5 12s
+6 14s
+7 16s
+8 17s
+9 20s
+10 20s
+11 20s
+12 20s
+13 20s
+14 20s
+15 21s
+16 21s
+17 21s
+18 21s
+19 21s
+shuffle {'n': 20, 'fp_holes': 0.6, 'fp_lowdim': 1.0, 'multi_piece': 0.0, 'mean_b1': 1.0, 'mean_b2': 0.0, 'mean_D': 2.863961905999127, 'max_p1_rel': 0.3333333060765728, 'max_p1_rel_2nd': 0.3333333060765728}
+noise {'n': 20, 'fp_holes': 0.05, 'fp_lowdim': 0.95, 'multi_piece': 0.0, 'mean_b1': 0.05, 'mean_b2': 0.0, 'mean_D': 3.2565544701212232, 'max_p1_rel': 0.23514147779092195, 'max_p1_rel_2nd': 0.21531552680156682}
+random_graph {'n': 20, 'fp_holes': 1.0, 'fp_lowdim': 1.0, 'multi_piece': 0.0, 'mean_b1': 60.8, 'mean_b2': 0.0, 'mean_D': 2.8371740637950076, 'max_p1_rel': 0.3189591087034562, 'max_p1_rel_2nd': 0.31657220087496296}
+random_state {'n': 10, 'fp_holes': 0.0, 'fp_lowdim': 0.9, 'multi_piece': 0.0, 'mean_b1': 0.0, 'mean_b2': 0.0, 'mean_D': 0.8504872166199462, 'max_p1_rel': 0.12157016241704117, 'max_p1_rel_2nd': 0.11342629020908762}
+{'P2_pass(fp_holes<=0.1 all)': False} 21.325941562652588
