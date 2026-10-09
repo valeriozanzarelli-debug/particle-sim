@@ -1,0 +1,32 @@
+(a1) N= 32 c_w=0.50  n=0: E = 0.020000000000   vs  N= 64 c_w=1: 0.020000000000   |diff| = 0.0e+00
+(a1) N= 32 c_w=0.50  n=1: E = 0.100184827107   vs  N= 64 c_w=1: 0.100184827107   |diff| = 0.0e+00
+(a1) N= 32 c_w=0.50  n=2: E = 0.197352447099   vs  N= 64 c_w=1: 0.197352447099   |diff| = 5.6e-17
+(a1) N= 32 c_w=0.50  n=3: E = 0.295182886094   vs  N= 64 c_w=1: 0.295182886094   |diff| = 5.6e-17
+(a1) N= 16 c_w=0.25  n=0: E = 0.020000000000   vs  N= 64 c_w=1: 0.020000000000   |diff| = 0.0e+00
+(a1) N= 16 c_w=0.25  n=1: E = 0.100184827107   vs  N= 64 c_w=1: 0.100184827107   |diff| = 0.0e+00
+(a1) N= 16 c_w=0.25  n=2: E = 0.197352447099   vs  N= 64 c_w=1: 0.197352447099   |diff| = 0.0e+00
+(a1) N= 16 c_w=0.25  n=3: E = 0.295182886094   vs  N= 64 c_w=1: 0.295182886094   |diff| = 0.0e+00
+(a1) N= 32 c_w=0.25  n=0: E = 0.020000000000   vs  N=128 c_w=1: 0.020000000000   |diff| = 6.9e-18
+(a1) N= 32 c_w=0.25  n=1: E = 0.053002358916   vs  N=128 c_w=1: 0.053002358916   |diff| = 2.8e-17
+(a1) N= 32 c_w=0.25  n=2: E = 0.100184827107   vs  N=128 c_w=1: 0.100184827107   |diff| = 0.0e+00
+(a1) N= 32 c_w=0.25  n=3: E = 0.148604329450   vs  N=128 c_w=1: 0.148604329450   |diff| = 0.0e+00
+(a2) twisted geometry, n=+1: (N=16, c_w=0.5, D) vs (N=32, c_w=1, D/c_w): max density diff / max = 1.8e-14
+(a2) twisted geometry, n=-1: (N=16, c_w=0.5, D) vs (N=32, c_w=1, D/c_w): max density diff / max = 2.5e-14
+(a2) twisted geometry, n=+2: (N=16, c_w=0.5, D) vs (N=32, c_w=1, D/c_w): max density diff / max = 3.5e-14
+(a2) twisted geometry, n=+1: (N=12, c_w=0.25, D) vs (N=48, c_w=1, D/c_w): max density diff / max = 3.1e-14
+(a2) twisted geometry, n=-1: (N=12, c_w=0.25, D) vs (N=48, c_w=1, D/c_w): max density diff / max = 1.2e-13
+(a2) twisted geometry, n=+2: (N=12, c_w=0.25, D) vs (N=48, c_w=1, D/c_w): max density diff / max = 4.1e-14
+(b) N=32 theta=0.02: c_w= 1.00  E(n=1) = 0.197352   sqrt(theta^2+(c_w/R)^2) = 0.197366  rel.err -6.6e-05
+(b) N=32 theta=0.02: c_w= 0.50  E(n=1) = 0.100185   sqrt(theta^2+(c_w/R)^2) = 0.100191  rel.err -6.4e-05
+(b) N=32 theta=0.02: c_w= 0.25  E(n=1) = 0.053002   sqrt(theta^2+(c_w/R)^2) = 0.053005  rel.err -5.7e-05
+(b) N=32 theta=0.02: c_w= 0.10  E(n=1) = 0.028026   sqrt(theta^2+(c_w/R)^2) = 0.028027  rel.err -3.3e-05
+(b) N=32 theta=0.02: c_w= 0.05  E(n=1) = 0.022279   sqrt(theta^2+(c_w/R)^2) = 0.022280  rel.err -1.3e-05
+(b) N=32 theta=0.02: c_w= 0.02  E(n=1) = 0.020382   sqrt(theta^2+(c_w/R)^2) = 0.020382  rel.err -2.5e-06
+(c) electron: e^2 / (4 pi eps0 G m_e^2) = 4.166e+42
+(c) c_w/c =  1.0e+00: proper R = 3.78e-34 m, m(n=1) = 1.02e+21 m_e, alpha_KK = 7.30e-03, q^2/(G m^2) = 4.000
+(c) c_w/c =  1.0e-05: proper R = 3.78e-29 m, m(n=1) = 1.02e+16 m_e, alpha_KK = 7.30e-13, q^2/(G m^2) = 4.000
+(c) c_w/c =  1.0e-10: proper R = 3.78e-24 m, m(n=1) = 1.02e+11 m_e, alpha_KK = 7.30e-23, q^2/(G m^2) = 4.000
+(c) c_w/c =  1.0e-15: proper R = 3.78e-19 m, m(n=1) = 1.02e+06 m_e, alpha_KK = 7.30e-33, q^2/(G m^2) = 4.000
+(c) c_w/c =  1.0e-20: proper R = 3.78e-14 m, m(n=1) = 1.02e+01 m_e, alpha_KK = 7.30e-43, q^2/(G m^2) = 4.000
+(c) c_w/c =  9.8e-22: proper R = 3.86e-13 m, m(n=1) = 1.00e+00 m_e, alpha_KK = 7.01e-45, q^2/(G m^2) = 4.000
+time 85.6 s

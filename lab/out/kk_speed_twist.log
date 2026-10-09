@@ -1,0 +1,8 @@
+n1=+1 n2=+1 c_w=0.10 K=  1000: F = -7.7106e-05 (pred -7.7106e-05, -0.00%)   M = 0.04534 (rest energy on the walk 0.04407, +2.90%; packet <E> 0.04435, +2.25%)  alpha_eff = 1.23e-05
+n1=+1 n2=-1 c_w=0.10 K=  1000: F = +7.7105e-05 (pred +7.7106e-05, -0.00%)   M = 0.04534 (rest energy on the walk 0.04407, +2.90%; packet <E> 0.04435, +2.25%)  alpha_eff = 1.23e-05
+n1=+2 n2=+1 c_w=0.10 K=  1000: F = -1.5421e-04 (pred -1.5421e-04, -0.00%)   M = 0.08267 (rest energy on the walk 0.08104, +2.00%; packet <E> 0.08119, +1.81%)  alpha_eff = 1.23e-05
+n1=+1 n2=+1 c_w=0.05 K=  1000: F = -7.7106e-05 (pred -7.7106e-05, -0.00%)   M = 0.02966 (rest energy on the walk 0.02803, +5.83%; packet <E> 0.02846, +4.23%)  alpha_eff = 1.23e-05
+n1=+1 n2=+1 c_w=0.20 K=  1000: F = -7.7106e-05 (pred -7.7106e-05, -0.00%)   M = 0.08265 (rest energy on the walk 0.08104, +1.99%; packet <E> 0.08119, +1.80%)  alpha_eff = 1.23e-05
+n1=+1 n2=+1 c_w=0.10 K=  4000: F = -1.9277e-05 (pred -1.9277e-05, -0.00%)   M = 0.04536 (rest energy on the walk 0.04407, +2.94%; packet <E> 0.04435, +2.29%)  alpha_eff = 3.07e-06
+n1=+1 n2=+1 c_w=0.10 K=   250: F = -3.0842e-04 (pred -3.0843e-04, -0.00%)   M = 0.04568 (rest energy on the walk 0.04407, +3.65%; packet <E> 0.04435, +3.00%)  alpha_eff = 4.91e-05
+time 126.8 s

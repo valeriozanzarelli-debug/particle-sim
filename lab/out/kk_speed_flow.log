@@ -1,0 +1,28 @@
+(i-A) g=0.3: block     1: speeds 0.2994, 0.6457
+(i-A) g=0.3: block    64: speeds 0.4702, 1.0142
+(i-A) g=0.3: block  4096: speeds 0.4702, 1.0143
+(i-A) g=0.8: block     1: speeds 0.1763, 0.6896
+(i-A) g=0.8: block    64: speeds 0.2769, 1.0831
+(i-A) g=0.8: block  4096: speeds 0.2770, 1.0832
+(i-B) mu=0.05: block     1: low-band speed 0.3187 (sqrt((c1^2+c2^2)/2) = 0.7906); other band gapped at 2.001
+(i-B) mu=0.05: block    16: low-band speed 0.5554 (sqrt((c1^2+c2^2)/2) = 0.7906); other band gapped at 0.203
+(i-B) mu=0.05: block   256: low-band speed 0.7879 (sqrt((c1^2+c2^2)/2) = 0.7906); other band gapped at 0.071
+(i-B) mu=0.05: block  4096: low-band speed 0.7906 (sqrt((c1^2+c2^2)/2) = 0.7906); other band gapped at 0.071
+(ii) check c_f = c_s = 1: I0 = 9.869604401089, I1 = 9.869604401089, pi^2 = 9.869604401089
+(ii) c_f = 1, c_s = 0.5: I1 - I0 = -11.69731  -> fermion speed falls (towards c_s)
+(ii) c_f = 1, c_s = 0.9: I1 - I0 = -0.81006  -> fermion speed falls (towards c_s)
+(ii) c_f = 1, c_s = 1.1: I1 - I0 = +0.54255  -> fermion speed rises (towards c_s)
+(ii) c_f = 1, c_s = 2.0: I1 - I0 = +1.46216  -> fermion speed rises (towards c_s)
+(ii) start c_s/c_f = 0.5, g^2 =  1.0: delta = c_s/c_f - 1: -0.500 -> -0.1854 after 51.5 e-folds (Planck -> m_e; x2.7 smaller); large-l law delta ~ l^-0.645
+(ii) start c_s/c_f = 0.5, g^2 =  5.0: delta = c_s/c_f - 1: -0.500 -> -0.0736 after 51.5 e-folds (Planck -> m_e; x6.8 smaller); large-l law delta ~ l^-0.647
+(ii) start c_s/c_f = 0.5, g^2 = 20.0: delta = c_s/c_f - 1: -0.500 -> -0.0307 after 51.5 e-folds (Planck -> m_e; x16.3 smaller); large-l law delta ~ l^-0.648
+(ii) start c_s/c_f = 2.0, g^2 =  1.0: delta = c_s/c_f - 1: +1.000 -> +0.6152 after 51.5 e-folds (Planck -> m_e; x1.6 smaller); large-l law delta ~ l^-0.356
+(ii) start c_s/c_f = 2.0, g^2 =  5.0: delta = c_s/c_f - 1: +1.000 -> +0.3795 after 51.5 e-folds (Planck -> m_e; x2.6 smaller); large-l law delta ~ l^-0.361
+(ii) start c_s/c_f = 2.0, g^2 = 20.0: delta = c_s/c_f - 1: +1.000 -> +0.2367 after 51.5 e-folds (Planck -> m_e; x4.2 smaller); large-l law delta ~ l^-0.363
+(ii) start c_s/c_f = 1.1, g^2 =  1.0: delta = c_s/c_f - 1: +0.100 -> +0.0526 after 51.5 e-folds (Planck -> m_e; x1.9 smaller); large-l law delta ~ l^-0.445
+(ii) start c_s/c_f = 1.1, g^2 =  5.0: delta = c_s/c_f - 1: +0.100 -> +0.0281 after 51.5 e-folds (Planck -> m_e; x3.6 smaller); large-l law delta ~ l^-0.448
+(ii) start c_s/c_f = 1.1, g^2 = 20.0: delta = c_s/c_f - 1: +0.100 -> +0.0155 after 51.5 e-folds (Planck -> m_e; x6.5 smaller); large-l law delta ~ l^-0.448
+(ii) linearized: d(I1-I0)/d delta = 6.580; delta ~ l^-0.467 (pure power of the log)
+(ii) from delta = 1 to the bound 1e-15 needs l ~ 10^32 e-folds, i.e. a scale ratio e^(10^32); Planck -> m_e is l = 51.5
+QED one-loop mass running Planck -> m_e: factor 1.197 (not 1e21)
+time 4.3 s
