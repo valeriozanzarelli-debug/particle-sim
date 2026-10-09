@@ -1,0 +1,49 @@
+  theta=0.40 kappa=-1: N=30834 1s1/2 14.3651095 eV, 2s1/2 3.5933022 eV, 3s1/2 1.5973151 eV  (2.8 s)
+  theta=0.40 kappa=+1: N=30834 2p1/2 3.4641175 eV, 3p1/2 1.5586785 eV  (2.8 s)
+  theta=0.40 kappa=-2: N=30834 2p3/2 3.4640723 eV, 3p3/2 1.5586651 eV  (2.9 s)
+  theta=0.40 kappa=+2: N=30834 3d3/2 1.5283761 eV  (3.0 s)
+  theta=0.40 kappa=-3: N=30834 3d5/2 1.5283716 eV  (3.0 s)
+  theta=0.20 kappa=-1: N=61667 1s1/2 13.7826491 eV, 2s1/2 3.4466230 eV, 3s1/2 1.5319678 eV  (5.7 s)
+  theta=0.20 kappa=+1: N=61667 2p1/2 3.4167292 eV, 3p1/2 1.5230899 eV  (6.1 s)
+  theta=0.20 kappa=-2: N=61667 2p3/2 3.4166839 eV, 3p3/2 1.5230764 eV  (7.3 s)
+  theta=0.20 kappa=+2: N=61667 3d3/2 1.5158121 eV  (6.6 s)
+  theta=0.20 kappa=-3: N=61667 3d5/2 1.5158077 eV  (6.7 s)
+  theta=0.10 kappa=-1: N=123333 1s1/2 13.6477709 eV, 2s1/2 3.4124091 eV, 3s1/2 1.5166886 eV  (11.5 s)
+  theta=0.10 kappa=+1: N=123333 2p1/2 3.4052676 eV, 3p1/2 1.5145713 eV  (12.4 s)
+  theta=0.10 kappa=-2: N=123333 2p3/2 3.4052223 eV, 3p3/2 1.5145579 eV  (12.3 s)
+  theta=0.10 kappa=+2: N=123333 3d3/2 1.5127601 eV  (13.7 s)
+  theta=0.10 kappa=-3: N=123333 3d5/2 1.5127556 eV  (13.7 s)
+  theta=0.05 kappa=-1: N=246665 1s1/2 13.6155351 eV, 2s1/2 3.4041062 eV, 3s1/2 1.5129623 eV  (25.0 s)
+  theta=0.05 kappa=+1: N=246665 2p1/2 3.4024253 eV, 3p1/2 1.5124642 eV  (26.7 s)
+  theta=0.05 kappa=-2: N=246665 2p3/2 3.4023800 eV, 3p3/2 1.5124508 eV  (24.0 s)
+  theta=0.05 kappa=+2: N=246665 3d3/2 1.5120025 eV  (26.7 s)
+  theta=0.05 kappa=-3: N=246665 3d5/2 1.5119980 eV  (23.4 s)
+=== H1 levels (binding energy, infinite nuclear mass) ===
+  1s1/2: th=0.4: 14.365109  th=0.2: 13.782649  th=0.1: 13.647771  th=0.05: 13.615535  -> a->0: 13.6049217 eV (+-1.2e-03)  Dirac 13.6058743  rel 7.0e-05
+  2s1/2: th=0.4: 3.593302  th=0.2: 3.446623  th=0.1: 3.412409  th=0.05: 3.404106  -> a->0: 3.4013609 eV (+-1.4e-04)  Dirac 3.4014799  rel 3.5e-05
+  3s1/2: th=0.4: 1.597315  th=0.2: 1.531968  th=0.1: 1.516689  th=0.05: 1.512962  -> a->0: 1.5117286 eV (+-3.9e-05)  Dirac 1.5117638  rel 2.3e-05
+  2p1/2: th=0.4: 3.464117  th=0.2: 3.416729  th=0.1: 3.405268  th=0.05: 3.402425  -> a->0: 3.4014799 eV (+-1.4e-06)  Dirac 3.4014799  rel 6.0e-09
+  3p1/2: th=0.4: 1.558679  th=0.2: 1.523090  th=0.1: 1.514571  th=0.05: 1.512464  -> a->0: 1.5117638 eV (+-1.6e-06)  Dirac 1.5117638  rel 1.6e-08
+  2p3/2: th=0.4: 3.464072  th=0.2: 3.416684  th=0.1: 3.405222  th=0.05: 3.402380  -> a->0: 3.4014346 eV (+-1.4e-06)  Dirac 3.4014346  rel 6.1e-09
+  3p3/2: th=0.4: 1.558665  th=0.2: 1.523076  th=0.1: 1.514558  th=0.05: 1.512451  -> a->0: 1.5117504 eV (+-1.6e-06)  Dirac 1.5117504  rel 1.6e-08
+  3d3/2: th=0.4: 1.528376  th=0.2: 1.515812  th=0.1: 1.512760  th=0.05: 1.512002  -> a->0: 1.5117504 eV (+-2.9e-07)  Dirac 1.5117504  rel 2.9e-09
+  3d5/2: th=0.4: 1.528372  th=0.2: 1.515808  th=0.1: 1.512756  th=0.05: 1.511998  -> a->0: 1.5117459 eV (+-2.9e-07)  Dirac 1.5117459  rel 2.8e-09
+[FAIL] H1 all 9 levels vs Dirac formula (a -> 0): worst relative error 7.0e-05
+  1s binding: walk 13.604922 eV; Bohr (non-relativistic) 13.605693 eV; Dirac 13.605874 eV; with reduced mass 13.597516 eV (measured ionization energy 13.598434599702 eV)
+  fine structure by theta: 0.4: 10.92188 GHz, 0.2: 10.95426 GHz, 0.1: 10.95150 GHz, 0.05: 10.95014 GHz
+[PASS] H2a fine structure 2p3/2-2p1/2 vs Dirac: walk 10.94963 GHz (infinite mass) vs Dirac 10.94966 GHz
+[PASS] H2b fine structure vs measurement: walk 10.94367 GHz (reduced mass) vs measured 10.96904 GHz: -0.231 % (-25.4 MHz = QED, not in the rule)
+  Lyman-alpha: 121.5780 nm (without the proton recoil 121.5118 nm); Balmer-alpha centroid 656.4674 nm; components 3p3/2-2s1/2 656.4936, 3p1/2-2s1/2 656.4983, 3s1/2-2p3/2 656.4604, 3s1/2-2p1/2 656.4447, 3d5/2-2p3/2 656.4664, 3d3/2-2p3/2 656.4680, 3d3/2-2p1/2 656.4523
+[PASS] H3a Lyman-alpha: 121.5780 nm vs 121.567 nm (+90.1 ppm)
+[PASS] H3b Balmer-alpha: 656.4674 nm vs 656.46 nm (+11.2 ppm)
+  1S-2S: walk 2.465867e+15 Hz vs measured 2.466061e+15 Hz (-194.33 GHz: Lamb shifts, QED)
+[PASS] H6 Lyman-alpha Einstein A from the walk: 6.2494e+08 s^-1 vs 6.2649e+08 s^-1 (lifetime 1.600 ns)
+  1s1/2: 1 - overlap with hydrogen R_nl = 4.0e-07; small-component weight 1.33e-05; peak of r^2|psi|^2 at 0.999 a0
+  2s1/2: 1 - overlap with hydrogen R_nl = 1.4e-06; small-component weight 3.33e-06; peak of r^2|psi|^2 at 5.232 a0
+  2p1/2: 1 - overlap with hydrogen R_nl = 1.6e-07; small-component weight 3.33e-06; peak of r^2|psi|^2 at 3.999 a0
+  2p3/2: 1 - overlap with hydrogen R_nl = 1.5e-07; small-component weight 3.33e-06; peak of r^2|psi|^2 at 3.999 a0
+[PASS] H4 orbitals 1s, 2s, 2p: worst 1 - |<walk|exact>|^2 = 1.4e-06
+  1s surfer: |v|/(alpha c) at the equator, density-weighted = 1.000649 (theta = 0.05), max deviation over r in [0.01, 8] a0 = 3.6e-01; by theta 0.4: 1.055291, 0.2: 1.012722, 0.1: 1.002948, 0.05: 1.000649 -> a->0 0.9998957; f/g median -0.00365262 (Dirac -0.00364872)
+[PASS] H5a 1s surfer speed alpha c sin(theta) (theta = 0.05): 1.000649 alpha c = 2.18911e+06 m/s (alpha c = 2.18769e+06)
+[FAIL] H5b 1s surfer speed, a -> 0: 0.9998957 alpha c
+=== 7 PASS / 2 FAIL  (249 s)

@@ -1,0 +1,27 @@
+=== L1 dispersion of the light walk (Bloch analysis) ===
+  axis (1,0,0)   l/a= 4: +0.0000%  l/a= 6: +0.0000%  l/a= 8: +0.0000%  l/a=12: +0.0000%  l/a=16: +0.0000%  l/a=32: +0.0000%
+  face (1,1,0)   l/a= 4: -12.6337%  l/a= 6: -5.0249%  l/a= 8: -2.7122%  l/a=12: -1.1700%  l/a=16: -0.6513%  l/a=32: -0.1612%
+  body (1,1,1)   l/a= 4: -15.0338%  l/a= 6: -6.4020%  l/a= 8: -3.5288%  l/a=12: -1.5437%  l/a=16: -0.8633%  l/a=32: -0.2146%
+[FAIL] L1 dispersion error at lambda = 8a: max |omega/ck - 1| = 3.529 %
+[PASS] L1 error ~ (a/lambda)^2: ratio 8a/16a = 4.09 (2nd order: 4)
+=== L2/L3 3-D packets (n = 64, sigma = 5a, 30 ticks) ===
+[FAIL] L2 speed lambda=8a axis (1,0,0): centroid speed 0.30629 c (Bloch group velocity 1.00000 c, sideways drift 2.0e-02 c)
+[FAIL] L2 speed lambda=8a face (1,1,0): centroid speed 0.82447 c (Bloch group velocity 0.91573 c, sideways drift 1.6e-02 c)
+[FAIL] L2 speed lambda=8a body (1,1,1): centroid speed 0.79471 c (Bloch group velocity 0.89219 c, sideways drift 2.0e-02 c)
+  transversality lambda=8a (body diagonal): static-mode energy 4.25e-03 (after 30 ticks 4.25e-03), |k.F|/|k||F| 2.3e-16 -> 9.03e-02
+[FAIL] L2 speed lambda=16a axis (1,0,0): centroid speed 0.61844 c (Bloch group velocity 1.00000 c, sideways drift 2.7e-02 c)
+[FAIL] L2 speed lambda=16a face (1,1,0): centroid speed 0.60241 c (Bloch group velocity 0.98029 c, sideways drift 9.1e-02 c)
+[FAIL] L2 speed lambda=16a body (1,1,1): centroid speed 0.73295 c (Bloch group velocity 0.97397 c, sideways drift 6.7e-02 c)
+  transversality lambda=16a (body diagonal): static-mode energy 3.40e-04 (after 30 ticks 3.40e-04), |k.F|/|k||F| 2.3e-16 -> 2.63e-02
+[PASS] L3 transversality at 8a: static (longitudinal-like) energy fraction 4.25e-03
+[PASS] L3 transversality improves with lambda/a: 8a/16a ratio 12.5
+=== L4 Berry phase of the moving light mode around loops of directions ===
+[PASS] L4 light Berry phase, cone 90 deg: gamma = +0.00000 rad (mod 2pi), expected spin 1 x solid angle = 6.28319 -> exp(i gamma) = +1.0000
+[FAIL] L4 light Berry phase, cone 60 deg: gamma = -3.05951 rad (mod 2pi), expected spin 1 x solid angle = 3.14159 -> exp(i gamma) = -0.9966
+=== L5 Young double slit with the light walk (2-D, TE: E along y) ===
+  fast 2-D tick vs generic walk: max diff 4.0e-15
+  lambda/a = 8: grid 1120 x 1392, 1503 ticks, estimated 753 s
+  lambda/a = 8: skipped (time budget)
+  lambda/a = 6: grid 840 x 1044, 1127 ticks, estimated 323 s
+  lambda/a = 6: corr coarse 0.3768 fine 0.3315, fringe err rms 62.0% max 79.1% (330 s)
+=== 4 PASS / 8 FAIL  (408 s)

@@ -1,0 +1,59 @@
+{
+ "8": {
+  "per_lambda": 8,
+  "screen": 40.0,
+  "grid": [
+   496,
+   424
+  ],
+  "ticks": 509,
+  "corr_coarse": 0.944426409863775,
+  "corr_fine": 0.7086312798280824,
+  "fringe_rms": NaN,
+  "fringe_max": NaN,
+  "fringe_errs": [
+   NaN
+  ],
+  "negative_flux_fraction": -0.0,
+  "seconds": 10.92025351524353,
+  "diffraction_factor_kcotk": 0.7853981633974484
+ },
+ "16": {
+  "per_lambda": 16,
+  "screen": 40.0,
+  "grid": [
+   992,
+   848
+  ],
+  "ticks": 1018,
+  "corr_coarse": 0.9954764981786156,
+  "corr_fine": 0.9794857861974136,
+  "fringe_rms": NaN,
+  "fringe_max": NaN,
+  "fringe_errs": [
+   NaN
+  ],
+  "negative_flux_fraction": -0.0,
+  "seconds": 75.22451090812683,
+  "diffraction_factor_kcotk": 0.9480594489685199
+ },
+ "24": {
+  "per_lambda": 24,
+  "screen": 40.0,
+  "grid": [
+   1488,
+   1272
+  ],
+  "ticks": 1527,
+  "corr_coarse": 0.9988178883805572,
+  "corr_fine": 0.9960912116121995,
+  "fringe_rms": NaN,
+  "fringe_max": NaN,
+  "fringe_errs": [
+   NaN
+  ],
+  "negative_flux_fraction": -0.0,
+  "seconds": 230.9039282798767,
+  "diffraction_factor_kcotk": 0.9770486166568533
+ }
+}

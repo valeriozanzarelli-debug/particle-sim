@@ -1,0 +1,6 @@
+theta = 0.4: radial walk binding 0.125310 mc^2 (Dirac 0.100948, +24.13 %); 3-D walk 0.130043 (+3.78 % from the radial walk)
+theta = 0.3: radial walk binding 0.114134 mc^2 (Dirac 0.100948, +13.06 %); 3-D walk 0.120024 (+5.16 % from the radial walk); error ratio to previous 1.85 for a ratio 1.33
+theta = 0.24: radial walk binding 0.109349 mc^2 (Dirac 0.100948, +8.32 %); 3-D walk 0.111273 (+1.76 % from the radial walk); error ratio to previous 1.57 for a ratio 1.25
+theta = 0.1: radial walk binding 0.102584 mc^2 (Dirac 0.100948, +1.62 %); error ratio to previous 5.14 for a ratio 2.40
+theta = 0.05: radial walk binding 0.101430 mc^2 (Dirac 0.100948, +0.48 %); error ratio to previous 3.39 for a ratio 2.00
+theta = 0.025: radial walk binding 0.101093 mc^2 (Dirac 0.100948, +0.14 %); error ratio to previous 3.32 for a ratio 2.00

@@ -1,0 +1,10 @@
+theta=0.2: 1s 13.7826491 eV (err +1.30e-02), 2s 3.4466230 eV (err +1.33e-02)  (1 s)
+theta=0.1: 1s 13.6477709 eV (err +3.08e-03), 2s 3.4124091 eV (err +3.21e-03)  (3 s)
+theta=0.05: 1s 13.6155351 eV (err +7.10e-04), 2s 3.4041062 eV (err +7.72e-04)  (7 s)
+theta=0.025: 1s 13.6079744 eV (err +1.54e-04), 2s 3.4020968 eV (err +1.81e-04)  (14 s)
+theta=0.0125: 1s 13.6062919 eV (err +3.07e-05), 2s 3.4016207 eV (err +4.14e-05)  (45 s)
+1s: relative error of the a->0 extrapolation: polynomial in theta^2 -9.2e-06; with theta^2 ln theta -3.0e-06
+2s: relative error of the a->0 extrapolation: polynomial in theta^2 -4.6e-06; with theta^2 ln theta -1.5e-06
+boundary f(0)=0 (reflection +1), theta=0.05: 1s 13.6172572 eV vs g(0)=0: 13.6155351 eV
+refined: 1s 13.6057495 eV, 2s 3.4014643 eV -> Lyman-alpha 121.56809 nm (+9.0 ppm vs 121.567), 1S-2S 2.466042139e+15 Hz (-19.27 GHz vs measured: QED Lamb shifts)
+total 46 s

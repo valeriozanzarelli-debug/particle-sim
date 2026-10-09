@@ -1,0 +1,6 @@
+numba 2-D tick vs generic walk: max diff 1.1e-06 (float32)
+  lambda/a = 8: grid 1072 x 1384, 1503 ticks, estimated 255 s
+  lambda/a = 8: corr coarse 0.5951 fine 0.5755, bright-fringe err rms 45.2% max 69.7%  (280 s)
+[FAIL] L5a double slit, correlation with exact RS flux (lambda = 8a): 0.5951 (photon base rule: 0.9962)
+[FAIL] L5b bright-fringe rms error (lambda = 8a): 45.2 % (photon base rule 4.3 %)
+=== 0 PASS / 2 FAIL  (295 s)

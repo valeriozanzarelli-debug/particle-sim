@@ -1,0 +1,4 @@
+continuum Dirac, sigma = 3: g = 1.94420
+walk theta = 0.5: g = 1.77388; g/g_cont - 1 = -0.0876; -(theta^2/3)/(1+theta^2/3) = -0.0769  (1 s)
+walk theta = 0.25: g = 1.90226; g/g_cont - 1 = -0.0216; -(theta^2/3)/(1+theta^2/3) = -0.0204  (5 s)
+walk theta = 0.125: g = 1.93378; g/g_cont - 1 = -0.0054; -(theta^2/3)/(1+theta^2/3) = -0.0052  (33 s)

@@ -1,0 +1,59 @@
+{
+ "runs": [
+  {
+   "a": 0.4,
+   "n": 60,
+   "ticks": 304,
+   "omega_start": 0.8984573390980657,
+   "omega": 0.8699574988502137,
+   "binding": 0.13004250114978633,
+   "binding_start": 0.10154266090193431,
+   "vphi_over_Zac": 0.6032655112099646,
+   "vrad_rms_over_Zac": 0.5841841803919813,
+   "vz_rms_over_Zac": 0.34530940497056467,
+   "seconds": 18.157042503356934
+  },
+  {
+   "a": 0.3,
+   "n": 80,
+   "ticks": 406,
+   "omega_start": 0.899912657749772,
+   "omega": 0.879975975434987,
+   "binding": 0.12002402456501304,
+   "binding_start": 0.10008734225022797,
+   "vphi_over_Zac": 0.844742047944073,
+   "vrad_rms_over_Zac": 0.504179180833301,
+   "vz_rms_over_Zac": 0.2954741066451931,
+   "seconds": 57.106605052948
+  },
+  {
+   "a": 0.24,
+   "n": 100,
+   "ticks": 506,
+   "omega_start": 0.9005443972029502,
+   "omega": 0.888727457729387,
+   "binding": 0.111272542270613,
+   "binding_start": 0.09945560279704979,
+   "vphi_over_Zac": 0.9421715816073192,
+   "vrad_rms_over_Zac": 0.37187899489742726,
+   "vz_rms_over_Zac": 0.21885671029184398,
+   "seconds": 133.59432220458984
+  }
+ ],
+ "extrapolated": {
+  "binding_quadratic": 0.08928566582721494,
+  "binding_linear_two_finest": 0.09571435152501286,
+  "dirac": 0.10094765239971126
+ },
+ "verdict": [
+  [
+   "A1 3-D walk 1s binding (Z = 60) vs Dirac",
+   false
+  ],
+  [
+   "A2 3-D surfer circulates at Z alpha c sin(theta)",
+   false
+  ]
+ ],
+ "seconds": 256.744571685791
+}

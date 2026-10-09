@@ -1,0 +1,44 @@
+{
+ "peaks_eV": [
+  21.11668161895824,
+  5.577451132718261
+ ],
+ "resolvent_eV": {
+  "1s": 21.135155583683854,
+  "2s": 5.290769562910414
+ },
+ "spectral_resolution_eV": 3.210701094600095,
+ "lockin": {
+  "1s window 166667 ticks": {
+   "binding_eV": 21.135138532286515,
+   "rel_diff": 8.067788889176697e-07
+  },
+  "1s window 83333 ticks": {
+   "binding_eV": 21.118025600676294,
+   "rel_diff": 0.0008104971330697985
+  },
+  "1s window 41667 ticks": {
+   "binding_eV": 18.837739951623075,
+   "rel_diff": 0.10870114596338087
+  },
+  "2s window 166667 ticks": {
+   "binding_eV": 5.132180720324301,
+   "rel_diff": 0.02997462669662654
+  }
+ },
+ "verdict": [
+  [
+   "S1 spectrum peaks at 1s and 2s",
+   true
+  ],
+  [
+   "S2 1s by listening = 1s by resolvent",
+   true
+  ],
+  [
+   "S3 2s by listening",
+   false
+  ]
+ ],
+ "seconds": 370.3351469039917
+}

@@ -1,0 +1,11 @@
+Z = 60, Z alpha = 0.43784; Dirac 1s binding (check only) = 0.100948 mc^2 = 51.584 keV
+  a = 0.4: n = 60, 304 ticks, ~16 s
+  a = 0.4: binding 0.130043 mc^2 = 66.452 keV (start blob 0.10154); v_phi/(Z alpha c sin) = 0.6033, v_r rms 0.584, v_z rms 0.345  (18 s)
+  a = 0.3: n = 80, 406 ticks, ~55 s
+  a = 0.3: binding 0.120024 mc^2 = 61.332 keV (start blob 0.10009); v_phi/(Z alpha c sin) = 0.8447, v_r rms 0.504, v_z rms 0.295  (57 s)
+  a = 0.24: n = 100, 506 ticks, ~116 s
+  a = 0.24: binding 0.111273 mc^2 = 56.860 keV (start blob 0.09946); v_phi/(Z alpha c sin) = 0.9422, v_r rms 0.372, v_z rms 0.219  (134 s)
+  a -> 0: 0.089286 mc^2 (quadratic in a^2), 0.095714 (linear, two finest); Dirac 0.100948
+[FAIL] A1 3-D walk 1s binding (Z = 60) vs Dirac: -11.553 % (linear: -5.184 %)
+[FAIL] A2 3-D surfer circulates at Z alpha c sin(theta): v_phi/(Z alpha c sin th) = 0.9422, v_r rms/(Z alpha c) = 0.3719, v_z 0.2189 (a = 0.24)
+=== 0 PASS / 2 FAIL  (257 s)

@@ -27,6 +27,11 @@ path = "src/scontro/main.rs"
 name = "compton"
 path = "src/compton/main.rs"
 
+# Zig-zag: one quantum-walk rule (translate at c + rotate) for light, the free electron and hydrogen
+[[bin]]
+name = "zigzag"
+path = "src/zigzag/main.rs"
+
 [dependencies]
 bevy      = { version = "0.15" }
 bevy_egui = "0.31"

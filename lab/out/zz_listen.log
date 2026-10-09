@@ -1,0 +1,13 @@
+radial walk theta = 1.0, N = 2741 sites, 1000000 ticks for the spectrum
+  step 1 done in 140 s
+  peaks (binding energies the atom rings at, eV): 21.1167, 5.5775
+  resolvent: 1s 21.135156 eV, 2s 5.290770 eV (this coarse lattice theta = 1.0)
+[PASS] S1 spectrum peaks at 1s and 2s: |peak - resolvent| = 1.85e-02 / 2.87e-01 eV, resolution 2 pi/(N theta) = 3.21e+00 eV
+  step 2 done in 227 s
+  lock-in 1s, window std 166667 ticks: binding 21.135139 eV, relative difference to resolvent 8.1e-07
+  lock-in 1s, window std 83333 ticks: binding 21.118026 eV, relative difference to resolvent 8.1e-04
+  lock-in 1s, window std 41667 ticks: binding 18.837740 eV, relative difference to resolvent 1.1e-01
+  lock-in 2s, window std 166667 ticks: binding 5.132181 eV, relative difference to resolvent 3.0e-02
+[PASS] S2 1s by listening = 1s by resolvent: 8.1e-07 (shorter windows 8.1e-04, 1.1e-01)
+[FAIL] S3 2s by listening: 3.0e-02
+=== 2 PASS / 1 FAIL  (370 s)

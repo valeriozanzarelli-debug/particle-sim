@@ -1,0 +1,6 @@
+numba 2-D tick vs generic walk: max diff 1.1e-06 (float32)
+  lambda/a = 8: grid 496 x 424, 509 ticks, estimated 44 s
+lambda/a = 8: corr(fine bins) with exact RS flux at z = 40: 0.7086, coarse 0.9444  [(ka)cot(ka) = 0.7854]  (39 s)
+  lambda/a = 16: grid 992 x 848, 1018 ticks, estimated 184 s
+lambda/a = 16: corr(fine bins) with exact RS flux at z = 40: 0.9795, coarse 0.9955  [(ka)cot(ka) = 0.9481]  (159 s)
+  lambda/a = 24: grid 1488 x 1272, 1527 ticks, estimated 375 s

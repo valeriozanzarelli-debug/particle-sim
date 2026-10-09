@@ -1,0 +1,50 @@
+=== F1 Dirac dispersion of the walk ===
+  theta=0.40 axis  p=0.0: 1.11e-16  p=0.1: 2.67e-04  p=0.5: 5.42e-03  p=1.0: 1.37e-02  p=2.0: 2.28e-02
+  theta=0.40 face  p=0.0: 1.11e-16  p=0.1: 2.69e-04  p=0.5: 6.70e-03  p=1.0: 2.71e-02  p=2.0: 1.23e-01
+  theta=0.40 body  p=0.0: 1.11e-16  p=0.1: 2.70e-04  p=0.5: 7.12e-03  p=1.0: 3.11e-02  p=2.0: 1.41e-01
+  theta=0.20 axis  p=0.0: 2.22e-16  p=0.1: 6.62e-05  p=0.5: 1.34e-03  p=1.0: 3.36e-03  p=2.0: 5.42e-03
+  theta=0.20 face  p=0.0: 2.22e-16  p=0.1: 6.68e-05  p=0.5: 1.67e-03  p=1.0: 6.70e-03  p=2.0: 2.77e-02
+  theta=0.20 body  p=0.0: 2.22e-16  p=0.1: 6.71e-05  p=0.5: 1.78e-03  p=1.0: 7.78e-03  p=2.0: 3.44e-02
+  theta=0.10 axis  p=0.0: 4.44e-16  p=0.1: 1.65e-05  p=0.5: 3.34e-04  p=1.0: 8.35e-04  p=2.0: 1.34e-03
+  theta=0.10 face  p=0.0: 4.44e-16  p=0.1: 1.67e-05  p=0.5: 4.17e-04  p=1.0: 1.67e-03  p=2.0: 6.73e-03
+  theta=0.10 body  p=0.0: 4.44e-16  p=0.1: 1.67e-05  p=0.5: 4.44e-04  p=1.0: 1.94e-03  p=2.0: 8.49e-03
+[PASS] F1 rest energy = m c^2 exactly: max |E(0)/mc^2 - 1| = 4.4e-16
+[PASS] F1 dispersion error, theta = 0.1, p <= mc: 0.194 %
+[PASS] F1 error ~ theta^2: ratio 0.2/0.1 = 4.00
+  kinetic mass at theta=0.4: 1.056983 m  (1 + theta^2/3 = 1.053333)
+  kinetic mass at theta=0.2: 1.013550 m  (1 + theta^2/3 = 1.013333)
+  kinetic mass at theta=0.1: 1.003347 m  (1 + theta^2/3 = 1.003333)
+  largest group velocity of the walk bands over the whole zone (theta=0.2): 0.9798 c (99th percentile 0.9650)
+=== F2 Zitterbewegung, 1-D (sigma = 5, purely right-handed packet at rest) ===
+C:\Users\valer\Desktop\Programma di simulazione\particle_sim\lab\zz_free.py:112: OptimizeWarning: Covariance of the parameters could not be estimated
+  p, _ = curve_fit(f, t[sel], x[sel], p0=[x[0], 0.0, 0.5, 2.0, ph0], maxfev=20000)
+  theta=0.2: omega = 2.00944 mc^2/hbar, A = 0.49405 lambda_C, positive-only residual 9.2e-16
+  theta=0.1: omega = 2.00951 mc^2/hbar, A = 0.49139 lambda_C, positive-only residual 1.1e-15
+  theta=0.05: omega = 2.00951 mc^2/hbar, A = 0.49072 lambda_C, positive-only residual 1.6e-15
+[PASS] F2 ZBW frequency (theta = 0.1): 2.00951 vs continuum 2.00952 (1.5601e+21 rad/s; 2mc^2/hbar = 1.5527e+21)
+[PASS] F2 ZBW amplitude (theta = 0.1): 0.49139 vs continuum 0.49050 (1.8975e-13 m; hbar/2mc = 1.9308e-13 m)
+[PASS] F2 no ZBW for positive energy (walk eigenvectors): 1.1e-15
+=== F3 Zitterbewegung, 3-D: circle of radius hbar/2mc ===
+  walk     : x: A = 0.4334, omega = 2.0712;  z: A = 0.4377, omega = 2.0701   (|<y>| max 4.7e-17)
+  continuum: x: A = 0.4278, omega = 2.0731;  z: A = 0.4311, omega = 2.0707   (|<y>| max 5.6e-17)
+[PASS] F3 3-D ZBW circle: walk vs continuum: radius 0.4334/0.4377 vs 0.4278/0.4311 (hbar/2mc = 0.5 for a wide packet)
+=== F4 spin 1/2 ===
+  Weyl R walker, cone 90 deg, lambda = 16a: gamma = +3.14159 (expected 3.14159), exp(i gamma) = -1.0000+0.0000j
+  Weyl R walker, cone 90 deg, lambda = 32a: gamma = -3.14159 (expected 3.14159), exp(i gamma) = -1.0000-0.0000j
+  Weyl R walker, cone 90 deg, lambda = 64a: gamma = -3.14159 (expected 3.14159), exp(i gamma) = -1.0000-0.0000j
+[PASS] F4a Berry phase spin 1/2, cone 90: gamma - expected = -1.78e-15 rad
+  Weyl R walker, cone 60 deg, lambda = 16a: gamma = -1.40314 (expected 1.57080), exp(i gamma) = 0.1669-0.9860j
+  Weyl R walker, cone 60 deg, lambda = 32a: gamma = -1.52975 (expected 1.57080), exp(i gamma) = 0.0410-0.9992j
+  Weyl R walker, cone 60 deg, lambda = 64a: gamma = -1.56058 (expected 1.57080), exp(i gamma) = 0.0102-0.9999j
+[FAIL] F4a Berry phase spin 1/2, cone 60: gamma - expected = -1.02e-02 rad
+  mismatch after 40 ticks vs spinor angle chi: 0: 0.739, 15: 0.646, 30: 0.541, 45: 0.428, 60: 0.308, 75: 0.184, 90: 0.068, 105: 0.095, 120: 0.217, 135: 0.340, 150: 0.459, 165: 0.570, 180: 0.672, 195: 0.762, 210: 0.839, 225: 0.902, 240: 0.950, 255: 0.982, 270: 0.996, 285: 0.994, 300: 0.975, 315: 0.939, 330: 0.887, 345: 0.820, 360: 0.739
+[FAIL] F4b quarter turn needs the half-angle spinor turn: argmin chi = 90 deg, d(90)/d(180) = 0.101; => four quarter turns: exp(-i pi Sigma_z) = -1, eight = +1 (4 pi periodicity)
+=== F5 magnetic moment from the Dirac current (g) ===
+  sigma = 4.0: walk g = 0.00004 (S = 0.47088, mu = 0.00001); continuum g = 0.00004
+  sigma = 8.0: walk g = 0.00001 (S = 0.47313, mu = 0.00000); continuum g = 0.00001
+[PASS] F5 g walk vs continuum: 0.00001 vs 0.00001
+[FAIL] F5 g = 2 (sigma = 8): g = 0.00001
+=== F6 surfers, 1-D mixed packet ===
+[PASS] F6 surfer |v| <= c: max |v| = 1.000000000000000
+[FAIL] F6 equivariance (quantile kept): max |F(x_i(t)) - F(x_i(0))| = 1.26e-02
+=== 10 PASS / 4 FAIL  (291 s)

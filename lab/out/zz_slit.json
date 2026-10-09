@@ -1,0 +1,36 @@
+{
+ "L5": {
+  "8": {
+   "per_lambda": 8,
+   "grid": [
+    1072,
+    1384
+   ],
+   "ticks": 1503,
+   "corr_coarse": 0.5950588624447929,
+   "corr_fine": 0.5755489359463412,
+   "fringe_rms": 0.4521298388624983,
+   "fringe_max": 0.6970612285926703,
+   "fringe_errs": [
+    -0.6970612285926703,
+    -0.27787357181689554,
+    0.04895614653107283,
+    -0.20455844079523222,
+    -0.6440170942172209
+   ],
+   "negative_flux_fraction": -0.0,
+   "seconds": 280.4969313144684
+  }
+ },
+ "verdict": [
+  [
+   "L5a double slit, correlation with exact RS flux (lambda = 8a)",
+   false
+  ],
+  [
+   "L5b bright-fringe rms error (lambda = 8a)",
+   false
+  ]
+ ],
+ "seconds": 295.47951769828796
+}
