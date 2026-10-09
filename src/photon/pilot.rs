@@ -326,7 +326,7 @@ impl Bench {
                     objs.push((p.z as f64, Obj::Polarizer { idx, axis: j2(crate::complex::linear(p.angle)) }));
                 }
             }
-            Experiment::FreeBeam | Experiment::Bell => {}
+            Experiment::FreeBeam | Experiment::Bell | Experiment::Airy | Experiment::Arago => {}
         }
         objs.retain(|(z, _)| *z > zs && *z < screen_z);
         objs.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap());

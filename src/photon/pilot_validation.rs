@@ -66,6 +66,7 @@ fn pilot_hankel_matches_scipy() {
 
 fn lab(e: Experiment, f: impl FnOnce(&mut Lab)) -> Lab {
     let mut l = Lab::default_for(e);
+    l.rule = Rule::Pilot;      // the program opens with the base 3-D rule; these tests are the 2-D pilot's
     f(&mut l);
     l
 }
@@ -410,7 +411,7 @@ fn pilot_rewind_and_replay_are_exact() {
 /// (60 frames per second of light-clock). Simulation only (no drawing).
 #[test]
 fn pilot_frame_cost() {
-    let l = Lab::default_for(Experiment::DoubleSlit);
+    let l = lab(Experiment::DoubleSlit, |_| {});
     let mut s = Sim::new(l);
     let d = crate::timeline::base_speed(&s.lab) / 60.0;
     s.bench();

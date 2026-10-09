@@ -1,5 +1,7 @@
-//! Drawing the photon: grains as points (colour = phase), E-field arrows,
-//! optical elements and detector clicks.
+﻿//! Drawing the photon (classic and 2-D pilot rules): grains as points
+//! (colour = phase), E-field arrows, optical elements. The base 3-D rule,
+//! the clicks (round dots) and the photon ball of the 3-D rule are drawn by
+//! `render3d.rs`.
 
 use bevy::{
     prelude::*,
@@ -15,7 +17,7 @@ use crate::LabState;
 
 /// Which point cloud an entity draws.
 #[derive(Component, Clone, Copy, PartialEq, Eq)]
-pub enum Cloud { Grains, Clicks, Haze }
+pub enum Cloud { Grains, Haze }
 
 /// Give the cloud a new mesh and remove the old one.
 ///
@@ -53,7 +55,6 @@ pub(crate) fn cloud_mesh(pos: Vec<[f32; 3]>, col: Vec<[f32; 4]>) -> Mesh {
 #[derive(Resource, Default)]
 pub struct Drawn {
     grains: Option<(u64, f32, usize)>,
-    clicks: Option<(usize, Option<[f32; 3]>)>,
 }
 
 /// Where dead grains are parked (outside any view).
@@ -69,15 +70,14 @@ pub fn setup_render(
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
     let mat = materials.add(StandardMaterial { base_color: Color::WHITE, unlit: true, ..default() });
-    commands.spawn((Cloud::Grains, Mesh3d(meshes.add(point_mesh(1))), MeshMaterial3d(mat.clone()), Transform::default()));
-    commands.spawn((Cloud::Clicks, Mesh3d(meshes.add(point_mesh(1))), MeshMaterial3d(mat), Transform::default()));
+    commands.spawn((Cloud::Grains, Mesh3d(meshes.add(point_mesh(1))), MeshMaterial3d(mat), Transform::default()));
     commands.init_resource::<Drawn>();
 }
 
 /// Phase colour wheel: the colour of a grain is the angle of its arrow.
-fn phase_color(angle: f32) -> [f32; 4] {
+pub(crate) fn phase_color(angle: f32) -> [f32; 4] {
     let t = angle.rem_euclid(TAU) / TAU;
-    // Cyclic palette: cyan → blue → violet → magenta → gold → cyan
+    // Cyclic palette: cyan â†’ blue â†’ violet â†’ magenta â†’ gold â†’ cyan
     const STOPS: [[f32; 3]; 5] = [
         [0.20, 0.95, 1.00],
         [0.25, 0.45, 1.00],
@@ -102,7 +102,7 @@ pub fn update_meshes(
     let sim = &state.sim;
     let k = sim.lab.k();
 
-    // ── grains ──
+    // â”€â”€ grains â”€â”€
     // All grains are simulated; at most MAX_GRAINS_DRAWN are drawn (every
     // `stride`-th one), because the cloud is uploaded again every frame.
     let total: usize = sim.photons.iter().map(|p| p.grains.len()).sum();
@@ -119,7 +119,7 @@ pub fn update_meshes(
                 pos.push(g.pos.to_array());
                 let mut c = phase_color(g.phase(k) - k * sim.clock);
                 if !ph.pol_defined {
-                    // Entangled, unmeasured: phase yes, polarization none → pale
+                    // Entangled, unmeasured: phase yes, polarization none â†’ pale
                     for v in c.iter_mut().take(3) { *v = 0.55 + 0.45 * *v * 0.5; }
                 }
                 col.push(c);
@@ -131,22 +131,10 @@ pub fn update_meshes(
         }
         swap_mesh(Cloud::Grains, cloud_mesh(pos, col), &mut meshes, &mut clouds);
     }
-
-    // ── clicks on the screen ──
-    let clicks = &sim.stats.clicks;
-    let key = (clicks.len(), clicks.last().map(|c| c.to_array()));
-    if drawn.clicks != Some(key) {
-        drawn.clicks = Some(key);
-        let start = clicks.len().saturating_sub(MAX_CLICKS_DRAWN);
-        let mut pos: Vec<[f32; 3]> = clicks[start..].iter().map(|c| c.to_array()).collect();
-        if pos.is_empty() { pos.push(PARKED); }
-        let col = vec![[0.75, 1.0, 0.6, 1.0]; pos.len()];
-        swap_mesh(Cloud::Clicks, cloud_mesh(pos, col), &mut meshes, &mut clouds);
-    }
 }
 
 /// Optical bench and E-field arrows.
-pub fn draw_bench(state: Res<LabState>, mut gizmos: Gizmos) {
+pub fn draw_bench(state: Res<LabState>, vis: Option<Res<crate::render3d::Visuals>>, mut gizmos: Gizmos) {
     let sim = &state.sim;
     let lab = &sim.lab;
     let dim   = Color::srgba(0.55, 0.6, 0.7, 0.6);
@@ -166,14 +154,33 @@ pub fn draw_bench(state: Res<LabState>, mut gizmos: Gizmos) {
     };
 
     // Source
-    if lab.experiment != Experiment::Bell {
-        gizmos.circle(Isometry3d::new(Vec3::new(0.0, 0.0, lab.source_z - 12.0), Quat::IDENTITY), 2.0, gold);
+    if lab.experiment.only_3d() {
+        // the source is the lit aperture / the beam around the disk
+    } else if lab.experiment != Experiment::Bell {
+        let zs = if lab.base3d() { lab.source_z } else { lab.source_z - 12.0 };
+        gizmos.circle(Isometry3d::new(Vec3::new(0.0, 0.0, zs), Quat::IDENTITY), if lab.base3d() { lab.beam_radius(lab.source_z) } else { 2.0 }, gold);
     } else {
         gizmos.sphere(Isometry3d::from_translation(Vec3::ZERO), 1.5, gold);
     }
 
     match lab.experiment {
         Experiment::FreeBeam => {}
+        Experiment::DoubleSlit if lab.base3d() => {
+            // 3-D: slits of finite length; outline of the wall and of each opening
+            let (c, h) = lab.slits();
+            let z = lab.wall_z;
+            let hy = 0.5 * lab.slit_height;
+            rect(&mut gizmos, z, -40.0, 40.0, -30.0, 30.0, dim);
+            for (s, f) in lab.slit_filters().iter().enumerate() {
+                rect(&mut gizmos, z, c[s] - h, c[s] + h, -hy, hy, gold.with_alpha(0.8));
+                if let Some(f) = f {
+                    let a = f[1].re.atan2(f[0].re);
+                    let d = Vec3::new(a.cos(), a.sin(), 0.0) * 3.0;
+                    let p = Vec3::new(c[s], 0.0, z - 0.5);
+                    gizmos.line(p - d, p + d, gold);
+                }
+            }
+        }
         Experiment::DoubleSlit => {
             let (c, h) = lab.slits();
             let (x0, x1, yh) = (-40.0, 40.0, 25.0);
@@ -197,6 +204,18 @@ pub fn draw_bench(state: Res<LabState>, mut gizmos: Gizmos) {
                 polarizer(&mut gizmos, p.z, p.angle, gold);
             }
         }
+        Experiment::Airy => {
+            // opaque screen with a circular hole (the hole is the source)
+            let iso = Isometry3d::new(Vec3::new(0.0, 0.0, lab.wall_z), Quat::IDENTITY);
+            gizmos.circle(iso, 0.5 * lab.aperture_d, gold);
+            rect(&mut gizmos, lab.wall_z, -20.0, 20.0, -20.0, 20.0, dim);
+        }
+        Experiment::Arago => {
+            let iso = Isometry3d::new(Vec3::new(0.0, 0.0, lab.wall_z), Quat::IDENTITY);
+            gizmos.circle(iso, lab.disk_r, gold);
+            gizmos.circle(iso, 0.6 * lab.disk_r, gold.with_alpha(0.5));
+            gizmos.circle(iso, 0.25 * lab.disk_r, gold.with_alpha(0.35));
+        }
         Experiment::Bell => {
             let last = sim.stats.last_bell;
             for (side, d) in [(0usize, lab.bell.dist_a), (1, lab.bell.dist_b)] {
@@ -215,7 +234,15 @@ pub fn draw_bench(state: Res<LabState>, mut gizmos: Gizmos) {
 
     // Detection screen
     if lab.experiment != Experiment::Bell {
-        rect(&mut gizmos, lab.screen_z, -lab.screen_half, lab.screen_half, -25.0, 25.0, green.with_alpha(0.5));
+        let yh = if lab.base3d() { lab.screen_half } else { 25.0 };
+        rect(&mut gizmos, lab.screen_z, -lab.screen_half, lab.screen_half, -yh, yh, green.with_alpha(0.5));
+    }
+
+    // Base 3-D rule: arrows on a few drawn wave balls
+    if state.show_arrows && lab.base3d() {
+        if let Some(v) = vis.as_deref() {
+            crate::render3d::arrows(v, sim.clock, crate::render3d::vis_scale(lab), &mut gizmos);
+        }
     }
 
     // E-field arrows on a subset of grains: rotate + translate made visible
@@ -243,8 +270,21 @@ pub fn photon_ball_gizmo_config() -> GizmoConfig {
 }
 
 /// Pilot rule: the photon ball (white sphere + star) and its recent path.
+/// Base 3-D rule: the trail of the photon ball (its sphere and glow are
+/// drawn by `render3d.rs`).
 pub fn draw_photon_ball(state: Res<LabState>, mut gizmos: Gizmos<PhotonBallGizmos>) {
     let white = Color::srgb(1.0, 1.0, 1.0);
+    let clock = state.sim.clock as f64;
+    for b in state.sim.photons.iter().filter_map(|p| p.ball.as_ref()) {
+        let pts: Vec<Vec3> = b.trail.iter().filter(|q| q.0 <= clock)
+            .map(|q| Vec3::new(q.1[0] as f32, q.1[1] as f32, q.1[2] as f32))
+            .chain(std::iter::once(b.pos_at(clock))).collect();
+        let n = pts.len().max(1) as f32;
+        gizmos.linestrip_gradient(pts.into_iter().enumerate().map(|(i, p)| {
+            let a = 0.15 + 0.85 * (i as f32 + 1.0) / n;
+            (p, Color::srgba(1.0, 0.95, 0.8, a))
+        }));
+    }
     for pp in state.sim.photons.iter().filter_map(|p| p.pilot.as_ref()) {
         let n = pp.trail.len().max(1) as f32;
         gizmos.linestrip_gradient(pp.trail.iter().enumerate().map(|(i, p)| {

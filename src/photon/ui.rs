@@ -85,6 +85,8 @@ fn panel(ui: &mut egui::Ui, state: &mut LabState, cache: &mut RefCache) {
         Experiment::DoubleSlit => double_slit(ui, state, cache),
         Experiment::Polarizers => polarizers(ui, state),
         Experiment::Bell       => bell(ui, state),
+        Experiment::Airy       => airy(ui, state),
+        Experiment::Arago      => arago(ui, state),
     }
     ui.separator();
     legend(ui);
@@ -169,6 +171,8 @@ fn experiment_picker(ui: &mut egui::Ui, state: &mut LabState) -> bool {
         ui.selectable_value(&mut pick, Experiment::DoubleSlit, "Double slit");
         ui.selectable_value(&mut pick, Experiment::Polarizers, "Polarizers");
         ui.selectable_value(&mut pick, Experiment::Bell,       "Entanglement");
+        ui.selectable_value(&mut pick, Experiment::Airy,       "Airy disk");
+        ui.selectable_value(&mut pick, Experiment::Arago,      "Arago spot");
     });
     if pick != current {
         state.switch(pick);
@@ -177,25 +181,67 @@ fn experiment_picker(ui: &mut egui::Ui, state: &mut LabState) -> bool {
     false
 }
 
-/// Classic grains or the local pilot rule (not for the Bell test).
+/// Base 3-D rule (default), 2-D pilot rule or classic grains (Bell: classic only;
+/// Airy and Arago: base 3-D only).
 fn rule_picker(ui: &mut egui::Ui, state: &mut LabState) {
     let lab = &mut state.sim.lab;
     if lab.experiment == Experiment::Bell { return; }
-    ui.horizontal(|ui| {
-        ui.label("rule:");
-        ui.selectable_value(&mut lab.rule, Rule::Pilot, "pilot (local, 2-D)")
-            .on_hover_text("wave balls + ONE photon ball that rides the current of its wave and makes the click itself");
-        ui.selectable_value(&mut lab.rule, Rule::Classic, "classic")
-            .on_hover_text("grains + photon-level Born decisions (the original model)");
-    });
-    if lab.rule == Rule::Pilot {
+    if !lab.experiment.only_3d() {
+        ui.horizontal(|ui| {
+            ui.label("rule:");
+            ui.selectable_value(&mut lab.rule, Rule::Base3D, "base 3-D (v2)")
+                .on_hover_text("docs/REGOLA_BASE.md: wave balls in 3-D (Nyquist count), one photon ball guided by the 3-D current, edge rule v2");
+            ui.selectable_value(&mut lab.rule, Rule::Pilot, "pilot 2-D")
+                .on_hover_text("wave balls + ONE photon ball that rides the current of its wave (x-z plane only)");
+            ui.selectable_value(&mut lab.rule, Rule::Classic, "classic")
+                .on_hover_text("grains + photon-level Born decisions (the original model)");
+        });
+    }
+    if lab.base3d() {
         ui.label(egui::RichText::new(
-            "2-D: the rule lives in the x–z plane (slits long in y). The y spread of the
+            "Base rule v2 in 3-D. Balls = a random subset of the rule's wave balls \
+             (fixed per photon), colour = phase, brightness = amplitude weight; each is \
+             drawn a random distance (up to 3 λ) behind its front and its direction is \
+             spread over its Nyquist cell: visual only. \
+             White sphere + trail = the photon ball. No global decision anywhere.",
+        ).small().color(GOLD));
+        if let Some(b) = state.sim.bench3_ready() {
+            let counts = b.ball_counts();
+            let b0: f64 = counts.iter().map(|c| c.balls0).sum();
+            let ba: f64 = counts.iter().map(|c| c.balls_all).sum();
+            let drawn = state.balls_per_fan * counts.len();
+            let per_fan = counts.iter().map(|c| format!("{}: {} origins × {} directions", c.obj, c.n0, c.ndir)).collect::<Vec<_>>().join("\n");
+            ui.label(egui::RichText::new(format!(
+                "wave balls per photon used by the rule:\n  {} (level 0) · {} (all {} levels)\ndrawn: {} ({} per fan)\n{}\nfans built in {:.1} s · fine-level origins cached {}",
+                big(b0), big(ba), b.lev.lmax + 1, big(drawn as f64), state.balls_per_fan,
+                per_fan, b.build_secs, b.cached_origins(),
+            )).small().monospace());
+        }
+        ui.horizontal(|ui| {
+            ui.label("drawn per fan");
+            let mut n = state.balls_per_fan as f32;
+            ui.add(egui::Slider::new(&mut n, 2_000.0..=120_000.0).logarithmic(true));
+            state.balls_per_fan = n as usize;
+        });
+        ui.horizontal(|ui| {
+            ui.label("ball size");
+            ui.add(egui::Slider::new(&mut state.ball_scale, 0.3..=3.0));
+        });
+        ui.checkbox(&mut state.exact_dirs, "draw on the rule's exact direction grid")
+            .on_hover_text("off: each drawn ball's direction is spread over its Nyquist cell (visual only), so the discrete directions do not show as clumps far from small objects");
+    } else if lab.rule == Rule::Pilot {
+        ui.label(egui::RichText::new(
+            "2-D: the rule lives in the x-z plane (slits long in y). The y spread of the
              wave balls and of the clicks is drawn only to make them visible.
              White star + trail = the photon ball. No global decision: it is absorbed
              or clicks only where it is, with a local coin at absorbing edges.",
         ).small().color(GOLD));
     }
+}
+
+/// 1.23e9-style number for the panel.
+fn big(v: f64) -> String {
+    if v < 1e6 { format!("{v:.0}") } else { format!("{:.2}e{}", v / 10f64.powi(v.log10().floor() as i32), v.log10().floor()) }
 }
 
 fn controls(ui: &mut egui::Ui, state: &mut LabState) {
@@ -210,13 +256,24 @@ fn controls(ui: &mut egui::Ui, state: &mut LabState) {
             state.edited();
         }
     });
-    ui.checkbox(&mut state.show_arrows, "show the E-field arrows (the rotation)");
+    ui.checkbox(&mut state.show_arrows, "show the E-field arrows");
 
     let s = &state.sim.stats;
     ui.label(egui::RichText::new(format!(
         "emitted {}   detected {}   absorbed {}   off-screen {}",
         s.emitted, s.detected, s.absorbed_wall + s.absorbed_pol.iter().sum::<u64>(), s.missed,
     )).monospace().small());
+    if let Some(b) = state.sim.photons.first().and_then(|p| p.ball.as_ref()) {
+        let coin = b.last_coin.map_or("—".to_string(), |(p, ok)| format!("p = {p:.3} → {}", if ok { "passed" } else { "absorbed" }));
+        let p = b.pos_at(state.sim.clock as f64);
+        ui.label(egui::RichText::new(format!(
+            "photon ball: x = {:+.2}, y = {:+.2}, z = {:.1}; hears fan {}; last coin {coin}",
+            p.x, p.y, p.z, b.hear.map_or("—".into(), |f| f.to_string()),
+        )).monospace().small());
+    }
+    if state.sim.lab.base3d() && s.lost_source > 0 {
+        ui.label(egui::RichText::new(format!("lost at the source by the flux coin: {}", s.lost_source)).small().weak());
+    }
     if state.sim.lab.pilot() {
         if let Some(pp) = state.sim.photons.first().and_then(|p| p.pilot.as_ref()) {
             let coin = pp.last_coin.map_or("—".to_string(), |(p, ok)| format!("p = {p:.3} → {}", if ok { "passed" } else { "absorbed" }));
@@ -322,6 +379,9 @@ fn double_slit(ui: &mut egui::Ui, state: &mut LabState, cache: &mut RefCache) {
             ui.selectable_value(&mut lab.which_path, WhichPath::Orthogonal, "∥ ⊥");
         });
     }
+    if state.sim.lab.base3d() {
+        return double_slit_base3d(ui, state);
+    }
     if state.sim.lab.pilot() {
         return double_slit_pilot(ui, state);
     }
@@ -398,6 +458,47 @@ fn double_slit_pilot(ui: &mut egui::Ui, state: &mut LabState) {
         "fans: {}",
         bench.fans.iter().map(|f| format!("{} origins × {} directions", f.xs.len(), f.nu)).collect::<Vec<_>>().join(" → "),
     )).small().weak());
+}
+
+/// Base 3-D rule: clicks (x) vs the x-marginal of the wave's flux on the screen.
+fn double_slit_base3d(ui: &mut egui::Ui, state: &mut LabState) {
+    {
+        let lab = &mut state.sim.lab;
+        ui.horizontal(|ui| {
+            ui.label("slit length (y)");
+            ui.add(egui::Slider::new(&mut lab.slit_height, 6.0..=40.0).step_by(1.0));
+        });
+    }
+    let Some(bench) = state.sim.bench3_ready() else {
+        ui.label(egui::RichText::new("the wave is built when the next photon is emitted").small().weak());
+        return;
+    };
+    let sim = &state.sim;
+    let lab = &sim.lab;
+    let flux = bench.screen_flux_x_cached(lab.screen_half as f64, lab.bins);
+    let hist: Vec<f32> = sim.stats.hist.iter().map(|&h| h as f32).collect();
+    ui.label(egui::RichText::new(
+        "grey = flux of the 3-D wave on the screen, summed over y · green = clicks (x)",
+    ).small().weak());
+    plot(ui, &[(&flux, GREY, false), (&hist, GREEN, true)]);
+    if sim.stats.detected >= 100 {
+        let coarse = |v: &[f32]| v.chunks(8).map(|c| c.iter().sum::<f32>()).collect::<Vec<f32>>();
+        let corr = correlation(&coarse(&hist), &coarse(&flux));
+        row(ui, "clicks vs wave flux (8-bin)", format!("{corr:.3}  ({} clicks)", sim.stats.detected), corr > 0.97);
+        let p = lab.lambda * (lab.screen_z - lab.wall_z) / lab.slit_sep;
+        let v = visibility_at(lab, &hist, p);
+        let vt = visibility_at(lab, &flux, p);
+        row(ui, "fringe visibility of the clicks", format!("{v:.2}  (wave {vt:.2})"), (v - vt).abs() < 0.1);
+    } else {
+        ui.label(egui::RichText::new("need ≥ 100 clicks for the checks (speed ×1000 helps)").small().weak());
+    }
+    let finished = sim.stats.detected + sim.stats.absorbed_wall + sim.stats.missed + sim.stats.lost_source;
+    if finished > 0 {
+        ui.label(format!(
+            "{:.1}% of the photon balls were absorbed at the wall (opaque part or edge coin) — whole.",
+            100.0 * sim.stats.absorbed_wall as f32 / finished as f32,
+        ));
+    }
 }
 
 fn polarizers(ui: &mut egui::Ui, state: &mut LabState) {
@@ -510,6 +611,73 @@ fn bell(ui: &mut egui::Ui, state: &mut LabState) {
     ).small().weak());
 }
 
+/// Radii of the clicks on the screen (3-D rule).
+fn click_radii(sim: &Sim) -> Vec<f64> {
+    sim.stats.clicks.iter().map(|c| (c.x as f64).hypot(c.y as f64)).collect()
+}
+
+/// Radial click density (per unit area) over 0 … rmax.
+fn radial_density(r: &[f64], rmax: f64) -> Vec<f32> {
+    let nb = 60;
+    let mut h = vec![0.0f32; nb];
+    for &q in r { if q < rmax { h[((q / rmax) * nb as f64) as usize] += 1.0; } }
+    for (i, v) in h.iter_mut().enumerate() { *v /= i as f32 + 0.5; }
+    h
+}
+
+fn airy(ui: &mut egui::Ui, state: &mut LabState) {
+    ui.heading("Airy disk");
+    {
+        let lab = &mut state.sim.lab;
+        ui.horizontal(|ui| {
+            ui.label("aperture diameter D");
+            ui.add(egui::Slider::new(&mut lab.aperture_d, 3.0..=12.0).step_by(0.5));
+        });
+    }
+    let sim = &state.sim;
+    let lab = &sim.lab;
+    ui.label(egui::RichText::new(
+        "A plane wave lights a circular hole; the lit hole is the source (as in lab/base_exp3d.py). \
+         The photon ball is born in the hole with probability |B|² and rides the 3-D current.",
+    ).small().weak());
+    let rf = crate::base3d::airy_first_zero(lab.lambda as f64, lab.aperture_d as f64, (lab.screen_z - lab.wall_z) as f64);
+    let r = click_radii(sim);
+    ui.label(format!("{} clicks; first dark ring expected at r = {rf:.2} = L·tan(asin(1.22 λ/D))", r.len()));
+    if r.len() >= 400 {
+        match crate::base3d::min_position(&r, rf, 0.3 * rf, |x| x) {
+            Some(m) => row(ui, "first zero from the clicks", format!("{m:.2}  (expected {rf:.2})"), (m / rf - 1.0).abs() < 0.03),
+            None => { ui.label("first zero: not found yet"); }
+        }
+    } else {
+        ui.label(egui::RichText::new("need ≥ 400 clicks for the first-zero fit (speed ×1000 helps)").small().weak());
+    }
+    let rmax = 2.2 * rf;
+    plot(ui, &[(&radial_density(&r, rmax), GREEN, true)]);
+    ui.label(egui::RichText::new(format!("radial click density, r = 0 … {rmax:.0}")).small().weak());
+}
+
+fn arago(ui: &mut egui::Ui, state: &mut LabState) {
+    ui.heading("Arago spot");
+    let sim = &state.sim;
+    let lab = &sim.lab;
+    ui.label(egui::RichText::new(
+        "An opaque disk (radius a = 3 λ) in a Gaussian beam (w = 5 λ); the screen is 12 λ behind it. \
+         A bright spot appears in the middle of the shadow.",
+    ).small().weak());
+    let l = (lab.screen_z - lab.wall_z) as f64;
+    let k = std::f64::consts::TAU / lab.lambda as f64;
+    let rs = 2.405 * l / (k * lab.disk_r as f64);
+    let r = click_radii(sim);
+    if !r.is_empty() {
+        let f = r.iter().filter(|&&q| q < rs / 2.0).count() as f64 / r.len() as f64;
+        row(ui, &format!("fraction of clicks within r < {:.2}", rs / 2.0),
+            format!("{f:.4}  ({} clicks; exact RS 0.0293)", r.len()), true);
+    }
+    let rmax = 1.2 * lab.disk_r as f64;
+    plot(ui, &[(&radial_density(&r, rmax), GREEN, true)]);
+    ui.label(egui::RichText::new(format!("radial click density, r = 0 … {rmax:.1} (shadow: r < {})", lab.disk_r)).small().weak());
+}
+
 fn st_last(sim: &Sim) -> Option<(f32, bool, f32, bool)> { sim.stats.last_bell }
 
 fn legend(ui: &mut egui::Ui) {
@@ -518,7 +686,9 @@ fn legend(ui: &mut egui::Ui) {
             "Points = the grains of ONE photon. Colour = the angle of each grain's\n\
              phase arrow: bands of colour are the wave crests, one per λ.\n\
              White arrows = electric field E: they rotate as the grains advance.\n\
-             Pale grains = entangled, polarization not defined yet.\n\
+             Pale grains = entangled, polarization not defined yet.
+             Base 3-D rule: soft balls = a random subset of the wave balls
+             flying out of every object; white sphere = the photon ball.\n\
              Green dots on the screen = where each photon was detected.\n\n\
              Grains never push each other: light does not interact with light.\n\
              They see each other only where they cross, by comparing phases.\n\n\

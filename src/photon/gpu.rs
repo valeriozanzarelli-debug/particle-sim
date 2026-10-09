@@ -145,7 +145,7 @@ pub fn photon_elements(lab: &Lab, side: usize) -> Vec<(f32, GpuElement)> {
     let sign = if side == 0 { 1.0 } else { -1.0 };
     let mut elems = Vec::new();
     match lab.experiment {
-        Experiment::FreeBeam => {}
+        Experiment::FreeBeam | Experiment::Airy | Experiment::Arago => {}
         Experiment::DoubleSlit => elems.push((lab.wall_z, GpuElement::Wall)),
         Experiment::Polarizers => {
             for (i, p) in lab.polarizers.iter().enumerate() {

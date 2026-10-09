@@ -453,3 +453,96 @@ corsa 612 → 676 → 681 → 678 → 675 MB): piatta dopo il riempimento della 
    (serve al tempo reversibile).
 7. Restano valide le note del §7 (moneta al bordo come correzione di Kirchhoff, solo 2-D, Malus con
    moneta locale; l'entanglement resta in `entangle.rs`).
+
+---
+
+## 11. Fotone 3D nel programma
+
+Da questa versione il programma `fotone` si apre con la **regola base v2 in 3D** di
+`docs/REGOLA_BASE.md` (la stessa regola congelata, con gli stessi parametri η = 2, ε = 10⁻³, δ = 0,02 λ,
+Dormand–Prince 10⁻⁴ λ, passo ≤ 2 λ, zona di bordo λ/2) per gli esperimenti a un fotone: volo libero,
+doppia fenditura, polarizzatori, e due nuovi esperimenti solo 3D, **disco di Airy** (foro D = 6 λ,
+schermo a 200 λ) e **macchia di Arago** (disco a = 3 λ, fascio w = 5 λ, schermo a 12 λ), con le
+geometrie già validate in `lab/base_exp3d.py`. La regola pilota 2D (§10) e quella classica restano
+selezionabili nel pannello nascosto (Tab / ☰ → "rule: base 3-D (v2) / pilot 2-D / classic") o con
+`--regola base|pilota|classica`; l'entanglement resta classico.
+
+**Codice.** `src/photon/base3d.rs` è il porting di `lab/base_rule.py` (oggetti piani ⊥ z con
+maschera e matrici di Jones, ventagli, livelli evanescenti costruiti a tessere su richiesta, nascita
+con probabilità |B|², monete locali, zona di bordo v2) e delle somme di `lab/base_kernel`. Due cose
+sono solo più veloci, con la stessa aritmetica:
+* i valori al bordo B di un oggetto si leggono dal ventaglio precedente su una griglia regolare; tra
+  piani distanti ≥ 2 R₀ conta solo il livello 0 con peso 1 e la somma sulle origini (anch'esse su una
+  griglia) è una convoluzione discreta, fatta con la FFT (test: uguale alla somma diretta a 10⁻¹⁵);
+* la somma di guida lontano dal piano (R ≥ 2 R₀) usa 4 origini per istruzione (AVX2/FMA, con seno e
+  coseno fdlibm): differenza dalla somma scalare 3·10⁻¹⁴ relativa; sin/cos uguali a quelli della
+  libreria a 2·10⁻¹⁶.
+
+**Quante palline usa la regola** (numero di Nyquist, come nella tabella §4 di REGOLA_BASE: per Airy
+e Arago i conteggi coincidono esattamente con quelli del Python):
+
+| esperimento | ventagli (origini × direzioni) | palline per fotone, livello 0 · tutti i livelli |
+|---|---|---|
+| volo libero | sorgente 3125 × 3118 | 9,74·10⁶ · 2,1·10¹¹ |
+| doppia fenditura (sorgente a −40 λ, fenditure lunghe 24 λ in y) | sorgente 18 160 × 18 146, fenditure 1536 × 3016 | 3,34·10⁸ · 7,3·10¹² |
+| polarizzatori (P1 a 30°) | sorgente 4685 × 4657, polarizzatore 4697 × 4657 | 4,37·10⁷ · 9,5·10¹¹ |
+| Airy | foro 484 × 453 | 2,19·10⁵ · 4,8·10⁹ |
+| Arago | disco 8720 × 8993 | 7,84·10⁷ · 1,7·10¹² |
+
+La guida ha bisogno solo delle origini (in 3D la pallina-fotone sente il ventaglio dell'ultimo
+oggetto attraversato; le direzioni dicono solo chi sente chi): quelle vengono simulate tutte, i
+livelli fini a tessere quando servono (memoria limitata a 250 000 origini fini, poi ricostruite
+identiche). **Si disegna un sottoinsieme**: 30 000 palline per ventaglio (regolabile nel pannello),
+scelte a caso con un seme fisso per ogni fotone, origini estratte ∝ |a| tra quelle della regola,
+direzioni uniformi in (sin θx, sin θy) sul disco unitario (la densità della griglia di Nyquist). Il
+pannello scrive quante palline usa la regola e quante ne disegna.
+
+**Cosa si vede.** Le palline-onda sono **palline morbide e rotonde in 3D** (quadratini sempre rivolti
+alla camera con uno shader proprio, `src/photon/balls.wgsl`; dimensione in unità del mondo, colore =
+fase, luminosità = peso d'ampiezza √(|a|/max|a|) × cos θ). Le muove la scheda grafica: ogni pallina
+vola dritta a c dalla sua origine, compare quando il fronte arriva al suo oggetto e muore al piano
+successivo, quindi la geometria si costruisce una volta per fotone. Per non vedere righe:
+**solo disegno, la regola non cambia** — (1) ogni pallina disegnata è spostata indietro lungo il suo
+raggio di una frazione casuale di 3 λ; (2) la sua direzione è sparsa nella sua cella di Nyquist
+(lontano da un oggetto piccolo le direzioni discrete della regola si vedrebbero come grumi: un foro di
+6 λ ha solo 24 direzioni per asse; una casella del pannello mostra la griglia esatta). La
+pallina-fotone è una sfera bianca con un alone a stella e la sua scia; i clic sono puntini rotondi;
+le frecce del campo E sono spente (si accendono nel pannello). Restano la barra del tempo, la
+temperatura e il pannello Tab.
+
+**Test Rust** (`cargo test --bin fotone base3d -- --nocapture --test-threads=1`, profilo dev,
+seed fissi, i5-10300H condiviso; il generatore casuale non è quello di numpy, quindi l'accordo col
+Python è statistico, non bit per bit):
+
+| test | Rust | Python (REGOLA_BASE §4, v2) | soglia | tempo |
+|---|---|---|---|---|
+| fascio libero 3D, 2500 fotoni: larghezza a zR / 2zR / 5zR | 4,2951 / 6,7962 / 15,5046 (teoria 4,2426 / 6,7082 / 15,2971, +1,2…1,4%) | 4,3102 / 6,8208 / 15,5621 | max(3σ = 3,0%, 2%); accordo col Python entro 3σ | 20 s |
+| … allargamento delle stesse traiettorie w(z)/w(1 λ) | 1,4154 / 2,2396 / 5,1094 (teoria 1,4133 / 2,2347 / 5,0958) | 1,4154 / 2,2398 / 5,1103 | ±2% | |
+| disco di Airy, D = 6 λ, L = 200 λ: primo zero | 5000 fotoni, 4775 clic: 42,24 ± 0,37 (+1,7%); con 10 000 fotoni 41,96 ± 0,27 | 41,63 ± 0,24 (teoria / RS esatto 41,52) | max(3σ, 2%); accordo col Python entro 3σ | 30 s |
+| Malus nel laboratorio del programma (P1 a 30°, 800 fotoni) | 0,762 ± 0,015 (cos²30° = 0,750) | — | max(3σ, 1%) | 16 s |
+| B per FFT = somma diretta | 1,2·10⁻¹⁵ | — | 10⁻⁹ relativo | < 1 s |
+| sin/cos veloci = libreria | 2,2·10⁻¹⁶ | — | 10⁻¹⁴ | < 1 s |
+
+Tutti i 29 test del binario passano (`cargo test --bin fotone -- --test-threads=1`, 329 s); i test
+della regola pilota ora scelgono esplicitamente `Rule::Pilot`, perché il default è cambiato.
+
+**Prestazioni** (build dev, `fotone.exe --fps`, doppia fenditura, velocità ×1): 120–148
+fotogrammi/s; memoria privata ogni 5 s per 45 s: 563 → 568 → 566 → 566 → 564 → 567 → 566 → 566 →
+564 → 566 MB (piatta). Tutti i fotoni insieme (velocità ≥ ×50) girano in parallelo a gruppi di 4,
+circa 30 fotoni/s (≈ 7 clic/s: in doppia fenditura il 78% muore sulla parete), 8–10 fotogrammi/s.
+
+**Schermate** (`lab/out/fotone3d_*.png`, solo la finestra del programma): il fotone prima delle
+fenditure, dopo le fenditure, e lo schermo con le frange dopo 2500 clic.
+
+**Note oneste.**
+1. Il disegno non è la regola: sottoinsieme casuale, spostamento indietro fino a 3 λ, direzione
+   sparsa nella cella (vedi sopra). La pallina-fotone non legge mai le palline disegnate.
+2. La doppia fenditura 3D del programma (sorgente a −40 λ, fenditure lunghe 24 λ, fascio rotondo
+   w₀ = 7 λ) non è la geometria validata in Python (fenditure lunghe 120 λ come sorgente); nel
+   pannello i clic si confrontano con il flusso j_z dell'onda del programma sullo schermo, sommato
+   in y. Airy e Arago usano, come il Python, il foro illuminato / il fascio intorno al disco come
+   sorgente: la pallina-fotone nasce lì.
+3. Airy: con 5000 fotoni il primo zero è +1,7% sopra la teoria (1,9σ), a 1,4σ dal Python; con
+   10 000 fotoni 41,96 ± 0,27, a 0,9σ dal Python.
+4. Opzioni per demo e schermate: `--clic N` (velocità ×1000 fino a N clic, poi ×1), `--ferma-a CT`
+   (pausa quando il fotone in volo arriva a ct = CT λ), `--esperimento airy|arago`.

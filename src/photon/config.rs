@@ -12,6 +12,8 @@ pub const MAX_ARROWS: usize = 1500;
 pub const ARROW_LEN: f32 = 2.5;
 /// Grains drawn at most (all are simulated; see `render::update_meshes`).
 pub const MAX_GRAINS_DRAWN: usize = 250_000;
+/// Base 3-D rule: wave balls drawn per fan (random subset of the rule's balls).
+pub const BALLS_PER_FAN: usize = 30_000;
 /// Clicks drawn on the screen.
 pub const MAX_CLICKS_DRAWN: usize = 20_000;
 

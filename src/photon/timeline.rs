@@ -47,7 +47,7 @@ pub fn apply(sim: &mut Sim, op: Op) {
     match op {
         Op::Launch => sim.launch(),
         Op::Step(d) => sim.step(d),
-        Op::Photons(n) => (0..n).for_each(|_| sim.run_one()),
+        Op::Photons(n) => sim.run_photons(n),
         Op::Finish => {
             let mut guard = 0;
             while sim.in_flight() && guard < 10_000 {
@@ -66,7 +66,10 @@ pub fn keyframe_bytes(sim: &Sim) -> usize {
     let bins = sim.lab.bins;
     let pilot: usize = sim.photons.iter().filter_map(|p| p.pilot.as_ref())
         .map(|pp| std::mem::size_of::<crate::pilot::PilotPhoton>() + pp.trail.len() * 12)
-        .sum();
+        .sum::<usize>()
+        + sim.photons.iter().filter_map(|p| p.ball.as_ref())
+            .map(|b| std::mem::size_of::<crate::base3d::Ball3>() + b.trail.len() * 32 + b.rec.len() * 32)
+            .sum::<usize>();
     std::mem::size_of::<Sim>()
         + grains * (std::mem::size_of::<Grain>() + 8)   // grains + screen hits (upper bound)
         + sim.photons.len() * bins * 24                  // per-photon screen accumulators
@@ -338,8 +341,10 @@ impl crate::LabState {
             let t0 = std::time::Instant::now();
             let mut n = 0;
             while n < want {
-                self.sim.run_one();
-                n += 1;
+                // batches: the base 3-D rule runs a batch's photons in parallel
+                let b = (want - n).min(4);
+                self.sim.run_photons(b);
+                n += b;
                 if t0.elapsed().as_millis() > 40 { break; }
             }
             // Whatever did not fit this frame is not carried over forever.

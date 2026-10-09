@@ -37,6 +37,7 @@ use rayon::prelude::*;
 
 use std::sync::Arc;
 
+use crate::base3d::{Ball3, Bench3, End, Kind};
 use crate::complex::{inner, jones_norm2, linear, Jones, C};
 use crate::entangle::{self, Pair};
 use crate::pilot::{self, Bench, Outcome, PilotPhoton};
@@ -60,6 +61,15 @@ pub enum Experiment {
     Polarizers,
     /// A polarization-entangled pair and a Bell (CHSH) test.
     Bell,
+    /// Circular aperture lit by a plane wave: the Airy disk (base 3-D rule only).
+    Airy,
+    /// Opaque disk in a Gaussian beam: the Arago-Poisson spot (base 3-D rule only).
+    Arago,
+}
+
+impl Experiment {
+    /// Experiments that exist only with the base 3-D rule.
+    pub fn only_3d(self) -> bool { matches!(self, Experiment::Airy | Experiment::Arago) }
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
@@ -102,6 +112,10 @@ pub enum Rule {
     /// The local "two roles" rule of `pilot.rs` (2-D): wave balls + one
     /// photon ball guided by the current; no global decision anywhere.
     Pilot,
+    /// The base rule v2 in 3-D (`base3d.rs`, docs/REGOLA_BASE.md): the
+    /// default. Wave balls in 3-D (Nyquist count), photon ball guided by the
+    /// 3-D current, edge rule v2.
+    Base3D,
 }
 
 /// Polarizers placed on the two slits to mark which path the photon took.
@@ -149,6 +163,11 @@ pub struct Lab {
     pub wall_z:     f32,
     pub slit_sep:   f32,
     pub slit_width: f32,
+    /// Length of the slits along y (3-D rule; the 2-D rules treat them as infinite).
+    pub slit_height: f32,
+    /// Airy: diameter of the circular aperture. Arago: radius of the opaque disk.
+    pub aperture_d: f32,
+    pub disk_r: f32,
     /// Half-angle of the Huygens re-emission cone (must cover the screen).
     pub theta_max:  f32,
     pub which_path: WhichPath,
@@ -181,6 +200,9 @@ impl Lab {
             wall_z: 0.0,
             slit_sep: 8.0,
             slit_width: 2.0,
+            slit_height: 24.0,
+            aperture_d: 6.0,
+            disk_r: 3.0,
             theta_max: 0.45,
             which_path: WhichPath::Off,
             polarizers: [
@@ -215,16 +237,25 @@ impl Lab {
             Experiment::Bell => Lab {
                 grains: 20_000, source_z: 0.0, packet_len: 4.0, ..base
             },
+            // the validated geometries of lab/base_exp3d.py (exp_airy, exp_arago)
+            Experiment::Airy => Lab {
+                source_z: 0.0, wall_z: 0.0, screen_z: 200.0, screen_half: 60.0,
+                rule: Rule::Base3D, ..base
+            },
+            Experiment::Arago => Lab {
+                waist: 5.0, waist_z: 0.0, source_z: 0.0, wall_z: 0.0, screen_z: 12.0, screen_half: 12.0,
+                packet_len: 1.0, rule: Rule::Base3D, ..base
+            },
         }
     }
 
-    /// The laboratory as the program opens it: the pilot rule for the
-    /// double slit, the free beam and the polarizers (`preset` keeps the
-    /// classic rule, which the classic tests use).
+    /// The laboratory as the program opens it: the base 3-D rule for every
+    /// single-photon experiment (`preset` keeps the classic rule, which the
+    /// classic tests use; the 2-D pilot rule is selectable in the panel).
     pub fn default_for(experiment: Experiment) -> Self {
         let mut lab = Self::preset(experiment);
         if experiment != Experiment::Bell {
-            lab.rule = Rule::Pilot;
+            lab.rule = Rule::Base3D;
         }
         if experiment == Experiment::DoubleSlit {
             lab.grains = 62_800;      // 200 origins x 314 directions behind the slits
@@ -232,8 +263,14 @@ impl Lab {
         lab
     }
 
-    /// True when this laboratory runs the pilot rule.
-    #[inline] pub fn pilot(&self) -> bool { self.rule == Rule::Pilot && self.experiment != Experiment::Bell }
+    /// True when this laboratory runs the (2-D) pilot rule.
+    #[inline] pub fn pilot(&self) -> bool {
+        self.rule == Rule::Pilot && self.experiment != Experiment::Bell && !self.experiment.only_3d()
+    }
+    /// True when this laboratory runs the base 3-D rule.
+    #[inline] pub fn base3d(&self) -> bool {
+        self.experiment.only_3d() || (self.rule == Rule::Base3D && self.experiment != Experiment::Bell)
+    }
 
     #[inline] pub fn k(&self) -> f32 { TAU / self.lambda }
     /// Rayleigh range z_R = π w0² / λ.
@@ -334,6 +371,9 @@ pub struct Photon {
     screen:     ScreenAccum,
     /// Pilot rule only: the photon ball (the grains are then its wave balls).
     pub pilot:  Option<PilotPhoton>,
+    /// Base 3-D rule only: the photon ball (its wave balls live in the shared
+    /// `Bench3`; a random subset is drawn by `render3d.rs`).
+    pub ball:   Option<Ball3>,
 }
 
 #[derive(Default, Clone)]
@@ -434,6 +474,8 @@ pub struct Sim {
     next_id:     u64,
     /// Pilot rule: the wave of the current laboratory (shared by all photons).
     bench:       Option<Arc<Bench>>,
+    /// Base 3-D rule: the wave of the current laboratory (shared by all photons).
+    bench3:      Option<Arc<Bench3>>,
     /// Pilot rule: do not store/move wave balls (the photon ball does not need
     /// them; used by tests and by whole-photon runs at high speed).
     pub headless: bool,
@@ -452,6 +494,7 @@ impl Clone for Sim {
             rng: self.rng.clone(),
             next_id: self.next_id,
             bench: self.bench.clone(),
+            bench3: self.bench3.clone(),
             headless: self.headless,
         }
     }
@@ -461,7 +504,27 @@ impl Sim {
     pub fn new(lab: Lab) -> Self {
         let rng = StdRng::seed_from_u64(lab.seed);
         let stats = Stats::new(lab.bins);
-        Self { lab, photons: Vec::new(), pair: None, clock: 0.0, stats, rng, next_id: 0, bench: None, headless: false }
+        Self { lab, photons: Vec::new(), pair: None, clock: 0.0, stats, rng, next_id: 0, bench: None, bench3: None, headless: false }
+    }
+
+    /// The base 3-D wave of the current laboratory (built when it changes).
+    pub fn bench3(&mut self) -> Arc<Bench3> {
+        let key = format!("{:?}", self.lab);
+        match &self.bench3 {
+            Some(b) if b.key == key => b.clone(),
+            _ => {
+                self.bench3 = None;      // free the old one first (memory)
+                let b = Arc::new(Bench3::from_lab(&self.lab));
+                self.bench3 = Some(b.clone());
+                b
+            }
+        }
+    }
+
+    /// The base 3-D wave if it is already built for this laboratory.
+    pub fn bench3_ready(&self) -> Option<Arc<Bench3>> {
+        let key = format!("{:?}", self.lab);
+        self.bench3.as_ref().filter(|b| b.key == key).cloned()
     }
 
     /// The pilot-rule wave of the current laboratory (built when it changes).
@@ -502,6 +565,10 @@ impl Sim {
                 }
                 self.pair = Some(pair);
             }
+            _ if lab.base3d() => {
+                let ph = self.emit_base3d();
+                self.photons.push(ph);
+            }
             _ if lab.pilot() => {
                 let ph = self.emit_pilot();
                 self.photons.push(ph);
@@ -529,7 +596,20 @@ impl Sim {
         };
         Photon {
             id, side: 0, grains, elems: Vec::new(), next_elem: 0, fate: Fate::InFlight,
-            pol_defined: true, screen: ScreenAccum::default(), pilot: Some(pp),
+            pol_defined: true, screen: ScreenAccum::default(), pilot: Some(pp), ball: None,
+        }
+    }
+
+    /// Base 3-D rule: the photon ball, born on the source (its birth, the
+    /// source coin and the edge rule there are part of `Ball3::new`).
+    fn emit_base3d(&mut self) -> Photon {
+        let bench = self.bench3();
+        let id = self.next_id;
+        self.next_id += 1;
+        let ball = Ball3::new(bench, self.lab.seed, id);
+        Photon {
+            id, side: 0, grains: Vec::new(), elems: Vec::new(), next_elem: 0, fate: Fate::InFlight,
+            pol_defined: true, screen: ScreenAccum::default(), pilot: None, ball: Some(ball),
         }
     }
 
@@ -571,6 +651,7 @@ impl Sim {
                 let d = if side == 0 { lab.bell.dist_a } else { lab.bell.dist_b };
                 elems.push((sign * d, Element::BellSplitter));
             }
+            Experiment::Airy | Experiment::Arago => {}     // base 3-D rule only
         }
         let screen_z = match lab.experiment {
             Experiment::Bell => sign * (if side == 0 { lab.bell.dist_a } else { lab.bell.dist_b } + 15.0),
@@ -583,7 +664,7 @@ impl Sim {
         self.next_id += 1;
         Photon {
             id, side, grains, elems, next_elem: 0, fate: Fate::InFlight, pol_defined,
-            screen: ScreenAccum::new(lab.bins), pilot: None,
+            screen: ScreenAccum::new(lab.bins), pilot: None, ball: None,
         }
     }
 
@@ -592,7 +673,7 @@ impl Sim {
     pub fn step(&mut self, dist: f32) {
         // 1 ─ photon-level events: the front of a photon reaches an element
         for p in 0..self.photons.len() {
-            if self.photons[p].pilot.is_none() {
+            if self.photons[p].pilot.is_none() && self.photons[p].ball.is_none() {
                 self.front_events(p, dist);
             }
         }
@@ -605,6 +686,15 @@ impl Sim {
             if ph.fate != Fate::InFlight { continue; }
             if ph.pilot.is_some() {
                 step_pilot(ph, dist, self.clock, self.headless, seed);
+                continue;
+            }
+            if let Some(b) = ph.ball.as_mut() {
+                // the photon ball runs to the light-clock (whole steps: the
+                // trajectory does not depend on the frame rate); it is done
+                // when the clock reaches the end of its path
+                let target = (self.clock + dist) as f64;
+                b.advance_to(target);
+                if b.end.is_some() && target >= b.t { ph.fate = Fate::Finished; }
                 continue;
             }
             let elems = ph.elems.clone();
@@ -644,6 +734,27 @@ impl Sim {
         if self.photons.is_empty() {
             self.pair = None;
         }
+    }
+
+    /// Run `n` whole photons. Base 3-D rule: the photons are independent
+    /// (each has its own random stream, the wave is shared), so they run in
+    /// parallel and are counted in order — the same result as one by one.
+    pub fn run_photons(&mut self, n: u32) {
+        if !self.lab.base3d() || self.in_flight() {
+            (0..n).for_each(|_| self.run_one());
+            return;
+        }
+        let bench = self.bench3();
+        let (seed, first) = (self.lab.seed, self.next_id);
+        let balls: Vec<Ball3> = (first..first + n as u64).into_par_iter().map(|id| {
+            let mut b = Ball3::new(bench.clone(), seed, id);
+            b.run();
+            b
+        }).collect();
+        self.next_id += n as u64;
+        self.stats.emitted += n as u64;
+        self.clock = 0.0;
+        for b in &balls { self.finalize_base3d(b); }
     }
 
     /// Launch a photon and run it to completion with large exact steps.
@@ -786,6 +897,9 @@ impl Sim {
         if let Some(pp) = &ph.pilot {
             return self.finalize_pilot(pp);
         }
+        if let Some(b) = &ph.ball {
+            return self.finalize_base3d(b);
+        }
         match ph.fate {
             Fate::AbsorbedWall => { self.stats.absorbed_wall += 1; return; }
             Fate::AbsorbedPolarizer(i) => { self.stats.absorbed_pol[i] += 1; return; }
@@ -834,6 +948,26 @@ impl Sim {
 }
 
 impl Sim {
+    /// Base 3-D rule: the click is where the photon ball landed (x, y on the
+    /// screen plane). Nothing else.
+    fn finalize_base3d(&mut self, b: &Ball3) {
+        match b.end {
+            Some(End::Click) => {
+                let (x, y) = (b.x[0] as f32, b.x[1] as f32);
+                if let Some(bin) = self.lab.bin_of(x) { self.stats.hist[bin] += 1; }
+                self.stats.detected += 1;
+                if self.stats.clicks.len() >= MAX_CLICKS_KEPT { self.stats.clicks.remove(0); }
+                self.stats.clicks.push(Vec3::new(x, y, b.x[2] as f32));
+            }
+            Some(End::Absorbed(i)) | Some(End::Coin(i)) => match b.bench.objs[i].kind {
+                Kind::Polarizer(k) => self.stats.absorbed_pol[k] += 1,
+                _ => self.stats.absorbed_wall += 1,
+            },
+            Some(End::SourceCoin) => self.stats.lost_source += 1,
+            Some(End::Lost) | Some(End::Stuck) | None => self.stats.missed += 1,
+        }
+    }
+
     /// Pilot rule: the click is where the photon ball landed. Nothing else.
     fn finalize_pilot(&mut self, pp: &PilotPhoton) {
         match pp.outcome {
