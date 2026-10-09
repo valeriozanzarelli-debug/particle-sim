@@ -1,0 +1,29 @@
+{
+ "data": "2026-10-09, scritto PRIMA di qualsiasi valutazione della ricerca",
+ "spazio": "theta = g, zeta, mu1, mu2, nu, kappa, a4, a6; scatola [[0.0, 3.0], [-0.45, 3.0], [0.0, 1.5], [0.0, 1.5], [-1.0, 1.0], [0.0, 1.5], [-0.3, 0.3], [0.0, 0.3]]",
+ "griglia": "48x48, passo h=0.3, bordo: phi fissato al vuoto, A libero",
+ "vincoli_duri": {
+  "C0": "buona posizione: energia EM convessa in B (se a4<0: 144 a4^2 < 120 a6)",
+  "C1": "luce libera invariata: nel vuoto la parte quadratica in A e' esattamente Maxwell: massa del fotone g*rho_vac < 1e-6 (rho_vac = |psi| nel vuoto), vuoto non degenere con rho>0 se g>0",
+  "C2a": "esiste una configurazione ferma localizzata: rilassamento (flusso di Newton arrestato, 1500 passi) stazionario (variazione relativa di E negli ultimi 300 passi < 5e-3 e |forza|max < 0.1) e >= 90% dell'energia entro il disco di raggio L/4 = 3.6 dal baricentro (Q=2,3: 3.6 sqrt(Q), max L/2-1)",
+  "C2b": "robusta: perturbazione casuale 5% + nuovo rilassamento => stessa energia entro 1% e stessa carica (provato solo se C2a e C3 passano; altrimenti conta come non superato)",
+  "C3": "carica topologica intera conservata: |Q| finale = |Q| iniziale (=1) e oggetto risolto (raggio rms della densita' topologica > 2h)  [vuoto al polo: grado di n = phi/|phi| (Berg-Luscher); vuoto all'equatore: avvolgimento al bordo]"
+ },
+ "C2_finalisti": "dinamica hamiltoniana vera (RK4), oggetto fermo, 100 tempi di attraversamento (2 r_E/c), >= 90% dell'energia iniziale nel disco; ripetuta con perturbazione 5%",
+ "punteggi_morbidi": {
+  "a_Derrick": "S_a = tanh(E''(1)/E) * exp(-|E'(1)|/(0.1 E))  (scala x->x/s, termini separati)",
+  "b_spin": "S_b = 1 se la carica e' in pi2(S^2) (termine di Hopf theta ammesso => spin qualsiasi, anche 1/2; Wilczek-Zee 1983), 0 altrimenti",
+  "c_spettro": "S_c = (1/2) #{Q in 2,3 : stazionario, localizzato, |Q| conservato e risolto, E_Q < Q E_1 (1+0.005)}",
+  "d_luce": "S_d = min(1, 4 f_EM), f_EM = energia elettromagnetica / energia totale (oggetto Q=1)"
+ },
+ "pesi": {
+  "a": 0.2,
+  "b": 0.2,
+  "c": 0.3,
+  "d": 0.3
+ },
+ "fitness": "F = [tutti i vincoli duri] * (0.2 S_a + 0.2 S_b + 0.3 S_c + 0.3 S_d)",
+ "rango_per_la_selezione": "n_vincoli_superati (0..5) + F  (solo per ordinare; il risultato riportato e' F)",
+ "budget": "CMA-ES: 10 generazioni x 8 = 80 valutazioni, seme 2026; ricerca casuale uniforme: 80, seme 2027",
+ "test_di_predizione": "solo DOPO la ricerca, sui migliori, senza ritoccare: una massa fissa la scala; rapporti E_2/E_1, E_3/E_1, r*m_q confrontati con mu/e, tau/e, p/e, Delta/N"
+}

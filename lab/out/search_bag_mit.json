@@ -1,0 +1,134 @@
+{
+ "x_TE(1+,gluone/fotone)": 2.7437072699922984,
+ "x_TM(1-)": 4.493409457909063,
+ "x_quark(massless)": 2.0427869427384096,
+ "x_TE(l=2)": 3.870238580222165,
+ "Z0_Casimir_Boyer": -0.04618,
+ "adroni": [
+  {
+   "caso": "Z0=0",
+   "B^1/4 [MeV]": 96.02385593513219,
+   "R_N [fm]": 1.7172793380101312,
+   "M_N [MeV]": 938.92,
+   "glueball 2 gluoni TE [MeV]": 864.2634986873114,
+   "R_glueball [fm]": 1.6705012503290977,
+   "Delta/N senza termine colore-magnetico": 1.0
+  },
+  {
+   "caso": "Z0=1.84 (DeGrand et al. 1975)",
+   "B^1/4 [MeV]": 125.50727410862919,
+   "R_N [fm]": 1.2016775204097678,
+   "M_N [MeV]": 938.9199999999997,
+   "glueball 2 gluoni TE [MeV]": 831.5702497674184,
+   "R_glueball [fm]": 1.1540148253957176,
+   "Delta/N senza termine colore-magnetico": 1.0
+  }
+ ],
+ "fotoni": [
+  {
+   "scala": "elettrone",
+   "Casimir": "senza Casimir",
+   "B^1/4 [MeV]": 0.09548287223786515,
+   "R* [fm]": 1412.6773207371114,
+   "R* [m]": 1.4126773207371115e-12,
+   "E* [MeV]": 0.51099895
+  },
+  {
+   "scala": "elettrone",
+   "Casimir": "con Casimir di Boyer",
+   "B^1/4 [MeV]": 0.09429503231975113,
+   "R* [fm]": 1436.454434055699,
+   "R* [m]": 1.4364544340556992e-12,
+   "E* [MeV]": 0.51099895
+  },
+  {
+   "scala": "protone",
+   "Casimir": "senza Casimir",
+   "B^1/4 [MeV]": 175.3211311258785,
+   "R* [fm]": 0.769368114744961,
+   "R* [m]": 7.693681147449611e-16,
+   "E* [MeV]": 938.27208816
+  },
+  {
+   "scala": "protone",
+   "Casimir": "con Casimir di Boyer",
+   "B^1/4 [MeV]": 173.1400756846322,
+   "R* [fm]": 0.7823175353801376,
+   "R* [m]": 7.823175353801377e-16,
+   "E* [MeV]": 938.27208816
+  }
+ ],
+ "rapporti_predetti": {
+  "2 fotoni TE / 1": 1.681792830507429,
+  "3 fotoni TE / 1": 2.2795070569547775,
+  "1 fotone TM / 1 TE": 1.4477003047035242,
+  "1 fotone TE(l=2) / TE(l=1)": 1.294344769008009,
+  "TE+TM / TE": 2.0697641129784197
+ },
+ "confronto": [
+  {
+   "bersaglio": "mu/e",
+   "valore": 206.768283,
+   "predizione piu' vicina": "3 fotoni TE / 1",
+   "rapporto": 2.2795070569547775,
+   "scarto %": -98.89755477780179
+  },
+  {
+   "bersaglio": "tau/e",
+   "valore": 3477.23,
+   "predizione piu' vicina": "3 fotoni TE / 1",
+   "rapporto": 2.2795070569547775,
+   "scarto %": -99.93444474317332
+  },
+  {
+   "bersaglio": "p/e",
+   "valore": 1836.15267,
+   "predizione piu' vicina": "3 fotoni TE / 1",
+   "rapporto": 2.2795070569547775,
+   "scarto %": -99.87585416538622
+  },
+  {
+   "bersaglio": "Delta/N",
+   "valore": 1.3121,
+   "predizione piu' vicina": "1 fotone TE(l=2) / TE(l=1)",
+   "rapporto": 1.294344769008009,
+   "scarto %": -1.353191905494322
+  }
+ ],
+ "look_elsewhere_N_libero": [
+  {
+   "bersaglio": "mu/e",
+   "N necessario": 1222.6774293342967,
+   "N intero": 1223,
+   "N^(3/4)": 206.80919435269752,
+   "scarto %": 0.019786087161888233,
+   "spaziatura relativa vicina (%)": 0.06132461161079313
+  },
+  {
+   "bersaglio": "tau/e",
+   "N necessario": 52679.85333249605,
+   "N intero": 52680,
+   "N^(3/4)": 3477.237260789964,
+   "scarto %": 0.00020880959741287342,
+   "spaziatura relativa vicina (%)": 0.0014236902050113896
+  },
+  {
+   "bersaglio": "p/e",
+   "N necessario": 22484.24892104231,
+   "N intero": 22484,
+   "N^(3/4)": 1836.137424071486,
+   "scarto %": -0.0008303192192582465,
+   "spaziatura relativa vicina (%)": 0.003335705390499911
+  },
+  {
+   "bersaglio": "Delta/N",
+   "N necessario": 1.4364458115526397,
+   "N intero": 1,
+   "N^(3/4)": 1.0,
+   "scarto %": -23.786296776160356,
+   "spaziatura relativa vicina (%)": 75.0
+  }
+ ],
+ "P(caso) un rapporto entro 5% di un dato bersaglio (log-uniforme 1..4000)": 0.01176510059296724,
+ "P(caso) almeno una coincidenza 5 rapporti x 4 bersagli": 0.2107697227863844
+}

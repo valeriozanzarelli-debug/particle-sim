@@ -1,0 +1,174 @@
+{
+ "predizioni": [
+  {
+   "regola": "assoluto",
+   "P": {
+    "g": 0.07113012121048651,
+    "zeta": 0.08064252406322431,
+    "mu1": 0.22361119320966283,
+    "mu2": 0.345757354248822,
+    "nu": -0.10843389372110046,
+    "kappa": 1.5,
+    "a4": -0.06220659726566058,
+    "a6": 0.11463296746363791
+   },
+   "predizioni": {
+    "E2/E1": {
+     "predetto": 1.8776575082430438,
+     "bersaglio_piu_vicino": "Delta/N",
+     "valore": 1.3121,
+     "scarto_pct": 43.10323208924957
+    },
+    "E3/E1": {
+     "predetto": 2.8338136796066005,
+     "bersaglio_piu_vicino": "Delta/N",
+     "valore": 1.3121,
+     "scarto_pct": 115.97543476919445
+    },
+    "r_E * m_q (raggio x massa del quanto carico)": {
+     "predetto": 1.0237548198245932,
+     "bersaglio_piu_vicino": "Delta/N",
+     "valore": 1.3121,
+     "scarto_pct": -21.97585398791303
+    },
+    "E1 / (energia minima topologica 4 pi)": {
+     "predetto": 2.2433737874278865,
+     "bersaglio_piu_vicino": "Delta/N",
+     "valore": 1.3121,
+     "scarto_pct": 70.97582405517007
+    }
+   }
+  },
+  {
+   "regola": "luce",
+   "P": {
+    "g": 0.7590955754637811,
+    "zeta": -0.14585842529848358,
+    "mu1": 0.043472458894179694,
+    "mu2": 0.14717548572428724,
+    "nu": -0.13035900443406923,
+    "kappa": 1.4923209014035483,
+    "a4": 0.005552723899206247,
+    "a6": 0.1744087411130741
+   },
+   "predizioni": {
+    "E2/E1": {
+     "predetto": 1.5322406931499026,
+     "bersaglio_piu_vicino": "Delta/N",
+     "valore": 1.3121,
+     "scarto_pct": 16.77773745521702
+    },
+    "E3/E1": {
+     "predetto": 1.9909590153011654,
+     "bersaglio_piu_vicino": "Delta/N",
+     "valore": 1.3121,
+     "scarto_pct": 51.73835952299104
+    },
+    "r_E * m_q (raggio x massa del quanto carico)": {
+     "predetto": 1.079561683838742,
+     "bersaglio_piu_vicino": "Delta/N",
+     "valore": 1.3121,
+     "scarto_pct": -17.722606216085513
+    },
+    "E1 / (energia minima topologica 4 pi)": {
+     "predetto": 1.4837409066396676,
+     "bersaglio_piu_vicino": "Delta/N",
+     "valore": 1.3121,
+     "scarto_pct": 13.0813891197064
+    }
+   }
+  },
+  {
+   "regola": "nota:baby_Skyrme",
+   "P": {
+    "g": 0.0,
+    "zeta": 0.0,
+    "mu1": 0.5,
+    "mu2": 0.0,
+    "nu": 0.0,
+    "kappa": 1.0,
+    "a4": 0.0,
+    "a6": 0.0
+   },
+   "predizioni": {
+    "E2/E1": {
+     "predetto": 1.877393155916826,
+     "bersaglio_piu_vicino": "Delta/N",
+     "valore": 1.3121,
+     "scarto_pct": 43.083084819512685
+    },
+    "E3/E1": {
+     "predetto": 2.8680541081140207,
+     "bersaglio_piu_vicino": "Delta/N",
+     "valore": 1.3121,
+     "scarto_pct": 118.58502462571607
+    },
+    "r_E * m_q (raggio x massa del quanto carico)": {
+     "predetto": 0.8618986140494312,
+     "bersaglio_piu_vicino": "r_p * m_pi+ (raggio protone x massa pione)",
+     "valore": 0.5947729028898676,
+     "scarto_pct": 44.91221941377288
+    },
+    "E1 / (energia minima topologica 4 pi)": {
+     "predetto": 1.8216702626567751,
+     "bersaglio_piu_vicino": "Delta/N",
+     "valore": 1.3121,
+     "scarto_pct": 38.83623676981747
+    }
+   }
+  },
+  {
+   "regola": "nota:baby_Skyrme_gauge_GPS",
+   "P": {
+    "g": 1.0,
+    "zeta": 0.0,
+    "mu1": 0.5,
+    "mu2": 0.0,
+    "nu": 0.0,
+    "kappa": 1.0,
+    "a4": 0.0,
+    "a6": 0.0
+   },
+   "predizioni": {
+    "E2/E1": {
+     "predetto": 1.6175947908911281,
+     "bersaglio_piu_vicino": "Delta/N",
+     "valore": 1.3121,
+     "scarto_pct": 23.282889329405386
+    },
+    "E3/E1": {
+     "predetto": 2.1704061552376643,
+     "bersaglio_piu_vicino": "Delta/N",
+     "valore": 1.3121,
+     "scarto_pct": 65.41469059047817
+    },
+    "r_E * m_q (raggio x massa del quanto carico)": {
+     "predetto": 0.7693861989279008,
+     "bersaglio_piu_vicino": "r_p * m_pi+ (raggio protone x massa pione)",
+     "valore": 0.5947729028898676,
+     "scarto_pct": 29.357977673432423
+    },
+    "E1 / (energia minima topologica 4 pi)": {
+     "predetto": 1.3976330213860628,
+     "bersaglio_piu_vicino": "Delta/N",
+     "valore": 1.3121,
+     "scarto_pct": 6.5187883077557185
+    }
+   }
+  }
+ ],
+ "n_predizioni": 16,
+ "n_bersagli": 5,
+ "P_caso_almeno_una_entro_1pct": 0.17484321698024452,
+ "P_caso_almeno_una_entro_5pct": 0.6120149862772158,
+ "P_caso_almeno_una_entro_10pct": 0.8443399079024021,
+ "entro_5pct": [],
+ "entro_10pct": [
+  {
+   "predetto": 1.3976330213860628,
+   "bersaglio_piu_vicino": "Delta/N",
+   "valore": 1.3121,
+   "scarto_pct": 6.5187883077557185
+  }
+ ]
+}

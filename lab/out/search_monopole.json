@@ -1,0 +1,148 @@
+{
+ "monopolo": [
+  {
+   "beta": 0.0,
+   "mH_over_mW": 0.0,
+   "f": 1.000769564798935,
+   "f_cut_correction": 0.0,
+   "r_half_energy_over_mW": 2.3918601203162284,
+   "f_corr": 1.000769564798935
+  },
+  {
+   "beta": 0.5,
+   "mH_over_mW": 1.0,
+   "f": 1.2222716404835805,
+   "f_cut_correction": 0.016666666666666666,
+   "r_half_energy_over_mW": 1.4520608205793144,
+   "f_corr": 1.238938307150247
+  },
+  {
+   "beta": 2.0,
+   "mH_over_mW": 2.0,
+   "f": 1.33566762766953,
+   "f_cut_correction": 0.016666666666666666,
+   "r_half_energy_over_mW": 1.2225324167268332,
+   "f_corr": 1.3523342943361967
+  },
+  {
+   "beta": 10.0,
+   "mH_over_mW": 4.47213595499958,
+   "f": 1.4793253076114152,
+   "f_cut_correction": 0.016666666666666666,
+   "r_half_energy_over_mW": 1.0290013795299058,
+   "f_corr": 1.4959919742780818
+  },
+  {
+   "beta": 100.0,
+   "mH_over_mW": 14.142135623730951,
+   "f": 1.642780325127361,
+   "f_cut_correction": 0.016666666666666666,
+   "r_half_energy_over_mW": 0.8913744659986267,
+   "f_corr": 1.6594469917940275
+  }
+ ],
+ "predizioni": [
+  {
+   "beta": 0.0,
+   "scala": "elettrone",
+   "M_over_mW": 137.1414570810173,
+   "m_W_MeV": 0.0037260720490823107,
+   "raggio_meta_energia_fm": 126669.19180948877,
+   "carica_magnetica_in_unita_e": "g_m = 4 pi / e = 1/(2 alpha) e = 68.5 e"
+  },
+  {
+   "beta": 0.0,
+   "scala": "protone",
+   "M_over_mW": 137.1414570810173,
+   "m_W_MeV": 6.841637154297617,
+   "raggio_meta_energia_fm": 68.9861979577075,
+   "carica_magnetica_in_unita_e": "g_m = 4 pi / e = 1/(2 alpha) e = 68.5 e"
+  },
+  {
+   "beta": 0.5,
+   "scala": "elettrone",
+   "M_over_mW": 169.77914861970297,
+   "m_W_MeV": 0.003009786267362035,
+   "raggio_meta_energia_fm": 95199.70909203324,
+   "carica_magnetica_in_unita_e": "g_m = 4 pi / e = 1/(2 alpha) e = 68.5 e"
+  },
+  {
+   "beta": 0.5,
+   "scala": "protone",
+   "M_over_mW": 169.77914861970297,
+   "m_W_MeV": 5.526427101255431,
+   "raggio_meta_energia_fm": 51.8473820123261,
+   "carica_magnetica_in_unita_e": "g_m = 4 pi / e = 1/(2 alpha) e = 68.5 e"
+  },
+  {
+   "beta": 2.0,
+   "scala": "elettrone",
+   "M_over_mW": 185.31848100632075,
+   "m_W_MeV": 0.0027574095536784106,
+   "raggio_meta_energia_fm": 87487.41365315349,
+   "carica_magnetica_in_unita_e": "g_m = 4 pi / e = 1/(2 alpha) e = 68.5 e"
+  },
+  {
+   "beta": 2.0,
+   "scala": "protone",
+   "M_over_mW": 185.31848100632075,
+   "m_W_MeV": 5.063024923714963,
+   "raggio_meta_energia_fm": 47.647134641559916,
+   "carica_magnetica_in_unita_e": "g_m = 4 pi / e = 1/(2 alpha) e = 68.5 e"
+  },
+  {
+   "beta": 10.0,
+   "scala": "elettrone",
+   "M_over_mW": 205.00475469117927,
+   "m_W_MeV": 0.0024926199920083446,
+   "raggio_meta_energia_fm": 81460.36527873235,
+   "carica_magnetica_in_unita_e": "g_m = 4 pi / e = 1/(2 alpha) e = 68.5 e"
+  },
+  {
+   "beta": 10.0,
+   "scala": "protone",
+   "M_over_mW": 205.00475469117927,
+   "m_W_MeV": 4.576830862159369,
+   "raggio_meta_energia_fm": 44.36470150751232,
+   "carica_magnetica_in_unita_e": "g_m = 4 pi / e = 1/(2 alpha) e = 68.5 e"
+  },
+  {
+   "beta": 100.0,
+   "scala": "elettrone",
+   "M_over_mW": 227.40397630803938,
+   "m_W_MeV": 0.002247097690621757,
+   "raggio_meta_energia_fm": 78275.29373344834,
+   "carica_magnetica_in_unita_e": "g_m = 4 pi / e = 1/(2 alpha) e = 68.5 e"
+  },
+  {
+   "beta": 100.0,
+   "scala": "protone",
+   "M_over_mW": 227.40397630803938,
+   "m_W_MeV": 4.126014432082863,
+   "raggio_meta_energia_fm": 42.63005732929026,
+   "carica_magnetica_in_unita_e": "g_m = 4 pi / e = 1/(2 alpha) e = 68.5 e"
+  }
+ ],
+ "intervallo_M_su_mW": [
+  137.1414570810173,
+  227.40397630803938
+ ],
+ "bersagli_nell_intervallo": {
+  "mu/e 206.77": true
+ },
+ "nota_look_elsewhere": "con beta libero, M/m_W copre con continuita' [137.1, 227.4]: 'indovinare' 206.77 scegliendo beta e' un fit, non una predizione",
+ "C1": {
+  "PVLAS_Delta_n_over_B2": "(+12 +- 17) e-23 T^-2 (Ejlli et al., Phys. Rep. 871 (2020) 1)",
+  "QED_Delta_n_over_B2": 3.96e-24,
+  "c1_extra_max_su_c1_QED_2sigma": 87.12121212121212,
+  "E_star_minimo_V_per_m": 1.9683870762940065e+18,
+  "laser_piu_intensi_V_per_m": 870000000000000.0,
+  "nota": "un termine non lineare della luce compatibile con PVLAS e' < 1% di Maxwell sotto E* ~ 1e18 V/m"
+ },
+ "g-2_stima": {
+  "formula": "delta a_e ~ (alpha/pi)^2 (m_e/m_W)^2 / 45 (polarizzazione del vuoto, ordine di grandezza)",
+  "m_W_MeV_se_M_protone": 6.841637154297617,
+  "delta_a_e": 6.688647991536725e-10,
+  "precisione_a_e": 1.3e-13
+ }
+}
