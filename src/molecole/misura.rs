@@ -1,6 +1,6 @@
 //! The measurements: every number of docs/MOLECOLE.md comes from here, with the ball rule of dmc.rs.
 //!
-//! `molecole --misura <bersaglio>` with bersaglio = idrogeno | eccitati | luce | h2piu | h2 | elio | tutto.
+//! `molecole --misura <bersaglio>` with bersaglio = idrogeno | eccitati | luce | h2piu | h2 | elio | elio1p | eliocampo | tutto.
 //! Each target writes its numbers into assets/molecole/risultati.txt (read by the viewer and the tests).
 //! Seeds are fixed: rerunning gives the same numbers.
 
@@ -731,5 +731,7 @@ pub fn main(which: &str) {
     if all || which == "h2piu" { molecola(&mut res, 1); res.save(FILE); }
     if all || which == "h2" { molecola(&mut res, 2); res.save(FILE); }
     if all || which == "elio" { elio(&mut res); res.save(FILE); }
+    if all || which == "elio1p" { crate::elio::elio1p(&mut res); res.save(FILE); }
+    if all || which == "eliocampo" { crate::elio::eliocampo(&mut res); res.save(FILE); }
     println!("\n[{which}: {:.0} s] -> {FILE}", t.elapsed().as_secs_f64());
 }

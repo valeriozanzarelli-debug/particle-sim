@@ -17,6 +17,11 @@ path = "src/photon/main.rs"
 name = "molecole"
 path = "src/molecole/main.rs"
 
+# One photon meets one helium atom: absorption, sloshing cloud, spontaneous emission (numbers from the balls)
+[[bin]]
+name = "scontro"
+path = "src/scontro/main.rs"
+
 # Compton: one photon hits one free electron at rest (Klein–Nishina input, surfers pick one pair)
 [[bin]]
 name = "compton"

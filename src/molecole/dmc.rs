@@ -77,6 +77,14 @@ pub enum Guida {
     /// A = 1, z or x·y taken from the mirror symmetry of the state and r_k its radial nodes; `a` is the
     /// decay measured on the cloud of a first, unguided generation of balls.
     Eccitato { ang: Angolare, nodi: [f64; 2], nn: usize, a: f64 },
+    /// two electrons (helium 1s2p ¹P, M = 0): ψ_g = [φ_a(r1)φ_b(r2) + φ_b(r1)φ_a(r2)] × e–e cusp, with our
+    /// hydrogen-like orbitals φ_a = e^{−k_a r} (1s) and φ_b = z e^{−k_b r} (2p_z). Spatially symmetric
+    /// (singlet), odd under z → −z of both electrons. Its node is the fixed-node rule of this state.
+    S1P { ka: f64, kb: f64 },
+    /// every electron in our 1s with an effective charge ζ (screening), corrected near the nucleus so that
+    /// the electron–nucleus cusp is exact: φ = exp(−ζ r − (Z − ζ) r/(1 + r)), × e–e cusp. One nucleus at the
+    /// origin. (ζ from the minimum of our variational energy.)
+    Schermato { zeta: f64 },
 }
 
 /// Angular factor of a one-electron guide (from mirror symmetry).
@@ -165,6 +173,23 @@ impl Sistema {
                 return v;
             }
             Guida::Orbitali { a, jastrow } => (a, jastrow),
+            Guida::S1P { ka, kb } => {
+                let lap = self.s1p_parte_orbitale(x, ka, kb, drift);
+                return self.con_jastrow(x, drift, lap, v);
+            }
+            Guida::Schermato { zeta } => {
+                let c = self.nuclei[0].z - zeta;
+                let mut lap = 0.0;
+                for i in 0..self.ne() {
+                    let p = &x[3 * i..3 * i + 3];
+                    let r = norm(p).max(1e-12);
+                    let d1 = -zeta - c / (1.0 + r).powi(2);
+                    let d2 = 2.0 * c / (1.0 + r).powi(3);
+                    for k in 0..3 { drift[3 * i + k] = d1 * p[k] / r; }
+                    lap += d2 + 2.0 * d1 / r;
+                }
+                return self.con_jastrow(x, drift, lap, v);
+            }
             Guida::Eccitato { ang, nodi, nn, a } => {
                 let p = &x[0..3];
                 let r = norm(p).max(1e-12);
@@ -217,25 +242,65 @@ impl Sistema {
             lap_sum += lap / phi - (gl[0] * gl[0] + gl[1] * gl[1] + gl[2] * gl[2]);
             drift[3 * i..3 * i + 3].copy_from_slice(&gl);
         }
-        if jas {
-            for i in 0..ne {
-                for j in 0..i {
-                    let c = if self.spin[i] == self.spin[j] { 0.25 } else { 0.5 };
-                    let d = [x[3 * i] - x[3 * j], x[3 * i + 1] - x[3 * j + 1], x[3 * i + 2] - x[3 * j + 2]];
-                    let r = norm(&d).max(1e-12);
-                    let up = c / (1.0 + r).powi(2); // u'
-                    let upp = -2.0 * c / (1.0 + r).powi(3); // u''
-                    for k in 0..3 {
-                        let gk = up * d[k] / r;
-                        drift[3 * i + k] += gk;
-                        drift[3 * j + k] -= gk;
-                    }
-                    lap_sum += 2.0 * (upp + 2.0 * up / r);
+        if jas { return self.con_jastrow(x, drift, lap_sum, v); }
+        let g2: f64 = drift.iter().map(|d| d * d).sum();
+        -0.5 * (lap_sum + g2) + v
+    }
+
+    /// Adds the electron–electron cusp factor exp(Σ c r_ij/(1+r_ij)) to drift and Laplacian, returns E_loc.
+    fn con_jastrow(&self, x: &[f64], drift: &mut [f64], mut lap_sum: f64, v: f64) -> f64 {
+        let ne = self.ne();
+        for i in 0..ne {
+            for j in 0..i {
+                let c = if self.spin[i] == self.spin[j] { 0.25 } else { 0.5 };
+                let d = [x[3 * i] - x[3 * j], x[3 * i + 1] - x[3 * j + 1], x[3 * i + 2] - x[3 * j + 2]];
+                let r = norm(&d).max(1e-12);
+                let up = c / (1.0 + r).powi(2); // u'
+                let upp = -2.0 * c / (1.0 + r).powi(3); // u''
+                for k in 0..3 {
+                    let gk = up * d[k] / r;
+                    drift[3 * i + k] += gk;
+                    drift[3 * j + k] -= gk;
                 }
+                lap_sum += 2.0 * (upp + 2.0 * up / r);
             }
         }
         let g2: f64 = drift.iter().map(|d| d * d).sum();
         -0.5 * (lap_sum + g2) + v
+    }
+
+    /// The two terms of the 1s2p guide, A = φ_a(r1)φ_b(r2) = z2·e_A and B = φ_b(r1)φ_a(r2) = z1·e_B, with
+    /// the exponentials e_A, e_B multiplied by the same factor e^{m} (m = smallest exponent) so that
+    /// nothing underflows. Returns (e_A, e_B, m, r1, r2).
+    pub fn s1p_termini(x: &[f64], ka: f64, kb: f64) -> (f64, f64, f64, f64, f64) {
+        let r1 = norm(&x[0..3]).max(1e-12);
+        let r2 = norm(&x[3..6]).max(1e-12);
+        let (ea, eb) = (ka * r1 + kb * r2, kb * r1 + ka * r2);
+        let m = ea.min(eb);
+        ((-(ea - m)).exp(), (-(eb - m)).exp(), m, r1, r2)
+    }
+
+    /// Orbital part of the 1s2p guide: writes ∇ ln ψ_orb into `drift`, returns Σ_i ∇_i² ln ψ_orb.
+    fn s1p_parte_orbitale(&self, x: &[f64], ka: f64, kb: f64, drift: &mut [f64]) -> f64 {
+        let (ex_a, ex_b, _, r1, r2) = Self::s1p_termini(x, ka, kb);
+        let (a, b) = (ex_a * x[5], ex_b * x[2]);
+        let psi = a + b;
+        let u1 = [x[0] / r1, x[1] / r1, x[2] / r1];
+        let u2 = [x[3] / r2, x[4] / r2, x[5] / r2];
+        let zhat = [0.0, 0.0, 1.0];
+        let mut lap = 0.0;
+        // electron 1: A has φ_a(r1), B has φ_b(r1)
+        let mut g = [0.0; 3];
+        for c in 0..3 { g[c] = -ka * u1[c] * a + ex_b * (zhat[c] - kb * x[2] * u1[c]); }
+        let l1 = (ka * ka - 2.0 * ka / r1) * a + (kb * kb - 4.0 * kb / r1) * b;
+        for c in 0..3 { drift[c] = g[c] / psi; }
+        lap += l1 / psi - (drift[0] * drift[0] + drift[1] * drift[1] + drift[2] * drift[2]);
+        // electron 2: A has φ_b(r2), B has φ_a(r2)
+        for c in 0..3 { g[c] = ex_a * (zhat[c] - kb * x[5] * u2[c]) - ka * u2[c] * b; }
+        let l2 = (kb * kb - 4.0 * kb / r2) * a + (ka * ka - 2.0 * ka / r2) * b;
+        for c in 0..3 { drift[3 + c] = g[c] / psi; }
+        lap += l2 / psi - (drift[3] * drift[3] + drift[4] * drift[4] + drift[5] * drift[5]);
+        lap
     }
 
     /// Sign of the guide (only `Eccitato` guides change sign: across their nodes).
@@ -247,6 +312,10 @@ impl Sistema {
                 let mut s = match ang { Angolare::S => 1.0, Angolare::Z => p[2], Angolare::XY => p[0] * p[1] };
                 for k in nodi.iter().take(nn) { s *= r - k; }
                 s.signum()
+            }
+            Guida::S1P { ka, kb } => {
+                let (ea, eb, ..) = Self::s1p_termini(x, ka, kb);
+                (ea * x[5] + eb * x[2]).signum()
             }
             _ => 1.0,
         }
@@ -263,6 +332,21 @@ impl Sistema {
                 for k in nodi.iter().take(nn) { l += (r - k).abs().max(1e-300).ln(); }
                 l + match ang { Angolare::S => 0.0, Angolare::Z => p[2].abs().max(1e-300).ln(),
                                 Angolare::XY => (p[0] * p[1]).abs().max(1e-300).ln() }
+            }
+            Guida::Schermato { zeta } => {
+                let c = self.nuclei[0].z - zeta;
+                let mut l = 0.0;
+                for i in 0..self.ne() {
+                    let r = norm(&x[3 * i..3 * i + 3]);
+                    l += -zeta * r - c * r / (1.0 + r);
+                }
+                let r = norm(&[x[0] - x[3], x[1] - x[4], x[2] - x[5]]);
+                l + 0.5 * r / (1.0 + r)
+            }
+            Guida::S1P { ka, kb } => {
+                let (ea, eb, m, ..) = Self::s1p_termini(x, ka, kb);
+                let r = norm(&[x[0] - x[3], x[1] - x[4], x[2] - x[5]]);
+                (ea * x[5] + eb * x[2]).abs().max(1e-300).ln() - m + 0.5 * r / (1.0 + r)
             }
             Guida::Orbitali { a, jastrow } => {
                 let ne = self.ne();
@@ -400,7 +484,7 @@ impl Dmc {
         let guided = sys.guida != Guida::Nessuna;
         let has_nodes = !sys.vincoli.is_empty();
         let metro = self.metropolis && guided;
-        let nodal_guide = matches!(sys.guida, Guida::Eccitato { .. });
+        let nodal_guide = matches!(sys.guida, Guida::Eccitato { .. } | Guida::S1P { .. });
         let tau_eff = if metro { tau * self.acc } else { tau };
         struct Out { x: Vec<f64>, dr: Vec<f64>, el: Vec<f64>, sw: f64, swe: f64, acc: f64, tried: f64 }
         let outs: Vec<Out> = (0..n.div_ceil(CHUNK)).into_par_iter().map(|c| {

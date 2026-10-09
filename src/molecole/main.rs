@@ -5,7 +5,7 @@
 //! Inputs: ħ, e, mₑ, ε0, c, nuclear charges and masses. Nothing else.
 //!
 //! Run the viewer:     cargo run --release --bin molecole   [--sistema h2|h2piu|he|2p] [--giro]
-//! Run the measures:   cargo run --release --bin molecole -- --misura idrogeno|eccitati|nodo2s|nodo3p|campo|riga|h2piu|h2|elio
+//! Run the measures:   cargo run --release --bin molecole -- --misura idrogeno|eccitati|nodo2s|nodo3p|campo|riga|h2piu|h2|elio|elio1p|eliocampo
 //!                     (all of them: sh lab/molecole_misura.sh; numbers -> assets/molecole/risultati.txt)
 //! Tests:              cargo test --release --bin molecole
 
@@ -19,6 +19,7 @@ use std::time::Instant;
 mod config;
 mod costanti;
 mod dmc;
+mod elio;
 mod misura;
 mod render;
 mod scena;

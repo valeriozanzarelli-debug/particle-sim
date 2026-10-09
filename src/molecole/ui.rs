@@ -137,12 +137,17 @@ fn tabella(ui: &mut egui::Ui, lab: &Lab) {
             Scelta::He => {
                 riga(ui, "E (eV), nucleo fermo", fe("he_E", ev), fe("he_E_err", ev), Some(-79.0052), 4);
                 riga(ui, "E (eV), massa del nucleo", f("he_E_ev_mu"), fe("he_E_err", ev), Some(-79.0052), 4);
+                riga(ui, "E 1s2p ¹P (Eₕ), nodo fisso", f("he1p_E"), f("he1p_E_err"), Some(-2.123843), 5);
+                riga(ui, "riga 1¹S->2¹P λ (nm)", f("he1p_lambda_nm"), f("he1p_lambda_err"), Some(58.4334), 3);
+                riga(ui, "forza d'oscillatore f", f("he1p_f"), f("he1p_f_err"), Some(0.2762), 4);
+                riga(ui, "A(2¹P->1¹S) (1e9/s)", f("he1p_A").map(|x| x / 1e9), f("he1p_A_err").map(|x| x / 1e9), Some(1.799), 3);
+                riga(ui, "polarizzabilità α (a0³)", f("he_alpha"), f("he_alpha_err"), Some(1.3832), 3);
             }
         }
     });
     ui.label(egui::RichText::new(match lab.scelta {
         Scelta::H2piu | Scelta::H2 => "Riferimenti: Huber & Herzberg 1979; D0(H2): Liu et al. 2009; ν(0->1): Dickenson et al. 2013.",
-        Scelta::He => "Riferimento: NIST ASD, somma delle due energie di ionizzazione (24.5874 + 54.4178 eV).",
+        Scelta::He => "Riferimenti: NIST ASD (energie di ionizzazione 24.5874 + 54.4178 eV; riga 58.4334 nm, f, A);                        E(2¹P) esatta non relativistica (Drake); α esatta 1.3832. Lo scontro con un fotone: cargo run --bin scontro",
         _ => "Livelli: soluzione esatta −13.6057 eV / n² (nucleo fermo). La misura vera è nelle righe di luce qui sotto (NIST).",
     }).small().color(GREY));
     if matches!(lab.scelta, Scelta::H2piu | Scelta::H2) {

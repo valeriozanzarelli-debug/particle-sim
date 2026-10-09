@@ -120,4 +120,63 @@ fn stored_measurements_match_experiment() {
     chk("h2_mol_d0", 4.47813, 0.02);
     chk("h2_mol_we", 4401.21, 0.03);
     chk("he_E_ev_mu", -79.0052, 0.002);
+    // helium and light (`--misura elio1p`, `--misura eliocampo`)
+    chk("he1p_E", -2.123843, 1e-3);           // fixed-node 1s2p ¹P vs exact nonrelativistic (error stated: +5.5e-5 Eh)
+    chk("he1p_lambda_nm", 58.4334, 0.01);     // resonance line 1¹S → 2¹P, NIST, within 1 %
+    chk("he1p_de_ev", 21.2180, 0.01);
+    chk("he1p_f", 0.2762, 0.15);              // oscillator strength, within 15 %
+    chk("he1p_A", 1.799e9, 0.15);             // Einstein A, NIST, within 15 %
+    chk("he_alpha", 1.3832, 0.10);            // static polarizability, exact 1.3832 a0³
+}
+
+/// Drift and local energy of the helium 1s2p ¹P guide agree with finite differences of ln ψ_g; the guide is
+/// symmetric under exchange of the electrons (singlet) and odd under z → −z of both (¹P, M = 0).
+#[test]
+fn he_1s2p_guide_derivatives_and_symmetry() {
+    let s = crate::elio::sys_1p(0.5);
+    let x = [0.3, -0.1, 0.5, -0.9, 1.2, -1.6];
+    let mut g = vec![0.0; 6];
+    let el = s.valuta(&x, &mut g);
+    let hh = 1e-4;
+    let mut lap = 0.0;
+    for i in 0..6 {
+        let (mut xp, mut xm) = (x, x);
+        xp[i] += hh;
+        xm[i] -= hh;
+        let (lp, l0, lm) = (s.ln_guida(&xp), s.ln_guida(&x), s.ln_guida(&xm));
+        assert!(((lp - lm) / (2.0 * hh) - g[i]).abs() < 1e-6, "drift {i}");
+        lap += (lp - 2.0 * l0 + lm) / (hh * hh);
+    }
+    let g2: f64 = g.iter().map(|v| v * v).sum();
+    let el_fd = -0.5 * (lap + g2) + s.potenziale(&x);
+    assert!((el - el_fd).abs() < 1e-4, "E_loc {el} vs {el_fd}");
+    let p = crate::elio::psi(&s, &x);
+    let swap = [x[3], x[4], x[5], x[0], x[1], x[2]];
+    let mirror = [x[0], x[1], -x[2], x[3], x[4], -x[5]];
+    assert!((crate::elio::psi(&s, &swap) - p).abs() < 1e-12 * p.abs().max(1e-300));
+    assert!((crate::elio::psi(&s, &mirror) + p).abs() < 1e-12 * p.abs().max(1e-300));
+}
+
+/// The screened helium guide: drift and local energy agree with finite differences; the cusp is exact
+/// (no 1/r divergence of the local energy at the nucleus).
+#[test]
+fn he_screened_guide_derivatives() {
+    let s = crate::elio::sys_schermato(1.7, 0.0);
+    let x = [0.3, -0.1, 0.5, -0.9, 1.2, -1.6];
+    let mut g = vec![0.0; 6];
+    let el = s.valuta(&x, &mut g);
+    let hh = 1e-4;
+    let mut lap = 0.0;
+    for i in 0..6 {
+        let (mut xp, mut xm) = (x, x);
+        xp[i] += hh;
+        xm[i] -= hh;
+        let (lp, l0, lm) = (s.ln_guida(&xp), s.ln_guida(&x), s.ln_guida(&xm));
+        assert!(((lp - lm) / (2.0 * hh) - g[i]).abs() < 1e-6, "drift {i}");
+        lap += (lp - 2.0 * l0 + lm) / (hh * hh);
+    }
+    let g2: f64 = g.iter().map(|v| v * v).sum();
+    assert!((el - (-0.5 * (lap + g2) + s.potenziale(&x))).abs() < 1e-4);
+    let (e1, e2) = (s.valuta(&[1e-6, 0.0, 0.0, 0.0, 1.0, 0.0], &mut g), s.valuta(&[1e-4, 0.0, 0.0, 0.0, 1.0, 0.0], &mut g));
+    assert!((e1 - e2).abs() < 1e-2, "cusp: {e1} vs {e2}");
 }

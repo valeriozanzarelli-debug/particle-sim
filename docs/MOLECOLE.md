@@ -24,7 +24,8 @@ sono i **fotoni** che l'atomo emette.
 Con questa sola regola: idrogeno −13,6057 eV (errore 0,02 meV), Lyman-α 121,565 nm (NIST 121,567),
 Balmer-α 656,54 nm (NIST 656,46), polarizzabilità 4,60 ± 0,12 a₀³ (esatta 4,5), H₂⁺ e H₂ con lunghezza
 di legame entro lo 0,1 % (H₂) e lo 0,4 % (H₂⁺), D₀ entro lo 0,25 %, vibrazioni entro l'1,5 %, elio
-−78,994 ± 0,013 eV (misura −79,005).
+−78,994 ± 0,013 eV (misura −79,005); la riga di risonanza dell'elio 58,437 nm (NIST 58,4334), la sua
+forza f = 0,275 (0,2762), la vita media 0,559 ns (0,555), e lo scontro di un fotone con l'atomo (§12).
 L'acqua **non** è stata fatta: spiego perché al §8.
 
 ---
@@ -406,11 +407,183 @@ Che cosa servirà, in ordine:
 
 ---
 
-## 12. Riproduzione
+## 12. Elio e lo scontro fotone–atomo
+
+Codice: `src/molecole/elio.rs` (le misure), `src/scontro/` (il visore). Numeri: `--misura elio1p`
+(≈ 3 + 3 min, riprende dai punti salvati), `--misura eliocampo` (≈ 4 min). Il visore:
+`cargo run --bin scontro` (opzioni `--lambda 500`, `--seme N`).
+
+L'idea: prendere UN fotone e UN atomo con due elettroni (l'elio) e far vedere che cosa succede quando si
+incontrano, usando solo numeri calcolati dalle palline: i livelli, la riga, quanto è "forte", quanto
+dura lo stato eccitato, quanto si deforma l'atomo in un campo.
+
+### 12.1 Lo stato eccitato 1s2p ¹P (un elettrone "salta" sul 2p)
+
+**Gli orbitali, solo i nostri.** 1s = e^(−k_a r) con k_a = Z = 2 (lo fissa la cuspide, come sempre) e
+2p_z = z·e^(−k_b r). Il numero k_b l'ho scelto **minimizzando la nostra energia variazionale** della guida
+(Monte Carlo semplice, 2·10⁶ punti per valore):
+
+| k_b | 0,40 | 0,45 | 0,50 | 0,55 | 0,60 |
+|---|---|---|---|---|---|
+| E variazionale (Eₕ) | −2,11790 | −2,12182 | −2,12341 | −2,12267 | −2,11960 |
+
+Minimo della parabola: **k_b = 0,509**, cioè l'elettrone 2p "vede" una carica efficace 2k_b = 1,02: il
+nucleo (+2) schermato quasi del tutto dall'altro elettrone. Nessuno gliel'ha detto.
+
+**La guida.** ψ_g = φ₁ₛ(r₁)φ₂ₚ(r₂) + φ₂ₚ(r₁)φ₁ₛ(r₂), per il fattore elettrone–elettrone di sempre. È
+simmetrica nello scambio (singoletto: spin opposti) e cambia segno se si specchiano z₁, z₂ → −z₁, −z₂ (stato
+¹P, M = 0). Regola per pallina: quella dell'elio (§8.1) con "accetta o rifiuta", più la regola del nodo:
+**un passo che cambia il segno della guida è rifiutato**. Le palline restano nelle loro tasche.
+
+**Attenzione, il nodo NON è esatto.** Si potrebbe pensare che la simmetria fissi il nodo, come per il 2p
+dell'idrogeno. Non è così: lo specchio z → −z di entrambi gli elettroni lascia fermi solo i punti con
+z₁ = z₂ = 0, che sono un insieme a 4 dimensioni, non una superficie a 5. Il nodo vero dipende dalla forma
+dell'onda; il nostro viene dai nostri orbitali ed è un'**approssimazione (nodo fisso)**. L'errore lo
+misuriamo contro l'energia esatta non relativistica (Drake): −2,1238431 Eₕ.
+
+| tick τ | 0,02 | 0,01 | 0,005 | τ → 0 |
+|---|---|---|---|---|
+| E(1s2p ¹P) (Eₕ) | −2,123822(31) | −2,123792(25) | −2,123802(26) | **−2,123788 ± 0,000032** |
+
+**Errore del nodo fisso: +0,000055 Eₕ = +1,5 meV** (le palline stanno sopra il vero, come deve essere).
+Lo stato fondamentale (1s², nessun nodo, esatto) rifatto in queste corse a τ = 0,02/0,01/0,005 (tre corse
+indipendenti per τ) dà −2,903695 ± 0,000306; messo insieme alla misura del §8.1: **−2,903597 ± 0,000256 Eₕ**
+(esatto −2,903724, 0,5 σ).
+
+### 12.2 La riga di risonanza 1s² ¹S → 1s2p ¹P
+
+| grandezza | palline | NIST | differenza |
+|---|---|---|---|
+| ΔE (massa ridotta del nucleo) | **21,2168 ± 0,0070 eV** | 21,2180 eV | −1,2 meV (0,2 σ) |
+| λ (nel vuoto) | **58,437 ± 0,019 nm** | 58,4334 nm | +0,006 % |
+
+È ultravioletto estremo: un fotone invisibile, 7 volte più "duro" del violetto. (Il NIST contiene anche
+relatività e QED, ~1 meV; noi no. La correzione di "polarizzazione di massa" è trascurata.)
+
+### 12.3 Quanto è forte la riga: dipolo, f, A, vita media
+
+Serve l'elemento di matrice ⟨1¹S|z₁+z₂|2¹P⟩ tra le due nuvole. Come per Lyman-α (§6.2) le nuvole guidate
+hanno densità ψ_guida·ψ_vera; qui uso lo **stimatore "estrapolato"** (giusto al primo ordine nell'errore
+delle guide):
+
+* sulle palline del fondamentale: M_g = ⟨Z·ψ_e/ψ_g⟩·√(I_g/I_e) = ⟨Φ_g|Z|ψ_e⟩/⟨Φ_g|ψ_g⟩;
+* sulle palline dell'eccitato: M_e = ⟨Z·ψ_g/ψ_e⟩·√(I_e/I_g);
+* d_var = ⟨ψ_g|Z|ψ_e⟩ delle sole guide, e d = M_g + M_e − d_var.
+
+(Z = z₁ + z₂; I = ∫ψ² delle guide, calcolati con un Monte Carlo semplice a 8·10⁶ punti.)
+
+| τ | M_g | M_e | d = M_g + M_e − d_var |
+|---|---|---|---|
+| 0,02 | 0,4019 | 0,2404 | 0,4075 ± 0,0042 |
+| 0,01 | 0,4104 | 0,2438 | 0,4195 ± 0,0054 |
+| 0,005 | 0,4099 | 0,2379 | 0,4129 ± 0,0058 |
+| τ → 0 (retta) | | | **0,4199 ± 0,0069 a₀** |
+
+Le guide da sole danno d_var = 0,2348: lontanissimo. Le palline correggono quasi tutto.
+
+| grandezza | palline | riferimento | errore |
+|---|---|---|---|
+| forza d'oscillatore f = 2ΔE d² | **0,2750 ± 0,0091** | 0,2762 (NIST) | −0,4 % |
+| A(2¹P → 1¹S) = 4ω³d²/3c³ | **(1,790 ± 0,059)·10⁹ s⁻¹** | 1,799·10⁹ s⁻¹ (NIST) | −0,5 % |
+| vita media 1/A | **0,559 ns** | 0,555 ns | +0,6 % |
+
+Onestà: il numero più debole è M_g. La guida del fondamentale (e^(−2r) per elettrone) è povera
+(energia variazionale −2,826 contro −2,904) e il rapporto ψ_e/ψ_g cresce molto lontano dal nucleo: la media
+ha code lunghe. Una delle 9 corse ha dato M_g = 0,456 ± 0,033 (le altre 0,395–0,429). Per questo faccio 3
+corse indipendenti per τ. Lo stimatore è giusto al primo ordine: con guide così diverse dal vero un errore
+del secondo ordine dell'ordine dell'1 % non lo posso escludere. Al primo giro (una sola corsa per τ) era
+venuto d = 0,4075 ± 0,0088, f = 0,259 (−6 %).
+
+### 12.4 Polarizzabilità statica (metodo del campo)
+
+Come per l'idrogeno: E(F) = E(0) − ½αF² − γF⁴/24 a F = 0; 0,05; 0,08; 0,11; 0,14 a.u., 20 000 palline,
+τ = 0,01. Con la guida e^(−2r) il rumore era troppo (α = 1,31 ± 0,18), quindi qui la guida è il nostro 1s
+con **carica efficace ζ** (lo schermo) e la cuspide sul nucleo tenuta esatta: φ = exp(−ζr − (2−ζ)r/(1+r));
+ζ = **1,617** dal minimo della nostra energia variazionale (−2,8895 Eₕ, varianza dell'energia locale 0,078
+contro 0,188 della guida e^(−2r)).
+
+| F (a.u.) | 0 | 0,05 | 0,08 | 0,11 | 0,14 |
+|---|---|---|---|---|---|
+| E (Eₕ) | −2,903827(127) | −2,905459(121) | −2,908417(171) | −2,912360(262) | −2,917657(182) |
+
+**α = 1,423 ± 0,081 a₀³** (esatta 1,3832; +2,9 %, 0,5 σ; χ² = 1,1 per 2 gradi di libertà). γ invece non è
+misurato (il fit dà un numero compatibile con zero, il vero è 43). Controllo: dallo spostamento della
+nuvola (2⟨z₁+z₂⟩/F, stimatore estrapolato) viene 1,31–1,37, basso del ~5 %: la guida simmetrica lascia un
+errore del secondo ordine. (La corsa a F = 0 dà anche E = −2,903827 ± 0,000127 al solo τ = 0,01,
+compatibile con l'esatto.)
+
+### 12.5 Lo scontro: che cosa decide la fisica
+
+**Quanto è probabile che l'atomo prenda il fotone.** Il fotone è un fascio gaussiano focalizzato
+sull'atomo con raggio w₀ = λ (un fuoco stretto ma ancora "parassiale"). La probabilità che un fotone
+interagisca è P = σ/A_eff con A_eff = πw₀²/2. La sezione d'urto viene tutta dalle palline:
+
+σ(ω) = (8π/3)k⁴|α(ω)|², con α(ω) = α_resto + f/(ΔE² − ω² − iωΓ), Γ = A, α_resto = α − f/ΔE².
+
+Al centro della riga questa formula dà **esattamente** 3λ²/2π (perché A e f vengono dallo stesso d): è il
+test `resonant_cross_section_at_line_centre`. Lontano dalla riga è la diffusione di Rayleigh.
+
+| λ | σ | P per fotone | cosa succede |
+|---|---|---|---|
+| 58,437 nm (la nostra riga) | 1,630·10⁻¹⁵ m² = 3λ²/2π | **0,304** = 3/π² | assorbimento, poi riemissione |
+| 58,4334 nm (riga del NIST) | 3,5·10⁻²² m² | **6,6·10⁻⁸** | quasi sempre passa |
+| 500 nm (verde) | 9,38·10⁻³³ m² | **2,4·10⁻²⁰** | passa dritto (Rayleigh, α(500 nm) = 1,430) |
+
+La seconda riga è una lezione: la nostra riga è giusta allo 0,006 %, ma la riga vera è larga solo
+Γ/2π = 0,28 GHz: 1,2 meV di errore sono **1076 larghezze**. Un atomo "costruito" con le nostre palline
+non assorbirebbe la luce di un vero laser sulla riga dell'elio. La precisione spettroscopica vera (10⁻⁹)
+è fuori portata.
+
+**Che cosa si vede, e quanto è rallentato** (tutto scritto sullo schermo):
+
+* il fotone arriva come pacchetto di palline-onda (la stessa sfera morbida del fotone, `balls.wgsl`),
+  colore = fase, luminosità = densità di energia cos²(kz − ωt): si vedono le creste. **Non in scala**: la
+  sua λ vera (58 nm = 1104 a₀) è disegnata 12 unità, l'atomo 5 unità per a₀;
+* se il fotone è preso (moneta con probabilità P), durante il passaggio la funzione d'onda (condizionata)
+  dell'atomo è a ψ_g + b e^(−iΔEt) ψ_e, con |b|² che sale come la frazione di pacchetto già passata. La
+  nuvola disegnata è |a ψ_g + b e^(−iΔEt) ψ_e|²: palline prese dalle due nuvole vive e tenute con il peso
+  dell'interferenza (calcolato con le nostre guide). **Oscilla su e giù alla frequenza della riga**,
+  rallentata 2,6·10¹⁵ volte (la stessa frequenza con cui le creste del fotone passano sull'atomo); la
+  freccia gialla è il suo dipolo istantaneo (×4);
+* poi la nuvola 1s2p (due lobi lungo la polarizzazione);
+* dopo un tempo estratto da una esponenziale con la vita calcolata (0,559 ns, attesa rallentata 4·10⁹
+  volte, ≈ 2,2 s in media) parte il fotone emesso: un'onda di dipolo (densità ∝ sin²θ attorno alla
+  polarizzazione) e la sua pallina-fotone in una direzione estratta da sin²θ; la nuvola torna 1s² passando
+  di nuovo per la sovrapposizione;
+* il surfer (due stelle: UNA configurazione dei due elettroni) è fermo negli stati stazionari e si muove
+  con la velocità di Bohm della sovrapposizione disegnata, v = Im(∇Ψ/Ψ), calcolata con le nostre guide;
+* contatori: fotoni inviati / assorbiti / passati / emessi / diffusi. Con il seme 1 (il primo provato
+  dopo aver separato i numeri a caso dell'evento da quelli del disegno) il primo fotone è preso, e il
+  ciclo completo si vede nei primi ~13 s (verificato dal test `default_event_within_15_s`).
+
+Immagini (cattura della sola finestra del visore): `lab/out/scontro_arrivo.png`,
+`scontro_oscillazione.png`, `scontro_emissione.png`. Memoria privata del visore stabile a ~437 MB per 50 s.
+
+### 12.6 Che cosa NON torna, o non è calcolato
+
+* **Il nodo dell'1s2p è approssimato** (+1,5 meV); non è "esatto per simmetria" (vedi §12.1).
+* **La rampa di |b|²** durante assorbimento ed emissione è disegnata (segue l'inviluppo del pacchetto),
+  non viene dall'equazione di Schrödinger con il campo del fotone. Un vero assorbimento dura circa una vita
+  media, cioè ~3·10⁶ oscillazioni; qui se ne vedono ~3. Il pacchetto vero è lungo c/Γ ≈ 17 cm.
+* **L'oscillazione è della funzione d'onda condizionata.** Con un solo fotone lo stato vero è
+  intrecciato, c₁|1¹S, 1 fotone⟩ + c₂|2¹P, 0 fotoni⟩: la nuvola media (matrice densità ridotta) NON oscilla.
+  Il dipolo che va su e giù è quello dell'atomo "dato dove sta il fotone" (o con luce classica).
+* **Il surfer** usa le nostre guide (non le nuvole) per la velocità, e siccome la rampa è compressa il suo
+  spostamento netto non è quello vero: è vero il suo andare avanti e indietro alla frequenza della riga.
+  Vicino ai nodi di Ψ il passo è limitato a 0,05 a₀ per sotto-passo.
+* **Il fotone** è un pacchetto gaussiano libero disegnato con la nostra regola in versione semplice
+  (raggi rettilinei del fascio gaussiano, colore = fase), non la macchina completa delle fenditure.
+* **Il berillio** (4 elettroni, primo vero nodo fisso tra elettroni dello stesso spin) era la prima
+  richiesta: abbandonato per l'elio su richiesta di Valerio.
+
+## 13. Riproduzione
 
 ```
 sh lab/molecole_misura.sh                        # tutte le misure (ognuna < 10 min), log in lab/out/
-cargo test --bin molecole                        # 9 test (regola, algebra della guida, nodi, elettroni
+cargo test --bin molecole                        # 11 test (regola, algebra delle guide, nodi, elettroni
                                                  # per pallina, livelli nucleari, misure vs esperimento)
-cargo run --release --bin molecole               # il visore
+cargo run --bin molecole                         # il visore
+cargo run --bin scontro                          # lo scontro fotone-elio (§12)
+cargo test --bin scontro                         # 5 test (σ risonante = 3λ²/2π, dipolo sin²θ, la nuvola
+                                                 # oscilla, un ciclo completo nei primi 15 s)
 ```
