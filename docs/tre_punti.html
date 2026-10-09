@@ -1,0 +1,264 @@
+<title>Tre punti sul cerchio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&family=IBM+Plex+Sans:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a working notebook — the interactive circle first, the open questions below as a numbered research agenda */
+:root{
+  --bg:#f3f5f7; --panel:#ffffff; --ink:#18212b; --muted:#5b6876; --rule:#d7dde3;
+  --tau:#c4472d; --ele:#5b4fc4; --muo:#13866a; --accent:#1f5f9e; --warn:#a86a10;
+  --display:"Newsreader", Georgia, serif;
+  --body:"IBM Plex Sans", system-ui, sans-serif;
+  --mono:"IBM Plex Mono", ui-monospace, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f141a; --panel:#161d25; --ink:#e4e9ee; --muted:#93a1ae; --rule:#2a3540;
+  --tau:#ec7a5f; --ele:#9d93ff; --muo:#4fc9a5; --accent:#6fb0ee; --warn:#e2a64a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f141a; --panel:#161d25; --ink:#e4e9ee; --muted:#93a1ae; --rule:#2a3540;
+  --tau:#ec7a5f; --ele:#9d93ff; --muo:#4fc9a5; --accent:#6fb0ee; --warn:#e2a64a; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:16px/1.6 var(--body);padding-inline:16px;padding-block:24px 64px}
+.wrap{max-width:980px;margin:0 auto;display:grid;gap:28px}
+h1,h2,h3{font-family:var(--display);font-weight:600;text-wrap:balance;margin:0}
+h1{font-size:2.1rem;line-height:1.15}
+h2{font-size:1.45rem}
+h3{font-size:1.1rem}
+p{margin:0;max-width:68ch}
+.lede{color:var(--muted)}
+.panel{background:var(--panel);border:1px solid var(--rule);border-radius:10px;padding:18px}
+.lab{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:22px;align-items:start}
+@media (max-width:760px){.lab{grid-template-columns:1fr}}
+svg{width:100%;height:auto;display:block}
+.controls{display:grid;gap:14px}
+.ctl{display:grid;gap:4px}
+.ctl label{font-size:.85rem;color:var(--muted);letter-spacing:.02em}
+.ctl .row{display:flex;gap:10px;align-items:center}
+.ctl input[type=range]{flex:1;min-width:0;accent-color:var(--accent)}
+.val{font-family:var(--mono);font-variant-numeric:tabular-nums;min-width:6.5ch;text-align:right}
+button{font:inherit;font-size:.9rem;padding:6px 12px;border-radius:7px;border:1px solid var(--rule);background:var(--bg);color:var(--ink);cursor:pointer}
+button:hover{border-color:var(--accent)}
+button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btns{display:flex;flex-wrap:wrap;gap:8px}
+select{font:inherit;padding:5px 8px;border-radius:7px;border:1px solid var(--rule);background:var(--bg);color:var(--ink)}
+table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+th,td{text-align:right;padding:5px 6px;border-bottom:1px solid var(--rule);font-size:.92rem}
+th:first-child,td:first-child{text-align:left}
+th{font-weight:500;color:var(--muted);font-size:.8rem;letter-spacing:.03em}
+.tablewrap{overflow-x:auto}
+.q{font-family:var(--mono);font-size:1.6rem;font-variant-numeric:tabular-nums}
+.koide{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.note{font-size:.88rem;color:var(--muted)}
+.dot{display:inline-block;width:.7em;height:.7em;border-radius:50%;margin-right:.4em;vertical-align:baseline}
+.questions{display:grid;gap:16px}
+.qcard{display:grid;grid-template-columns:2.4rem minmax(0,1fr);gap:4px 14px;padding:16px 0;border-top:1px solid var(--rule)}
+.qnum{font-family:var(--display);font-size:1.6rem;color:var(--accent);line-height:1}
+.qcard h3{grid-column:2}
+.qcard .known,.qcard .gap,.qcard .ask,.qcard textarea{grid-column:2}
+.known,.gap{font-size:.95rem}
+.known b,.gap b,.ask b{font-weight:500}
+.gap{color:var(--warn)}
+.ask{font-family:var(--display);font-size:1.12rem}
+textarea{width:100%;min-height:64px;font:inherit;font-size:.92rem;padding:8px 10px;border-radius:8px;border:1px solid var(--rule);background:var(--bg);color:var(--ink);resize:vertical}
+.group{font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-top:8px}
+code{font-family:var(--mono);font-size:.9em}
+</style>
+
+<div class="wrap">
+  <header style="display:grid;gap:10px">
+    <h1>Tre punti sul cerchio</h1>
+    <p class="lede">Le masse di elettrone, muone e tau, scritte come tre punti a 120° su un cerchio. Muovi i cursori: la retta in basso mostra dove ogni punto "cade", cioè la radice della sua massa divisa per la media delle tre. Sotto ci sono le domande aperte su cui ragionare insieme.</p>
+  </header>
+
+  <section class="panel lab" aria-label="Laboratorio interattivo">
+    <div>
+      <svg id="fig" viewBox="0 0 520 560" role="img" aria-label="Cerchio con tre punti a 120 gradi e le loro proiezioni su una retta"></svg>
+    </div>
+    <div class="controls">
+      <div class="ctl">
+        <label for="tripla">Quale terna</label>
+        <select id="tripla">
+          <option value="leptoni">elettrone, muone, tau</option>
+          <option value="su">quark su: up, charm, top</option>
+          <option value="giu">quark giù: down, strange, bottom</option>
+        </select>
+      </div>
+      <div class="ctl">
+        <label for="raggio">Raggio del cerchio (Koide: √2 = 1,4142)</label>
+        <div class="row"><input id="raggio" type="range" min="0.5" max="2" step="0.0005" value="1.41421"><span class="val" id="raggioV"></span></div>
+      </div>
+      <div class="ctl">
+        <label for="angolo">Angolo di partenza δ in gradi (Koide: 12,73° = 2/9 rad)</label>
+        <div class="row"><input id="angolo" type="range" min="0" max="120" step="0.01" value="12.73"><span class="val" id="angoloV"></span></div>
+      </div>
+      <div class="btns">
+        <button id="fit" type="button">Adatta ai dati veri</button>
+        <button id="koideBtn" type="button">Valori di Koide (√2, 2/9)</button>
+      </div>
+      <div class="koide">
+        <span class="note">Rapporto di Koide misurato</span>
+        <span class="q" id="qMis"></span>
+        <span class="note" id="qNote"></span>
+      </div>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Particella</th><th>Prevista (MeV)</th><th>Misurata (MeV)</th><th>Scarto</th></tr></thead>
+          <tbody id="tab"></tbody>
+        </table>
+      </div>
+      <p class="note">Formula: √m / media = 1 + raggio · cos(δ + 0°, 120°, 240°). Con raggio √2 il rapporto (somma delle masse) / (somma delle radici)² vale esattamente 2/3, qualunque sia δ. Masse dei quark: valori di riferimento del Particle Data Group, con incertezze grandi per i quark leggeri.</p>
+    </div>
+  </section>
+
+  <section style="display:grid;gap:8px">
+    <h2>Le domande aperte</h2>
+    <p class="lede">Per ognuna: cosa sappiamo, dove la fisica si ferma, e la domanda per te. Puoi scrivere le tue idee nei riquadri: restano solo in questo browser, poi copiamele in chat e le provo con le palline.</p>
+  </section>
+
+  <section class="questions" id="questions"></section>
+</div>
+
+<script>
+const DATI = {
+  leptoni: {nomi:["elettrone","muone","tau"], m:[0.51099895,105.6583755,1776.86], col:["--ele","--muo","--tau"]},
+  su:      {nomi:["up","charm","top"],        m:[2.16,1273,172570],               col:["--ele","--muo","--tau"]},
+  giu:     {nomi:["down","strange","bottom"], m:[4.70,93.5,4183],                 col:["--ele","--muo","--tau"]}
+};
+const $ = id => document.getElementById(id);
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const fmt = (x,d=3) => x.toLocaleString("it-IT",{maximumFractionDigits:d,minimumFractionDigits:d});
+
+function stato(){
+  const t = DATI[$("tripla").value];
+  const r = parseFloat($("raggio").value);
+  const d = parseFloat($("angolo").value)*Math.PI/180;
+  const sq = t.m.map(Math.sqrt);
+  const media = (sq[0]+sq[1]+sq[2])/3;
+  const xMis = sq.map(s=>s/media);
+  // assign each measured particle to the circle point closest to it
+  const pts = [0,1,2].map(k=>{const a=d+2*Math.PI*k/3; return {a, x:1+r*Math.cos(a)};});
+  const ordPts = [...pts].sort((p,q)=>p.x-q.x);
+  const ordIdx = [0,1,2].sort((i,j)=>xMis[i]-xMis[j]);
+  const assegna = []; ordIdx.forEach((pi,rank)=>assegna[pi]=ordPts[rank]);
+  return {t,r,d,sq,media,xMis,assegna};
+}
+
+function disegna(){
+  const s = stato();
+  $("raggioV").textContent = fmt(s.r,4);
+  $("angoloV").textContent = fmt(parseFloat($("angolo").value),2)+"°";
+  const Q = s.t.m.reduce((a,b)=>a+b,0)/Math.pow(s.sq.reduce((a,b)=>a+b,0),2);
+  $("qMis").textContent = fmt(Q,5);
+  $("qNote").textContent = Math.abs(Q-2/3)<1e-4 ? "≈ 2/3, coincidenza a 1 su 100.000" : "2/3 = 0,66667: qui non torna";
+  // geometry: value v → px
+  const W=520, cx=210, cy=250, sc=110;
+  const X = v => cx + (v-1)*sc;
+  const R = s.r*sc;
+  const ink=css("--ink"), mut=css("--muted"), rule=css("--rule");
+  let h = "";
+  h += `<circle cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="${mut}" stroke-width="1" stroke-dasharray="3 4"/>`;
+  h += `<circle cx="${cx}" cy="${cy}" r="3" fill="${ink}"/>`;
+  const lineY = 520;
+  h += `<line x1="20" y1="${lineY}" x2="${W-10}" y2="${lineY}" stroke="${ink}" stroke-width="1"/>`;
+  for (let v=0; v<=4; v++){ const x=X(v); if(x<20||x>W-10) continue;
+    h += `<line x1="${x}" y1="${lineY-5}" x2="${x}" y2="${lineY+5}" stroke="${ink}"/>`;
+    h += `<text x="${x}" y="${lineY+22}" fill="${mut}" font-size="13" text-anchor="middle" font-family="IBM Plex Mono, monospace">${v}</text>`;}
+  const rows=[];
+  s.t.nomi.forEach((n,i)=>{
+    const p = s.assegna[i], col = css(s.t.col[i]);
+    const px = cx + R*Math.cos(p.a), py = cy - R*Math.sin(p.a);
+    h += `<line x1="${cx}" y1="${cy}" x2="${px}" y2="${py}" stroke="${col}" stroke-width="1.4"/>`;
+    h += `<line x1="${px}" y1="${py}" x2="${X(p.x)}" y2="${lineY}" stroke="${col}" stroke-width="1" stroke-dasharray="4 4"/>`;
+    h += `<circle cx="${px}" cy="${py}" r="8" fill="${col}"/>`;
+    const lx = px + (Math.cos(p.a)>=0? 14 : -14), anc = Math.cos(p.a)>=0? "start":"end";
+    h += `<text x="${lx}" y="${py-10}" fill="${col}" font-size="15" font-weight="600" text-anchor="${anc}" font-family="Newsreader, serif">${n}</text>`;
+    const deg = ((p.a*180/Math.PI)%360+360)%360;
+    h += `<text x="${lx}" y="${py+8}" fill="${mut}" font-size="12" text-anchor="${anc}" font-family="IBM Plex Mono, monospace">${fmt(deg,1)}°</text>`;
+    h += `<circle cx="${X(s.xMis[i])}" cy="${lineY}" r="5" fill="none" stroke="${col}" stroke-width="2"/>`;
+    h += `<circle cx="${X(p.x)}" cy="${lineY}" r="3" fill="${col}"/>`;
+    const prev = Math.pow(s.media*p.x,2);
+    const err = (prev - s.t.m[i])/s.t.m[i]*100;
+    rows.push(`<tr><td><span class="dot" style="background:${col}"></span>${n}</td><td>${fmt(prev, prev<10?3:1)}</td><td>${fmt(s.t.m[i], s.t.m[i]<10?3:1)}</td><td>${(err>=0?"+":"")+fmt(err,2)}%</td></tr>`);
+  });
+  h += `<text x="20" y="${lineY+44}" fill="${mut}" font-size="12" font-family="IBM Plex Sans, sans-serif">pallino pieno = punto del cerchio · anello vuoto = valore misurato</text>`;
+  $("fig").innerHTML = h;
+  $("tab").innerHTML = rows.join("");
+}
+
+function adatta(){
+  const t = DATI[$("tripla").value];
+  const sq=t.m.map(Math.sqrt), med=(sq[0]+sq[1]+sq[2])/3, x=sq.map(v=>v/med-1);
+  // x_k = r cos(d + 2πk/3) up to a permutation: fit r from Σx² = 3r²/2, d by scanning
+  const r = Math.sqrt(2*(x[0]*x[0]+x[1]*x[1]+x[2]*x[2])/3);
+  let best=[1e9,0];
+  for(let dd=0; dd<120; dd+=0.001){ const a=dd*Math.PI/180;
+    const p=[0,1,2].map(k=>r*Math.cos(a+2*Math.PI*k/3)).sort((u,v)=>u-v);
+    const xs=[...x].sort((u,v)=>u-v);
+    const e=p.reduce((acc,v,i)=>acc+(v-xs[i])**2,0); if(e<best[0]) best=[e,dd]; }
+  $("raggio").value = Math.min(2,Math.max(0.5,r)); $("angolo").value = best[1];
+  disegna();
+}
+
+$("tripla").addEventListener("change", adatta);
+$("raggio").addEventListener("input", disegna);
+$("angolo").addEventListener("input", disegna);
+$("fit").addEventListener("click", adatta);
+$("koideBtn").addEventListener("click", ()=>{ $("raggio").value=Math.SQRT2; $("angolo").value=(2/9)*180/Math.PI; disegna(); });
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", disegna);
+new MutationObserver(disegna).observe(document.documentElement,{attributes:true,attributeFilter:["data-theme"]});
+
+const DOMANDE = [
+  {g:"Le masse", t:"Perché tre punti a 120° con raggio √2?",
+   k:"Elettrone, muone e tau hanno stessa carica, stesso spin, stesse forze. Cambia solo la massa. Le radici delle masse stanno su tre punti a 120° di un cerchio di raggio √2 (Koide, 1981), con precisione 1 su 100.000.",
+   b:"Nessuna teoria spiega né il 120° né il √2. Per i quark la stessa formula non funziona (prova le altre terne qui sopra).",
+   d:"Che cosa, in un oggetto che gira o rimbalza, produce esattamente tre stati a 120°? Che cosa fisserebbe il raggio a √2?"},
+  {g:"Le masse", t:"Perché l'angolo di partenza è circa 2/9?",
+   k:"Il cerchio va ruotato di 0,2222 radianti (12,73°) perché i punti cadano sulle masse vere. 2/9 = 0,22222.",
+   b:"Potrebbe essere un caso. Nessuno sa da dove venga.",
+   d:"Ti viene in mente un meccanismo in cui un ritmo di 9 passi, o un'ottava parte di giro, fissi un angolo così?"},
+  {g:"Le masse", t:"Perché i quark non seguono la stessa regola?",
+   k:"I quark hanno anche loro tre generazioni, ma con la formula di Koide danno circa 0,85 e 0,73 invece di 2/3. A differenza dei leptoni, sentono la forza forte e non si osservano mai da soli.",
+   b:"Forse la regola vale solo per particelle che non sentono la forza forte, oppure la massa dei quark va misurata in un altro modo.",
+   d:"Cosa cambia tra un oggetto che può stare da solo (elettrone) e uno sempre legato ad altri (quark)? Come lo metteresti nel cerchio?"},
+  {g:"Le masse", t:"Perché muone e tau decadono e l'elettrone no?",
+   k:"Il muone dopo 2,2 milionesimi di secondo diventa un elettrone più due neutrini. Il tau ancora più in fretta. L'elettrone è stabile per sempre.",
+   b:"Si spiega con la conservazione dell'energia (il più leggero non ha nessuno in cui trasformarsi), ma non si sa perché esistano tre copie.",
+   d:"Se le tre masse sono tre posizioni sul cerchio, cosa vuol dire 'cadere' dalla posizione del muone a quella dell'elettrone?"},
+  {g:"Surfista e nuvola", t:"Perché vediamo solo il surfista e mai la nuvola?",
+   k:"Ogni misura registra un punto (il click). La nuvola si ricostruisce solo mettendo insieme tanti click. Le misure deboli (Lundeen 2011) la avvicinano, ma sempre facendo la media su molte particelle.",
+   b:"Nessuno sa se la nuvola sia una cosa reale o solo uno strumento di calcolo. Le interpretazioni danno tutte le stesse previsioni.",
+   d:"Secondo te, cosa impedisce a uno strumento di 'toccare' la nuvola senza toccare il surfista?"},
+  {g:"Surfista e nuvola", t:"Dove cercare surfisti non mescolati?",
+   k:"I click seguono la nuvola solo se i surfisti sono distribuiti come la nuvola. Valentini propone che nell'universo primordiale non lo fossero, e che si siano mescolati dopo, come lo zucchero nel caffè.",
+   b:"Nessuno ha mai trovato surfisti non mescolati. Se esistessero, si potrebbe battere il principio di indeterminazione.",
+   d:"Dove guarderesti: luce antichissima, particelle rimaste dal Big Bang, buchi neri? Oppure come li creeresti?"},
+  {g:"Luce e materia", t:"Perché la luce non si chiude e i gluoni sì?",
+   k:"Due raggi di luce si attraversano senza toccarsi. I gluoni, cugini della luce, si toccano tra loro e formano palline di energia stabili (la massa del protone). La differenza è una sola regola: il gluone porta lui stesso la carica che sente.",
+   b:"Per la luce, ogni forma chiusa che abbiamo provato si disperde. La ricerca automatica sta provando regole nuove.",
+   d:"Se la luce portasse un pezzetto di carica solo in condizioni estreme, come si 'accenderebbe' e come resterebbe accesa?"},
+  {g:"Luce e materia", t:"Massa come rimbalzo: cosa fissa il ritmo?",
+   k:"Nel Modello Standard l'elettrone è fatto di due parti senza massa (destra e sinistra) che corrono a c e si scambiano grazie al campo di Higgs. Più spesso si scambiano, più massa.",
+   b:"Il ritmo di ogni particella è un numero misurato, non spiegato.",
+   d:"Se il ritmo fosse legato al giro sul cerchio dei tre punti, che cosa farebbe girare?"},
+  {g:"Il vuoto", t:"Perché il vuoto pesa così poco?",
+   k:"Sommando l'energia di tutte le onde 'a riposo' del vuoto si ottiene un numero 10¹²⁰ volte più grande di quello misurato con l'espansione dell'universo.",
+   b:"È considerato il peggior errore di previsione della fisica. Qualcosa deve annullare quasi tutto, ma non proprio tutto.",
+   d:"Nel linguaggio delle palline: quale regola farebbe annullare quasi tutte le palline del vuoto, lasciandone una traccia minuscola?"},
+  {g:"Le nostre palline", t:"Come fa una pallina a sapere dell'onda dove non c'è?",
+   k:"Con palline tutte uguali il fotone funziona in volo libero ma sbaglia la doppia fenditura: nelle zone buie non ci sono palline, e nessuno trasporta l'onda.",
+   b:"L'abbiamo aggirato con due ruoli (onda + surfista). Una regola unica per palline identiche non esiste ancora.",
+   d:"Che cosa potrebbe 'portare' l'onda dove le palline non vanno, senza aggiungere un secondo tipo di pallina?"}
+];
+function store(k,v){ try{ if(v===undefined) return localStorage.getItem(k); localStorage.setItem(k,v);}catch(e){ return null; } }
+let gruppo = "", html = "";
+DOMANDE.forEach((q,i)=>{
+  if(q.g!==gruppo){ gruppo=q.g; html += `<div class="group">${q.g}</div>`; }
+  html += `<article class="qcard"><div class="qnum">${i+1}</div><h3>${q.t}</h3>
+    <p class="known"><b>Cosa sappiamo.</b> ${q.k}</p>
+    <p class="gap"><b>Dove si ferma.</b> ${q.b}</p>
+    <p class="ask">${q.d}</p>
+    <textarea id="nota${i}" aria-label="La tua idea sulla domanda ${i+1}" placeholder="La tua idea, anche grezza…"></textarea></article>`;
+});
+$("questions").innerHTML = html;
+DOMANDE.forEach((q,i)=>{ const ta=$("nota"+i); const v=store("nota"+i); if(v) ta.value=v; ta.addEventListener("input",()=>store("nota"+i,ta.value)); });
+adatta();
+</script>
