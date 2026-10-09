@@ -12,6 +12,11 @@ path = "src/main.rs"
 name = "fotone"
 path = "src/photon/main.rs"
 
+# Molecules from the electron-ball rule (diffusion Monte Carlo per ball): atoms -> molecules
+[[bin]]
+name = "molecole"
+path = "src/molecole/main.rs"
+
 [dependencies]
 bevy      = { version = "0.15" }
 bevy_egui = "0.31"
