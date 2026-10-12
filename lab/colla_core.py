@@ -44,13 +44,42 @@ def hedgehog_1d(m=0.0, alpha=0.0, c6=0.0, R=14.0, n=7000):
         pot = rm**2 * (2 * m * m * ks * (1 - torch.cos(fm)) + alpha * (1 - torch.cos(fm))**4)
         sex = c6 * (s2 * fp)**2 / (4 * math.pi**4 * rm**2)
         return f, fp, fm, s2, 4 * math.pi * h * torch.sum(ks * sig + sky + pot + sex)
-    opt = torch.optim.LBFGS([fi], lr=1, max_iter=6000, tolerance_grad=1e-13, tolerance_change=1e-16,
+    opt = torch.optim.LBFGS([fi], lr=1, max_iter=400, tolerance_grad=1e-13, tolerance_change=1e-16,
                             history_size=60, line_search_fn="strong_wolfe")
 
     def clo():
         opt.zero_grad(); e = parts(fi)[-1]; e.backward(); return e
-    for _ in range(5):
-        opt.step(clo)
+    opt.step(clo)
+    # damped Newton with the exact tridiagonal Hessian (3 colour HVPs), banded solve
+    from scipy.linalg import solve_banded
+    x = fi.detach().clone()
+    N = x.numel(); idx = torch.arange(N)
+    for it in range(60):
+        xr = x.clone().requires_grad_(True)
+        E0 = parts(xr)[-1]
+        (gr,) = torch.autograd.grad(E0, xr, create_graph=True)
+        ab = np.zeros((3, N))
+        for k in range(3):
+            v = (idx % 3 == k).double()
+            (hv,) = torch.autograd.grad(gr, xr, grad_outputs=v, retain_graph=True)
+            hv = hv.detach().numpy()
+            cols = np.arange(k, N, 3)
+            ab[1, cols] = hv[cols]                                   # diagonal
+            c1 = cols[cols + 1 < N]; ab[0, c1 + 1] = hv[c1 + 1]  # H[j, j+1] stored at ab[0, j+1]
+            c2 = cols[cols - 1 >= 0]; ab[2, c2 - 1] = hv[c2 - 1]                   # H[j, j-1] stored at ab[2, j-1]
+        gnp = gr.detach().numpy()
+        try:
+            dx = solve_banded((1, 1), ab, -gnp)
+        except Exception:
+            dx = -gnp
+        step = 1.0; E0v = float(E0)
+        while step > 1e-4:
+            xn = x + step * torch.tensor(dx)
+            if float(parts(xn)[-1]) <= E0v: break
+            step *= 0.5
+        x = xn
+        if np.abs(dx).max() * step < 1e-11: break
+    fi = x
     with torch.no_grad():
         f, fp, fm, s2, E = parts(fi)
         Lam = (16 * math.pi / 3) * h * torch.sum(rm**2 * s2 * (ks + fp**2 + s2 / rm**2))

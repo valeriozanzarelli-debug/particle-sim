@@ -22,6 +22,7 @@ mod cplx;
 mod fotdisegno;
 mod fotone3d;
 mod fotscena;
+mod orbitali;
 mod render;
 mod render_zz;
 mod rng;
@@ -43,7 +44,7 @@ pub enum Modo { Avanti, Pausa, Indietro }
 
 /// The two scenes, both the zig-zag rule live: the free photon (light alone) and the atom (electron + light).
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum Scena { Fotone, Atomo }
+pub enum Scena { Fotone, Atomo, Orbitali }
 
 /// The nucleus is shown on its own slowed clock: spin angular velocity on screen (rad per screen second).
 pub const OMEGA_ROT_SCHERMO: f64 = 1.1;
@@ -61,6 +62,11 @@ pub struct Lab {
     /// the real wavelength (m): only the size of a cell depends on it (the rule has no length of its own)
     pub lambda_m: f64,
     pub zz: Option<std::sync::Arc<std::sync::Mutex<zzscena::Condiviso>>>,
+    /// the orbitals (n = 1..4, s p d f, superpositions) from the radial form of the rule
+    pub orb: Option<std::sync::Arc<std::sync::Mutex<orbitali::Condiviso>>>,
+    /// what the orbital panel will show
+    pub orb_scelta: orbitali::Scelta,
+    pub ritmo_orb: f64,
     /// photon energy for the zig-zag atom (keV) and the worker pace (ticks per second)
     pub e_kev: f64,
     pub ritmo: f64,
@@ -94,7 +100,7 @@ impl Lab {
         let w_rot = prof.omega_rot_s();
         let info2 = [prof.inerzia(), prof.delta_n_mev(), w_rot, w_resp, e_resp];
         Lab {
-            scena: Scena::Fotone, fot: None, fot_par: par, ritmo_fot: 20.0, segui: false, vista_fot: fotscena::Vista::default(), lambda_m: 500e-9, zz: None, e_kev: 0.0, ritmo: 25.0,
+            scena: Scena::Fotone, fot: None, fot_par: par, ritmo_fot: 20.0, segui: false, vista_fot: fotscena::Vista::default(), lambda_m: 500e-9, zz: None, orb: None, orb_scelta: orbitali::Scelta::default(), ritmo_orb: 30.0, e_kev: 0.0, ritmo: 25.0,
             t_nucleo: 0.0, omega_rot: OMEGA_ROT_SCHERMO, omega_resp: OMEGA_ROT_SCHERMO * w_resp / w_rot, nodo_info2: info2,
             modo: Modo::Avanti, spara: false, panel_open: false, mostra_protone: true, bagliore: true, grandezza: 1.0, luce: 1.0,
             nodo_palline, nodo_info: info, frame_count: 0, palline_disegnate: 0, fps: 0.0,
@@ -104,7 +110,7 @@ impl Lab {
     /// Metres per scene unit.
     pub fn metri_per_unita(&self) -> f64 {
         match self.scena {
-            Scena::Atomo => zz::LAMBDA_C_M,
+            Scena::Atomo | Scena::Orbitali => zz::LAMBDA_C_M,
             Scena::Fotone => self.cella_m(),
         }
     }
@@ -112,6 +118,7 @@ impl Lab {
     pub fn secondi_per_tick(&self) -> f64 {
         match self.scena {
             Scena::Atomo => zz::A * zz::T_UNIT_S,
+            Scena::Orbitali => zz::T_UNIT_S,
             Scena::Fotone => self.cella_m() / 299_792_458.0,
         }
     }
@@ -128,6 +135,11 @@ impl Lab {
         match s {
             Scena::Fotone => { if self.fot.is_none() { self.fot = Some(fotscena::avvia(self.fot_par)); } }
             Scena::Atomo => { if self.zz.is_none() { self.zz = Some(zzscena::avvia()); } }
+            Scena::Orbitali => { if self.orb.is_none() { self.orb = Some(orbitali::avvia()); } }
+        }
+        if let Some(o) = &self.orb {
+            let mut g = o.lock().unwrap();
+            g.comando = if s == Scena::Orbitali && self.modo == Modo::Avanti { orbitali::Comando::Avanti } else { orbitali::Comando::Pausa };
         }
         // the hidden scene's worker rests
         if let Some(z) = &self.zz {
@@ -148,6 +160,7 @@ impl Lab {
                 Bersaglio::Elettrone => self.zz.as_ref().map(|z| z.lock().unwrap().out.punto).unwrap_or([0.0; 3]),
                 _ => [0.0; 3],
             },
+            Scena::Orbitali => [0.0; 3],
         }
     }
     pub fn distanza_tipica(&self, b: Bersaglio) -> f64 {
@@ -156,6 +169,8 @@ impl Lab {
             (_, Bersaglio::Nucleo) => 3.0e-15 / u,
             (Scena::Atomo, Bersaglio::Elettrone) => 3.0,
             (Scena::Atomo, _) => 11.0,
+            (Scena::Orbitali, Bersaglio::Elettrone) => 6.0,
+            (Scena::Orbitali, _) => 2.4 * self.orb.as_ref().map(|o| o.lock().unwrap().out.r).unwrap_or(25.0),
             (Scena::Fotone, _) => 1.0 * self.fot.as_ref().map(|f| f.lock().unwrap().out.par.n()).unwrap_or(self.fot_par.n()) as f64,
         }
     }
@@ -197,6 +212,14 @@ impl Lab {
                     }
                 }
             }
+            Scena::Orbitali => {
+                self.spara = false;
+                if let Some(o) = &self.orb {
+                    let mut g = o.lock().unwrap();
+                    g.comando = match self.modo { Modo::Avanti => orbitali::Comando::Avanti, Modo::Indietro => orbitali::Comando::Indietro, Modo::Pausa => orbitali::Comando::Pausa };
+                    g.ritmo = self.ritmo_orb;
+                }
+            }
         }
     }
 }
@@ -215,13 +238,16 @@ fn main() {
         par.polar = match p.as_str() { "h" => Polar::Orizzontale, "v" => Polar::Verticale, "c-" => Polar::CircolareMeno, _ => Polar::CircolarePiu };
     }
     let mut lab = Lab::new(par);
+    if let Some(v) = arg("--stati") { if let Some(s) = orbitali::scelta_da(&v) { lab.orb_scelta = s; } }
     if let Some(v) = arg("--lambda-m").and_then(|v| v.parse().ok()) { lab.lambda_m = v; }
     if let Some(v) = arg("--strati") { lab.vista_fot = strati(&v); }
     let scena = match (scena_arg.as_str(), zoom.as_str()) {
         ("atomo", _) | ("", "nucleo") | ("", "protone") | ("", "elettrone") => Scena::Atomo,
+        ("orbitali", _) => Scena::Orbitali,
         _ => Scena::Fotone,
     };
     lab.cambia_scena(scena);
+    if scena == Scena::Orbitali { if let Some(o) = &lab.orb { o.lock().unwrap().scegli = Some(lab.orb_scelta.clone()); } }
     let mut auto = Auto::default();
     if let Some(f) = arg("--foto") {
         auto.attivo = true;
@@ -333,6 +359,7 @@ fn auto_sys(mut commands: Commands, mut auto: ResMut<Auto>, mut lab: ResMut<Lab>
                 format!("tick {} v {:?} elicita {:?} w {:.2} theta {:?} {:.0} ms/tick", o.ticks, o.v, o.elicita, o.w, o.theta, o.ms_tick)
             }).unwrap_or_default(),
             Scena::Atomo => lab.zz.as_ref().map(|z| { let o = z.lock().unwrap().out.clone(); format!("tick {} p1s {:.3} dip {:+.3} {:.0} ms/tick", o.ticks, o.p1s, o.dipolo, o.ms_tick) }).unwrap_or_default(),
+            Scena::Orbitali => lab.orb.as_ref().map(|z| { let o = z.lock().unwrap().out.clone(); format!("t {:.1} R {:.1} livelli {:?} {:.0} ms", o.t, o.r, o.livelli.iter().map(|l| (l.0.nome(), l.1, l.2)).collect::<Vec<_>>(), o.ms) }).unwrap_or_default(),
         };
         eprintln!("foto al frame {f}: scena {:?}, {} palline, {:.0} fps {info}", lab.scena, lab.palline_disegnate, lab.fps);
     }

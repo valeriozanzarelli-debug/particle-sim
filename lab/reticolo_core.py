@@ -42,6 +42,7 @@ from zz_core import bloch_batch  # noqa: E402  (two-tick Bloch matrix of the fro
 OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "out")
 S2 = 1.0 / np.sqrt(2.0)
 W_BAND = 4
+SYNC_EVERY = 2        # v2 (declared post-hoc fix): sync only after each palindromic PAIR of coarse ticks; v1 = 1 (pre-registered)
 WP_EVEN = np.array([-0.0390625, 0.2734375, 0.8203125, -0.0546875])   # fine g = 2m : coarse nodes m-2..m+1
 WP_ODD = np.array([-0.0546875, 0.8203125, 0.2734375, -0.0390625])    # fine g = 2m+1: coarse nodes m-1..m+2
 WR = np.array([-1.0, 9.0, 9.0, -1.0]) / 16.0                        # coarse gc <- fine 2gc-1..2gc+2
@@ -202,6 +203,12 @@ class Level:
         bc = self._wrap(np.asarray(bc, np.int64).reshape(-1, self.d))
         if self.nb == 0:
             return np.zeros(len(bc), np.int64)
+        inr = np.all((bc + OFF >= 0) & (bc + OFF < (1 << BITS)), axis=1)
+        if not inr.all():
+            out = np.full(len(bc), self.nb, np.int64)
+            if inr.any():
+                out[inr] = self.find(bc[inr])
+            return out
         key = enc(bc)
         i = np.searchsorted(self.keys, key)
         i = np.minimum(i, max(self.nb - 1, 0))
@@ -324,7 +331,217 @@ def stencil_restrict(GC, d):
     return nodes, w
 
 
-class Pair:
+
+
+# ------------------------------------------------------------------ block-neighbourhood kernels (no per-cell tables)
+@nb.njit(cache=True)
+def _prolong_k(Ff, Fc, fco, cnb, blist, mask, B, d, mode, out):
+    """tensor-cubic prolongation coarse -> fine cells (mask) of the fine blocks in blist.
+    mode 0: write into Ff; mode 1: out[b] = max |Ff - P(Fc)| over masked cells."""
+    Bd = Ff.shape[1]
+    nq = 1
+    for _ in range(d):
+        nq *= 4
+    st = np.empty(d, np.int64)
+    pj = np.empty(d, np.int64)
+    wax = np.empty((d, 4))
+    WE = (-0.0390625, 0.2734375, 0.8203125, -0.0546875)
+    WO = (-0.0546875, 0.8203125, 0.2734375, -0.0390625)
+    for bi in range(blist.shape[0]):
+        b = blist[bi]
+        mx = 0.0
+        for s in range(Bd):
+            if not mask[b, s]:
+                continue
+            rem = s
+            for j in range(d):
+                lj = rem % B
+                rem //= B
+                gj = fco[b, j] * B + lj
+                m = gj // 2
+                pj[j] = fco[b, j] // 2
+                if gj - 2 * m == 0:
+                    st[j] = m - 2
+                    for o in range(4):
+                        wax[j, o] = WE[o]
+                else:
+                    st[j] = m - 1
+                    for o in range(4):
+                        wax[j, o] = WO[o]
+            a0 = 0j
+            a1 = 0j
+            a2 = 0j
+            for q in range(nq):
+                rq = q
+                w = 1.0
+                nidx = 0
+                lidx = 0
+                m3 = 1
+                mB = 1
+                for j in range(d):
+                    o = rq % 4
+                    rq //= 4
+                    n = st[j] + o
+                    bc = n // B
+                    nidx += (bc - pj[j] + 1) * m3
+                    m3 *= 3
+                    lidx += (n - bc * B) * mB
+                    mB *= B
+                    w *= wax[j, o]
+                cb = cnb[b, nidx]
+                a0 += w * Fc[cb, lidx, 0]
+                a1 += w * Fc[cb, lidx, 1]
+                a2 += w * Fc[cb, lidx, 2]
+            if mode == 0:
+                Ff[b, s, 0] = a0
+                Ff[b, s, 1] = a1
+                Ff[b, s, 2] = a2
+            else:
+                dd = abs(Ff[b, s, 0] - a0) ** 2 + abs(Ff[b, s, 1] - a1) ** 2 + abs(Ff[b, s, 2] - a2) ** 2
+                if dd > mx:
+                    mx = dd
+        if mode == 1:
+            out[b] = np.sqrt(mx)
+
+
+@nb.njit(cache=True)
+def _restrict_k(Fc, Ff, cco, fnb, clist, interior, B, d, mode, rmask, owned):
+    """mode 0: compute rmask (all 4^d stencil cells fine-interior) and owned (2^d children interior);
+    mode 1: Fc <- (-1,9,9,-1)/16 tensor restriction where rmask."""
+    Bd = Fc.shape[1]
+    nq = 1
+    for _ in range(d):
+        nq *= 4
+    WRk = (-0.0625, 0.5625, 0.5625, -0.0625)
+    gc = np.empty(d, np.int64)
+    for ci in range(clist.shape[0]):
+        cb = clist[ci]
+        for s in range(Bd):
+            if mode == 1 and not rmask[cb, s]:
+                continue
+            rem = s
+            for j in range(d):
+                gc[j] = cco[cb, j] * B + rem % B
+                rem //= B
+            ok = True
+            own = True
+            a0 = 0j
+            a1 = 0j
+            a2 = 0j
+            for q in range(nq):
+                rq = q
+                w = 1.0
+                nidx = 0
+                lidx = 0
+                m4 = 1
+                mB = 1
+                child = True
+                for j in range(d):
+                    o = rq % 4
+                    rq //= 4
+                    if o == 0 or o == 3:
+                        child = False
+                    n = 2 * gc[j] - 1 + o
+                    fb = n // B
+                    nidx += (fb - 2 * cco[cb, j] + 1) * m4
+                    m4 *= 4
+                    lidx += (n - fb * B) * mB
+                    mB *= B
+                    w *= WRk[o]
+                fbk = fnb[cb, nidx]
+                if mode == 0:
+                    if not interior[fbk, lidx]:
+                        ok = False
+                        if child:
+                            own = False
+                else:
+                    a0 += w * Ff[fbk, lidx, 0]
+                    a1 += w * Ff[fbk, lidx, 1]
+                    a2 += w * Ff[fbk, lidx, 2]
+            if mode == 0:
+                rmask[cb, s] = ok
+                owned[cb, s] = own
+            else:
+                Fc[cb, s, 0] = a0
+                Fc[cb, s, 1] = a1
+                Fc[cb, s, 2] = a2
+
+
+def _offsets(n, d):
+    i = np.arange(n ** d)
+    return np.stack([(i // n ** j) % n for j in range(d)], axis=1)
+
+
+class BlockPair:
+    """interface between fine level f and coarse level c = f+1 using block neighbourhoods: the same maths as
+    the per-cell tables of PairTables (verified bit-for-bit equal on R2 cases) with rebuild cost O(blocks)."""
+
+    def __init__(self, f, c):
+        self.f, self.c = f, c
+        d, B = f.d, f.B
+        f.has_parent = True
+        f._band()
+        par = np.floor_divide(f.coords, 2)
+        o3 = _offsets(3, d) - 1
+        if f.nb:
+            self.cnb = np.stack([c.find(par + o) for o in o3], axis=1).astype(np.int64)
+        else:
+            self.cnb = np.zeros((0, 3 ** d), np.int64)
+        self.fco = f.coords.astype(np.int64)
+        self.bandmask = np.zeros((f.nb + 1, f.Bd), np.bool_)
+        self.bandmask[:f.nb] = f.band
+        self.bandblocks = np.nonzero(f.band.any(axis=1))[0].astype(np.int64)
+        self.interior = np.zeros((f.nb + 1, f.Bd), np.bool_)
+        self.interior[:f.nb] = ~f.band
+        if f.nb:
+            ci = c.find(np.unique(par, axis=0))
+            ci = ci[ci < c.nb]
+        else:
+            ci = np.zeros(0, np.int64)
+        self.clist = np.unique(ci).astype(np.int64)
+        o4 = _offsets(4, d) - 1
+        cco = c.coords.astype(np.int64)
+        self.cco = cco
+        fnb = np.full((c.nb, 4 ** d), f.nb, np.int64)
+        if len(self.clist):
+            fnb[self.clist] = np.stack([f.find(2 * cco[self.clist] + o) for o in o4], axis=1)
+        self.fnb = fnb
+        self.rmask = np.zeros((c.nb, c.Bd), np.bool_)
+        owned = np.zeros((c.nb, c.Bd), np.bool_)
+        _restrict_k(c.F, f.F, cco, fnb, self.clist, self.interior, B, d, 0, self.rmask, owned)
+        c.owned = owned
+
+    def restrict_only(self):
+        _restrict_k(self.c.F, self.f.F, self.cco, self.fnb, self.clist, self.interior, self.f.B, self.f.d, 1,
+                    self.rmask, self.c.owned)
+
+    def prolong_band(self):
+        _prolong_k(self.f.F, self.c.F, self.fco, self.cnb, self.bandblocks, self.bandmask, self.f.B, self.f.d, 0,
+                   np.zeros(0))
+
+    def sync(self):
+        self.restrict_only()
+        self.prolong_band()
+
+    def prolong_all(self, mask_flat=None):
+        f = self.f
+        m = np.zeros((f.nb + 1, f.Bd), np.bool_)
+        if mask_flat is None:
+            m[:f.nb] = True
+        else:
+            m[:f.nb] = np.asarray(mask_flat).reshape(f.nb, f.Bd)
+        bl = np.nonzero(m.any(axis=1))[0].astype(np.int64)
+        _prolong_k(f.F, self.c.F, self.fco, self.cnb, bl, m, f.B, f.d, 0, np.zeros(0))
+
+    def detail(self):
+        f = self.f
+        m = np.ones((f.nb + 1, f.Bd), np.bool_)
+        out = np.zeros(f.nb)
+        _prolong_k(f.F, self.c.F, self.fco, self.cnb, np.arange(f.nb, dtype=np.int64), m, f.B, f.d, 1, out)
+        return out
+
+
+class PairTables:
     """interface tables between fine level f and coarse level c = f+1"""
 
     def __init__(self, f, c):
@@ -365,6 +582,9 @@ class Pair:
             owned = np.zeros(c.nb * c.Bd, bool)
         c.owned = owned.reshape(c.nb, c.Bd)
 
+    def prolong_band(self):
+        _gather(self.f.flat(), self.p_tgt, self.c.flat(), self.p_src, self.p_w)
+
     def sync(self):
         _gather_fixed(self.c.flat(), self.r_tgt, self.f.flat(), self.r_src, self.r_w)
         _gather(self.f.flat(), self.p_tgt, self.c.flat(), self.p_src, self.p_w)
@@ -395,11 +615,13 @@ class Pair:
 class World:
     """levels[i] has k = kmin + i (contiguous).  levels[0] finest."""
 
-    def __init__(self, levels):
+    def __init__(self, levels, pair_cls=None):
         self.levels = levels
+        self.pair_cls = BlockPair if pair_cls is None else pair_cls
+        self.t = 0
         for a, b in zip(levels[:-1], levels[1:]):
             assert b.k == a.k + 1
-        self.pairs = [Pair(levels[i], levels[i + 1]) for i in range(len(levels) - 1)]
+        self.pairs = [self.pair_cls(levels[i], levels[i + 1]) for i in range(len(levels) - 1)]
         self.regrid_every = None      # dict i -> interval in own ticks (None = static)
         self.tol = None
         self.halo = 1
@@ -409,14 +631,14 @@ class World:
     def rebuild_pairs(self, i):
         for p in (i - 1, i):
             if 0 <= p < len(self.pairs):
-                self.pairs[p] = Pair(self.levels[p], self.levels[p + 1])
+                self.pairs[p] = self.pair_cls(self.levels[p], self.levels[p + 1])
 
     def sync_all_up(self):
         """bottom-up restriction then top-down prolongation of bands (used after initialisation)"""
         for p in self.pairs:
             p.restrict_only()
         for p in reversed(self.pairs):
-            _gather(p.f.flat(), p.p_tgt, p.c.flat(), p.p_src, p.p_w)
+            p.prolong_band()
 
     def advance(self, i):
         L = self.levels[i]
@@ -424,6 +646,8 @@ class World:
         if i > 0:
             self.advance(i - 1)
             self.advance(i - 1)
+            if L.ticks % SYNC_EVERY:
+                return
             self.pairs[i - 1].sync()
             if self.regrid_every is not None:
                 ev = self.regrid_every[i - 1]
@@ -435,6 +659,31 @@ class World:
         for _ in range(n):
             self.advance(top)
             if self.regrid_every is not None:
+                ev = self.regrid_every[top]
+                if ev and self.levels[top].ticks % ev == 0:
+                    self.regrid(top)
+
+    def step_fine(self, n=1):
+        """iterative Berger-Oliger schedule, one level-0 (finest) tick at a time (same order as advance)"""
+        top = len(self.levels) - 1
+        for _ in range(n):
+            t = self.t
+            for i in range(top, -1, -1):
+                if t % (1 << i) == 0:
+                    self.levels[i].tick()
+            t += 1
+            self.t = t
+            for i in range(1, top + 1):
+                if t % (1 << i):
+                    break
+                if (t >> i) % SYNC_EVERY:
+                    break
+                self.pairs[i - 1].sync()
+                if self.regrid_every is not None:
+                    ev = self.regrid_every[i - 1]
+                    if ev and self.levels[i - 1].ticks % ev == 0:
+                        self.regrid(i - 1)
+            if t % (1 << top) == 0 and self.regrid_every is not None:
                 ev = self.regrid_every[top]
                 if ev and self.levels[top].ticks % ev == 0:
                     self.regrid(top)
@@ -544,21 +793,33 @@ def kgrid(shape, d):
     return KA
 
 
-def band_projectors(shape, d):
-    """lattice eigen-projectors of the two-tick light walk: P+, P-, P0, and omega+ (all on the k grid)"""
-    KA = kgrid(shape, d).reshape(-1, 3)
+def band_vectors(KA):
+    """lattice eigenvectors of the two-tick light walk for k-points KA (N,3): v+, v-, v0 (N,3) each, omega+"""
     W = bloch_batch(KA, 0.0, spin=1)
     lam, V = np.linalg.eig(W)
     om = -np.angle(lam) / 2.0
     o = np.argsort(om, axis=1)
     N = len(KA)
-    P = []
+    out = []
     for col in (2, 0, 1):        # max omega = +helicity, min = -helicity, middle = static
         v = V[np.arange(N), :, o[:, col]]
-        v = v / np.linalg.norm(v, axis=1, keepdims=True)
-        P.append(np.einsum("ni,nj->nij", v, v.conj()))
-    omp = om[np.arange(N), o[:, 2]]
-    return [p.reshape(shape + (3, 3)) for p in P], omp.reshape(shape)
+        out.append(v / np.linalg.norm(v, axis=1, keepdims=True))
+    return out, om[np.arange(N), o[:, 2]]
+
+
+def project_bands(Fk, d, which=(0, 1, 2), chunk=1 << 16):
+    """project a k-space field (shape..., 3) on the lattice bands; returns list of projected arrays"""
+    shape = Fk.shape[:d]
+    KA = kgrid(shape, d).reshape(-1, 3)
+    Ff = Fk.reshape(-1, 3)
+    outs = [np.zeros_like(Ff) for _ in which]
+    for a in range(0, len(KA), chunk):
+        vs, _ = band_vectors(KA[a:a + chunk])
+        for i, wb in enumerate(which):
+            v = vs[wb]
+            c = np.einsum("ni,ni->n", v.conj(), Ff[a:a + chunk])
+            outs[i][a:a + chunk] = c[:, None] * v
+    return [o.reshape(Fk.shape) for o in outs]
 
 
 def pol_plus(khat, d):
@@ -593,20 +854,14 @@ def packet(shape, d, lam, theta_deg, center, sigma, amp=1.0, helicity=+1, period
     e = pol_plus(khat / np.linalg.norm(khat), d) if helicity > 0 else pol_plus(-khat, d)
     F = (amp * env * np.exp(1j * phase))[..., None] * e
     Fk = np.fft.fftn(F, axes=tuple(range(d)))
-    P, _ = band_projectors(shape, d)
-    Pr = P[0] if helicity > 0 else P[1]
-    Fk = np.einsum("...ij,...j->...i", Pr, Fk)
+    Fk = project_bands(Fk, d, (0,) if helicity > 0 else (1,))[0]
     return np.fft.ifftn(Fk, axes=tuple(range(d)))
 
 
 def helicity_fractions(F, d):
     shape = F.shape[:d]
     Fk = np.fft.fftn(F, axes=tuple(range(d)))
-    P, _ = band_projectors(shape, d)
-    out = []
-    for Pr in P:
-        G = np.einsum("...ij,...j->...i", Pr, Fk)
-        out.append(float((np.abs(G) ** 2).sum()))
+    out = [float((np.abs(G) ** 2).sum()) for G in project_bands(Fk, d)]
     tot = sum(out)
     return [o / tot for o in out]
 
