@@ -32,6 +32,11 @@ path = "src/compton/main.rs"
 name = "zigzag"
 path = "src/zigzag/main.rs"
 
+# Laboratorio Atomo: one carbon atom from the electron-ball rule (fixed-node DMC), zoom down to the proton knot
+[[bin]]
+name = "atomo"
+path = "src/atomo/main.rs"
+
 [dependencies]
 bevy      = { version = "0.15" }
 bevy_egui = "0.31"

@@ -1,0 +1,18 @@
+# PROVVISORIO: numeri della corsa di sviluppo (dev), sostituiti dalla corsa lab/atomo_misura.sh
+c_z1 = 5.58
+c_zs = 2.0174
+c_zp = 1.7851
+ione_z1 = 5.6240
+ione_zs = 2.1378
+ione_zp = 1.9706
+ecc_z1 = 5.58
+ecc_zs = 2.0174
+ecc_zp = 1.7851
+ecc_z3 = 0.3001
+ecc_d3 = 0.5282
+dmc_c = -37.8250
+dmc_c_err = 0.005
+dmc_ione = -37.4120
+dmc_ione_err = 0.005
+dmc_ecc = -37.5417
+dmc_ecc_err = 0.005
