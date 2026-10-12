@@ -1,0 +1,16 @@
+{
+  "id": "esempio_ping",
+  "azione": "ping",
+  "ok": true,
+  "inizio": "2026-10-12T22:47:26Z",
+  "fine": "2026-10-12T22:47:27Z",
+  "durata_s": 0.9,
+  "git": "88ff896bd8b4b2c79c2b8933f7b5fea66ee168fd",
+  "macchina": "LAPTOP-01UIII6L",
+  "gpu": "NVIDIA GeForce GTX 1650 Ti | 4293918720\nIntel(R) UHD Graphics | 1073741824",
+  "cpu": "Intel64 Family 6 Model 165 Stepping 2, GenuineIntel",
+  "cores": 8,
+  "os": "Windows-11-10.0.26300-SP0",
+  "python": "3.14.2",
+  "cargo": "C:\\Users\\valer\\.cargo\\bin\\cargo.EXE"
+}
