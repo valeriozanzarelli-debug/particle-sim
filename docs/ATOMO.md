@@ -1,160 +1,178 @@
-# Laboratorio Atomo: luce e materia con una sola regola di palline
+# Laboratorio Atomo: luce e materia con una sola regola di palline (la regola zig-zag)
 
 Binario: `atomo` (`src/atomo/`). Eseguibile: `Laboratorio Atomo.exe` sul Desktop (nella cartella
-"Programma di simulazione"). Numeri: `assets/atomo/risultati.txt` (copiati anche dentro il programma),
-log della corsa lunga `lab/out/atomo_misura.log`, script `lab/atomo_misura.sh`.
+"Programma di simulazione").
 
 ## 0. In una frase
 
-Si apre su un fotone fatto di palline che passa una **doppia fenditura**; poi si può passare a un **atomo con un
-elettrone** dove le palline si muovono tutte, a ogni tick, e un fotone le fa saltare in uno stato misto che
-oscilla e rimanda luce; zoomando nel nucleo c'è il **protone come nodo** che gira e respira. Il carbonio con la
-regola DMC resta come terza scena (la "nuvola media").
+Si apre su **un fotone solo**, fatto di palline a spin 1, che vola in una scatola vuota in 3-D: si vede il campo
+elettrico e magnetico, l'elica della luce circolare, i fronti d'onda e il fascio che si allarga. La seconda scena è
+**un atomo con un elettrone** (Nd⁵⁹⁺) dove le palline si muovono tutte, a ogni tick, con la stessa regola più la
+massa; zoomando nel nucleo c'è il **protone come nodo** che gira e respira.
 
-## 1. I tre motori, detti chiari
+## 1. Una sola regola
 
-| motore | che cosa fa | dove si vede qui | dinamica vera? |
-|---|---|---|---|
-| **regola zig-zag** (`src/zigzag`, `zz.rs`, `luce.rs`) | ogni pallina avanza a c e gira il suo stato; senza massa è la luce (spin 1, F = E + icB), con la massa (giro L ↔ R di θ = a) è l'elettrone di Dirac; la fase di Coulomb lega l'elettrone al nucleo | scena 1 (doppia fenditura) e scena 2 (atomo) | **sì**: tempo reale, tick dopo tick, e all'indietro esatto |
-| regola delle palline-elettrone (DMC, `carbonio.rs`) | palline che tremano, si moltiplicano o muoiono: trovano lo stato fondamentale (tempo immaginario) | scena 3 (carbonio) | **no**: dà forme ed energie di stati fermi; il tremolio è il metodo, non un moto |
-| regola del fotone del laboratorio (`src/photon`) | grani che ruotano e traslano | non usata qui (la luce qui è la zig-zag) | — |
+Decisione di Valerio: **la regola zig-zag è l'unica strada** (`src/zigzag/walk.rs`, `docs/ZIGZAG.md`). Ogni
+pallina avanza a c e gira il suo stato. Un tick: per x, y, z a turno (x,y,z nei tick pari, z,y,x nei dispari) lo
+stato si divide secondo lo spin lungo quell'asse; la parte +1 avanza di una cella, la parte −1 torna indietro di
+una, la parte 0 resta. Senza massa (spin 1, F = E + icB) è la luce; con la massa (il giro L ↔ R di θ = m c a/ħ) è
+l'elettrone di Dirac; la fase di Coulomb lega l'elettrone al nucleo. Ogni passo è unitario: **il tempo torna
+indietro esatto**.
 
-La regola zig-zag è **l'unico motore in cui luce e materia sono la stessa regola di palline** (la luce è la
-stessa regola senza massa) e in cui la luce che diventa materia funziona (creazione di coppie, `docs/ZIGZAG.md`
-e `docs/COPPIE_IN_SCATOLA.md`). Per questo è la strada scelta da Valerio: il resto è "eredità".
+Tolto dal laboratorio in questa versione (resta nella storia di git, commit `a84692d`):
+* **il carbonio con la regola DMC** (palline in tempo immaginario: non è la regola zig-zag). I suoi numeri
+  (V1 PASS −37,8259 Eₕ, V2 PASS ionizzazione 11,33 eV, V3 FAIL 2p→3s +7,4 %) restano in
+  `assets/atomo/risultati.txt` come archivio; il binario non li legge più. I binari vecchi (`molecole`, `fotone`,
+  `scontro`, `compton`, `zigzag`) non sono toccati.
+* **la doppia fenditura**: Valerio l'ha scartata ("mezza 2-D", una lastra di 2 celle, sembra piatta). La fenditura
+  tornerà fatta di atomi (agglomerati). Diagnosi dell'errore delle frange (−12,7 %) fatta prima di toglierla, §5.
 
-## 2. Le scene
+## 2. La scena "fotone libero" (`fotone3d.rs`, `fotscena.rs`)
 
-### 2.1 Doppia fenditura (la prima prova del laboratorio nuovo)
+* **La scatola**: un cubo periodico vuoto, tutto in 3-D (nessuna lastra). La grandezza dipende dalla **qualità**
+  (celle per lunghezza d'onda): 8 celle per λ su 96³, 12 su 128³, 16 su 144³, 24 su 192³. Il lato è 8–12 λ.
+* **Il lancio**: un impulso gaussiano (larghezza al fuoco w0, scelta da 0,7 a 3 λ; lunghezza σ = 1 λ) nella
+  direzione scelta (x, y, z, obliqua (1,1,0), diagonale (1,1,1)) e con la polarizzazione scelta (orizzontale,
+  verticale, circolare +, circolare −). È costruito onda per onda dalle onde piane di Maxwell: per ogni vettore
+  d'onda q, E ⊥ q e cB = q̂ × E. Così non ha una parte ferma e non ha onde che vanno all'indietro. Il fuoco è al
+  centro: il fotone parte lontano dalle facce, si stringe, poi si allarga (diffrazione). Quando ha attraversato
+  ne parte un altro uguale.
+* **Da qui in poi è solo la regola**: tick dopo tick, nessuna equazione di Maxwell nel moto.
+* **La scala (dalle onde radio ai raggi gamma)**. La regola senza massa non ha una lunghezza sua: un fotone
+  radio di 1 m e un fotone gamma di 1 pm sono **lo stesso disegno di palline**; cambia solo quanto è grande una
+  cella e quanto dura un tick. Per questo il cursore "λ vera" (da 1 km a 1 pm) non rilancia nulla: cambia la scala
+  in basso a sinistra, l'orologio, e nel cruscotto λ, frequenza ν = c/λ ed energia hc/λ (con il nome della banda).
+  **La forma è autosimile; l'unica cosa che cambia davvero con λ è come la luce parla con la materia** (qui non
+  c'è materia). Un reticolo che coprisse 10¹² volte di scala non serve e non esiste.
+* **Strati** (tutti dallo stesso campo delle palline F = E + icB, accendibili uno per uno):
+  * **E (nuvola)**: una pallina morbida per cella (o per blocco di celle alle qualità alte), in un punto a caso
+    fisso dentro la cella (niente disegno del reticolo). Luminosità = E² (le creste). Colore = direzione di E nel
+    piano di traverso al volo (ruota di colori): luce lineare = due colori che si alternano cresta dopo cresta;
+    luce circolare = bande di tutti i colori, una vite colorata che avanza.
+  * **B (nuvola)**: luminosità c²B², in blu.
+  * **vettori E / vettori B**: catene di palline che partono dall'asse del fascio e da 6 linee attorno, lunghe
+    quanto il campo e orientate come il campo. **Luce circolare: la catena di E gira lungo l'asse, un'elica che
+    avanza; lineare: oscilla in un piano.** B è sempre di traverso a E.
+  * **Poynting S = E × B** (oro): dove va l'energia, su una griglia rada dentro l'impulso.
+  * **spin**: E(t−1) × E(t) cella per cella (verde = lungo il volo, magenta = contro): c'è solo nella luce
+    circolare.
+  * **sezione di traverso**: il piano perpendicolare al volo nel centro dell'impulso, più fitto.
+  * **polarizzatore**: la nuvola E mostra solo la parte di E lungo la polarizzazione di partenza; fa vedere le
+    creste della luce circolare, che in E² non ci sono (E² della luce circolare è uniforme).
+* **Misurato dal vivo dal campo** (cruscotto e pannello): la velocità del centro dell'energia |F|², l'elicità
+  (quanto gira E in un tick: Σ (E(t−1) × E(t))·d / (sin ω Σ|E⊥|²)), la larghezza del fascio e, dopo 20 tick di
+  volo, l'angolo di apertura θ (da ⟨δ⊥²⟩(t) = a + b t + c t², θ = 2√c: per la luce libera la formula è esatta).
+* **Velocità**: un impulso stretto contiene onde un po' oblique, quindi il suo centro dell'energia va un po' meno di
+  c **anche nelle onde continue** (c⟨cos θ⟩). Il confronto giusto è con il valore delle onde continue per lo
+  stesso impulso, che il pannello mostra accanto.
+* **Costo** (i5 a 4 core condiviso, build di sviluppo, misurato da `bench_fotone`): un tick costa ~9–14 ms a
+  96³, ~31 ms a 128³, ~41 ms a 144³, ~105 ms a 192³; più misure e palline. Dal vivo: ~25–30 tick/s alla qualità
+  "veloce", ~15 alla "media", ~10 alla "alta", ~5 alla "massima". **Il traguardo "≥ 24 celle per λ a ≥ 30 tick/s"
+  questo PC non lo regge** (servono ~7 milioni di celle per tick): la qualità massima c'è ma è lenta.
 
-* Palline a spin 1 su una scatola 176 × 144 × 2 celle (periodica e sottile in z: le fenditure sono lunghe, il
-  problema è piano, come quello dei libri). λ = 12 celle (la luce verde del laboratorio del fotone, 500 nm:
-  1 cella = 41,7 nm). Un muro di 2 celle con due fenditure (distanza 36 celle, larghe 6), una spugna sui bordi
-  che assorbe, uno schermo a 106 celle dal muro che somma |E|².
-* Tutto dal vivo: le creste (palline oro) avanzano, passano le fenditure, si aprono e si incrociano; sullo
-  schermo i "clic" (palline azzurre) si accumulano dove arriva più energia. Un fotone dopo l'altro (stesso
-  pacchetto), lo schermo continua a contare.
-* **Verifica**: prima frangia luminosa contro la geometria esatta (le due strade dalle fenditure differiscono
-  di una λ). Misurato (test `fenditura_frange`): **33,5 celle contro 38,3 (−12,7 %)**. Con 8 celle per λ
-  −25 %, con 12 −13 %, con 16 −11 %: si avvicina piano. Il motivo: il reticolo cubico non è isotropo, in
-  diagonale le palline della luce vanno più piano e le frange si stringono. **Le frange ci sono, la loro
-  posizione non è ancora giusta entro 5 %**: è un debito del reticolo, non della fisica.
-* Indietro nel tempo: muro e spugna assorbono, quindi la regola non si può "disfare"; si torna indietro con
-  fotografie ogni 8 tick + rigioco (esatto).
+## 3. L'atomo zig-zag (dal vivo) e il nucleo
 
-### 2.2 L'atomo zig-zag (dal vivo)
+### 3.1 L'atomo
 
 * **Perché non l'idrogeno.** Il raggio dell'idrogeno è 137 ħ/mc e le celle devono essere ≲ 0,5 ħ/mc: servirebbero
   ~10¹⁰ celle. Il problema di Dirac–Coulomb dipende solo da Zα: prendiamo lo **ione idrogenoide di neodimio,
-  Nd⁵⁹⁺ (Z = 60, un solo elettrone)**, raggio di Bohr 2,28 ħ/mc ≈ 880 fm. È l'atomo più grande (in Zα) che questo
-  PC tiene dal vivo: 48³ celle da 0,5 ħ/mc, ~35 ms per tick, su un thread a parte (la finestra resta a 60 fps).
-* **Partenza**: l'1s della forma radiale della stessa regola (stesso a, stesso Zα) messo sul reticolo cubico.
-  Sulle celle grosse è solo ~60 % l'1s della regola 3-D: il resto si vede come tremolio in più (anche
-  Zitterbewegung). Legame 1s della regola radiale con a = 0,5: 0,141 mc² (Dirac esatto 0,101: +40 %, celle
-  grosse; con celle più fini torna, `docs/ZIGZAG.md` §5.6).
-* **Ogni pallina si muove a ogni tick**: 20 000 surfisti trasportati dalla corrente dell'onda (v = j/ρ ≤ c); la
-  1s di Dirac ha una corrente che gira attorno allo spin, quindi girano. Il **colore è la fase** dell'onda nel
-  punto (tolta la rotazione della massa a riposo e^{−imc²t/ħ}): uno stato fermo ha densità ferma ma il suo
-  colore gira alla frequenza di Bohr. La luminosità di ogni pallina segue la densità nel suo punto. Sei
-  surfisti hanno una scia di palline luminose (niente linee, niente frecce).
-* **Il fotone**: un impulso con l'energia scelta (keV). All'atomo il suo campo entra nella fase come e E·r
-  (forma di dipolo: giusta, perché λ ≈ 55 ħ/mc è 25 volte l'atomo). Il pacchetto che arriva è disegnato (6 volte
-  più corto). **La risonanza esce dalla regola**: con l'energia 1s → 2p della regola (58,5 keV, ħω = 0,1146 mc²)
-  la popolazione 1s scende e la nuvola resta in una **sovrapposizione 1s + 2p** che va su e giù lungo z (il
-  dipolo ⟨z⟩ misurato sull'onda). Fuori risonanza (×1,3) lo stesso impulso muove il dipolo 4 volte meno
-  (0,17 contro 0,69, prova di sviluppo; test `zigzag_risonanza`, lungo, `--ignored`).
-* **La luce che esce**: gusci di palline (oro = dipolo in su, azzurro = in giù) con la direzione sin²θ del dipolo
-  e la luminosità del dipolo **dell'onda stessa** al tempo ritardato t − r/c.
-* **Indietro nel tempo esatto**: ogni operazione della regola è unitaria, quindi il tick si disfa: 60 tick avanti
-  con l'impulso e 60 indietro ridanno lo stato di partenza a |Δψ|² = 1,5·10⁻²⁷ (test `zigzag_indietro_esatto`).
-  I surfisti tornano indietro con −v (approssimato, non esatto).
+  Nd⁵⁹⁺ (Z = 60, un solo elettrone)**, raggio di Bohr 2,28 ħ/mc ≈ 880 fm. 48³ celle da 0,5 ħ/mc, ~35 ms per tick,
+  su un thread a parte.
+* **Partenza**: l'1s della forma radiale della stessa regola messo sul reticolo cubico (solo ~60 % l'1s della
+  regola 3-D: il resto si vede come tremolio in più). Legame 1s della regola radiale con a = 0,5: 0,141 mc²
+  (Dirac esatto 0,101: +40 %, celle grosse).
+* **Ogni pallina si muove a ogni tick**: 20 000 surfisti trasportati dalla corrente dell'onda (v = j/ρ ≤ c).
+  Colore = fase dell'onda (tolta la rotazione della massa a riposo).
+* **Il fotone**: un impulso con l'energia scelta (keV), che entra nella fase come e E·r (dipolo: λ ≈ 55 ħ/mc è
+  25 volte l'atomo). **La risonanza esce dalla regola**: a 58,5 keV (1s → 2p della regola) la nuvola resta in una
+  sovrapposizione 1s + 2p che oscilla; fuori risonanza (×1,3) il dipolo si muove 4 volte meno (test
+  `zigzag_risonanza`, lungo).
+* **La luce che esce**: gusci di palline con la direzione sin²θ e la luminosità del dipolo dell'onda stessa al
+  tempo ritardato.
+* **Indietro nel tempo esatto**: 60 tick avanti con l'impulso e 60 indietro: |Δψ|² = 1,5·10⁻²⁷.
 
-### 2.3 Il nucleo: il protone come nodo che gira e respira
+### 3.2 Il nucleo: il protone come nodo che gira e respira
 
-* Il nodo B = 1 del campo dei pioni (modello di Skyrme, `docs/NODO_3D.md`), **calcolato qui** dalla sua equazione
-  (tiro con bisezione): B = 1,00000, E/12π² = 1,23150 (letteratura 1,2315), raggio rms 0,59 fm, massa 863 MeV.
-* Disegnato con 40 000 palline estratte a caso dalla densità barionica (raggi e direzioni casuali: mai i punti di
-  un reticolo); colore = direzione del campo dei pioni (nel riccio punta lungo r̂), luminosità = densità.
-* **Gira**: per il riccio un'isorotazione è una rotazione, quindi si vede girare il colore. Λ dalla stessa
-  soluzione (con la coda 1/r² fuori dalla griglia): M_Δ − M_N = 3ħ²/2Λ = **319 MeV** (misura 293, +9 %).
-  **Respira**: modo di scala (Derrick), ħω = 216 MeV (stima nostra; la risonanza di Roper è ~500 MeV sopra il
-  nucleone: la stima è grezza). Orologio del nucleo rallentato (1 s di schermo ≈ 4·10⁻²⁴ s), ampiezza del
-  respiro scelta per vederla (7 %).
+* Il nodo B = 1 del campo dei pioni (Skyrme), calcolato qui: B = 1,00000, E/12π² = 1,23150, raggio rms 0,59 fm,
+  massa 863 MeV; 40 000 palline estratte dalla densità barionica.
+* **Gira** (M_Δ − M_N = 319 MeV, misura 293, +9 %) e **respira** (ħω = 216 MeV, stima grezza). Orologio rallentato.
 
-### 2.4 Carbonio (regola DMC, nuvola media)
+## 4. Il fotone libero: pre-registrazione (scritta prima delle corse) e risultati
 
-Sei elettroni come palline nello spazio a 18 dimensioni, nodi fissi da una guida fatta dai nostri orbitali
-idrogenoidi (un determinante per spin, ³P scritto come M_S = 1: 4 su + 2 giù; la richiesta diceva 3 + 3, ma
-M_S = 0 avrebbe bisogno di due determinanti). Gli esponenti vengono dal minimo della nostra energia variazionale.
-Fotoni: assorbiti solo alle energie che le palline hanno calcolato (2p → 3s, ionizzazione), altrimenti passano.
-Temperatura: il nucleo si muove come un atomo di gas a 1 atm (Maxwell–Boltzmann, urti al tempo libero medio);
-si vede solo a velocità del tempo alte (ps al secondo). È **la vista statica** che Valerio ha scartato come scena
-principale: resta per i numeri.
+Corse di sviluppo già viste (dichiarate): nel visore, qualità 8 celle per λ, w0 = λ, circolare +: velocità del
+centro dell'energia 0,970 c sugli ultimi 16 tick, elicità +1,009–1,010, θ ≈ 0,243 a metà volo; lineare: elicità
+~10⁻¹¹. Nessun test F1–F4 eseguito prima di scrivere questa tabella.
 
-## 3bis. Risultati della corsa di produzione (pre-registrata sotto, §3)
+Soglie (test `cargo test --bin atomo fotone`, `src/atomo/tests.rs`; volo lungo un asse del reticolo, σ = 1 λ):
 
-| prova | risultato | esito |
+| prova | che cosa | soglia |
 |---|---|---|
-| V1 energia di C | **−37,82587 ± 0,00106 Eₕ** contro −37,8450 (+0,051 %) | **PASS** |
-| V2 ionizzazione | **11,334 ± 0,032 eV** contro 11,2603 (+0,66 %) | **PASS** |
-| V3 2p → 3s | **8,036 ± 0,041 eV** contro 7,482 (+7,4 %) | **FAIL** |
-| V4 protone | B = 1,00000, E/12π² = 1,23150, rms 0,592 fm, M = 863,1 MeV | come previsto |
+| F1a | velocità del centro dell'energia, fascio largo (w0 = 3 λ, 8 celle per λ), retta su tutto il volo | entro **0,5 %** da c |
+| F1b | stessa misura, fascio della scena (w0 = λ), a 8 e a 16 celle per λ | entro **0,5 %** dal valore delle onde continue per lo stesso impulso, c⟨q̂·d⟩ pesato con |A(q)|² |
+| F2 | elicità al fuoco: circolare ±, lineare orizzontale e verticale (w0 = λ; 8 e 16 celle per λ) | ±1 e 0 entro **0,02** |
+| F3 | apertura del fascio θ (w0 = 1,5 λ; 8 e 16 celle per λ) | entro **5 %** da λ/(π w0) |
+| F4 | 31 tick avanti e 31 indietro (48³, circolare) | Σ|ΔF|² < 10⁻⁸ (Σ|F|² = 1) |
 
-V3: lo stato eccitato con un solo determinante e un 3s idrogenoide con due parametri sta 0,55 eV troppo alto
-(nella corsa di sviluppo, con esponenti diversi, era 7,55 eV): il nodo dello stato eccitato è il punto debole.
-La scena del carbonio usa comunque il numero calcolato (λ = 154,3 nm), non quello misurato. Il guscio K/L le
-palline lo trovano da sole al minimo della distribuzione radiale: 0,64 bohr (0,34 Å).
+Le soglie non si cambiano dopo la corsa; un fallimento si scrive qui.
 
-## 4. Che cosa è vero, che cosa è disegnato, che cosa è un debito
+**Risultati**: (dopo la corsa, sotto)
 
-**Dinamica vera (la regola, tick dopo tick)**: la luce della doppia fenditura; l'onda dell'elettrone dell'atomo
-zig-zag (e i surfisti che porta); la risposta alla luce (risonanza, sovrapposizione, dipolo); il ritorno indietro.
-**Precalcolato**: il profilo del nodo (poi animato con le sue frequenze); le energie DMC del carbonio; lo stato
-di partenza 1s (dalla forma radiale della stessa regola).
+## 5. La doppia fenditura tolta: diagnosi dell'errore delle frange
+
+La v1 misurava la prima frangia a 33,5 celle contro 38,3 della geometria esatta (−12,7 %) e lo attribuiva
+all'anisotropia del reticolo. **Non era così** (corse di sviluppo in Python con la stessa regola, prima che la
+scena fosse tolta):
+* **dispersione della luce del reticolo** ω(k) dalla matrice di due tick: con 12 celle per λ la velocità di fase
+  è 0,9986 c a 10°, 0,9952 a 20°, 0,9883 a 45° (lungo gli assi 1 esatto). La frangia sta a ~20°: l'anisotropia
+  sposta la frangia di ~0,5 %, non del 13 %.
+* **la formula "geometria esatta" non è il riferimento giusto** per quella scena: lo stesso schermo vicino (106
+  celle), le stesse fenditure larghe λ/2, lo stesso impulso corto (largo in frequenza), calcolati con le onde
+  continue (integrale di Rayleigh–Sommerfeld) mettono la prima frangia già a **−5,3 %** dalla formula (−3,3 % con
+  luce di una sola frequenza): inviluppo di intensità, obliquità e distanza finita la spingono verso l'asse.
+* **il reticolo aggiunge il resto** (~−7 punti a 12 celle per λ): il muro duro eccita le onde "doppie" del reticolo
+  (con k = π lungo un asse la regola trasporta la luce come con k = 0: T(π) cambia solo il segno delle parti ±1),
+  che arrivano allo schermo come fondo e abbassano il contrasto delle frange (minimo/massimo 0,22 invece di ~0).
+  Con 24 celle per λ (stessa geometria in λ) la frangia scende a −5,5/−8,4 % secondo la distanza dello schermo:
+  si avvicina al riferimento continuo ma dipende dalla geometria.
+* Prove fatte: ordine degli assi non alternato −10,8 % (peggio della forma simmetrica, come atteso); più celle per
+  λ: migliora piano. Il bersaglio del 3 % non è stato pre-registrato né corso perché la scena è stata tolta.
+  Quando la fenditura tornerà fatta di atomi, il confronto va fatto con il riferimento continuo della stessa
+  geometria, non con la formula a due punti.
+
+## 6. Che cosa è vero, che cosa è disegnato, che cosa è un debito
+
+**Dinamica vera (la regola, tick dopo tick)**: il fotone libero e tutti i suoi strati; l'onda dell'elettrone
+dell'atomo (e i surfisti); la risonanza e la sovrapposizione; il ritorno indietro (esatto in entrambe le scene).
+**Precalcolato**: la forma di partenza del fotone (onde piane di Maxwell sommate); il profilo del nodo; lo stato
+1s di partenza.
 **Disegnato**: il pacchetto del fotone che arriva all'atomo (la sua forza nel calcolo è il campo E(t)); i gusci
-della luce uscente (la loro luminosità è il dipolo calcolato); la foschia termica.
+della luce uscente dall'atomo (la luminosità è il dipolo calcolato).
 
 Debiti:
-1. Il campo del fotone sull'atomo è un **impulso forte** (come un laser), non un fotone solo.
-2. **Emissione spontanea** (vuoto quantistico) assente: la sovrapposizione non decade da sola.
-3. Celle grosse: legame 1s +40 %, frange −13 %, partenza solo 60 % 1s della regola 3-D.
-4. Nd⁵⁹⁺ invece dell'idrogeno (stesso Zα·fisica, Z diverso); il nucleo di Nd ha 144 barioni, si vede un protone.
-5. I due numeri del modello di Skyrme (F_π = 129 MeV, e = 5,45) presi da Adkins–Nappi–Witten (1983).
-6. Temperatura: nella scena zig-zag non ha effetti visibili (in 10⁻¹⁹ s un nucleo a 300 K si sposta di 10⁻⁵ fm);
-   la foschia è solo visiva. Nel carbonio muove il nucleo (gas a 1 atm, urti come sfere dure).
-7. Carbonio: nodi fissi; V3 FAIL; forza della riga e vita media non calcolate (attesa compressa).
+1. **Un fotone solo, ma classico**: la regola è lineare, quindi l'ampiezza è quella di un'onda normalizzata; il
+   "clic" di un singolo fotone (la rivelazione) non c'è ancora.
+2. **Reticolo cubico**: la luce obliqua va un po' più piano (0,5 % a 20° con 12 celle per λ, ~3 % in diagonale
+   con 8). Lungo gli assi la regola porta la luce a c esatto.
+3. **Risoluzione**: ≥ 24 celle per λ a ≥ 30 tick/s non ci stanno su questo PC (qualità massima ~5 tick/s).
+4. Atomo: impulso forte (come un laser), niente emissione spontanea, celle grosse (legame 1s +40 %), Nd⁵⁹⁺
+   invece dell'idrogeno; il nucleo di Nd ha 144 barioni, si vede un protone; i due numeri di Skyrme da
+   Adkins–Nappi–Witten.
+5. La doppia fenditura è tolta (§5): tornerà con le fenditure fatte di atomi.
+6. **Scena futura: il geone** (luce tenuta insieme dalla sua gravità). Fuori portata ora: abbiamo già visto che
+   senza gravità la luce non si intrappola da sola.
 
-## 5. Come si usa
+## 7. Come si usa
 
-* Doppio clic su `Laboratorio Atomo.exe`. Schermo pulito: barra del tempo in basso (⏮ indietro, ▶/⏸, ⏭,
-  ritmo), scala in basso a sinistra, scene e zoom in alto a sinistra, pannello con Tab o ☰.
-* Rotella = zoom logaritmico (dalla scala della luce, micrometri, fino a 0,1 fm), trascinare = girare attorno. Tasti: Spazio
-  pausa, F spara il fotone, 1 vista intera, 2 nucleo, 3 elettrone.
-* Riga di comando: `"Laboratorio Atomo.exe" --scena fenditura|atomo|carbonio [--zoom nucleo|elettrone]`.
-  **Atomo aperto dentro il nucleo**: `"Laboratorio Atomo.exe" --scena atomo --zoom nucleo`.
-* Misure: `atomo --misura tutto` (≈ 11 min) o `sh lab/atomo_misura.sh`; test: `cargo test --bin atomo`
-  (7 test, ~15 s) e `cargo test --bin atomo -- --ignored` (lunghi).
-* Prove senza mani: `--foto file.png --frames N [--spara-al F]` salva un'immagine ed esce (mouse e tastiera
-  ignorati).
-
-## 3. Pre-registrazione (prima della corsa di produzione)
-
-Corse di sviluppo già viste (dichiarate): VMC + DMC brevi (1000 palline, 2000–3000 tick, τ = 0,005) hanno dato
-E(C) = −37,830 ± 0,007 e −37,819 ± 0,004 Eₕ; E(C⁺) = −37,412 ± 0,004; E(C*, 2p3s ³P°) = −37,542 ± 0,004;
-quindi ionizzazione ≈ 11,08 eV ed eccitazione 2p→3s ≈ 7,55 eV. Protone (nodo B = 1): E/12π² = 1,23150,
-B = 1,0000, raggio rms 0,59 fm.
-
-Corsa di produzione (fissata ora): `atomo --misura tutto` = VMC a campionamento correlato (30 000
-configurazioni, 3 giri) per gli esponenti di C, C⁺, C*; poi DMC a nodi fissi con 2000 palline, τ = 0,005 Eₕ⁻¹·ħ,
-4000 tick di equilibrio e 40 000 tick misurati per ciascuno stato; errore dai blocchi (il più grande tra 32, 16, 8
-blocchi).
-
-| prova | cosa | soglia |
-|---|---|---|
-| V1 | energia totale di C (³P) contro l'esatta non relativistica −37,8450 Eₕ (Chakravorty et al., Phys. Rev. A 47, 3649, 1993) | entro **1 %** |
-| V2 | energia di ionizzazione E(C⁺) − E(C) contro 11,2603 eV (NIST ASD) | entro **3 %** |
-| V3 | eccitazione 2s²2p² ³P → 2s²2p3s ³P° contro 7,482 eV (NIST ASD, media sui J) | entro **3 %** |
-| V4 | il protone: B = 1 entro 10⁻³, E/12π² entro 0,2 % da 1,2315 | informativa (già vista nel dev) |
-
-Le soglie V2 e V3 non vengono cambiate dopo la corsa. Se V3 fallisce, la scena di risonanza del carbonio usa
-comunque il numero calcolato (non quello misurato) e il fallimento viene scritto qui.
+* Doppio clic su `Laboratorio Atomo.exe`: si apre sul fotone libero. Schermo pulito: barra del tempo in basso
+  (⏮ indietro esatto, ▶/⏸, ⏭, ritmo, Lancia), scala in basso a sinistra, scene in alto a sinistra ("fotone
+  libero", "atomo zig-zag"), "segui il fotone", pannello con Tab o ☰ (λ vera, qualità, larghezza, polarizzazione,
+  direzione, strati, numeri misurati).
+* Rotella = zoom, trascinare = girare attorno. Tasti: Spazio pausa, F lancia un fotone (o spara all'atomo),
+  1 vista intera; nell'atomo 2 nucleo, 3 elettrone.
+* Riga di comando: `"Laboratorio Atomo.exe" --scena fotone|atomo [--zoom nucleo]`; per il fotone
+  `--qual 0..3 --w0 <λ> --dir 0..4 --polar h|v|c+|c- --lambda-m <metri> --strati eEbBshxp`
+  (e nuvola E, E vettori E, b nuvola B, B vettori B, s Poynting, h spin, x sezione, p polarizzatore).
+* Prove senza mani: `--foto file.png --frames N [--spara-al F] [--yaw a --pitch b] [--ritmo r]` salva
+  un'immagine ed esce.
+* Test: `cargo test --bin atomo` (veloci, compresi F1–F4) e `cargo test --bin atomo -- --ignored` (lunghi:
+  risonanza dell'atomo, direzioni oblique del fotone, `bench_fotone`).

@@ -191,7 +191,7 @@ impl Profilo {
 
     /// Balls drawn with the baryon density: (position in fm, relative density 0..1).
     pub fn palline(&self, n: usize, seed: u64) -> Vec<([f64; 3], f32)> {
-        let mut rng = crate::carbonio::Rng::new(seed);
+        let mut rng = crate::rng::Rng::new(seed);
         let w: Vec<f64> = (0..self.f.len()).map(|i| self.r(i).powi(2) * self.barioni(i)).collect();
         let mut cdf = Vec::with_capacity(w.len());
         let mut s = 0.0;

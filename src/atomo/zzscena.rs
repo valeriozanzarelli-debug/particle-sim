@@ -14,7 +14,7 @@
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
-use crate::carbonio::Rng;
+use crate::rng::Rng;
 use crate::render::{schermo, Ball};
 use crate::zz::{self, Atomo, Impulso, A};
 

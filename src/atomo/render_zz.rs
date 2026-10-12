@@ -1,4 +1,4 @@
-//! Drawing of the zig-zag scenes (double slit, live atom) and the animated proton knot. Same soft-ball
+//! Drawing of the zig-zag scenes (free photon, live atom) and the animated proton knot. Same soft-ball
 //! shader as render.rs; meshes replaced, never modified in place.
 
 use bevy::{
@@ -57,9 +57,13 @@ pub fn aggiorna(
     let scena = lab.scena;
     // what the main layer shows
     let (items, versione): (Option<Vec<crate::render::Ball>>, u64) = match scena {
-        Scena::Fenditura => {
-            let v = lab.fen.as_ref().map(|f| f.f.ticks + 1_000_000 * f.lanci as u64).unwrap_or(0);
-            if vis.versione != v || vis.scena != Some(scena) { (lab.fen.as_ref().map(|f| f.palline()), v) } else { (None, v) }
+        Scena::Fotone => {
+            let out = lab.fot.as_ref().map(|c| c.lock().unwrap().out.clone());
+            match out {
+                Some(o) if vis.versione != o.versione || vis.scena != Some(scena) => (Some((*o.palline).clone()), o.versione),
+                Some(o) => (None, o.versione),
+                None => (None, 0),
+            }
         }
         Scena::Atomo => {
             let out = lab.zz.as_ref().map(|c| c.lock().unwrap().out.clone());
@@ -69,7 +73,6 @@ pub fn aggiorna(
                 None => (None, 0),
             }
         }
-        Scena::Carbonio => (if vis.scena != Some(scena) { Some(vec![]) } else { None }, 0),
     };
     let unita_fm = lab.metri_per_unita() / 1e-15;
     for (s, mut m3, mut tr) in q.iter_mut() {
@@ -109,14 +112,13 @@ pub fn aggiorna(
     vis.scena = Some(scena);
     // sizes: screen-constant, capped
     let fm = 1e-15 / lab.metri_per_unita();
-    let g_nodo = if lab.mostra_protone && scena != Scena::Carbonio && scena != Scena::Fenditura {
+    let g_nodo = if lab.mostra_protone && scena == Scena::Atomo {
         let x = (r_cam / (300.0 * fm)).ln();
         (1.0 - x / 2.0).clamp(0.0, 1.0) as f32
     } else { 0.0 };
     let (s_main, g_main) = match scena {
-        Scena::Fenditura => ((0.0035 * r_cam).min(0.9), lab.luce),
+        Scena::Fotone => ((0.0032 * r_cam).min(0.9), lab.luce),
         Scena::Atomo => ((0.0035 * r_cam).min(0.12), lab.luce * (1.0 - 0.8 * g_nodo)),
-        Scena::Carbonio => (0.1, 0.0),
     };
     if let Some(m) = mats.get_mut(&vis.mats[0]) { m.params = BallParams { size: (s_main * lab.grandezza as f64) as f32, gain: g_main, soft: 3.0, core: 0.3 }; }
     if let Some(m) = mats.get_mut(&vis.mats[1]) { m.params = BallParams { size: ((0.004 * r_cam).min(0.06 * fm)) as f32, gain: 1.3 * g_nodo, soft: 3.0, core: 0.4 }; }

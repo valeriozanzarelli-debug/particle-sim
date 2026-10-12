@@ -17,7 +17,7 @@
 
 use rayon::prelude::*;
 
-use crate::carbonio::Rng;
+use crate::rng::Rng;
 use crate::cplx::C;
 use crate::walk::{order, surfer_velocity, HALF, Radial};
 
@@ -226,6 +226,7 @@ impl Atomo {
         });
     }
 
+    #[allow(dead_code)]
     /// Phase of the dominant component at a point (for the colour).
     pub fn fase(&self, p: [f64; 3]) -> f32 {
         let s = self.campiona(p);

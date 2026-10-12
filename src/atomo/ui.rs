@@ -1,4 +1,4 @@
-//! Interface: a clean screen (the atom, a time bar, a scale bar, ☰), everything else in one panel hidden at
+//! Interface: a clean screen (the scene, a time bar, a scale bar, ☰), everything else in one panel hidden at
 //! start (Tab or ☰). Italian, simple words.
 
 use bevy::prelude::*;
@@ -6,7 +6,9 @@ use bevy_egui::{egui, EguiContexts};
 use egui::{Color32, RichText};
 
 use crate::camera::{Bersaglio, Cam};
-use crate::{costanti as k, zz, Lab, Modo, Scena};
+use crate::fotone3d::Polar;
+use crate::fotscena::{self, DIREZIONI};
+use crate::{zz, Lab, Modo, Scena};
 
 const CYAN: Color32 = Color32::from_rgb(90, 220, 255);
 const GOLD: Color32 = Color32::from_rgb(255, 205, 80);
@@ -15,12 +17,26 @@ const GREEN: Color32 = Color32::from_rgb(140, 230, 140);
 const RED: Color32 = Color32::from_rgb(255, 120, 100);
 const BG: Color32 = Color32::from_rgba_premultiplied(8, 10, 18, 190);
 
-/// Reference values (cited, never used by the simulation).
-pub const E_ESATTA_C: f64 = -37.8450; // Chakravorty et al., Phys. Rev. A 47, 3649 (1993), non-relativistic
-pub const E_ESATTA_CPIU: f64 = -37.4313; // same source
-pub const IP_NIST_EV: f64 = 11.2603; // NIST ASD
-pub const ECC_NIST_EV: f64 = 7.482; // NIST ASD, 2s²2p3s ³P° − 2s²2p² ³P, J-averaged
-pub const PROTONE_RMS_FM: f64 = 0.84; // charge radius of the proton (CODATA 2018: 0.8414 fm)
+/// hc in eV·nm (CODATA) and c.
+pub const HC_EV_NM: f64 = 1239.841_984;
+pub const C_M_S: f64 = 299_792_458.0;
+
+/// The name of the band of a wavelength (m).
+pub fn banda(l: f64) -> &'static str {
+    if l > 1.0 { "onde radio" } else if l > 1e-3 { "microonde" } else if l > 7.5e-7 { "infrarosso" } else if l > 3.8e-7 { "luce visibile" }
+    else if l > 1e-8 { "ultravioletto" } else if l > 1e-11 { "raggi X" } else { "raggi gamma" }
+}
+
+pub fn fmt_freq(f: f64) -> String {
+    let (v, u) = if f >= 1e18 { (f / 1e18, "EHz") } else if f >= 1e15 { (f / 1e15, "PHz") } else if f >= 1e12 { (f / 1e12, "THz") }
+                 else if f >= 1e9 { (f / 1e9, "GHz") } else if f >= 1e6 { (f / 1e6, "MHz") } else { (f / 1e3, "kHz") };
+    format!("{} {}", nice(v), u)
+}
+
+pub fn fmt_energia(ev: f64) -> String {
+    if ev >= 1e6 { format!("{} MeV", nice(ev / 1e6)) } else if ev >= 1e3 { format!("{} keV", nice(ev / 1e3)) } else if ev >= 1.0 { format!("{} eV", nice(ev)) }
+    else if ev >= 1e-3 { format!("{} meV", nice(ev * 1e3)) } else { format!("{} µeV", nice(ev * 1e6)) }
+}
 
 pub fn fmt_t(s: f64) -> String {
     let a = s.abs();
@@ -31,7 +47,9 @@ pub fn fmt_t(s: f64) -> String {
 
 pub fn fmt_len(m: f64) -> String {
     let a = m.abs();
-    if a >= 1e-10 { format!("{} Å", nice(m * 1e10)) } else if a >= 1e-12 { format!("{} pm", nice(m * 1e12)) } else { format!("{} fm", nice(m * 1e15)) }
+    if a >= 1e3 { format!("{} km", nice(m * 1e-3)) } else if a >= 1.0 { format!("{} m", nice(m)) } else if a >= 1e-2 { format!("{} cm", nice(m * 1e2)) }
+    else if a >= 1e-3 { format!("{} mm", nice(m * 1e3)) } else if a >= 1e-6 { format!("{} µm", nice(m * 1e6)) } else if a >= 1e-9 { format!("{} nm", nice(m * 1e9)) }
+    else if a >= 1e-12 { format!("{} pm", nice(m * 1e12)) } else { format!("{} fm", nice(m * 1e15)) }
 }
 
 fn nice(v: f64) -> String { if v >= 10.0 { format!("{:.0}", v) } else if v >= 1.0 { format!("{:.1}", v) } else { format!("{:.2}", v) } }
@@ -46,7 +64,7 @@ fn tondo(m: f64) -> f64 {
 }
 
 fn livello(m: f64) -> &'static str {
-    if m > 3e-8 { "luce" } else if m > 2e-11 { "atomo" } else if m > 2e-13 { "tra gli elettroni" } else if m > 3e-15 { "vicino al nucleo" } else { "dentro il nucleo" }
+    if m > 3e-8 { "luce" } else if m > 2e-12 { "atomo" } else if m > 3e-15 { "vicino al nucleo" } else { "dentro il nucleo" }
 }
 
 pub fn draw_hud(mut ctx: EguiContexts, mut lab: ResMut<Lab>, mut cam: ResMut<Cam>, keys: Res<ButtonInput<KeyCode>>, auto: Res<crate::Auto>) {
@@ -57,19 +75,22 @@ pub fn draw_hud(mut ctx: EguiContexts, mut lab: ResMut<Lab>, mut cam: ResMut<Cam
         if keys.just_pressed(KeyCode::Space) { lab.modo = if lab.modo == Modo::Avanti { Modo::Pausa } else { Modo::Avanti }; }
         if keys.just_pressed(KeyCode::KeyF) { lab.spara = true; }
         if keys.just_pressed(KeyCode::Digit1) { vai(lab, &mut cam, Bersaglio::Atomo); }
-        if keys.just_pressed(KeyCode::Digit2) { vai(lab, &mut cam, Bersaglio::Nucleo); }
-        if keys.just_pressed(KeyCode::Digit3) { vai(lab, &mut cam, Bersaglio::Elettrone); }
+        if lab.scena == Scena::Atomo {
+            if keys.just_pressed(KeyCode::Digit2) { vai(lab, &mut cam, Bersaglio::Nucleo); }
+            if keys.just_pressed(KeyCode::Digit3) { vai(lab, &mut cam, Bersaglio::Elettrone); }
+        }
     }
     // ── top left: menu, the scenes, the zoom levels ──
     egui::Area::new(egui::Id::new("menu")).anchor(egui::Align2::LEFT_TOP, [10.0, 10.0]).show(ctx, |ui| {
         ui.horizontal(|ui| {
             let b = egui::Button::new(RichText::new("☰").size(16.0)).fill(Color32::from_black_alpha(90)).selected(lab.panel_open);
-            if ui.add(b).on_hover_text("pannello (Tab) · pausa (Spazio) · spara un fotone (F) · 1 vista intera · 2 nucleo · 3 elettrone").clicked() {
+            if ui.add(b).on_hover_text("pannello (Tab) · pausa (Spazio) · lancia un fotone (F) · 1 vista intera · 2 nucleo · 3 elettrone").clicked() {
                 lab.panel_open = !lab.panel_open;
             }
-            for (s, n) in [(Scena::Fenditura, "doppia fenditura"), (Scena::Atomo, "atomo zig-zag"), (Scena::Carbonio, "carbonio (DMC)")] {
-                if ui.add(egui::Button::new(n).fill(Color32::from_black_alpha(90)).selected(lab.scena == s)).clicked() {
+            for (s, n) in [(Scena::Fotone, "fotone libero"), (Scena::Atomo, "atomo zig-zag")] {
+                if ui.add(egui::Button::new(n).fill(Color32::from_black_alpha(90)).selected(lab.scena == s)).clicked() && lab.scena != s {
                     lab.cambia_scena(s);
+                    if s == Scena::Fotone { cam.yaw = 0.0; cam.pitch = 0.2; }
                     let r = lab.distanza_tipica(Bersaglio::Atomo);
                     cam.vai(Bersaglio::Atomo, r);
                     cam.ln_r = cam.ln_r_target;
@@ -77,10 +98,12 @@ pub fn draw_hud(mut ctx: EguiContexts, mut lab: ResMut<Lab>, mut cam: ResMut<Cam
             }
             ui.separator();
             let bt = cam.bersaglio;
-            if lab.scena != Scena::Fenditura {
+            if lab.scena == Scena::Atomo {
                 if ui.add(egui::Button::new("1 intero").fill(Color32::from_black_alpha(90)).selected(bt == Bersaglio::Atomo)).clicked() { vai(lab, &mut cam, Bersaglio::Atomo); }
                 if ui.add(egui::Button::new("2 nucleo").fill(Color32::from_black_alpha(90)).selected(bt == Bersaglio::Nucleo)).clicked() { vai(lab, &mut cam, Bersaglio::Nucleo); }
                 if ui.add(egui::Button::new("3 elettrone").fill(Color32::from_black_alpha(90)).selected(bt == Bersaglio::Elettrone)).clicked() { vai(lab, &mut cam, Bersaglio::Elettrone); }
+            } else {
+                ui.checkbox(&mut lab.segui, RichText::new("segui il fotone").color(Color32::from_rgb(220, 225, 235)));
             }
         });
     });
@@ -89,7 +112,7 @@ pub fn draw_hud(mut ctx: EguiContexts, mut lab: ResMut<Lab>, mut cam: ResMut<Cam
     egui::Area::new(egui::Id::new("stato")).anchor(egui::Align2::CENTER_TOP, [0.0, 44.0]).show(ctx, |ui| {
         egui::Frame::none().fill(BG).rounding(6.0).inner_margin(egui::Margin::symmetric(10.0, 4.0)).show(ui, |ui| {
             ui.label(RichText::new(riga.0).monospace().color(CYAN));
-            if !riga.1.is_empty() { ui.label(RichText::new(riga.1).small().color(GREY)); }
+            if !riga.1.is_empty() { ui.label(RichText::new(riga.1).monospace().color(GREY)); }
         });
     });
     // ── bottom left: the scale bar ──
@@ -112,37 +135,34 @@ pub fn draw_hud(mut ctx: EguiContexts, mut lab: ResMut<Lab>, mut cam: ResMut<Cam
     barra_tempo(ctx, lab);
     if lab.panel_open {
         match lab.scena {
-            Scena::Carbonio => pannello(ctx, lab, &mut cam),
-            Scena::Fenditura => pannello_fenditura(ctx, lab),
+            Scena::Fotone => pannello_fotone(ctx, lab),
             Scena::Atomo => pannello_atomo(ctx, lab, &mut cam),
         }
     }
 }
 
 fn vai(lab: &mut Lab, cam: &mut Cam, b: Bersaglio) {
-    match b {
-        Bersaglio::Nucleo => lab.mostra_protone = true,
-        Bersaglio::Elettrone if lab.scena == Scena::Carbonio && (!lab.mostra_elettrone || lab.dirac.is_none()) => {
-            lab.mostra_elettrone = true;
-            lab.scegli_elettrone();
-            lab.reset_dirac();
-        }
-        _ => {}
-    }
+    if b == Bersaglio::Nucleo { lab.mostra_protone = true; }
     let r = lab.distanza_tipica(b);
     cam.vai(b, r);
 }
 
 fn stato_scena(lab: &Lab) -> (String, String) {
     match lab.scena {
-        Scena::Carbonio => {
-            let p = lab.storia.frame(lab.vista);
-            (format!("CARBONIO (regola DMC, nuvola media) · {}", p.stato.nome()), p.registro.last().cloned().unwrap_or_default())
-        }
-        Scena::Fenditura => {
-            let f = lab.fen.as_ref().unwrap();
-            let fr = f.frange.map(|(m, e)| format!("prima frangia: {:.1} celle (geometria esatta {:.1}, {:+.0} %)", m, e, 100.0 * (m - e) / e)).unwrap_or_default();
-            (format!("DOPPIA FENDITURA · luce = palline a spin 1 della regola zig-zag · tick {} · fotone n. {}", f.f.ticks, f.lanci), fr)
+        Scena::Fotone => {
+            let o = lab.fot.as_ref().map(|z| z.lock().unwrap().out.clone());
+            match o {
+                Some(o) if o.pronto => {
+                    let lam = lab.lambda_m;
+                    let v = o.v.map(|v| format!("{:.4} c", v)).unwrap_or_else(|| "…".into());
+                    let h = o.elicita.map(|h| format!("{:+.3}", h)).unwrap_or_else(|| "…".into());
+                    (format!("UN FOTONE di palline a spin 1 · {} · λ = {} · ν = {} · energia {} · velocità misurata {} · elicità {}",
+                             banda(lam), fmt_len(lam), fmt_freq(C_M_S / lam), fmt_energia(HC_EV_NM * 1e-9 / lam), v, h),
+                     format!("{} · {:.0} celle per λ · larghezza del fascio {} · tick {} · fotone n. {}",
+                             o.par.polar.nome(), o.par.cpl(), fmt_len(o.w * lab.cella_m()), o.ticks, o.lanci))
+                }
+                _ => ("Il fotone sta partendo...".into(), String::new()),
+            }
         }
         Scena::Atomo => {
             let o = lab.zz.as_ref().map(|z| z.lock().unwrap().out.clone());
@@ -160,81 +180,167 @@ fn barra_tempo(ctx: &egui::Context, lab: &mut Lab) {
     egui::Area::new(egui::Id::new("tempo")).anchor(egui::Align2::CENTER_BOTTOM, [0.0, -10.0]).show(ctx, |ui| {
         egui::Frame::none().fill(BG).rounding(8.0).inner_margin(egui::Margin::symmetric(12.0, 6.0)).show(ui, |ui| {
             ui.horizontal(|ui| {
-                let back = ui.add(egui::Button::new("⏮").selected(lab.modo == Modo::Indietro)).on_hover_text("indietro nel tempo");
+                let back = ui.add(egui::Button::new("⏮").selected(lab.modo == Modo::Indietro)).on_hover_text("indietro nel tempo (esatto)");
                 if back.clicked() { lab.modo = if lab.modo == Modo::Indietro { Modo::Pausa } else { Modo::Indietro }; }
                 let play = if lab.modo == Modo::Avanti { "⏸" } else { "▶" };
                 if ui.button(play).on_hover_text("avanti / pausa (Spazio)").clicked() {
                     lab.modo = if lab.modo == Modo::Avanti { Modo::Pausa } else { Modo::Avanti };
                 }
+                let spt = lab.secondi_per_tick();
                 match lab.scena {
-                    Scena::Carbonio => {
-                        if ui.button("⏭").on_hover_text("velocità ×10").clicked() { lab.velocita = (lab.velocita * 10.0).min(1e-9); }
-                        let mut lv = lab.velocita.log10();
-                        ui.add(egui::Slider::new(&mut lv, -20.0..=-9.0).show_value(false)).on_hover_text("velocità del tempo");
-                        lab.velocita = 10f64.powf(lv);
-                        ui.label(RichText::new(format!("1 s = {}", fmt_t(lab.velocita))).monospace().color(GREY));
-                        ui.separator();
-                        let (a, b) = (lab.storia.inizio, lab.storia.ultimo());
-                        let mut v = lab.vista;
-                        let r = ui.add(egui::Slider::new(&mut v, a..=b.max(a + 1)).show_value(false)).on_hover_text("la storia conservata");
-                        if r.changed() { lab.modo = Modo::Pausa; lab.vista = v.min(b); }
-                        let t = lab.storia.frame(lab.vista).t_s;
-                        ui.label(RichText::new(format!("t = {}", fmt_t(t))).monospace().color(CYAN));
-                    }
-                    Scena::Fenditura => {
-                        if ui.button("⏭").on_hover_text("4 tick per frame").clicked() { lab.passi_frame = if lab.passi_frame < 4.0 { 4.0 } else { 1.0 }; }
-                        ui.add(egui::Slider::new(&mut lab.passi_frame, 0.1..=4.0).logarithmic(true).show_value(false)).on_hover_text("tick per frame");
-                        let spt = lab.secondi_per_tick();
-                        ui.label(RichText::new(format!("1 s = {}", fmt_t(spt * 60.0 * lab.passi_frame))).monospace().color(GREY));
-                        let t = lab.fen.as_ref().map(|f| f.f.ticks).unwrap_or(0) as f64 * spt;
-                        ui.label(RichText::new(format!("t = {}", fmt_t(t))).monospace().color(CYAN));
+                    Scena::Fotone => {
+                        if ui.button("⏭").on_hover_text("più veloce").clicked() { lab.ritmo_fot = if lab.ritmo_fot < 60.0 { 60.0 } else { 20.0 }; }
+                        ui.add(egui::Slider::new(&mut lab.ritmo_fot, 1.0..=60.0).logarithmic(true).show_value(false)).on_hover_text("tick al secondo (al massimo quanto regge il PC)");
+                        let ticks = lab.fot.as_ref().map(|z| z.lock().unwrap().out.ticks).unwrap_or(0);
+                        ui.label(RichText::new(format!("1 s ≤ {}", fmt_t(spt * lab.ritmo_fot))).monospace().color(GREY));
+                        ui.label(RichText::new(format!("t = {}", fmt_t(ticks as f64 * spt))).monospace().color(CYAN));
+                        if ui.add(egui::Button::new(RichText::new(" Lancia (F) ").strong()).fill(Color32::from_rgb(40, 60, 110))).clicked() { lab.spara = true; }
                     }
                     Scena::Atomo => {
                         if ui.button("⏭").on_hover_text("più veloce").clicked() { lab.ritmo = if lab.ritmo < 60.0 { 60.0 } else { 25.0 }; }
                         ui.add(egui::Slider::new(&mut lab.ritmo, 1.0..=60.0).logarithmic(true).show_value(false)).on_hover_text("tick al secondo (al massimo quanto regge il PC)");
-                        let spt = lab.secondi_per_tick();
                         let ticks = lab.zz.as_ref().map(|z| z.lock().unwrap().out.ticks).unwrap_or(0);
                         ui.label(RichText::new(format!("1 s ≤ {}", fmt_t(spt * lab.ritmo))).monospace().color(GREY));
                         ui.label(RichText::new(format!("t = {}", fmt_t(ticks as f64 * spt))).monospace().color(CYAN));
                     }
                 }
-                ui.separator();
-                ui.label("T");
-                ui.add(egui::Slider::new(&mut lab.t_kelvin, 0.0..=3000.0).suffix(" K").max_decimals(0));
             });
         });
     });
 }
 
-fn pannello_fenditura(ctx: &egui::Context, lab: &mut Lab) {
+fn pannello_fotone(ctx: &egui::Context, lab: &mut Lab) {
     let mut open = true;
-    egui::Window::new("Doppia fenditura (regola zig-zag)").open(&mut open).default_pos([12.0, 80.0]).default_width(440.0).show(ctx, |ui| {
-        ui.label(RichText::new("La prima prova del laboratorio nuovo: il fotone fatto di palline a spin 1 (F = E + icB) che \
-            avanzano alla velocità della luce, la stessa regola dell'elettrone senza massa.").color(GOLD));
-        ui.label("Un tick: ogni pallina divide il suo stato secondo lo spin lungo x, y, z; la parte +1 va avanti di una cella, \
-                  la parte −1 indietro, la parte 0 resta. Il muro assorbe; ai bordi una spugna assorbe ciò che arriva.");
+    let o = lab.fot.as_ref().map(|z| z.lock().unwrap().out.clone());
+    egui::Window::new("Un fotone libero (regola zig-zag)").open(&mut open).default_pos([12.0, 80.0]).default_width(470.0).vscroll(true).show(ctx, |ui| {
+        ui.label(RichText::new("Un solo fotone fatto di palline a spin 1 (F = E + icB), in una scatola vuota in 3-D. \
+            Ogni tick ogni pallina divide il suo stato secondo lo spin lungo x, y, z: la parte +1 avanza di una cella, \
+            la parte −1 torna indietro, la parte 0 resta. Nient'altro: è la stessa regola dell'elettrone senza massa.").color(GOLD));
+        ui.label(RichText::new("Colore = la direzione del campo elettrico E nel piano di traverso al volo (una ruota di colori). \
+            Luminosità = E² (le creste). Polarizzazione lineare: due colori che si alternano cresta dopo cresta. \
+            Circolare: una vite colorata che gira mentre vola (a destra o a sinistra secondo l'elicità).").small());
         ui.separator();
-        let f = lab.fen.as_ref().unwrap();
-        ui.label(format!("λ = {} celle, fenditure a {:.0} celle, larghe {:.0}; schermo a {} celle dal muro",
-            f.f.lambda, f.f.fend[1] - f.f.fend[0], f.f.larghezza, f.f.x_schermo - f.f.x_muro));
-        if let Some((m, e)) = f.frange {
-            let dev = (m - e) / e;
-            ui.label(RichText::new(format!("prima frangia luminosa: misurata {:.1} celle dall'asse, geometria esatta {:.1} ({:+.1} %)", m, e, 100.0 * dev))
-                .color(if dev.abs() < 0.05 { GREEN } else { RED }));
-            ui.label(RichText::new("Il reticolo non è isotropo: in diagonale la luce delle palline è più lenta, le frange stanno più strette. \
-                Misurato: −25 % con 8 celle per λ, −13 % con 12, −11 % con 16 (si avvicina, piano).").small().color(GREY));
-        } else {
-            ui.label(RichText::new("le frange si misurano quando il fotone ha passato lo schermo").small().color(GREY));
+        ui.label(RichText::new("IL FOTONE DA LANCIARE").strong().color(GOLD));
+        ui.horizontal(|ui| {
+            ui.label("λ vera");
+            let mut lg = lab.lambda_m.log10();
+            ui.add(egui::Slider::new(&mut lg, -12.0..=3.0).show_value(false)).on_hover_text("dalle onde radio (km) ai raggi gamma (pm)");
+            lab.lambda_m = 10f64.powf(lg);
+            ui.label(RichText::new(format!("{} · {} · {} · {}", fmt_len(lab.lambda_m), banda(lab.lambda_m), fmt_freq(C_M_S / lab.lambda_m),
+                fmt_energia(HC_EV_NM * 1e-9 / lab.lambda_m))).color(CYAN));
+        });
+        ui.horizontal(|ui| {
+            for (t, l) in [("radio 1 m", 1.0), ("microonde 1 cm", 1e-2), ("visibile 500 nm", 500e-9), ("raggi X 0,1 nm", 1e-10), ("gamma 1 pm", 1e-12)] {
+                if ui.small_button(t).clicked() { lab.lambda_m = l; }
+            }
+        });
+        ui.label(RichText::new("La regola senza massa non ha una lunghezza sua: un fotone radio e un fotone gamma sono LO STESSO \
+            disegno di palline, cambia solo quanto è grande una cella (la scala in basso a sinistra) e quanto dura un tick. \
+            Cambiare λ qui non rilancia nulla: cambia solo la scala. L'unica cosa che cambia davvero con λ è come la luce \
+            parla con la materia (qui non c'è materia).").small().color(GREY));
+        let p = &mut lab.fot_par;
+        ui.horizontal(|ui| {
+            ui.label("qualità");
+            egui::ComboBox::from_id_salt("qual").selected_text(fotscena::QUALITA[p.qual].2).show_ui(ui, |ui| {
+                for (i, q) in fotscena::QUALITA.iter().enumerate() { ui.selectable_value(&mut p.qual, i, q.2); }
+            });
+        });
+        ui.horizontal(|ui| {
+            ui.label("larghezza al fuoco w0");
+            ui.add(egui::Slider::new(&mut p.w0_lambda, 0.7..=3.0).suffix(" λ").max_decimals(2));
+        });
+        ui.horizontal(|ui| {
+            ui.label("polarizzazione");
+            egui::ComboBox::from_id_salt("pol").selected_text(p.polar.nome()).show_ui(ui, |ui| {
+                for q in [Polar::Orizzontale, Polar::Verticale, Polar::CircolarePiu, Polar::CircolareMeno] { ui.selectable_value(&mut p.polar, q, q.nome()); }
+            });
+        });
+        ui.horizontal(|ui| {
+            ui.label("direzione");
+            egui::ComboBox::from_id_salt("dir").selected_text(DIREZIONI[p.dir % DIREZIONI.len()].0).show_ui(ui, |ui| {
+                for (i, (n, _)) in DIREZIONI.iter().enumerate() { ui.selectable_value(&mut p.dir, i, *n); }
+            });
+        });
+        if ui.add(egui::Button::new(RichText::new("  Lancia (F)  ").strong()).fill(Color32::from_rgb(40, 60, 110))).clicked() { lab.spara = true; }
+        ui.label(RichText::new(format!("La scatola: {n}³ celle = {l:.0} λ per lato, periodica e vuota. Il fotone parte lontano dalle \
+            facce, si stringe fino al fuoco al centro e poi si allarga (diffrazione); quando ha attraversato ne parte un altro uguale. \
+            Qualità e forma valgono dal prossimo lancio.", n = p.n(), l = p.n() as f64 / p.cpl())).small().color(GREY));
+        ui.separator();
+        ui.label(RichText::new("MISURATO DAL VIVO (dal campo, non disegnato)").strong().color(GOLD));
+        if let Some(o) = &o {
+            let lam = o.par.cpl();
+            let w0 = o.par.w0_lambda * lam;
+            let th_att = lam / (std::f64::consts::PI * w0);
+            egui::Grid::new("fot").striped(true).show(ui, |ui| {
+                ui.label("velocità del centro dell'energia");
+                match o.v {
+                    Some(v) => {
+                        ui.label(format!("{:.4} c", v));
+                        ui.label(RichText::new(format!("onde continue, stesso impulso: {:.4} c", o.v_continuo)).color(GREY));
+                        ui.label(if ((v - o.v_continuo) / o.v_continuo).abs() < 0.005 { RichText::new("entro 0,5 %").color(GREEN) } else { RichText::new("fuori 0,5 %").color(RED) });
+                    }
+                    None => { ui.label("…"); ui.label(""); ui.label(""); }
+                }
+                ui.end_row();
+                ui.label("elicità");
+                match o.elicita {
+                    Some(h) => {
+                        ui.label(format!("{:+.3}", h));
+                        ui.label(RichText::new(format!("attesa {:+.0}", o.par.polar.elicita())).color(GREY));
+                        ui.label(if (h - o.par.polar.elicita()).abs() < 0.02 { RichText::new("ok").color(GREEN) } else { RichText::new("no").color(RED) });
+                    }
+                    None => { ui.label("…"); ui.label(""); ui.label(""); }
+                }
+                ui.end_row();
+                ui.label("apertura del fascio θ");
+                match o.theta {
+                    Some(t) => {
+                        ui.label(format!("{:.3} rad", t));
+                        ui.label(RichText::new(format!("λ/(π w0) = {:.3}", th_att)).color(GREY));
+                        ui.label(if ((t - th_att) / th_att).abs() < 0.05 { RichText::new("entro 5 %").color(GREEN) } else { RichText::new("fuori 5 %").color(RED) });
+                    }
+                    None => { ui.label("…"); ui.label(""); ui.label(""); }
+                }
+                ui.end_row();
+                ui.label("larghezza ora");
+                ui.label(format!("{:.2} λ = {}", o.w / lam, fmt_len(o.w * lab.cella_m())));
+                ui.label(RichText::new(format!("al fuoco w0 = {:.2} λ", w0 / lam)).color(GREY));
+                ui.label("");
+                ui.end_row();
+            });
+            ui.label(RichText::new("La velocità è quella del centro dell'energia |F|²: un impulso stretto contiene onde un po' oblique, \
+                quindi lungo l'asse va appena meno di c (anche nelle onde continue: il confronto giusto è con la colonna grigia). \
+                Lungo un asse del reticolo la regola porta la luce a c esatto; in diagonale il reticolo la rallenta (debito).").small().color(GREY));
+            ui.label(RichText::new(format!("costo: {:.0} ms per tick · {} palline · {:.0} fps", o.ms_tick, lab.palline_disegnate, lab.fps)).small().color(GREY));
         }
-        ui.label(RichText::new("La luce del laboratorio del fotone (500 nm) è disegnata con 12 celle per λ; le fenditure sono lunghe \
-            (il problema è piano): ne disegniamo un pezzo.").small().color(GREY));
         ui.separator();
+        ui.label(RichText::new("STRATI (tutti dallo stesso campo F = E + icB delle palline)").strong().color(GOLD));
+        let v = &mut lab.vista_fot;
+        ui.horizontal(|ui| {
+            ui.checkbox(&mut v.e_nuvola, "E (nuvola)");
+            ui.checkbox(&mut v.b_nuvola, RichText::new("B (nuvola, blu)").color(Color32::from_rgb(110, 160, 255)));
+            ui.checkbox(&mut v.sezione, "sezione di traverso");
+        });
+        ui.horizontal(|ui| {
+            ui.checkbox(&mut v.e_vettori, "vettori E");
+            ui.checkbox(&mut v.b_vettori, RichText::new("vettori B").color(Color32::from_rgb(110, 160, 255)));
+            ui.checkbox(&mut v.poynting, RichText::new("Poynting S = E×B").color(GOLD));
+            ui.checkbox(&mut v.spin, RichText::new("spin").color(GREEN));
+        });
+        ui.checkbox(&mut v.polarizzatore, "nuvola E vista con un polarizzatore");
+        ui.label(RichText::new("Vettori: catene di palline che partono dall'asse del fascio e da 6 linee attorno, lunghe quanto il campo. \
+            Luce circolare: la catena di E gira lungo l'asse (un'elica); lineare: oscilla in un piano. B è sempre di traverso a E. \
+            Poynting (oro): dove va l'energia, lungo il volo. Spin: E(t−1) × E(t) (verde = lungo il volo, magenta = contro): \
+            c'è solo nella luce circolare. Sezione: il piano di traverso al centro dell'impulso. Polarizzatore: solo la parte di E \
+            lungo la polarizzazione di partenza (fa vedere le creste della luce circolare, che in E² non ci sono).").small().color(GREY));
         ui.horizontal(|ui| {
             ui.add(egui::Slider::new(&mut lab.grandezza, 0.3..=3.0).text("palline"));
             ui.add(egui::Slider::new(&mut lab.luce, 0.2..=4.0).text("luce"));
             ui.checkbox(&mut lab.bagliore, "bagliore");
         });
-        ui.label(RichText::new(format!("{} palline · {:.0} fps", lab.palline_disegnate, lab.fps)).small().color(GREY));
+        ui.label(RichText::new("DEBITI: l'ampiezza è quella di un'onda classica normalizzata (la regola è lineare: un fotone e un \
+            impulso forte hanno la stessa forma; il \"clic\" di un solo fotone non c'è ancora). Il reticolo cubico rallenta un po' \
+            la luce obliqua (dispersione): 0,5 % a 20° con 12 celle per λ, 3 % in diagonale con 8.").small());
     });
     if !open { lab.panel_open = false; }
 }
@@ -308,123 +414,7 @@ fn pannello_atomo(ctx: &egui::Context, lab: &mut Lab, cam: &mut Cam) {
             if let Some(z) = &lab.zz { z.lock().unwrap().ricomincia = true; }
         }
         ui.label(RichText::new("DEBITI: il campo del fotone è un impulso forte (come un laser), non un fotone solo; l'emissione \
-            spontanea (vuoto quantistico) non c'è: la sovrapposizione non decade da sola. Il nucleo di Nd ha B = 144: si vede un protone. \
-            La temperatura qui non fa nulla di visibile (in 10⁻¹⁹ s un nucleo a 300 K si sposta di 10⁻⁵ fm).").small());
-    });
-    if !open { lab.panel_open = false; }
-}
-
-fn pannello(ctx: &egui::Context, lab: &mut Lab, cam: &mut Cam) {
-    let mut open = true;
-    egui::Window::new("Carbonio dalle palline").open(&mut open).default_pos([12.0, 46.0]).default_width(470.0)
-        .default_height(820.0).resizable(true).vscroll(true).show(ctx, |ui| {
-        let lv = lab.lv.clone();
-        ui.label(RichText::new("Un atomo di carbonio fatto solo dalle nostre regole.").color(GOLD));
-        ui.label("Ingressi: ħ, e, mₑ, ε₀, c, la carica Z = 6 e la massa del nucleo. Nessun orbitale da tabella.");
-        ui.separator();
-        // ── photons ──
-        ui.label(RichText::new("FOTONE").strong().color(GOLD));
-        ui.horizontal(|ui| {
-            ui.label("λ");
-            ui.add(egui::Slider::new(&mut lab.lambda_nm, 40.0..=2000.0).logarithmic(true).suffix(" nm").max_decimals(2));
-        });
-        ui.horizontal(|ui| {
-            if ui.button(format!("2p→3s ({:.1} nm, calcolata)", lv.lambda_ecc_nm())).clicked() { lab.lambda_nm = lv.lambda_ecc_nm(); }
-            if ui.button(format!("ionizza (< {:.1} nm)", lv.lambda_ip_nm())).clicked() { lab.lambda_nm = (lv.lambda_ip_nm() * 0.8 * 100.0).round() / 100.0; }
-            if ui.button("visibile 500 nm").clicked() { lab.lambda_nm = 500.0; }
-        });
-        ui.horizontal(|ui| {
-            ui.label("da");
-            egui::ComboBox::from_id_salt("dir").selected_text(["sinistra", "davanti", "destra", "dietro", "sotto", "sopra"][lab.dir_sparo % 6]).show_ui(ui, |ui| {
-                for (i, n) in ["sinistra", "davanti", "destra", "dietro", "sotto", "sopra"].iter().enumerate() { ui.selectable_value(&mut lab.dir_sparo, i, *n); }
-            });
-            if ui.add(egui::Button::new(RichText::new("  Spara (F)  ").strong()).fill(Color32::from_rgb(40, 60, 110))).clicked() { lab.spara = true; }
-        });
-        let e_ev = crate::mondo::hartree_da_nm(lab.lambda_nm) * k::hartree_ev();
-        ui.label(RichText::new(format!("energia del fotone {:.3} eV · il fotone è disegnato ~1000 volte più corto del vero", e_ev)).small().color(GREY));
-        ui.label(RichText::new("Assorbito solo dove le palline hanno calcolato un livello: 2p→3s (entro l'errore del calcolo) \
-                                o sopra la soglia di ionizzazione. Altrimenti passa.").small().color(GREY));
-        ui.separator();
-        // ── what is shown ──
-        ui.label(RichText::new("VISTA").strong().color(GOLD));
-        ui.horizontal(|ui| {
-            ui.checkbox(&mut lab.mostra_nuvola, "nuvola");
-            ui.checkbox(&mut lab.mostra_protone, "mostra protone vero");
-            let mut e = lab.mostra_elettrone;
-            if ui.checkbox(&mut e, "mostra elettrone vero").changed() {
-                lab.mostra_elettrone = e;
-                if e { lab.scegli_elettrone(); lab.reset_dirac(); }
-            }
-        });
-        ui.horizontal(|ui| {
-            if ui.button("vai al nucleo (2)").clicked() { vai(lab, cam, Bersaglio::Nucleo); }
-            if ui.button("vai all'elettrone (3)").clicked() { vai(lab, cam, Bersaglio::Elettrone); }
-            if ui.button("atomo (1)").clicked() { vai(lab, cam, Bersaglio::Atomo); }
-        });
-        ui.horizontal(|ui| {
-            ui.add(egui::Slider::new(&mut lab.grandezza, 0.3..=3.0).text("palline"));
-            ui.add(egui::Slider::new(&mut lab.luce, 0.2..=4.0).text("luce"));
-            ui.checkbox(&mut lab.bagliore, "bagliore");
-        });
-        let conf: Vec<String> = lab.confini.iter().map(|c| format!("{:.2} Å", c * k::bohr_ang())).collect();
-        ui.label(RichText::new(format!("colori dei gusci: dai minimi della distribuzione radiale delle palline ({}). \
-            arancio = guscio interno, azzurro = esterno, viola = 3s", if conf.is_empty() { "—".into() } else { conf.join(", ") })).small().color(GREY));
-        ui.separator();
-        // ── numbers ──
-        ui.label(RichText::new("NUMERI (dalle nostre corse, assets/atomo/risultati.txt)").strong().color(GOLD));
-        let e_c = lab.r.e_c();
-        let pass = |ok: bool| if ok { RichText::new("PASS").color(GREEN) } else { RichText::new("FAIL").color(RED) };
-        egui::Grid::new("num").striped(true).show(ui, |ui| {
-            ui.label("energia C (DMC)");
-            ui.label(format!("{:.4} ± {:.4} Eₕ", e_c, lab.r.o("dmc_c_err", f64::NAN)));
-            ui.label(format!("esatta {:.4} ({:+.2} %)", E_ESATTA_C, 100.0 * (e_c - E_ESATTA_C) / E_ESATTA_C.abs()));
-            ui.label(pass(((e_c - E_ESATTA_C) / E_ESATTA_C).abs() < 0.01));
-            ui.end_row();
-            let ip = lv.ip * k::hartree_ev();
-            ui.label("ionizzazione");
-            ui.label(format!("{:.2} ± {:.2} eV", ip, lv.ip_err * k::hartree_ev()));
-            ui.label(format!("misura {:.2} eV ({:+.1} %)", IP_NIST_EV, 100.0 * (ip - IP_NIST_EV) / IP_NIST_EV));
-            ui.label(pass(((ip - IP_NIST_EV) / IP_NIST_EV).abs() < 0.03));
-            ui.end_row();
-            let ex = lv.de_ecc * k::hartree_ev();
-            ui.label("2p → 3s");
-            ui.label(format!("{:.2} ± {:.2} eV", ex, lv.de_ecc_err * k::hartree_ev()));
-            ui.label(format!("misura {:.2} eV ({:+.1} %)", ECC_NIST_EV, 100.0 * (ex - ECC_NIST_EV) / ECC_NIST_EV));
-            ui.label(pass(((ex - ECC_NIST_EV) / ECC_NIST_EV).abs() < 0.03));
-            ui.end_row();
-            ui.label("energia ora");
-            ui.label(format!("{:.3} Eₕ", lab.e_media));
-            ui.label(RichText::new("stima viva, rumorosa").color(GREY));
-            ui.end_row();
-            let ni = lab.nodo_info;
-            ui.label("protone (nodo B=1)");
-            ui.label(format!("B = {:.4}, E/12π² = {:.4}", ni[1], ni[2]));
-            ui.label(format!("raggio {:.2} fm, massa {:.0} MeV", ni[3], ni[4]));
-            ui.label("");
-            ui.end_row();
-            ui.label("elettrone zig-zag");
-            ui.label(format!("tremolio ±{:.3} ħ/mc", lab.zbw_ampiezza));
-            ui.label(format!("= ±{:.0} fm", lab.zbw_ampiezza * 386.159));
-            ui.label("");
-            ui.end_row();
-        });
-        ui.label(RichText::new(format!("fotoni: {} assorbiti · {} ionizzazioni · {} passati · {} emessi",
-            lab.storia.frame(lab.vista).assorbiti, lab.storia.frame(lab.vista).ionizzati,
-            lab.storia.frame(lab.vista).passati, lab.storia.frame(lab.vista).emessi)).small());
-        ui.label(RichText::new(format!("{} palline disegnate · {:.0} fps · storia {} frame, {:.0} MB",
-            lab.palline_disegnate, lab.fps, lab.storia.frames.len(), lab.storia.memoria_mb())).small().color(GREY));
-        ui.separator();
-        ui.label(RichText::new("DEBITI (messi a mano, da togliere)").strong().color(GOLD));
-        for d in [
-            "Nodi fissi: l'antisimmetria dei 6 elettroni viene dai nodi della guida (un determinante per spin). Errore piccolo ma non zero.",
-            "Il nucleo del carbonio ha B = 12: qui si vede UN protone (nodo B = 1). Il nucleo intero non è calcolato.",
-            "I due numeri del modello di Skyrme (F_π, e) sono presi da Adkins–Nappi–Witten (1983), non calcolati.",
-            "L'elettrone zig-zag è libero: il pacchetto non sente il nucleo e la sua larghezza è scelta.",
-            "Quanto è probabile l'assorbimento (forza della riga) e quanto dura lo stato eccitato non sono calcolati: l'attesa è compressa (~3 s).",
-            "Diffusione elastica (Rayleigh) non calcolata: fuori risonanza il fotone passa.",
-            "Temperatura: il nucleo si muove come un atomo di gas a 1 atm (urti come sfere dure). La foschia è solo visiva.",
-            "Il tremolio delle palline della nuvola è la regola (tempo immaginario), non un moto vero: la nuvola vera di uno stato stazionario è ferma.",
-        ] { ui.label(RichText::new(format!("• {d}")).small()); }
+            spontanea (vuoto quantistico) non c'è: la sovrapposizione non decade da sola. Il nucleo di Nd ha B = 144: si vede un protone.").small());
     });
     if !open { lab.panel_open = false; }
 }

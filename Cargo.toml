@@ -32,7 +32,7 @@ path = "src/compton/main.rs"
 name = "zigzag"
 path = "src/zigzag/main.rs"
 
-# Laboratorio Atomo: one carbon atom from the electron-ball rule (fixed-node DMC), zoom down to the proton knot
+# Laboratorio Atomo: the zig-zag rule only - a free 3-D photon of spin-1 balls, the one-electron atom Nd59+, the proton knot
 [[bin]]
 name = "atomo"
 path = "src/atomo/main.rs"
