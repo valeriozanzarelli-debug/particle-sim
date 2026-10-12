@@ -585,9 +585,11 @@ class BlockPair:
         bl = np.nonzero(m.any(axis=1))[0].astype(np.int64)
         _prolong_k(f.F, self.c.F, self.fco, self.cnb, bl, m, f.B, f.d, 0, np.zeros(0))
 
-    def detail(self):
+    def detail(self, sub=2):
+        """per-block max |F - P(coarse)|, on the cells with all local coordinates multiple of `sub`"""
         f = self.f
-        m = np.ones((f.nb + 1, f.Bd), np.bool_)
+        m = np.zeros((f.nb + 1, f.Bd), np.bool_)
+        m[:f.nb] = np.all(f.loc % sub == 0, axis=1)[None, :]
         out = np.zeros(f.nb)
         _prolong_k(f.F, self.c.F, self.fco, self.cnb, np.arange(f.nb, dtype=np.int64), m, f.B, f.d, 1, out)
         return out
@@ -677,6 +679,7 @@ class World:
         self.regrid_every = None      # dict i -> interval in own ticks (None = static)
         self.tol = None
         self.halo = 1
+        self.par_margin = 1
         self.nrebuild = 0
         self.max_cells = 0
 
@@ -759,7 +762,7 @@ class World:
         if i > 0:
             ch = self.levels[i - 1].coords
             par = np.floor_divide(ch, 2)
-            need.append(self._dilate(np.unique(par, axis=0), 1, d))
+            need.append(self._dilate(np.unique(par, axis=0), self.par_margin, d))
         need = np.concatenate(need, axis=0) if need else np.zeros((0, d), np.int64)
         if len(need) == 0:
             return need
