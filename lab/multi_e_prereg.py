@@ -1,0 +1,264 @@
+"""multi_e_prereg.py - pre-registrazione dello studio MOLTI ELETTRONI (atomi da He a Ne dalla regola zig-zag
+agglomerata), scritta PRIMA di qualunque corsa di produzione (anche degli esami R).
+Scrive lab/out/multi_e_prereg.json. Il brief e' docs/MOLTI_ELETTRONI_PIANO.md; qui stanno i numeri vincolanti
+(gate, esami, soglie, configurazioni) e le deviazioni dal brief dichiarate prima delle corse.
+Run: python lab/multi_e_prereg.py"""
+import json, os, subprocess, datetime
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+OUT = os.path.join(HERE, "out")
+os.makedirs(OUT, exist_ok=True)
+head = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=HERE).decode().strip()
+
+EH_EV = 27.211386245988          # Hartree in eV (CODATA 2018)
+ALPHA = 7.2973525693e-3          # stesso valore di lab/zz_core.py
+
+P = {
+ "meta": {
+   "study": "MOLTI_ELETTRONI", "written": datetime.datetime.now().isoformat(timespec="seconds"),
+   "git_head_before": head, "brief": "docs/MOLTI_ELETTRONI_PIANO.md (panel + giudici, 12-13 ott 2026)",
+   "hardware": "container cloud, 4 core (2 usati: un altro studio usa gli altri 2), 15 GB RAM, niente GPU; "
+               "Python con <= 2 thread BLAS / <= 2 processi",
+   "scope_of_this_session": "M0 (pre-registrazione, regola, gate) e M1 (elio) per quanto entra; M2-M6 nelle sessioni dopo, "
+                            "giudicate contro QUESTO file (cambi dichiarati).",
+   "results_document": "docs/MOLTI_ELETTRONI.md (italiano), figura lab/out/multi_e_figure.png",
+ },
+ "units": "atomiche (hbar = m_e = e = 1, energie in Eh) per gli atomi; la regola zig-zag usa hbar = c = m_e = 1 "
+          "(lunghezza lambda_C, tempo hbar/mc^2): Eh = alpha^2 mc^2, a0 = lambda_C/alpha, tick_au = tick * alpha^2.",
+ "constants": {"alpha": ALPHA, "Eh_eV": EH_EV,
+               "nuclear_masses_me (solo per la massa ridotta negli esami E)": {
+                   "1H": 1836.15267343, "4He": 7294.29954142, "7Li": 12786.393, "9Be": 16424.20, "20Ne": 36433.98},
+               "note": "ingressi ammessi: m_e (tramite theta), alpha, Z, masse dei nuclei (solo massa ridotta)"},
+
+ "inputs_from_repo": {
+   "fine_rule": "lab/zz_core.py (congelata), lab/agg_zz_core.py (fine3_tick_fast, bloch, auto_level, kcheck)",
+   "learned_levels": "lab/out/agg_zz_3d_A.pkl, agg_zz_3d_B.pkl (stessi stencil di assets/atomo/agglomerato_zz.json)",
+   "chain_A_theta": 0.03345605446386719,
+   "chain_B_theta": 0.2676484357109375,
+   "level1": "B = 16 fine cells, cell a0/256, coarse tick 0.535297 hbar/mc^2 = 2.8505e-5 a.u., descriptor pauli2, 125 taps",
+ },
+
+ "deviations_from_brief_declared_before_runs": [
+   "DV1: gli script di sviluppo del portatile (kcheck*.py, judge*.py, he_hf*.py, disp*.py nello scratchpad Windows) NON sono "
+   "raggiungibili dal cloud: lab/multi_e_dev/ non viene creato. Le osservazioni di sviluppo sotto sono copiate dal brief e "
+   "sono da riverificare (lo fanno gli esami stessi).",
+   "DV2: G1, parte Li-like/Be-like non interagenti. Il brief chiede -10.125 e -20 Eh a 1e-8: questo mescola la macchina "
+   "(antisimmetrizzatore, elementi di matrice) con la completezza della base gaussiana. Gate pre-registrato: con una base "
+   "prodotto tensoriale di n gaussiane a una particella, l'energia ECG antisimmetrizzata deve uguagliare a 1e-8 Eh la somma "
+   "degli autovalori a una particella calcolati in modo indipendente nella stessa base (eps_1s + eps_1s + eps_2s per Li; "
+   "2 eps_1s + 2 eps_2s per Be); la versione bosonica (senza segno) deve uscire diversa (3 eps_1s) - prova che il segno "
+   "conta. La distanza da -10.125 / -20 (completezza della base, n = 14 / 10) e' solo riportata.",
+   "DV3: R1, livello Pauli 1-D. Le matrici della catena 1-D non sono esportate e quella catena usa il descrittore (R, L) "
+   "a due bande, su cui il tempo immaginario e' illegale come sul fine. Si impara un livello Pauli 1-D (1 componente, banda "
+   "positiva, b = 16, w = 4) con la stessa ricetta di learn_h (minimi quadrati sul generatore, onde piane dal cammino "
+   "fine), e si confronta la sua proiezione in tempo immaginario con l'autovalore diretto (eigh) del suo G/tau + V.",
+   "DV4: R2, momenti del nucleo K_beta. Dove il nucleo non entra nella griglia (beta >= 1e-2 su 64^3/128^3) D e la "
+   "curtosi si prendono dai cumulanti in k (log K(k) = -beta (H(k) - H(0)), esatti per il reticolo infinito); il D nello "
+   "spazio reale e' misurato a beta = 1e-3 (nucleo largo 8 celle) e confrontato con la curvatura.",
+   "DV5: R4(b): il confronto 'camminatori = iterazione di potenza allo stesso beta' e' fatto sulla STESSA grandezza: lo "
+   "stimatore misto <psi_T|H_lat|phi_beta>/<psi_T|phi_beta>, con phi_beta = autovettore di T_beta per via deterministica "
+   "(potenza) e per via stocastica (camminatori). Si riporta anche lo stimatore di crescita.",
+   "DV6: motore dei camminatori di questa sessione in Python + numba (lab/multi_e_dmc.py), stesso algoritmo del brief "
+   "3.7 (passi elettrone per elettrone, drift UNR limitato, accetta/rifiuta di Reynolds, nodo attraversato = rifiutato, "
+   "branching con media di E_L, T_pop = 1 a.u., errori a blocchi). Il bin Rust 'elettroni' e G2 vengono dopo (prima del "
+   "litio).",
+   "DV7: guida della DMC dell'elio (D1, D2) in questa sessione: orbitali del campo medio x e^{u(r12)}, u = c r/(1 + b r) "
+   "con c = cuspide di Kato derivata (m_kin/2 antiparalleli, m_kin/4 paralleli) e b = 1.0 a0^-1 FISSO (non ottimizzato; "
+   "la regola a grappoli J si impara in M2). Per stati senza nodo (D1) o col nodo esatto (D2) la guida cambia solo la "
+   "varianza, non il valore. D6 usa u = 0 come da brief.",
+   "DV8: theta -> 0. Il brief usa m_kin(0) misurato (R3). Regola: E(theta->0) = E(m_kin(theta_A)) * m_kin(0)/m_kin(theta_A); "
+   "l'incertezza di m_kin(0) (rumore fra semi) entra nella barra d'errore come |E| * sigma_m.",
+ ],
+
+ "development_observations_already_seen (from the brief, laptop, unverified here)": [
+   "peso negativo del livello 1 ~1e-14 per beta >= 5e-5 a.u., 0.6-3% per beta <= 2e-5",
+   "42 tap del generatore col segno sbagliato (max +1580 Eh contro diagonale 87800 Eh): non stoquastico",
+   "livelli a0/16 e a0/8: peso negativo 2-30% a beta = 1e-3...1e-2",
+   "parte dispari in parita' dello stencil 3e-4 a kh = 0.01, 3e-2 a kh = 1",
+   "dispersione simmetrizzata 0.999614 a k = 1/a0; 0.99930 / 0.99903 / 0.99898 a k = 10/a0 (24-48% del k^4 di Dirac)",
+   "D 0.499808 (catena A) / 0.488034 (catena B); m_kin(0) = 1.000001 da A e B",
+   "He Hartree-Fock -2.8616803 Eh in 8 s",
+   "m_kin curvatura catena A 1.000384, catena B 1.024518 (tan(theta)/theta: 1.000373, 1.024574)",
+   "nessuna corsa di sviluppo nel cloud prima di questo file (salvo la lettura di file e la stampa della struttura dei pkl)",
+ ],
+
+ "derivation_chain_tags": "GIVEN, LEARNED, DERIVED, EXACT, COMPUTED, CHOSEN, DEBT-n (vedi brief par. 2); debiti DEBT-1..DEBT-10 "
+                          "come nel brief (1 interazione e-e istantanea; 2 antisimmetria; 3 nucleo puntiforme e massa "
+                          "infinita; 4 proiezione non relativistica; 5 campo medio = Hartree-Fock come portatore dei nodi; "
+                          "6 famiglia funzionale di J; 7 nodo fisso; 8 parita' dello stencil; 9 nucleo continuo dei "
+                          "camminatori; 10 configurazioni).",
+
+ # ------------------------------------------------------------------ gates
+ "gates": {
+   "G0": {"what": "parita' della regola fine: matrici di Bloch a due tick a +k e -k (200 k casuali, |k| <= 0.5/cella, catena A)",
+          "target": "autofasi ordinate uguali a 1e-12; fase della banda positiva vista dal descrittore pauli2 (16 tick fini) "
+                    "uguale a 1e-12; controllo incrociato Bloch = fine3_tick_fast su onde piane a 1e-12",
+          "if_pass": "parte dispari dello stencil = artefatto dell'apprendimento: si simmetrizza H_j -> Re(H_j + H_-j)/2 (DEBT-8)",
+          "if_fail": "si tiene la parte dispari come peso complesso (dichiarato)"},
+   "G1": {"what": "macchina ECG su sistemi che non sono esami",
+          "targets": {"H 1 elettrone": "-0.5 a 1e-8 Eh (K <= 40)",
+                      "atomo di Hooke 2e, omega = 1/2": "2.0 a 1e-8 Eh (K = 200)",
+                      "Li-like e Be-like non interagenti": "vedi DV2: somma degli autovalori a una particella nella stessa base a 1e-8 Eh; bosonico diverso",
+                      "Monte Carlo di <1/r_ij> su elementi casuali": "accordo a 1e-4 relativo (4e6 campioni)"}},
+   "G2": {"what": "Rust contro Python, energie locali", "target": "1e-10", "status": "rinviato (DV6)"},
+   "G3": {"what": "campo medio (unit test con valori HF della letteratura, dichiarati come test di implementazione, mai esami di fisica)",
+          "m_kin": 1.0,
+          "targets_Eh": {"He": -2.8616800, "Li (ROHF)": -7.4327269, "Be": -14.5730232, "Ne": -128.5470981, "H-": -0.4879297},
+          "tolerance": "2e-5 relativo", "random_start_independence": "1e-9 Eh fra 5 partenze casuali a banda limitata e la partenza dall'orbitale idrogenoide della regola"},
+   "G4": {"what": "cucitura della dispersione oltre la zona del livello (|k| > pi/h)",
+          "target": "parte di <eps> da oltre la zona < 1e-6 relativa, per gli stati ECG effettivamente usati con eps_L pieno; "
+                    "altrimenti cucitura continua a 1e-8"},
+   "G5": {"what": "rapporto 2s/1s monotono sulla griglia usata per He 2^3S (nodo del determinante esattamente r1 = r2)",
+          "target": "monotono su tutti i punti con |phi_1s| > 1e-300"},
+ },
+
+ # ------------------------------------------------------------------ R class
+ "R_exams": {
+   "R1": {"target": "cammino fine 1-D (Coulomb morbido): energia proiettata e^{-beta H_eff} < -1 mc^2 a beta = 50 hbar/mc^2 "
+                    "(affonda verso il fondo del reticolo ~ -pi/dt); livello Pauli 1-D imparato: |E_proj - E_eigh| < 1e-6 relativo",
+          "config": "theta = 0.1, N = 1024 celle, dt = 1 tick, V = -V0/sqrt(1 + (x/w)^2), V0 = 0.05 mc^2, w = 20 celle "
+                    "(pozzo morbido), stato iniziale gaussiano a banda positiva; livello Pauli 1-D: b = 16, w = 4"},
+   "R2": {"target": {"level1": "beta_min <= 1e-4 a.u.; peso negativo < 1e-10 per ogni beta in [beta_min, 1e-2]; |sum K - 1| < 1e-9",
+                     "D": "entro 2e-5 dal valore di curvatura", "kurtosis": "|curtosi in eccesso| < 0.02 a beta = 1e-2",
+                     "a0/16 e a0/8": "registrati come non-camminatori (peso negativo > 1e-3 a qualche beta <= 0.03; atteso)"},
+          "betas_au": [1e-6, 5e-6, 1e-5, 2e-5, 5e-5, 1e-4, 1e-3, 1e-2, 3e-2], "grids": [64, 128],
+          "negative_weight_definition": "-sum_{K<0} K / sum K nello spazio reale (FFT); scelta automatica del livello: il piu' "
+                                        "grosso con peso negativo < 1e-10 su [beta_min, 1e-2], beta_min <= 1e-4"},
+   "R3": {"target": "m_kin(theta -> 0) = 1 entro 5e-5",
+          "method": "curvatura della dispersione simmetrizzata (media di spin) a |k| in [1e-3, 4e-3] celle^-1, 26 direzioni; "
+                    "catene A (theta_A), B (theta_B) e nuova A/2 (theta_A/2, imparata ora con auto_level e gli stessi "
+                    "iper-parametri della catena A); due semi di apprendimento per catena; fit m(theta) = m0 + a theta^2 + b theta^4 "
+                    "(3 punti, esatto); sigma da rifare il fit su tutte le combinazioni di semi (8) - deviazione standard"},
+   "R4": {"target": {"a": "iterazione di potenza (beta -> 0, quadratica in beta) = LOBPCG a 1e-6 relativo; lettura in tempo reale "
+                          "-arg<psi|W|psi>/tau = LOBPCG a 3e-5 relativo",
+                     "b": "camminatori sul reticolo = iterazione di potenza allo stesso beta entro 3 sigma, con sigma <= 1e-4 relativo"},
+          "config": "Z = 16, livello 1 simmetrizzato (catena A), 192^3 celle (+-6 a_Z, cella a0/256), nucleo su uno spigolo, V = "
+                    "-Z * media di cella di 1/r; beta in {2e-4, 1e-4, 5e-5}; camminatori: posizioni intere, salti da una "
+                    "tabella alias di K_beta (supporto +-6 sigma), branching dai pesi di Strang, guida NON esatta "
+                    "psi_T = exp(-Z m_kin r) per lo stimatore misto, beta in {2e-4, 1e-4}, 20000 camminatori, "
+                    "T_pop = 1 a.u., blocchi; tempo ~20 min per beta"},
+   "R5": {"target": {"NR": "ECG 1 elettrone, Z = 1, 2, 10: E = -m_kin Z^2/2 a 1e-6 relativo",
+                     "full": "eps_L pieno (livello ri-imparato) a Z = 10: (E_full - E_NR)/(-5 alpha^2 Z^4/8) = 1 +- 0.05"}},
+   "R6": {"target": "He-like Z = 6..10: (E_full - E_NR)/(-alpha^2 <sum p_i^4>/8) = 1 +- 0.10 sul livello ri-imparato; "
+                    "riportato anche sul livello esistente: FAIL atteso (24-48%)"},
+   "R7": {"target": "campo medio di He su reticoli 3-D imparati (a0/16 e a0/32, Richardson) = campo medio radiale a 1e-3 relativo",
+          "status": "M6, non in questa sessione"},
+ },
+
+ # ------------------------------------------------------------------ M class (machinery, theta -> 0)
+ "M_exams_machinery": {
+   "note": "operatore non relativistico della regola, theta -> 0 per scala esatta (DV8). Macchina, non scoperta.",
+   "M1 He 1^1S": {"target": -2.903724377, "tol_Eh": 0.29e-3},
+   "M2 He 2^3S": {"target": -2.175229378, "tol_Eh": 0.22e-3},
+   "M3 H-": {"target": -0.527751017, "tol_Eh": 0.05e-3, "also": "sotto -0.5"},
+   "M4 Li": {"target": -7.478060323, "tol_Eh": 0.75e-3},
+   "M5 Be": {"target": -14.6673565, "tol_Eh": 1.5e-3, "downgrade": "se non converge: CHECK a 4 elettroni declassato (dichiarato)"},
+   "Li+": {"target": -7.279913413, "tol_rel": 1e-4}, "Be+": {"target": -14.324763177, "tol_rel": 1e-4},
+ },
+
+ # ------------------------------------------------------------------ D class
+ "D_exams": {
+   "D1": "He DMC (senza nodi, regola ruotata di Wick, D dall'export) = ECG He sullo stesso operatore: |Delta| <= max(3 sigma, 0.1 mEh), sigma <= 1e-4",
+   "D2": "He 2^3S DMC col nodo esatto r1 = r2 = ECG, entro max(3 sigma, 0.1 mEh)",
+   "D3": "Li bosonico (senza nodo, senza guida): E < -8.0 Eh",
+   "D4": "nodo del Li (un determinante): -3 sigma <= E_DMC - E_ECG <= 0.3 mEh + 3 sigma, sigma <= 1e-4",
+   "D5": "nodo del Be (scelto in automatico): -3 sigma <= dE <= 1.5 mEh + 3 sigma, sigma <= 2e-4; un determinante riportato (atteso 8-12 mEh, FAIL atteso)",
+   "D6": "cuspide di Kato nei camminatori: He, guida con u = 0, intracula estrapolata (2 I_mix - I_VMC) a bin 0.01 a0, fit "
+         "h(r) = h0 (1 + c r + d r^2) su r < 0.25 a0: c = m_kin +- 0.10 (solo spin opposti)",
+   "D7": "sanita' variazionale: E_DMC >= E_esatta - 3 sigma (Ne: E_est - 1 mEh - 3 sigma)",
+   "D0b": "(opzionale) He camminatori sul reticolo = continuo entro 3 sigma, sigma <= 1e-3",
+ },
+ "S_exams": {
+   "S1": "Li 1s^2 2s sotto 1s^2 2p di > 3 sigma (DMC); enumerazione del campo medio da' 1s^2 2s^2 2p^6 per Ne; la regola di tenuta "
+         "aggiunge 2p^2 per Be e nulla per He, Li, Ne",
+   "S2 (opzionale)": "Hund: C 3P < 1D, N 4S < 2D, O 3P < 1D; separazioni 1.264 / 2.384 / 1.967 eV entro +-0.15 eV",
+ },
+ "C_exams": {
+   "definition": "frazione di correlazione = (E_mf - E_VMC)/(E_mf - E_esatta), stesso nodo",
+   "C1": "tenuti fuori He-like Z = 7..10: >= 95%; Li-like Z = 7..10: >= 90%",
+   "T1": "Be-like Z = 5, 6 con J addestrato solo su 2e/3e: >= 70% (prima che entrino nell'addestramento)",
+   "C2": "Be (Z = 4, tenuto fuori), J finale, nodo scelto: >= 80%",
+   "C3": "Ne regola economica (VMC, J trasferito, niente rifit): >= 60% di E_mf - E_est",
+ },
+ "E_exams_experiment": {
+   "note": "valori non relativistici con massa ridotta (mu/m_e) applicata SOLO qui; polarizzazione di massa trascurata. "
+           "Gli esperimenti sono solo esame.",
+   "E1 He prima ionizzazione": {"target_eV": 24.587389, "tol_eV": 0.010, "route": "ECG He e He+ (theta -> 0)"},
+   "E2 H- affinita' elettronica": {"target_eV": 0.754195, "tol_eV": 0.005, "route": "ECG H- e H"},
+   "E3 Li ionizzazione": {"target_eV": 5.391715, "tol_eV": {"ECG": 0.010, "DMC": 0.02}},
+   "E4 Li 2s -> 2p": {"target_eV": 1.8478, "tol_eV": 0.02},
+   "E5 Be ionizzazione": {"target_eV": 9.322699, "tol_eV": {"ECG": 0.015, "DMC": 0.05}},
+   "N1 Ne totale": "(a) E >= -128.9376 - 1 mEh - 3 sigma; (b) >= 90% di E_mf - E_est (DEBOLE, dichiarato); sigma <= 4 mEh",
+   "N2 Ne ionizzazione": {"target_eV": 21.564540, "tol_eV": 0.25, "sigma_max_eV": 0.08},
+   "B1 (opzionale)": {"B": 8.298019, "C": 11.260288, "N": 14.53413, "O": 13.618055, "F": 17.42282, "tol_eV": 0.15,
+                      "also": "cali Be -> B e N -> O col segno giusto"},
+ },
+ "report_only": [
+   "E1c: rigetto del campo medio come livello finale (atteso 1.45% su He contro un budget di 3e-4)",
+   "Delta-SCF ionizzazioni ~23.45 / 5.34 / 8.04 / 19.85 eV (He / Li / Be / Ne), tutte attese fallire",
+   "H- non legato nel campo medio (-0.48793 > -0.5), legato solo con correlazione (M3)",
+   "contenuto alpha^2 del Ne da n(k) VMC", "nodi del portatore solo-Hartree per Li e Be",
+   "nota A2a: +0.034% dalla massa contro ~-0.08% dal Coulomb mediato sulla cella a Z = 1",
+   "G1: distanza dei sistemi non interagenti da -10.125 / -20 (completezza della base)",
+ ],
+
+ # ------------------------------------------------------------------ configurations
+ "configurations": {
+   "ECG": {
+     "basis": "phi_k = exp(-r^T (A_k x I3) r), A_k = sum_{i<=j} alpha_ij w_ij w_ij^T, definita positiva (controllo)",
+     "antisymmetry": "funzione di spin primitiva alpha...alpha beta...beta con M_S fissato; somma su S_Nup x S_Ndown (1 termine He 1S, 2 "
+                     "He 3S e Li, 4 Be)",
+     "matrix_elements": "S = (pi^N/det C)^{3/2}; <1/|w^T r|> = S (2/sqrt pi)(w^T C^-1 w)^{-1/2}; T_NR = S (3/m_kin) tr[A C^-1 B']; "
+                        "T_full = S sum_i F(s_i), s_i = 2[A C^-1 B']_ii",
+     "SVM": "crescita una funzione alla volta: 30 prove casuali (Z-scalate), tenuta la migliore con l'aggiornamento di rango 1 "
+            "(equazione secolare); 3 giri di raffinamento (30 prove per funzione); guardia di condizionamento: rifiuto se la "
+            "sovrapposizione normalizzata con lo spazio esistente > 1 - 1e-10",
+     "random_parameters": "lunghezze log-uniformi: elettrone-nucleo L in [0.01, 20]/Z (H-: [0.01, 30]); elettrone-elettrone "
+                          "L12 in [0.05, 30]/Z, segno + con prob. 0.8 e - con prob. 0.2 (solo se A resta definita positiva), "
+                          "assente con prob. 0.2",
+     "K_budgets": {"1e": 40, "2e 1S": 200, "2e 3S": 150, "H-": 200, "3e": 400, "4e": 600, "Hooke": 200},
+     "convergence_record": "E contro K salvato; errore di convergenza stimato da |E(K) - E(K - 50)| (riportato, non sottratto)",
+     "runs_NR": "a m_kin(theta_A), poi scala esatta (DV8). He-like 1S Z = 1..10, 3S Z = 2..10, ioni idrogenoidi Z = 1..10 (analitici "
+                "e ECG per R5)",
+     "runs_full": "eps_L pieno (livello ri-imparato e livello esistente) per R5 (Z = 10, 1e) e R6 (He-like Z = 6..10): base dalla corsa "
+                  "NR + 2 giri di raffinamento con l'operatore pieno",
+   },
+   "dispersion": {"relearn": "auto_level(fine3, energy_mode='state', k_obs = 10/a0, eps_energy = 3e-5, bs = (16, 8, 4, 3, 2), "
+                             "ws = (1, 2, 3, 4), learner='auto', packets='phys', T_obs = 1000) a theta_A e theta_A/2",
+                  "F": "F(s) = E_{p ~ N(0, s I3)}[eps_bar_L(|p|)], F4(s) = 15 s^2; media sferica su 400 direzioni (spirale di "
+                       "Fibonacci); tabella radiale fino al bordo della zona, banda fine cucita oltre"},
+   "mean_field": {"grid": "x = ln r uniforme, r in [1e-9/Z, 60] a0 (H-: 80), differenze finite del 4o ordine, 3000 punti e 6000 "
+                          "(raddoppio, Richardson)", "exchange": "Y^k (k = 0, 1, 2) con fattori angolari s/p esatti; ROHF media sferica",
+                  "starts": "5 campi casuali a banda limitata + orbitale idrogenoide della regola; minimo tenuto",
+                  "occupations": "enumeratore sui livelli piu' bassi ascoltati (aufbau deve emergere)"},
+   "DMC_He": {"tau_au": [0.02, 0.01, 0.005], "walkers": 4000, "T_pop_au": 1.0,
+              "length": "per ogni tau finche' sigma_blocchi <= 6e-5 Eh o tetto di tempo; equilibratura 20 a.u. scartata",
+              "blocking": "il piu' grande fra 32/16/8 blocchi",
+              "tau_extrapolation_rule": "fit lineare in tau sui 3 punti; quadratico solo se il chi^2 lineare da' p < 0.05 (dichiarato)",
+              "extend_rule": "se sigma estrapolato > obiettivo: si allungano le corse (checkpoint), MAI si allarga la tolleranza",
+              "D6": "guida u = 0, intracula mista e VMC, bin 0.01 a0, r < 0.25 a0"},
+   "J_learning (M2)": {"families": "(A) u(r_ij) con coefficienti c0 + c1/Z; (B) u(r_ij / r_s(rho_mf al punto medio))",
+                       "orders": ["{u, chi}", "{u, chi, f}", "{u, chi, f, g}"],
+                       "choice": "il piu' piccolo entro 1 punto percentuale della migliore frazione VMC lascia-uno-Z-fuori (solo Z di addestramento)",
+                       "training": "He-like Z = 1..6 (1S), Z = 2..6 (3S); Li-like Z = 3..6; Be-like Z = 5, 6 dopo T1",
+                       "held_out": "He-like e Li-like Z = 7..10; Be (Z = 4)",
+                       "fit": "minimi quadrati lineari, perdita di Huber, ridge 1e-8, polinomi in x/(1+x); esclusioni r_ij < 0.05/Z, "
+                              "r_iI < 0.02/Z, |Phi_mf| < 1e-3 mediana",
+                       "fallback": "corrispondenza delle densita' (intracula, densita' e-n) se la validazione incrociata e' migliore"},
+   "configurations_rule": "generatore meccanico: tutte le CSF con L, S, parita' del riferimento dentro la shell n degenerata nello "
+                          "spettro della regola; tenuta se una DMC pilota abbassa l'energia di > max(1 mEh, 3 sigma_pilota); "
+                          "produzione con semi nuovi, indipendente dalla pilota",
+ },
+ "readout_rules": {
+   "theta_to_0": "E(theta -> 0) = E(m_kin(theta_A)) * m_kin(0)/m_kin(theta_A) (esatto per l'operatore non relativistico)",
+   "reduced_mass": "solo per gli esami E: E_mu = E * mu/m_e, mu = M/(M + 1)",
+   "ionisation": "IE = E(ione) - E(atomo), entrambe con la stessa massa ridotta",
+   "error_bars": "ECG: convergenza in K (|E(K) - E(K-50)|) + incertezza di m_kin(0); DMC: blocchi + estrapolazione in tau",
+ },
+ "parameter_count_expected": {"physical_inputs": "m_e (theta), alpha, Z; masse nucleari solo per mu",
+                              "learned_from_fine_rule": "stencil livello 1 (125 tap simmetrizzati), D, m_kin(0), livello ri-imparato",
+                              "fitted_to_exams": 0},
+}
+
+json.dump(P, open(os.path.join(OUT, "multi_e_prereg.json"), "w"), indent=1, ensure_ascii=False)
+print("written lab/out/multi_e_prereg.json")
