@@ -21,7 +21,7 @@ La copia separata serve a non toccare mai la cartella in cui lavori a mano.
 | `ping` | revisione git, scheda video, CPU, RAM | nessuno |
 | `build` | `cargo build --bin atomo` | nessuno |
 | `test` | `cargo test --bin atomo` | `filtro` (nome del test), `ignored` (true/false) |
-| `foto` | compila e lancia il Laboratorio Atomo in modalità `--foto`, restituisce l'immagine | `scena`, `zoom`, `stati`, `qual`, `qualita`, `polar`, `dir`, `w0`, `lambda-m`, `strati`, `frames`, `spara-al`, `misure`, `ritmo`, `yaw`, `pitch`, e i flag `surfisti`, `collassa`, `pannello` |
+| `foto` | compila e lancia il Laboratorio Atomo in modalità `--foto`, restituisce l'immagine | `scena`, `zoom`, `stati`, `qual`, `qualita`, `polar`, `dir`, `w0`, `lambda-m`, `strati`, `frames`, `spara-al`, `misure`, `ritmo`, `yaw`, `pitch`, `distanza`, e i flag `surfisti`, `collassa`, `pannello` |
 
 Ogni valore viene controllato (scelte fisse o espressioni regolari) prima di essere usato. Il ponte
 **non** esegue comandi liberi scritti nel repo. Resta vero che compilare ed eseguire il codice del

@@ -75,6 +75,7 @@ FOTO_ARGS = {
     "ritmo": _num(0.0, 1000.0),
     "yaw": _num(-10.0, 10.0),
     "pitch": _num(-10.0, 10.0),
+    "distanza": _num(0.01, 1e6),
 }
 FOTO_FLAGS = {"surfisti", "collassa", "pannello"}
 
