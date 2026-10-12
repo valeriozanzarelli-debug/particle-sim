@@ -1,0 +1,3 @@
+{"runs": {"6": {"T": 24, "L": 20, "seed": 99, "n_therm": 100, "n_or": 3, "sep": 2, "n_meas": 400,
+ "smear_levels": [2, 6, 12], "ape_alpha": 0.5, "sq_sizes": [1, 2, 3, 4], "rect_sizes": [1, 2],
+ "creutz_every": 10, "creutz_Rmax": 6}}}
