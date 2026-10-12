@@ -3,8 +3,8 @@
 Levels are listed finest first. Level l: spacing h_l, points i*h_l for i = -N_l..N_l (origin is a grid point),
 owned half-width R_l (|x|_inf <= R_l), R_l a multiple of h_{l+1}; the coarsest level owns everything (Dirichlet
 vacuum outside, as knot_core). Composite field:
-  * owned points of level l that lie inside the finer box R_{l-1} are INJECTED from level l-1 (restriction);
-  * points of level l outside R_l (ghost layer, >= 2 points) are PROLONGED from level l+1 by tensor-product cubic
+  * free (owned) points of level l: |x|_inf <= R_l - h_{l+1}; those inside R_{l-1} - h_l are INJECTED from level l-1;
+  * points of level l with |x|_inf > R_l - h_{l+1} (one coarse cell of band + ghost layer) are PROLONGED from level l+1 by tensor-product cubic
     Lagrange interpolation, then renormalised to the 3-sphere.
 Energy (conservative partition of volume): E = sum_l h_l^3 sum_x W_l(x) [k2_l e2 + k4_l e4](x),
   W_l = T_l - T_{l-1},  T_l(x) = prod_axes trapezoid indicator of the box R_l (1 inside, 1/2 on the face, 0 outside),
@@ -91,8 +91,11 @@ class Hier:
             T = box_trap(N, h, R)
             Tf = torch.zeros_like(T) if l == 0 else box_trap(N, h, levels[l - 1]["R"])
             self.W.append(T - Tf)
-            self.M.append(box_mask(N, h, R) if R is not None else None)
-            self.Mi.append(None if l == 0 else box_mask(N, h, levels[l - 1]["R"]))
+            # conforming band (fix, see ZOOM_NODO.md): fine points in R-w < |x|_inf <= R (w = coarser h) are NOT free,
+            # they are the cubic interpolation of the coarse field, so the fine field cannot kink at the interface.
+            wl = levels[l + 1]["h"] if l + 1 < n else 0.0
+            self.M.append(box_mask(N, h, R - wl) if R is not None else None)
+            self.Mi.append(None if l == 0 else box_mask(N, h, levels[l - 1]["R"] - h))
             if l + 1 < n:
                 c = levels[l + 1]
                 r = c["h"] / h; assert abs(r - round(r)) < 1e-9; r = int(round(r))
@@ -102,7 +105,7 @@ class Hier:
                 Rc = c["R"] if c["R"] is not None else c["N"] * c["h"]
                 assert need <= Rc + 1e-9, f"prolongation buffer: level {l} needs coarse owned to {need}, has {Rc}"
                 self.P.append(lagrange_matrix(N, h, c["N"], c["h"]))
-                self.inj.append((r, int(round(R / c["h"]))))
+                self.inj.append((r, int(round(R / c["h"])) - 1))
             else:
                 self.P.append(None); self.inj.append(None)
         self.sites = sum((2 * lv["N"] + 1) ** 3 for lv in levels)
