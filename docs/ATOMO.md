@@ -115,21 +115,55 @@ Soglie (test `cargo test --bin atomo fotone`, `src/atomo/tests.rs`; volo lungo u
 
 Le soglie non si cambiano dopo la corsa; un fallimento si scrive qui.
 
-**Risultati**: (dopo la corsa, sotto)
+### 4.1 Risultati (corsa del 12 ottobre 2026, `cargo test --bin atomo fotone -- --include-ignored`)
+
+| prova | misurato | esito |
+|---|---|---|
+| F1a | **0,99647 c** (−0,35 %); onde continue per lo stesso impulso 0,99713 c | **PASS** |
+| F1b, 8 celle per λ | **0,96996 c** contro 0,97558 c delle onde continue (**−0,58 %**) | **FAIL** (di poco) |
+| F1b, 16 celle per λ | **0,97475 c** contro 0,97558 c (−0,085 %) | **PASS** |
+| F2, 8 celle per λ | circolare ±: **±1,0091**; lineare h e v: 0,0000 | **PASS** |
+| F2, 16 celle per λ | circolare ±: **±1,0193**; lineare: 0,0000 | **PASS** (di poco) |
+| F3, 8 celle per λ | θ = **0,1678** contro λ/(π w0) = 0,2122 (**−20,9 %**) | **FAIL** |
+| F3, 16 celle per λ | θ = **0,1995** (**−6,0 %**) | **FAIL** |
+| F4 | Σ|ΔF|² = **1,9·10⁻¹³** | **PASS** |
+
+Nota onesta su F1b: nella prima corsa il valore di riferimento delle onde continue usciva NaN (0/0 nel modo
+q = 0 della somma); corretto il calcolo del riferimento, la misura del reticolo è rimasta la stessa (0,96996 c).
+
+**Perché F3 fallisce (diagnosi, dopo la corsa).** La regola allarga il fascio di traverso più piano delle onde
+continue. Dalla matrice di due tick della regola, per un'onda che va lungo x con k a = 2π/(celle per λ) e una
+piccola componente di traverso q⊥, la velocità di traverso è **v⊥ = q⊥ / tan(k a)** invece di q⊥ / (k a): il
+fattore è **k a / tan(k a)** = 0,785 con 8 celle per λ, 0,907 con 12, 0,948 con 16, 0,977 con 24, 0,987 con 32.
+L'apertura misurata segue questa previsione della regola stessa entro 0,5–0,8 % a tutte le qualità (test
+`fotone_divergenza_qualita`, dopo la corsa): 8 celle −20,9 % (previsione −21,5 %), 12 celle −9,8 %, 16 celle
+−6,0 %, **24 celle −3,1 %** (entro il 5 %, ma la soglia era scritta per 8 e 16 celle: non conta come PASS).
+È lo stesso difetto che stringeva le frange della doppia fenditura (§5). Lungo un asse la luce va a c esatto;
+quello che il reticolo sbaglia è **quanto si apre di lato** (e quanto va piano in obliquo).
+
+Elicità: l'eccesso (+0,9 % e +1,9 %) è dello stimatore, non della luce: divide per sin ω della frequenza
+centrale, mentre un impulso stretto contiene onde oblique con |q| un po' più grande. La luce lineare dà 0 a 10⁻¹⁰.
+
+Altre direzioni (informativo, 8 celle per λ, w0 = 1,5 λ, circolare +): lungo x, y, z velocità 0,986 c (onde
+continue 0,989), elicità +1,003, θ 0,167; **in obliquo (1,1,0) 0,900 c, in diagonale (1,1,1) 0,876 c**: il
+reticolo rallenta molto la luce che non va lungo un asse (con 8 celle per λ).
 
 ## 5. La doppia fenditura tolta: diagnosi dell'errore delle frange
 
 La v1 misurava la prima frangia a 33,5 celle contro 38,3 della geometria esatta (−12,7 %) e lo attribuiva
-all'anisotropia del reticolo. **Non era così** (corse di sviluppo in Python con la stessa regola, prima che la
-scena fosse tolta):
-* **dispersione della luce del reticolo** ω(k) dalla matrice di due tick: con 12 celle per λ la velocità di fase
-  è 0,9986 c a 10°, 0,9952 a 20°, 0,9883 a 45° (lungo gli assi 1 esatto). La frangia sta a ~20°: l'anisotropia
-  sposta la frangia di ~0,5 %, non del 13 %.
+all'anisotropia del reticolo. Corse di sviluppo in Python con la stessa regola (prima che la scena fosse tolta) e il
+fotone libero 3-D (§4.1) dicono come stanno le cose:
+* **la velocità di fase** della luce del reticolo (dalla matrice di due tick) è quasi giusta: con 12 celle per λ
+  0,9986 c a 10°, 0,9952 a 20°, 0,9883 a 45° (lungo gli assi 1 esatto). Questa da sola sposterebbe la frangia di
+  ~0,5 %.
+* **la direzione in cui va l'energia invece no**: di lato la regola trasporta la luce con v⊥ = q⊥ / tan(k a)
+  invece di q⊥ / (k a) (§4.1), cioè il 9,3 % più piano con 12 celle per λ. Le frange stanno dove arriva l'energia:
+  si stringono di ~9 %. Questo è il difetto del reticolo.
 * **la formula "geometria esatta" non è il riferimento giusto** per quella scena: lo stesso schermo vicino (106
   celle), le stesse fenditure larghe λ/2, lo stesso impulso corto (largo in frequenza), calcolati con le onde
   continue (integrale di Rayleigh–Sommerfeld) mettono la prima frangia già a **−5,3 %** dalla formula (−3,3 % con
   luce di una sola frequenza): inviluppo di intensità, obliquità e distanza finita la spingono verso l'asse.
-* **il reticolo aggiunge il resto** (~−7 punti a 12 celle per λ): il muro duro eccita le onde "doppie" del reticolo
+* **il reticolo aggiunge il resto** (~−7/−9 punti a 12 celle per λ, il punto sopra): in più il muro duro eccita le onde "doppie" del reticolo
   (con k = π lungo un asse la regola trasporta la luce come con k = 0: T(π) cambia solo il segno delle parti ±1),
   che arrivano allo schermo come fondo e abbassano il contrasto delle frange (minimo/massimo 0,22 invece di ~0).
   Con 24 celle per λ (stessa geometria in λ) la frangia scende a −5,5/−8,4 % secondo la distanza dello schermo:
@@ -151,8 +185,10 @@ della luce uscente dall'atomo (la luminosità è il dipolo calcolato).
 Debiti:
 1. **Un fotone solo, ma classico**: la regola è lineare, quindi l'ampiezza è quella di un'onda normalizzata; il
    "clic" di un singolo fotone (la rivelazione) non c'è ancora.
-2. **Reticolo cubico**: la luce obliqua va un po' più piano (0,5 % a 20° con 12 celle per λ, ~3 % in diagonale
-   con 8). Lungo gli assi la regola porta la luce a c esatto.
+2. **Reticolo cubico**: lungo gli assi la regola porta la luce a c esatto, ma **di lato la allarga più piano**
+   (fattore k a / tan(k a): −21 % con 8 celle per λ, −6 % con 16, −2,3 % con 24) e in obliquo la rallenta (0,90 c
+   in (1,1,0), 0,88 c in diagonale con 8 celle per λ). F3 fallisce per questo; serve ≥ 24 celle per λ, o una
+   regola corretta (non ancora trovata dentro la regola zig-zag).
 3. **Risoluzione**: ≥ 24 celle per λ a ≥ 30 tick/s non ci stanno su questo PC (qualità massima ~5 tick/s).
 4. Atomo: impulso forte (come un laser), niente emissione spontanea, celle grosse (legame 1s +40 %), Nd⁵⁹⁺
    invece dell'idrogeno; il nucleo di Nd ha 144 barioni, si vede un protone; i due numeri di Skyrme da
@@ -174,5 +210,6 @@ Debiti:
   (e nuvola E, E vettori E, b nuvola B, B vettori B, s Poynting, h spin, x sezione, p polarizzatore).
 * Prove senza mani: `--foto file.png --frames N [--spara-al F] [--yaw a --pitch b] [--ritmo r]` salva
   un'immagine ed esce.
-* Test: `cargo test --bin atomo` (veloci, compresi F1–F4) e `cargo test --bin atomo -- --ignored` (lunghi:
+* Test: `cargo test --bin atomo` (6 veloci: F1a, F2, F4, la regressione dell'apertura, l'atomo, il nodo; F1b e F3 sono
+  segnati "ignored" perché registrati come FAIL) e `cargo test --bin atomo -- --ignored` (lunghi e i FAIL registrati:
   risonanza dell'atomo, direzioni oblique del fotone, `bench_fotone`).

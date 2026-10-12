@@ -296,7 +296,9 @@ fn pannello_fotone(ctx: &egui::Context, lab: &mut Lab) {
                 match o.theta {
                     Some(t) => {
                         ui.label(format!("{:.3} rad", t));
-                        ui.label(RichText::new(format!("λ/(π w0) = {:.3}", th_att)).color(GREY));
+                        let ka = std::f64::consts::TAU / lam;
+                        ui.label(RichText::new(format!("λ/(π w0) = {:.3} · la regola: {:.3}", th_att, th_att * ka / ka.tan())).color(GREY))
+                            .on_hover_text("di lato la regola trasporta la luce con v⊥ = q⊥/tan(ka) invece di q⊥/(ka): l'apertura è più piccola di ka/tan(ka)");
                         ui.label(if ((t - th_att) / th_att).abs() < 0.05 { RichText::new("entro 5 %").color(GREEN) } else { RichText::new("fuori 5 %").color(RED) });
                     }
                     None => { ui.label("…"); ui.label(""); ui.label(""); }
@@ -340,7 +342,8 @@ fn pannello_fotone(ctx: &egui::Context, lab: &mut Lab) {
         });
         ui.label(RichText::new("DEBITI: l'ampiezza è quella di un'onda classica normalizzata (la regola è lineare: un fotone e un \
             impulso forte hanno la stessa forma; il \"clic\" di un solo fotone non c'è ancora). Il reticolo cubico rallenta un po' \
-            la luce obliqua (dispersione): 0,5 % a 20° con 12 celle per λ, 3 % in diagonale con 8.").small());
+            l'apertura di lato del fascio (fattore ka/tan ka: −21 % con 8 celle per λ, −6 % con 16, −2 % con 24) e rallenta la luce \
+            obliqua (0,88 c in diagonale con 8 celle per λ). Lungo un asse va a c esatto.").small());
     });
     if !open { lab.panel_open = false; }
 }

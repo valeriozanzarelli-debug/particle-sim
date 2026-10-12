@@ -316,6 +316,8 @@ impl Fotone3D {
             let qn = punto(q, q).sqrt();
             let qpar = punto(q, d);
             let amp2 = (2.0 * (-(qn * qn - qpar * qpar).max(0.0) * l.w0 * l.w0 / 4.0 - (qpar - k0).powi(2) * l.sigma * l.sigma / 2.0)).exp();
+            // (the mode q = 0 has no direction and no weight: skipped, it gave 0/0)
+            if qn < 1e-12 { continue; }
             s += amp2 * qpar / qn;
             w += amp2;
         }}}
