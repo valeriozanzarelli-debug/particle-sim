@@ -1,4 +1,0 @@
-start an_B1 {'m': 0.52646279270117}: E = 155.290606
-    lbfgs   10  E = 153.02036583
-chunk end: 13 its, E = 153.02036580, converged=True, 416s
-FINAL an_B1: E = 153.020366  E/12pi^2B = 1.292017  B = 0.9946  peaks = 1  q = [0.0, 0.0, 0.001]  ring c/max = 1.000
