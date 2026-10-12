@@ -67,7 +67,8 @@ fn livello(m: f64) -> &'static str {
     if m > 3e-8 { "luce" } else if m > 2e-12 { "atomo" } else if m > 3e-15 { "vicino al nucleo" } else { "dentro il nucleo" }
 }
 
-pub fn draw_hud(mut ctx: EguiContexts, mut lab: ResMut<Lab>, mut cam: ResMut<Cam>, keys: Res<ButtonInput<KeyCode>>, auto: Res<crate::Auto>) {
+pub fn draw_hud(mut ctx: EguiContexts, mut lab: ResMut<Lab>, mut cam: ResMut<Cam>, keys: Res<ButtonInput<KeyCode>>, auto: Res<crate::Auto>,
+                adattatore: Option<Res<bevy::render::renderer::RenderAdapterInfo>>) {
     let lab = &mut *lab;
     let ctx = ctx.ctx_mut();
     if !ctx.wants_keyboard_input() && !auto.attivo {
@@ -122,6 +123,7 @@ pub fn draw_hud(mut ctx: EguiContexts, mut lab: ResMut<Lab>, mut cam: ResMut<Cam
         });
     });
     // ── bottom left: the scale bar ──
+    let gpu = adattatore.as_ref().map(|a| a.name.clone()).unwrap_or_else(|| "?".into());
     let mpu = lab.metri_per_unita();
     let bpp = cam.bohr_per_px();
     let len_m = tondo(140.0 * bpp * mpu);
@@ -135,7 +137,7 @@ pub fn draw_hud(mut ctx: EguiContexts, mut lab: ResMut<Lab>, mut cam: ResMut<Cam
         pnt.line_segment([egui::pos2(x0, y), egui::pos2(x0 + px, y)], stroke);
         pnt.line_segment([egui::pos2(x0, y - 5.0), egui::pos2(x0, y + 1.0)], stroke);
         pnt.line_segment([egui::pos2(x0 + px, y - 5.0), egui::pos2(x0 + px, y + 1.0)], stroke);
-        pnt.text(egui::pos2(x0, y - 8.0), egui::Align2::LEFT_BOTTOM, format!("{}   ·  {}", fmt_len(len_m), livello(cam.r() * mpu)),
+        pnt.text(egui::pos2(x0, y - 8.0), egui::Align2::LEFT_BOTTOM, format!("{}   ·  {}   ·  GPU: {}", fmt_len(len_m), livello(cam.r() * mpu), gpu),
                  egui::FontId::monospace(13.0), Color32::from_rgb(220, 225, 235));
     });
     // the orbital view: when a new state set changes the size, the camera follows
@@ -214,8 +216,14 @@ fn stato_scena(lab: &Lab) -> (String, String) {
         Scena::Atomo => {
             let o = lab.zz.as_ref().map(|z| z.lock().unwrap().out.clone());
             match o {
+                Some(o) if o.pronto && o.accoppiato => (
+                    format!("Nd⁵⁹⁺ · luce e atomo ACCOPPIATI (la stessa regola nei due versi) · tick {} · 1s {:.0} % · 2p½ {:.1} % · eccitato {:.0} %",
+                            o.ticks, 100.0 * (1.0 - o.p_exc), 100.0 * o.p2p, 100.0 * o.p_exc),
+                    format!("dipolo ⟨z⟩ = {:+.3} ħ/mc · ω₂₁ della regola 3-D {:.4} mc²/ħ · luce rimandata {} · {:.0} ms per tick",
+                            o.dipolo, o.omega21, o.omega_emessa.map(|w| format!("ω = {:.4} ({:+.1} %)", w, 100.0 * (w / o.omega21 - 1.0))).unwrap_or_else(|| "…".into()), o.ms_tick)),
                 Some(o) if o.pronto => (
-                    format!("Nd⁵⁹⁺ (Z = 60, un elettrone) · regola zig-zag dal vivo · tick {} · nello stato 1s: {:.0} %", o.ticks, 100.0 * o.p1s),
+                    format!("Nd⁵⁹⁺ (Z = 60, un elettrone) · regola zig-zag dal vivo · tick {} · nello stato 1s: {:.0} %{}", o.ticks, 100.0 * o.p1s,
+                            if o.preparando { " · (sto ascoltando i livelli 3-D per la luce accoppiata, ~30 s)" } else { "" }),
                     format!("dipolo ⟨z⟩ = {:+.3} ħ/mc · campo del fotone {:+.4} · {:.0} ms per tick", o.dipolo, o.campo, o.ms_tick)),
                 _ => ("Nd⁵⁹⁺: le palline stanno partendo...".into(), String::new()),
             }
@@ -427,10 +435,16 @@ fn pannello_atomo(ctx: &egui::Context, lab: &mut Lab, cam: &mut Cam) {
         ui.label(RichText::new("Perché neodimio (Z = 60) e non idrogeno: il raggio dell'idrogeno è 137 ħ/mc e le celle devono essere \
             ≲ 0,5 ħ/mc: servirebbero ~10¹⁰ celle. Il problema dipende solo da Zα: con Z = 60 l'atomo sta in 48³ celle.").small().color(GREY));
         ui.separator();
+        ui.label(RichText::new("LUCE").strong().color(GOLD));
+        ui.checkbox(&mut lab.accoppiato, "luce dal vivo, accoppiata (Maxwell–Dirac: la stessa regola nei due versi)");
+        ui.label(RichText::new("Accoppiata: il fotone è un impulso di palline a spin 1 in una scatola di luce di 512 ħ/mc attorno all'atomo;             il suo campo spinge l'elettrone, e la corrente dell'elettrone è una sorgente della luce: la luce che l'atomo rimanda             e il suo rilassamento escono dalla regola (accoppiamento ×10 per vederlo; semiclassico: emette solo una             sovrapposizione). Popolazioni = proiezioni sugli stati 1s e 2p½ della regola 3-D (ascoltati). In questa modalità             il tempo va solo avanti (la luce presa dalla spugna non torna).").small().color(GREY));
+        if ui.button("guarda la luce (zoom fino a 350 ħ/mc)").clicked() { cam.vai(Bersaglio::Atomo, 350.0); }
+        ui.separator();
         ui.label(RichText::new("FOTONE").strong().color(GOLD));
         if let Some(o) = &o {
             let res = o.omega_res * zz::MC2_KEV;
             if lab.e_kev <= 0.0 { lab.e_kev = res; }
+            if o.accoppiato && !lab.e_kev_acc { lab.e_kev = res; lab.e_kev_acc = true; }
             ui.horizontal(|ui| {
                 ui.label("energia");
                 ui.add(egui::Slider::new(&mut lab.e_kev, 10.0..=150.0).logarithmic(true).suffix(" keV").max_decimals(1));

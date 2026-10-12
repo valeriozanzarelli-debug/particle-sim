@@ -201,6 +201,18 @@ impl Esperimento {
     /// Population of the 2p½ (m = ½) of the 3-D rule.
     pub fn p2p(&self) -> f64 { self.at.proiezione(&self.phi2p) }
 
+    /// Start again from the listened 1s with an empty light box.
+    pub fn ricomincia(&mut self) {
+        self.at.imposta(self.phi1s.clone());
+        self.luce = LuceAtomo::new();
+        self.serie_p.clear();
+        self.serie_d.clear();
+        self.serie_j.clear();
+        self.t_impulso = None;
+        self.r0 = None;
+        self.sub = 0;
+    }
+
     pub fn spara(&mut self, omega: f64, e0: f64) {
         self.luce.impulso(omega, e0);
         self.t_impulso = Some(self.at.t());

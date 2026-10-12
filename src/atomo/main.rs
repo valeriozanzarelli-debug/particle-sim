@@ -71,6 +71,9 @@ pub struct Lab {
     pub ritmo_orb: f64,
     /// measurement and surfer options (all scenes), a measurement asked, clear the clicks
     pub opz: misura::Opzioni,
+    /// atom scene: light coupled live (Maxwell–Dirac) instead of the prescribed pulse; photon energy set for it
+    pub accoppiato: bool,
+    pub e_kev_acc: bool,
     pub misura: bool,
     pub azzera_clic: bool,
     /// radius of the orbital view (λ_C) the camera was last set for
@@ -108,7 +111,7 @@ impl Lab {
         let w_rot = prof.omega_rot_s();
         let info2 = [prof.inerzia(), prof.delta_n_mev(), w_rot, w_resp, e_resp];
         Lab {
-            scena: Scena::Fotone, fot: None, fot_par: par, ritmo_fot: 20.0, segui: false, vista_fot: fotscena::Vista::default(), lambda_m: 500e-9, zz: None, orb: None, orb_scelta: orbitali::Scelta::default(), ritmo_orb: 30.0, opz: misura::Opzioni::default(), misura: false, azzera_clic: false, orb_r: 25.0, e_kev: 0.0, ritmo: 25.0,
+            scena: Scena::Fotone, fot: None, fot_par: par, ritmo_fot: 20.0, segui: false, vista_fot: fotscena::Vista::default(), lambda_m: 500e-9, zz: None, orb: None, orb_scelta: orbitali::Scelta::default(), ritmo_orb: 30.0, opz: misura::Opzioni::default(), accoppiato: true, e_kev_acc: false, misura: false, azzera_clic: false, orb_r: 25.0, e_kev: 0.0, ritmo: 25.0,
             t_nucleo: 0.0, omega_rot: OMEGA_ROT_SCHERMO, omega_resp: OMEGA_ROT_SCHERMO * w_resp / w_rot, nodo_info2: info2,
             modo: Modo::Avanti, spara: false, panel_open: false, mostra_protone: true, bagliore: true, grandezza: 1.0, luce: 1.0,
             nodo_palline, nodo_info: info, frame_count: 0, palline_disegnate: 0, fps: 0.0,
@@ -218,6 +221,7 @@ impl Lab {
                     g.comando = match self.modo { Modo::Avanti => zzscena::Comando::Avanti, Modo::Indietro => zzscena::Comando::Indietro, Modo::Pausa => zzscena::Comando::Pausa };
                     g.ritmo = self.ritmo;
                     g.opz = self.opz;
+                    g.accoppiato = self.accoppiato;
                     if self.misura { g.misura = true; }
                     if self.azzera_clic { g.azzera = true; }
                     if self.spara {
@@ -288,6 +292,7 @@ fn main() {
     if scena == Scena::Fotone { cam.yaw = 0.42; cam.pitch = 0.28; }
     if let Some(y) = auto.yaw { cam.yaw = y; }
     if let Some(p) = auto.pitch { cam.pitch = p; }
+    if let Some(d) = arg("--distanza").and_then(|v| v.parse::<f64>().ok()) { cam.ln_r = d.ln(); cam.ln_r_target = d.ln(); }
     App::new()
         .add_plugins(DefaultPlugins.set(WindowPlugin {
             primary_window: Some(Window {
@@ -296,6 +301,13 @@ fn main() {
                 present_mode: PresentMode::AutoVsync,
                 ..default()
             }),
+            ..default()
+        }).set(bevy::render::RenderPlugin {
+            // the discrete GPU when there is one (GTX 1650 Ti on this laptop, not the Intel UHD)
+            render_creation: bevy::render::settings::WgpuSettings {
+                power_preference: bevy::render::settings::PowerPreference::HighPerformance,
+                ..default()
+            }.into(),
             ..default()
         }))
         .add_plugins(EguiPlugin)

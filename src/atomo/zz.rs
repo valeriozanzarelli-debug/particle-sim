@@ -218,12 +218,6 @@ impl Atomo {
         self.psi.par_iter_mut().for_each(|q| for c in q.iter_mut() { *c = c.scale(k); });
     }
 
-    /// ⟨α⟩ = Σ (R†σR − L†σL): the probability current of the walk summed over the atom (units of c);
-    /// the electric current is −e⟨α⟩.
-    pub fn corrente(&self) -> [f64; 3] {
-        self.psi.par_iter().map(|p| surfer_velocity_num(p)).reduce(|| [0.0; 3], |a, b| [a[0] + b[0], a[1] + b[1], a[2] + b[2]])
-    }
-
     /// ⟨ψ|φ⟩ projection probability |⟨φ|ψ⟩|² onto a state φ of the lattice.
     pub fn proiezione(&self, phi: &[[C; 4]]) -> f64 {
         let s = self.psi.par_iter().zip(phi.par_iter()).map(|(a, b)| {
@@ -344,15 +338,6 @@ impl Atomo {
         for q in 1..4 { if s[q].norm2() > s[best].norm2() { best = q; } }
         s[best].arg() as f32
     }
-}
-
-/// Numerator of the surfer velocity: R†σR − L†σL (the probability current of one site, units of c).
-pub fn surfer_velocity_num(p: &[C; 4]) -> [f64; 3] {
-    let (l0, l1, r0, r1) = (p[0], p[1], p[2], p[3]);
-    let sx = |a: C, b: C| 2.0 * (a.conj() * b).re;
-    let sy = |a: C, b: C| 2.0 * (a.conj() * b).im;
-    let sz = |a: C, b: C| a.norm2() - b.norm2();
-    [sx(r0, r1) - sx(l0, l1), sy(r0, r1) - sy(l0, l1), sz(r0, r1) - sz(l0, l1)]
 }
 
 /// Dirac representation (φ₀, φ₁, χ₀, χ₁) → chiral (L₀, L₁, R₀, R₁): L = (φ − χ)/√2, R = (φ + χ)/√2.

@@ -17,6 +17,7 @@ use std::time::{Duration, Instant};
 use crate::rng::Rng;
 use crate::misura::{Opzioni, Rivelatore};
 use crate::render::{schermo, Ball};
+use crate::accoppiato::{self as acc, Esperimento};
 use crate::zz::{self, Atomo, Impulso, A};
 
 pub const N_SURF: usize = 20_000;
@@ -28,6 +29,8 @@ pub const STORIA_DIP: usize = 120;
 /// Pulse: duration and field strength (≈ a half transfer 1s → 2p at resonance; calibrated on this lattice)
 pub const SIGMA_IMP: f64 = 30.0;
 pub const E0_IMP: f64 = 0.010;
+/// Pulse of the coupled light: e·E at its peak (weaker: the pulse is a real wave, ~1 λ long)
+pub const E0_ACC: f64 = 0.004;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Comando { Avanti, Pausa, Indietro }
@@ -50,6 +53,15 @@ pub struct Uscita {
     /// clicks of the detector: how many, and the last one (λ_C)
     pub n_clic: usize,
     pub ultimo_clic: Option<[f64; 3]>,
+    /// coupled light: on, still being prepared, populations (projections on the listened 1s and 2p½ of the 3-D
+    /// rule), the 1s → 2p½ difference of the 3-D rule, the frequency of the light sent back (probe), light energy
+    pub accoppiato: bool,
+    pub preparando: bool,
+    pub p_exc: f64,
+    pub p2p: f64,
+    pub omega21: f64,
+    pub omega_emessa: Option<f64>,
+    pub e_luce: f64,
 }
 
 pub struct Condiviso {
@@ -59,6 +71,8 @@ pub struct Condiviso {
     /// a photon to send: its frequency (mc²/ħ)
     pub spara: Option<f64>,
     pub ricomincia: bool,
+    /// light and atom coupled (the light box of accoppiato.rs) instead of the prescribed pulse
+    pub accoppiato: bool,
     pub opz: Opzioni,
     /// a measurement asked (button MISURA) / clear the clicks
     pub misura: bool,
@@ -77,7 +91,12 @@ struct Mondo {
     fotoni: Vec<(f64, f64)>,
     dirs: Vec<[f64; 3]>,
     eta: Vec<f64>,
+    /// the coupled light + atom (when on, its atom is the one shown)
+    esp: Option<Esperimento>,
 }
+
+/// The atom shown: the coupled one when the light is coupled.
+fn atomo(m: &Mondo) -> &Atomo { match &m.esp { Some(e) => &e.at, None => &m.at } }
 
 fn nuovo_mondo() -> Mondo {
     let at = Atomo::new();
@@ -93,7 +112,7 @@ fn nuovo_mondo() -> Mondo {
         if rng.uni() < 1.0 - u[2] * u[2] { dirs.push(u); }
     }
     let eta = (0..N_ONDA_OUT).map(|_| rng.uni()).collect();
-    Mondo { at, surf, scie, dip: vec![0.0; STORIA_DIP], rng, fotoni: vec![], dirs, eta }
+    Mondo { at, surf, scie, dip: vec![0.0; STORIA_DIP], rng, fotoni: vec![], dirs, eta, esp: None }
 }
 
 /// Hue for a phase (cyclic palette of the photon laboratory).
@@ -109,11 +128,12 @@ fn tinta(angle: f32, a: f32) -> [f32; 4] {
 
 fn palline(m: &Mondo, surfisti: bool) -> Vec<Ball> {
     use rayon::prelude::*;
-    let t = m.at.t();
-    let rho_max = m.at.psi.par_iter().map(|p| p.iter().map(|c| c.norm2()).sum::<f64>()).reduce(|| 0.0, f64::max).max(1e-300);
+    let at = atomo(m);
+    let t = at.t();
+    let rho_max = at.psi.par_iter().map(|p| p.iter().map(|c| c.norm2()).sum::<f64>()).reduce(|| 0.0, f64::max).max(1e-300);
     let mut out: Vec<Ball> = m.surf.par_iter().map(|p| {
         // the rest-mass phase removed: what is left turns at the binding (Bohr) frequency
-        let s = m.at.campiona(*p);
+        let s = at.campiona(*p);
         let rho: f64 = s.iter().map(|c| c.norm2()).sum();
         let mut best = 0;
         for q in 1..4 { if s[q].norm2() > s[best].norm2() { best = q; } }
@@ -130,7 +150,7 @@ fn palline(m: &Mondo, surfisti: bool) -> Vec<Ball> {
     }
     // incoming photon packets: a drawn packet (phase colours) arriving along +x at c, centred on the atom at
     // the peak of its pulse. Its true wavelength (≈ 55 λ_C) is drawn 6 times shorter.
-    for &(w, t0) in &m.fotoni {
+    for &(w, t0) in m.fotoni.iter().filter(|_| m.esp.is_none()) {
         let x_c = (t - t0) * 1.0; // λ_C, c = 1
         if !(-45.0..30.0).contains(&x_c) { continue; }
         let lam = std::f64::consts::TAU / w / 6.0;
@@ -147,10 +167,10 @@ fn palline(m: &Mondo, surfisti: bool) -> Vec<Ball> {
     // outgoing light: balls on shells r = c·age, brightness ∝ |d(t − r/c)| (the dipole the walk had then)
     let dmax = m.dip.iter().fold(0.0f64, |a, b| a.max(b.abs())).max(1e-9);
     let soglia = 0.02;
-    if dmax > soglia {
+    if dmax > soglia && m.esp.is_none() {
         let n = m.dip.len();
         for (u, &e) in m.dirs.iter().zip(&m.eta) {
-            let age = (e + m.at.ticks as f64 * 0.003).fract() * (n - 1) as f64;
+            let age = (e + at.ticks as f64 * 0.003).fract() * (n - 1) as f64;
             let i = n - 1 - age as usize;
             let d = m.dip[i];
             let r = age * A + 1.5;
@@ -164,12 +184,17 @@ fn palline(m: &Mondo, surfisti: bool) -> Vec<Ball> {
 }
 
 fn passo(m: &mut Mondo, verso: f64, surfisti: bool) {
-    if verso > 0.0 { m.at.avanti(); } else { m.at.indietro(); }
+    match m.esp.as_mut() {
+        // coupled: forward only (the light absorbed by the sponge cannot come back)
+        Some(e) => { if verso > 0.0 { e.passo(); } else { return; } }
+        None => if verso > 0.0 { m.at.avanti(); } else { m.at.indietro(); },
+    }
+    let at = match &m.esp { Some(e) => &e.at, None => &m.at };
     // with the surfers (Bohm trajectories) the balls ride the current j/ρ; without them the balls are just
     // the wave: they stay where they are and 8 % are drawn again from |ψ|² every tick
-    if surfisti { m.at.muovi_surfisti(&mut m.surf, verso); }
+    if surfisti { at.muovi_surfisti(&mut m.surf, verso); }
     let k = if surfisti { 40 } else { N_SURF / 12 };
-    let nuovi = m.at.nascite(k, &mut m.rng);
+    let nuovi = at.nascite(k, &mut m.rng);
     for (j, p) in nuovi.into_iter().enumerate() {
         let i = N_SCIA + (m.rng.next_u64() as usize + j) % (N_SURF - N_SCIA);
         m.surf[i] = p;
@@ -178,16 +203,54 @@ fn passo(m: &mut Mondo, verso: f64, surfisti: bool) {
         s.push(*p);
         if s.len() > L_SCIA { s.remove(0); }
     }
-    let d = m.at.dipolo();
+    let d = atomo(m).dipolo();
     if verso > 0.0 { m.dip.push(d); m.dip.remove(0); } else { m.dip.insert(0, 0.0); m.dip.pop(); }
+}
+
+/// The live light of the coupled box (wave balls, alpha blending): every other cell where E² is high, gold where
+/// E_z > 0 and blue where E_z < 0. Brightness relative to the strongest light away from the atom (the near field
+/// at the atom would hide the wave that leaves it).
+fn palline_luce(e: &Esperimento) -> Vec<Ball> {
+    use rayon::prelude::*;
+    let f = &e.luce.f;
+    let n = f.n;
+    let b = acc::B_LUCE;
+    let h = (n / 2) as i64;
+    let lontano = |i: usize, j: usize, k: usize| { let d = [i as i64 - h, j as i64 - h, k as i64 - h]; d[0] * d[0] + d[1] * d[1] + d[2] * d[2] > 64 };
+    let emax = (0..n / 2).into_par_iter().map(|a| {
+        let mut m = 0.0f32;
+        for bb in 0..n / 2 { for c in 0..n / 2 {
+            let (i, j, k) = (2 * a, 2 * bb, 2 * c);
+            if !lontano(i, j, k) { continue; }
+            let p = &f.f[(i * n + j) * n + k];
+            m = m.max(p[0].re * p[0].re + p[1].re * p[1].re + p[2].re * p[2].re);
+        }}
+        m
+    }).reduce(|| 0.0, f32::max).max(1e-30);
+    (0..n / 2).into_par_iter().flat_map_iter(|a| {
+        let mut v = Vec::new();
+        for bb in 0..n / 2 { for c in 0..n / 2 {
+            let (i, j, k) = (2 * a, 2 * bb, 2 * c);
+            let p = &f.f[(i * n + j) * n + k];
+            let e2 = p[0].re * p[0].re + p[1].re * p[1].re + p[2].re * p[2].re;
+            let x = e2 / emax;
+            if x < 0.03 || !lontano(i, j, k) { continue; }
+            let q = ((i * n + j) * n + k) as u64 * 3;
+            let pos = [0, 1, 2].map(|c2| ([i, j, k][c2] as f64 - h as f64 + 2.0 * (crate::rng::hash01(q + c2 as u64) as f64 - 0.5)) * b);
+            let col = if p[2].re > 0.0 { [1.0, 0.78, 0.32] } else { [0.35, 0.72, 1.0] };
+            v.push((schermo(pos).to_array(), 4.0, [col[0], col[1], col[2], (0.10 + 0.6 * x.min(1.0).sqrt()).min(0.7)]));
+        }}
+        v
+    }).collect()
 }
 
 /// Start the worker. The shared state is read by the window every frame.
 pub fn avvia() -> Arc<Mutex<Condiviso>> {
     let c = Arc::new(Mutex::new(Condiviso {
-        comando: Comando::Avanti, ritmo: 25.0, spara: None, ricomincia: false, opz: Opzioni::default(), misura: false, azzera: false, fine: false,
+        comando: Comando::Avanti, ritmo: 25.0, spara: None, ricomincia: false, accoppiato: true, opz: Opzioni::default(), misura: false, azzera: false, fine: false,
         out: Uscita { palline: Arc::new(vec![]), onde: Arc::new(vec![]), versione: 0, ticks: 0, p1s: 1.0, dipolo: 0.0, campo: 0.0, ms_tick: 0.0,
-                      omega_res: 0.0, legame_1s: 0.0, punto: [0.0; 3], pronto: false, n_clic: 0, ultimo_clic: None },
+                      omega_res: 0.0, legame_1s: 0.0, punto: [0.0; 3], pronto: false, n_clic: 0, ultimo_clic: None,
+                      accoppiato: true, preparando: true, p_exc: 0.0, p2p: 0.0, omega21: 0.0, omega_emessa: None, e_luce: 0.0 },
     }));
     let cc = c.clone();
     std::thread::spawn(move || {
@@ -198,56 +261,93 @@ pub fn avvia() -> Arc<Mutex<Condiviso>> {
         let mut versione = 0u64;
         let mut ms = 0.0;
         let mut riv = Rivelatore::default();
+        // the coupled experiment is prepared in the background (listening to the levels of the 3-D rule, ~30 s)
+        let (tx, rx) = std::sync::mpsc::channel();
+        std::thread::spawn(move || { let _ = tx.send(Esperimento::new(600)); });
+        let mut riserva: Option<Esperimento> = None;
+        let mut p2p = 0.0;
         let mut opz_prima = Opzioni::default();
         loop {
             let t0 = Instant::now();
-            let (cmd, ritmo, spara, ric, fine, opz, misura, azzera) = {
+            let (cmd, ritmo, spara, ric, fine, opz, misura, azzera, accoppiato) = {
                 let mut g = cc.lock().unwrap();
-                let s = (g.comando, g.ritmo, g.spara.take(), g.ricomincia, g.fine, g.opz, g.misura, g.azzera);
+                let s = (g.comando, g.ritmo, g.spara.take(), g.ricomincia, g.fine, g.opz, g.misura, g.azzera, g.accoppiato);
                 g.ricomincia = false;
                 g.misura = false;
                 g.azzera = false;
                 s
             };
             if fine { break; }
-            if ric { m = nuovo_mondo(); }
+            if let Ok(e) = rx.try_recv() { riserva = Some(e); }
+            let mut cambio = false;
+            if accoppiato && m.esp.is_none() && riserva.is_some() { m.esp = riserva.take(); cambio = true; }
+            if !accoppiato && m.esp.is_some() { riserva = m.esp.take(); cambio = true; }
+            if ric {
+                match m.esp.as_mut() {
+                    Some(e) => e.ricomincia(),
+                    None => { let esp = m.esp.take(); m = nuovo_mondo(); m.esp = esp; }
+                }
+                cambio = true;
+            }
+            if cambio {
+                let nuove = (match &m.esp { Some(e) => &e.at, None => &m.at }).nascite(N_SURF, &mut m.rng);
+                m.surf = nuove;
+                for (s, q) in m.scie.iter_mut().zip(m.surf.iter()) { *s = vec![*q]; }
+            }
             if azzera { riv.azzera(); }
             let mut flash = riv.invecchia();
             if misura {
                 // Born rule: one point drawn with |ψ|²
-                let p = m.at.nascite(1, &mut m.rng)[0];
+                let p = (match &m.esp { Some(e) => &e.at, None => &m.at }).nascite(1, &mut m.rng)[0];
                 riv.registra(p);
                 flash = true;
                 if opz.collassa {
-                    m.at.collassa(p);
-                    m.surf = m.at.nascite(N_SURF, &mut m.rng);
+                    match m.esp.as_mut() { Some(e) => e.at.collassa(p), None => m.at.collassa(p) }
+                    m.surf = (match &m.esp { Some(e) => &e.at, None => &m.at }).nascite(N_SURF, &mut m.rng);
                     for (s, q) in m.scie.iter_mut().zip(m.surf.iter()) { *s = vec![*q]; }
                 }
             }
             if opz != opz_prima { flash = true; opz_prima = opz; }
             if let Some(w) = spara {
-                // the pulse peaks when the drawn packet reaches the atom
-                let t_arrivo = m.at.t() + 2.5 * SIGMA_IMP;
-                m.at.impulsi.push(Impulso { e0: E0_IMP, omega: w, t0: t_arrivo, sigma: SIGMA_IMP });
-                m.fotoni.push((w, t_arrivo));
+                match m.esp.as_mut() {
+                    // a real pulse of light walkers, launched in the light box
+                    Some(e) => e.spara(w, E0_ACC),
+                    None => {
+                        // the pulse peaks when the drawn packet reaches the atom
+                        let t_arrivo = m.at.t() + 2.5 * SIGMA_IMP;
+                        m.at.impulsi.push(Impulso { e0: E0_IMP, omega: w, t0: t_arrivo, sigma: SIGMA_IMP });
+                        m.fotoni.push((w, t_arrivo));
+                    }
+                }
             }
             match cmd {
                 Comando::Avanti => passo(&mut m, 1.0, opz.surfisti),
-                Comando::Indietro => if m.at.ticks > 0 { passo(&mut m, -1.0, opz.surfisti) },
+                Comando::Indietro => if atomo(&m).ticks > 0 { passo(&mut m, -1.0, opz.surfisti) },
                 Comando::Pausa => {}
             }
-            let moved = cmd != Comando::Pausa || spara.is_some() || ric || flash || misura || azzera;
+            let moved = cmd != Comando::Pausa || spara.is_some() || ric || flash || misura || azzera || cambio;
             if moved || versione == 0 {
                 let mut p = palline(&m, opz.surfisti);
                 riv.disegna(&mut p, 3.0, opz.mostra_clic);
                 versione += 1;
                 let tick_ms = t0.elapsed().as_secs_f64() * 1e3;
                 ms += 0.1 * (tick_ms - ms);
+                let onde = m.esp.as_ref().map(palline_luce).unwrap_or_default();
+                let at = atomo(&m);
+                if let Some(e) = &m.esp { if at.ticks % 8 == 0 { p2p = e.p2p(); } }
+                let (p_exc, omega21, omega_emessa, e_luce, w_res) = match &m.esp {
+                    Some(e) => {
+                        let da = e.t_impulso.map(|t| t + 2.0 * acc::SONDA as f64 * acc::B_LUCE + 100.0);
+                        (e.serie_p.last().map(|v| v.1).unwrap_or(0.0), e.omega_21(), da.and_then(|d| acc::frequenza(&e.luce.sonda, d)), e.luce.energia(), e.omega_21())
+                    }
+                    None => (0.0, 0.0, None, 0.0, omega_res),
+                };
                 let out = Uscita {
-                    palline: Arc::new(p), onde: Arc::new(vec![]), versione, ticks: m.at.ticks,
-                    p1s: if m.at.ticks % 4 == 0 { m.at.p_fondamentale() } else { cc.lock().unwrap().out.p1s },
-                    dipolo: *m.dip.last().unwrap(), campo: m.at.campo(m.at.t()), ms_tick: ms, omega_res,
+                    palline: Arc::new(p), onde: Arc::new(onde), versione, ticks: at.ticks,
+                    p1s: if at.ticks % 4 == 0 { at.p_fondamentale() } else { cc.lock().unwrap().out.p1s },
+                    dipolo: *m.dip.last().unwrap(), campo: at.campo(at.t()), ms_tick: ms, omega_res: w_res,
                     legame_1s: 1.0 - l1.omega, punto: m.surf[0], pronto: true, n_clic: riv.clic.len(), ultimo_clic: riv.ultimo(),
+                    accoppiato: m.esp.is_some(), preparando: accoppiato && m.esp.is_none(), p_exc, p2p, omega21, omega_emessa, e_luce,
                 };
                 cc.lock().unwrap().out = out;
             }

@@ -151,6 +151,12 @@ Tolto dal laboratorio in questa versione (resta nella storia di git, commit `a84
   ![2p + 3d](fig/orbitale_2p_3d.jpg)
   ![4f](fig/orbitale_4f.jpg)
 
+**Nella scena "atomo zig-zag"** la luce accoppiata è la modalità di partenza ("luce dal vivo, accoppiata" nel
+pannello): all'avvio la regola 3-D viene ascoltata in sottofondo (~30–60 s, intanto gira l'atomo vecchio), poi
+l'atomo riparte dal suo 1s ascoltato. "Spara" lancia un impulso di palline di luce a ω₂₁; il cruscotto mostra 1s,
+2p½ ed eccitato (proiezioni), il dipolo, ω₂₁ e la frequenza della luce rimandata (sonda). La luce si vede come
+palline oro/azzurre (segno di E_z) allargando la vista ("guarda la luce", fino a 350 ħ/mc). Il tempo va solo avanti.
+
 ### 3.4 Misura e surfisti (in tutte e tre le scene, `misura.rs`)
 
 * **Le palline dell'onda sono l'elettrone** (o la luce): la regola muove l'onda, nient'altro.
