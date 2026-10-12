@@ -146,7 +146,39 @@ Risultati (pione massivo, unità AN, 48³, h = 0.2):
 
 ## C3a — Nodi "leggermente legati" (1 parametro: α)
 
-<!-- C3a -->
+**L'idea (Gillard–Harland–Speight 2015, NPB 895, 272).** Si sposta un po' di peso dal termine "di gradiente" a un
+potenziale α(1 − σ)⁴, che si annulla nel vuoto e cresce molto al centro del nodo:
+E = ∫ (1−α)(|∂φ|² + 2m²(1−σ)) + Skyrme + α(1−σ)⁴, con m = 1 come loro. Per α → 1 c'è un limite inferiore
+all'energia che solo il B = 1 raggiunge: i nodi grandi **quasi** non si legano più. α è **un parametro in più**.
+Calibrazione come GHS: E₁ (classica) := 938.27 MeV (loro, per far tornare anche il raggio, hanno bisogno di
+F_π = 29 MeV e m_π = 303 MeV, lontanissimi dai valori veri 186 MeV, nella loro convenzione, e 138 MeV: un debito che
+loro stessi dichiarano).
+
+**Controllo con la letteratura.** α = 0.95, B = 1 in 1D: E/8π² = 1.1093 (GHS 1.1082, +0.1 %); sul reticolo il
+legame per nucleone del B = 2 è 1.58 MeV (GHS 1.84) e del B = 4 4.15 MeV (GHS 4.56): **C3a-i PASS** (soglia 30 %).
+(Il punto α = 0 è il modello standard con m = 1: il cubo viene E/12π²B = 1.279 contro 1.307 di Battye–Manton–Sutcliffe:
+**C1e FAIL**, −2.1 % per l'errore del reticolo a h = 0.2, che con m = 1 è più grande; il rapporto (E₄/4)/E₁ invece
+è 0.9192 contro 0.9230, −0.4 %.)
+
+**La scansione** (rilassamenti dal campo senza massa + rumore liscio; 52³ palline, h = 0.2):
+
+| α | deuterone | ⁴He | forma B=2 | forma B=4 |
+|---|---|---|---|---|
+| 0 | 67.5 MeV (3.6 %) | 303 MeV (8.1 %) | ciambella | cubo |
+| 0.5 | 35.2 MeV (1.9 %) | 163 MeV (4.3 %) | **2 grumi** (q₂ = 0.42) | **4 grumi a tetraedro** (q₃ = 0.23, niente inversione) |
+| 0.8 | 14.3 MeV (0.76 %) | 69.3 MeV (1.8 %) | 2 grumi | 4 grumi a tetraedro |
+| 0.95 | 3.2 MeV (0.17 %) | 16.6 MeV (0.44 %) | 2 grumi a 2.7 fm | 4 grumi a tetraedro (q₃ = 0.49) |
+| vero | 2.22 MeV | 28.3 MeV | nuvola larga ~2 fm | — |
+
+* **C3a-ii PASS**: il legame scende con α in modo regolare (di un fattore ~20 da 0 a 0.95).
+* **C3a-iii FAIL** (metà giusta, metà sbagliata): avevamo previsto che a α = 0.5 ciambella e cubo restassero e che a
+  0.95 si rompessero in grumi. A 0.95 sì, ma **già a α = 0.5 la ciambella è diventata due grumi e il cubo quattro
+  grumi su un tetraedro**. Le forme "belle" di `NUCLEI_DA_NODI` spariscono appena il legame scende sotto il ~2 %.
+  Cioè: **forme platoniche e legame giusto, in questo modello, non stanno insieme**.
+* **C3a-iv (un fit, poi una previsione).** Scegliamo α perché il ⁴He venga 28.3 MeV (interpolazione log-lineare fra
+  0.8 e 0.95): **α\* = 0.894 (FIT, dichiarato)**. Con quello stesso α il modello *prevede*: deuterone **5.5 MeV**
+  (vero 2.22: 2.5 volte troppo) e ³He **⟨3He⟩**. Esame: entrambi entro un fattore 2 → **⟨VERDETTO⟩**.
+  (Corse dirette a α\* = 0.894 per controllare l'interpolazione: messe in coda ma **non fatte**, vedi debiti.)
 
 ## C3b — Il termine sestico (1 parametro: c₆)
 
@@ -169,8 +201,85 @@ termine li penalizza meno. Il sestico aiuta solo **vicino al limite "BPS"** (qua
 
 ## C4 — Il quadro completo e che cosa deve decidere l'agglomeratore
 
-<!-- C4 -->
+### C4a — Tabella riassuntiva
+
+| strada | costanti/fit usati | parametri liberi in più | deuterone | ³He | ⁴He | forme |
+|---|---|---|---|---|---|---|
+| vero | — | — | **2.22** | **7.72** | **28.3** | d: nuvola larga |
+| C0 classico senza massa | M_N, M_Δ (2 fit) | 0 | 72 | 178 | 310 | ciambella/tetraedro/cubo |
+| C1 + massa del pione | m_π = 138 (costante) + M_N, M_Δ | 0 | 68 | 170 | 300 | **tenute** |
+| C1 + C2a trottola rigida | idem | 0 | 160 | 344 | 610 | tenute |
+| C1 + C2a + C2b punto zero (modi legati) | idem | 0 | 78 | — | — | tenute |
+| C3a GHS α = 0.95 | E₁ := 938 MeV | 1 (α, valore di GHS) | 3.2 | ⟨3He95⟩ | 16.6 | **perse** (grumi) |
+| C3a GHS α\* = 0.894 | E₁ := 938 MeV + ⁴He | 1 (α, **fit** sul ⁴He) | 5.5 (previsto) | ⟨3HeS⟩ (previsto) | 28.3 (fit) | perse |
+| C3b sestico c₆ = 200 | come C1 | 1 (c₆) | 106 | — | 429 | tenute |
+
+(MeV. "—" = non calcolato. Le righe C1–C3b sono di questo studio, sullo stesso reticolo; C0 da `NUCLEI_DA_NODI`.)
+
+### C4b — Che cosa abbiamo capito
+
+1. **Nessun pezzo "a costo zero" ripara il legame.** La massa del pione (costante della natura) è giusta da mettere
+   ma cambia il legame di pochi %. La quantizzazione rigida lo **peggiora** (×2). Il punto zero dei modi legati lo
+   riduce un po' (−82 MeV per il deuterone), ma resta 35 volte troppo e il pezzo più grosso (il continuo) è ignoto.
+2. **Il legame giusto arriva solo pagando un parametro** (C3a), e allora i nuclei diventano **grumi di nucleoni quasi
+   intatti** che si toccano appena — che è proprio come sono i nuclei veri (il deuterone vero è grande e lasco). Le
+   forme platoniche (ciambella, cubo) erano il segno che il modello classico lega troppo: fondono i nucleoni in un
+   oggetto nuovo, mentre in natura i nucleoni dentro il nucleo restano quasi se stessi.
+3. **La trottola va attaccata al pezzo giusto.** Nel modello standard il nucleo è un corpo rigido unico e la trottola
+   dei nucleoni (78 MeV l'uno) si perde → legame enorme. Se i nucleoni restano grumi quasi separati (C3a), ognuno tiene
+   la sua trottola, e nel legame si cancella. (Non l'abbiamo calcolato qui: è il motivo per cui GHS confrontano con
+   E₁ classica; è anche il cuore del risultato di Leese–Manton–Schroers, 6 MeV per il deuterone.)
+4. Il sestico, aggiunto al modello standard, **non aiuta** (anzi lega di più).
+
+### C4c — Raccomandazione per l'agglomeratore (livello "nuclei")
+
+**Che cosa deve contenere la regola del livello nuclei:**
+
+* **Le unità del livello sono i nucleoni (nodi B = 1), non il campo di palline.** Il nodo B = 1 si prende dal livello
+  sotto (forma, massa, raggio, momento d'inerzia, già verificati in `NODO_3D` / `ZOOM_NODO`), con la massa del pione
+  vera dentro (0 parametri in più).
+* **Le etichette quantistiche vengono dalla topologia (0 parametri, robuste):** numero barionico intero, spin e
+  isospin permessi (regole di Finkelstein–Rubinstein: deuterone J = 1, I = 0; ⁴He J = I = 0; ³He J = I = ½). Questo
+  il modello lo fa giusto anche dove sbaglia le energie.
+* **L'energia fra nucleoni va presa "leggermente legata":** o il modello GHS con **1 parametro fittato (α\* ≈ 0.89,
+  sul ⁴He)**, dichiarato come debito, o — più onestamente — un'interazione efficace nucleone–nucleone da fittare sui
+  nuclei leggeri. In tutti e due i casi il legame del ⁴He **non è una previsione**; deuterone e ³He sì, e lì il modello
+  sbaglia ancora di un fattore ~2.5 (⟨3He commento⟩).
+* **La trottola di spin/isospin si quantizza per nucleone**, non per nucleo rigido, quando il nucleo è "a grumi"; la
+  quantizzazione a corpo rigido va usata solo per stati in cui i nucleoni sono davvero fusi (e lì sbaglia).
+* **Non** usare le energie dei nuclei classici di Skyrme (ciambella/cubo) come energie di legame: sbagliano di 10–30
+  volte. Si possono usare le loro **forme e simmetrie** come "stampo" per gli stati eccitati e per le regole di spin.
+
+**Debiti che restano aperti** (sotto): la dinamica quantistica vera del deuterone (nuvola, non corpo rigido), le
+correzioni del continuo (loop), la calibrazione GHS con F_π e m_π non fisici, e le corse dirette a α\*.
 
 ## Debiti e cose non fatte (dette chiare)
 
-<!-- DEBITI -->
+* **Il deuterone come nuvola quantistica non è fatto.** La strada giusta in letteratura (Leese–Manton–Schroers 1995:
+  Schrödinger su uno spazio di 10 dimensioni di configurazioni di due nucleoni, legame 6.2 MeV, raggio 2.18 fm) qui
+  non è rifatta. È il pezzo più importante che manca dal lato "0 parametri".
+* **Il continuo delle vibrazioni (correzioni a un loop, "Casimir") non è calcolato**: serve rinormalizzare, cioè
+  nuovi parametri. Per il B = 1 vale circa −200 MeV (Moussallam); per la ciambella 3D non è noto a nessuno. C2b conta
+  solo i modi legati: è una stima parziale, il segno della correzione completa non è noto.
+* **Reticolo h = 0.2.** Con il pione massivo il nodo è più piccolo e l'errore cresce: E₁ −1.2 % (m = 0.53), −1.7 %
+  (m = 1) → **C1b FAIL** e **C1e FAIL**; momento d'inerzia −5.6 % → **C2a-i FAIL**. Nei legami (differenze sullo
+  stesso reticolo) l'errore si cancella quasi tutto; nelle energie di rotazione resta (qualche MeV).
+* **Calibrazione GHS non fisica** (F_π = 29 MeV, m_π = 303 MeV in GHS); qui il GHS è confrontato con E₁ classica
+  := 938 MeV, senza trottola quantistica (vedi C4b punto 3: per nuclei a grumi è la scelta sensata, ma non è calcolata).
+* **Corse non fatte (coda tagliata per il trasloco nel cloud, 23:54):** corse dirette a α\* = 0.894 (`ghsS_B1..B4`,
+  modello già in `colla_units.json`; `ghsS_B3` era partito ed è stato fermato), partenze a coppia/tetraedro per
+  α = 0.95 (`ghs95_B2pair`, `ghs95_B4tet`, pre-registrate come controllo della forma: con il rumore il campo si era già
+  rotto in grumi da solo), B = 3 a α = 0 e 0.5 (`ghs0_B3`, `ghs50_B3`, solo per la tabella), sestico B = 3.
+  **Come riprendere:** da `lab/`, `COLLA_THREADS=2 ./colla_drive.sh ghsS_B1 ghsS_B2 ghsS_B4 ghsS_B3 ghs95_B2pair ghs95_B4tet ghs0_B3 ghs50_B3`
+  (riparte dai checkpoint `lab/out/colla_ckpt_*.pt` se ci sono), poi `python colla_summary.py` e `python colla_figure.py`.
+* **Le forme a α = 0.5 vengono da partenze rumorose**: non abbiamo confrontato con un cubo "tenuto simmetrico" per
+  vedere se il cubo è ancora un minimo locale (più alto). Il verdetto "il cubo si rompe" vuol dire "dal cubo leggermente
+  disturbato il campo scende nei grumi".
+* **Cambi dopo la pre-registrazione (tutti prima di vedere i numeri che toccano, salvo l'ultimo):** rumore di partenza
+  2 % casuale → 3 % liscio e localizzato (21:26, per velocità: il rumore a scacchiera rallentava L-BFGS); tolleranza
+  1e-8 → 1e-7 dalle 22:25 (an_B1..B4 e ghs95_B1 a 1e-8); tetto LOBPCG 150 → 60 iterazioni per il B = 2 (autovalori sotto
+  soglia già fermi a 10⁻⁴); **segno di w per il ³He corretto dopo aver visto i numeri** (vedi C2a, con la ragione).
+* **Log:** alcune righe dei log in `lab/out/colla_logs/` sono andate perse quando i log erano ancora tracciati da git
+  (stash/ripristino automatici di altri agenti); i JSON dei risultati sono la fonte.
+* **Il sestico** è stato provato solo sul modello con il pione massivo, unità AN tenute fisse (niente rifit), senza il
+  suo contributo all'inerzia.

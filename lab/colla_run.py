@@ -51,6 +51,7 @@ def initial(sp):
 
 def main():
     ap = argparse.ArgumentParser(); ap.add_argument("job"); ap.add_argument("--wall", type=float, default=480)
+    ap.add_argument("--finalize", action="store_true", help="budget stop: measure the current (not converged) checkpoint")
     a = ap.parse_args()
     sp = spec(a.job); kw = sp["kw"]
     logf = open(os.path.join(OUT, "colla_logs", f"{a.job}.log"), "a")
@@ -68,9 +69,13 @@ def main():
     else:
         phi = initial(sp); hist = []
         log(f"start {a.job} {kw}: E = {float(cc.energy(phi, H, **kw)):.6f}")
-    phi, hist, done = cc.relax(phi, H, maxit=MAXIT, tol=TOL, log=log, every=10, wall=a.wall - (time.time() - t0) - 60,
-                               hist=hist, **kw)
-    fin = done or len(hist) >= MAXIT
+    if a.finalize:
+        done = False; fin = True
+        log(f"FINALIZE (budget stop) at {len(hist)} its, not converged")
+    else:
+        phi, hist, done = cc.relax(phi, H, maxit=MAXIT, tol=TOL, log=log, every=10, wall=a.wall - (time.time() - t0) - 60,
+                                   hist=hist, **kw)
+        fin = done or len(hist) >= MAXIT
     torch.save(dict(phi=phi, hist=hist, done=fin), ck)
     log(f"chunk end: {len(hist)} its, E = {hist[-1]:.8f}, converged={done}, {time.time()-t0:.0f}s")
     if fin:

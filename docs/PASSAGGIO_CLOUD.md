@@ -45,9 +45,19 @@ Test di sviluppo ignorati da conoscere: `accoppiato_sviluppo`, `accoppiato_post_
 `accoppiato_righe`, `accoppiato_livelli_3d`.
 
 ## 2. Colla dei nuclei (`lab/colla_*`, `docs/COLLA.md`)
-Stato: vedi la sezione aggiornata qui sotto quando l'agente locale consegna. Pre-registrazione in
-`78d76a7`. Esami: C1 massa del pione, C2 quantizzazione rotazionale + punto zero (0 parametri),
-C3 varianti con 1 parametro (GHS, sestico), C4 tabella riassuntiva.
+Pre-registrazione in `78d76a7`. Agente fermato al passaggio (13/10, ~00:10). Il documento
+`docs/COLLA.md` è **quasi completo**: C1 (massa del pione), C2a (trottola quantistica, deuterone
+160 MeV come Braaten–Carson 158), C2b (punto zero, deuterone 78 MeV, ancora ×35), C3a (GHS: legame
+giù di ~20 volte da α = 0 a 0,95; α* = 0,894 dal ⁴He è un **fit**), C3b (sestico: il legame **sale**,
+FAIL), C4 tabella e raccomandazione per l'agglomeratore, debiti.
+
+**Mancano**
+1. La corsa `ghs95_B3` (interrotta a metà, ripartire con `lab/colla_run.py ghs95_B3 --wall 480`
+   dal suo checkpoint se esiste, altrimenti da capo) e, se in coda, `ghs0_B3`, `ghs50_B3`.
+2. La figura `lab/out/colla_figure.png` (`lab/colla_figure.py`) e il riepilogo
+   (`lab/colla_summary.py`), poi aggiornare la tabella C4 di `docs/COLLA.md` con il B = 3.
+3. Il debito più importante dal lato "0 parametri": la quantizzazione del deuterone con le vibrazioni
+   accoppiate (non solo corpo rigido), vedi la sezione "Debiti" del documento.
 
 ## 3. Atomi a più elettroni (nuovo, non iniziato)
 Piano giudicato in `docs/MOLTI_ELETTRONI_PIANO.md` (espansione a cluster come spina dorsale). Primo
