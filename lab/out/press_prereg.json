@@ -1,0 +1,113 @@
+{
+ "meta": {
+  "written": "2026-10-12T16:05:59",
+  "git_head_before": "68ad0db5a4e5d7182db36a6a045eb704351964e1"
+ },
+ "question": "Valerio: mass = how much the vacuum presses the lines of spacetime inside a particle. Precise, measured counterpart: the pressure p(r) and shear s(r) inside the proton (energy-momentum tensor, gravitational form factor D(t)). Compute them for the Skyrme knot already built in NODO_3D and compare.",
+ "conventions": {
+  "units": "Skyrme units of knot_core: energy F_pi/(4e), length 2/(e F_pi) (hbar=c=1, ANW F_pi convention).",
+  "static_density": "e = e2 + e4, e2 = tr D, e4 = 1/2[(tr D)^2 - tr D^2], D_ij = d_i phi . d_j phi",
+  "stress_tensor": "derived from L = g^mn a_mn - 1/2[(g^mn a_mn)^2 - a_mn a^mn], metric (+,-,-,-): T_ij = 2 D_ij + 2 trD D_ij - 2 (D^2)_ij - delta_ij e;  p = T_ii/3 = (e4 - e2)/3; hedgehog: s = T_rr - T_thth = 2 (f'^2 - sin^2 f/r^2)(1 + sin^2 f/r^2). Must coincide with Cebulla et al. NPA 794 (2007) 87, eqs. (26),(27) (checked by P1e).",
+  "D_term": "D = M int d^3r r^2 p(r) = -(4/15) M int d^3r r^2 s(r) (Polyakov-Schweitzer, IJMPA 33 (2018) 1830025); Cebulla/BEG use d1 = (5/4) D. Dimensionless: D = M~ I~ / (4 e^4) with M~, I~ in Skyrme units. M = classical soliton mass (large-Nc, as Cebulla), declared.",
+  "trace": "T^mu_mu = T00 - T_ii = 2 e2 (the quartic Skyrme term is traceless, like a radiation gas / classical gluons)."
+ },
+ "references": {
+  "BEG2018": {
+   "ref": "V.D. Burkert, L. Elouadrhiri, F.X. Girod, Nature 557 (2018) 396",
+   "verified_in_session": "d1(0) = -2.04 +- 0.14 (stat) +- 0.33 (syst), form d1(t) = d1(0)(1 - t/M^2)^-alpha with alpha = 3, zero crossing 'near 0.6 fm', repulsive peak of r^2 p near 0.25 fm, binding peak near 0.8 fm, peak pressure 'about 1e35 Pa' (text of arXiv:1906.09419 sec. on DVCS + OSTI abstract of the Nature paper).",
+   "NOT_verified": "M^2 = 1.02 GeV^2 is quoted from memory (primary text not reachable this session). Consistency check done before runs: tripole gives r0 = 3/M = 0.586 fm and r^2 p peak at (3-sqrt3)/M = 0.248 fm, matching the verified text.",
+   "D_from_d1": "D = (4/5) d1 = -1.632 (leading Gegenbauer term; quark part only, mu^2 = 1.4 GeV^2; Kumericki, Nature 570 (2019) E1 argues the data are also compatible with zero)",
+   "pressure_formula": "p(r) = 1/(6M) r^-2 d/dr r^2 d/dr D~(r), D~(r) = FT of D(t); tripole closed form p = D0 M^5 (u-3) e^-u / (192 pi m_N), u = M r."
+  },
+  "Cebulla2007": {
+   "ref": "C. Cebulla, K. Goeke, J. Ossmann, P. Schweitzer, Nucl. Phys. A 794 (2007) 87, hep-ph/0703025",
+   "params": {
+    "F_pi_MeV": 131.3,
+    "e": 4.628
+   },
+   "chiral_limit_table2": {
+    "T00_0_GeV_fm3": 1.58,
+    "p0_GeV_fm3": 0.317,
+    "r0_fm": 0.7,
+    "d1": -6.6
+   },
+   "mpi138_table2": {
+    "p0_GeV_fm3": 0.477,
+    "r0_fm": 0.64,
+    "d1": -4.48
+   },
+   "decomposition_chiral": "int r^2 p (4-deriv) = - int r^2 p (2-deriv) = 13.7 MeV"
+  },
+  "Lattice2024": {
+   "ref": "D.C. Hackett, D.A. Pefkou, P.E. Shanahan, PRL 132 (2024) 251904, arXiv:2310.08484",
+   "D_total": [
+    -3.87,
+    0.97
+   ],
+   "D_quark": [
+    -1.3,
+    0.49
+   ],
+   "D_gluon": [
+    -2.57,
+    0.84
+   ],
+   "scale": "MSbar 2 GeV, dipole"
+  },
+  "MassDecomp": {
+   "ref": "Y.-B. Yang et al. (chiQCD), PRL 121 (2018) 212001; X. Ji, PRL 74 (1995) 1071",
+   "percent": {
+    "quark_condensate": 9,
+    "quark_energy": 32,
+    "glue_field_energy": 36,
+    "trace_anomaly": 23
+   },
+   "note": "lattice, MSbar 2 GeV; Ji's 1995 decomposition gives a similar split"
+  },
+  "ANW": {
+   "e": 5.44,
+   "F_pi_MeV": 129.0,
+   "status": "FIT from M_N and M_Delta (NODO_3D.md), not a prediction"
+  }
+ },
+ "exams": {
+  "P1": {
+   "what": "exact hedgehog (knot_core.radial_bvp, R=60): T00, p, s in Skyrme units",
+   "a": "int T00 d^3r = M (= radial_bvp E): rel. diff < 1e-6",
+   "b": "von Laue |int r^2 p dr| / int r^2 |p| dr < 1e-3",
+   "c": "p(0) > 0, exactly one sign change of p, negative tail (p<0 for all r > r0 up to r = 50)",
+   "d": "D from p and from s agree to 2 %",
+   "e": "sanity vs literature: at Cebulla chiral-limit parameters (e=4.628, F=131.3 MeV) reproduce T00(0), p(0), r0, d1 of their Table 2 within 2 %"
+  },
+  "P2": {
+   "what": "physical units with ANW FIT e=5.44, F_pi=129 MeV; compare with proton (BEG tripole, D = 0.8 d1)",
+   "a": "r0 within 25 % of 0.6 fm",
+   "b1": "p(0) within a factor 2 of 1e35 Pa (headline number of BEG)",
+   "b2": "p(0) within a factor 2 of the BEG tripole p(0) (same closed formula, M^2 = 1.02 GeV^2)",
+   "c": "D within the Skyrme-model literature band [-5.28, -3.58] (Cebulla chiral limit / m_pi=138, D=0.8 d1)",
+   "predicted_before_running": {
+    "r0_fm": "0.70 * (4.628*131.3)/(5.44*129) = 0.61  -> PASS expected",
+    "p0": "0.317 GeV/fm^3 * (5.44/4.628)^2 (129/131.3)^4 = 0.41 GeV/fm^3 = 6.5e34 Pa -> b1 PASS expected, b2 (tripole p(0) ~ 1.2 GeV/fm^3 = 1.9e35 Pa) FAIL expected (ratio ~ 2.9)",
+    "D": "D scales as 1/e^4: -5.28*(4.628/5.44)^4 = -2.77 -> c FAIL expected (ANW e is larger than Cebulla's e; closer to BEG -1.63 and lattice -3.87(97))"
+   }
+  },
+  "P3": {
+   "what": "mass = pressure? no fit",
+   "a": "virial E2 = E4 to 1e-4 relative (equivalent to int p d^3r = 0)",
+   "b": "int T^mu_mu d^3r = 2 E2 = M to 1e-4; Skyrme-term trace = 0 pointwise to 1e-12",
+   "c": "Tolman mass int (T00 + 3p) d^3r = M to 1e-4",
+   "report": "fractions: E2/M ('field energy', pressure -e2/3, pulls in) vs E4/M ('pushing term', pressure +e4/3, like light); compared qualitatively with chiQCD 2018 percentages, no fit"
+  },
+  "P4": {
+   "what": "lattice knot B=1, h=0.2, L=48 relaxed with knot_core.relax_lbfgs (as K1); p from 4th-order central derivatives, shell averaged around the baryon centroid, bins of width h/2",
+   "a": "core (r <= r0/2 of the ODE): max |p_lat - p_ode| / p_ode(0) < 5 %",
+   "declare": "tail: lattice box Dirichlet at half side 4.7 truncates the 1/r^6 pressure tail; lattice von Laue int p d^3r reported, not graded"
+  },
+  "P5": {
+   "what": "gravity honesty box",
+   "a": "G M^2/R / (M c^2) with M = 939 MeV, R = 0.6 fm in [1e-40, 1e-38] (expected ~2e-39)",
+   "b": "Tolman active mass of radiation rho + 3p/c^2 = 2 rho (factor exactly 2)"
+  }
+ },
+ "parameters": "zero free parameters in Skyrme units; 2 fitted (e, F_pi from ANW) for MeV/fm/Pa; BEG tripole 3 parameters taken from the paper, not refitted."
+}
