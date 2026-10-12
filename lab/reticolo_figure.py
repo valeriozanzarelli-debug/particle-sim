@@ -174,7 +174,6 @@ def summary():
         ax.plot([r["k"] for r in a], [r["cells"] for r in a], "s-", color="C0", label="un impulso solo al livello k")
         ax.set_xlabel("livello k dell'impulso radio (o distanza in livelli m)")
         ax.set_ylabel("celle attive (2-D)")
-        ax.set_yscale("log")
         ax.set_title("R4: il costo non dipende dalla scala assoluta;\nper unire due scale si paga un 'camino' lineare nei livelli")
         ax.legend(fontsize=8)
     except Exception as e:

@@ -1,0 +1,56 @@
+built 10 cells 634112 MB 30.6 30s [(0, 633), (1, 348), (2, 224), (3, 156), (4, 120), (5, 100), (6, 100), (7, 100), (8, 100), (9, 100), (10, 496)]
+t 2048 cells 736000 lvl0 blocks 713 142s
+t 4096 cells 912640 lvl0 blocks 804 396s
+checkpoint at t = 4864 - run again to continue
+resumed at t = 4864
+t 6144 cells 1127168 lvl0 blocks 981 103s
+t 8192 cells 1373952 lvl0 blocks 1187 341s
+{
+ "mode": "both",
+ "sync_every": 2,
+ "W_band": 4,
+ "K": 10,
+ "gamma_sigma": [
+  24.0,
+  144.0
+ ],
+ "build_s": 30.431840658187866,
+ "cells_t0": 634112,
+ "bytes_t0": 30572544,
+ "run_s": 795.5370631217957,
+ "ticks_level0": 8192,
+ "ticks_per_level": [
+  8192,
+  4096,
+  2048,
+  1024,
+  512,
+  256,
+  128,
+  64,
+  32,
+  16,
+  8
+ ],
+ "s_per_level0_tick": 0.09711145790060982,
+ "max_cells": 1373952,
+ "max_bytes": 66084864,
+ "rebuilds": 2038,
+ "all_levels_synchronised": true,
+ "energy_total_ratio": 0.999999999782363,
+ "gamma": {
+  "fidelity": 0.9999998721650899,
+  "phase": -3.5257123419338066e-06,
+  "amp_ratio": 0.9999969191325886,
+  "energy_level0_over_exact": 0.9999824225539111,
+  "x_centroid": 8190.469304167191,
+  "x_expected": 8192.0
+ },
+ "radio_rel_L2_vs_alone": 4.76503845202405e-07,
+ "radio_ticks": 8,
+ "radio_centroid_move_cells": 7.925426324782201,
+ "radio_speed_over_c": 0.9906782905977751,
+ "radio_energy_ratio": 0.9999999998216746,
+ "wall_s": 450.0093603134155
+}
+finished

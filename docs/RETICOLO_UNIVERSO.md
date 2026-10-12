@@ -65,10 +65,11 @@ dopo ogni coppia palindroma**: a 30° e 16 celle/λ l'errore scende a −0,12 % 
 | R2b | interfaccia a ≥ 16 celle/λ (grosso): T ≥ 99 %, R ≤ 1 %, nei due versi | PASS | **PASS** (sotto) |
 | R2c asse | fase ≤ 0,01 rad, fedeltà ≥ 0,999, elicità sbagliata + modo fermo ≤ 10⁻³ | PASS | **PASS**: fase ≤ 3·10⁻⁶ rad, fedeltà 1 − 10⁻¹⁰, elicità sbagliata 2·10⁻¹⁰ |
 | R2c 30° | fedeltà ≥ 0,999, elicità | PASS | **FAIL a 16 celle/λ** (fedeltà 0,9979), PASS da 24 (0,99961): è la diversa velocità dei due livelli, non la cucitura (§4) |
-| R2 3-D | 3-D, 16 celle/λ, asse | PASS | **PASS** (stessi numeri del 2-D: a incidenza normale il problema è 1-D) — obliquo 3-D in §3 |
+| R2 3-D | 3-D, 16 celle/λ, asse | PASS | **PASS** (T = 0,99993 / 0,99920: stessi numeri del 2-D, a incidenza normale il problema è 1-D); obliquo nel piano: identico al 2-D (§3) |
 | R3 | un mondo, gamma al livello 0 e radio al livello 20, celle ≤ 10⁶, memoria ≤ 100 MB | PASS | **PASS**: 717 568 celle, 34,7 MB (massimo 945 408 celle, 45,6 MB in corsa) |
 | R3 gamma | gamma dopo i suoi tick: fedeltà ≥ 0,999 | PASS | **PASS**: 0,99973 dopo 2048 tick, fase 8·10⁻⁷ |
-| R3 radio | radio dopo ≥ 1 tick radio (2²⁰ tick gamma) | PASS | **NON FATTO al livello 20** (servirebbero ~15 ore in Python, e il gamma intanto si allarga per diffrazione); fatto al livello 10: §5 |
+| R3 radio | radio dopo ≥ 1 tick radio (2²⁰ tick gamma) | PASS | **NON FATTO al livello 20** (servirebbero ~15 ore in Python, e il gamma intanto si allarga per diffrazione) |
+| R3b (aggiunta dopo, dichiarata) | radio al livello 10 + gamma, 8 tick radio = 8192 tick gamma | — | **PASS**: radio = radio da sola entro 4,8·10⁻⁷; gamma fedeltà 0,9999999; energia del mondo 2·10⁻¹⁰ (§5) |
 | R4 | costo indipendente dalla scala; camino lineare nei livelli | PASS | **PASS**: 106 496 celle identiche ai livelli 0…40; +25 610 celle per livello di camino |
 | R5 | formato per il Rust + questo documento | — | **fatto** |
 
@@ -120,7 +121,7 @@ Come si legge:
   attraversato niente: fase spostata di ≤ 3·10⁻⁶ rad, elicità sbagliata 2·10⁻¹⁰, modo fermo 10⁻¹². A 30° l'elicità
   resta pulita (sbagliata 2·10⁻⁷, modo fermo ≤ 9,5·10⁻⁴ a 16 celle/λ).
 * **3-D**: a incidenza normale (N = 8 e 16) i numeri sono identici al 2-D, come deve essere (il problema è 1-D).
-  OBLIQUO_3D
+  Di sbieco in 3-D (30° nel piano x–y, N = 8) i numeri sono di nuovo identici al 2-D (T = 0,98266 / 1,00599, R = 1,5·10⁻⁴): con il campo uniforme lungo z il problema 3-D si riduce al 2-D. **Una direzione davvero 3-D (fuori dai piani) non è stata provata** (debito).
 
 ## 4. Perché di sbieco la fedeltà è 0,998 a 16 celle/λ (R2c 30°: FAIL dichiarato)
 
@@ -170,7 +171,21 @@ secondo quanto si allarga il gamma). E in quel milione di tick il gamma, stretto
 di 10⁷–10⁸ celle. La memoria regge, **il tempo no**. Per vedere davvero tutti e due muoversi abbiamo messo la radio al
 livello 10 (1024 tick del gamma per tick radio):
 
-R3B_TABLE
+| cosa (dopo 8 tick radio = 8192 tick gamma, tutti gli 11 livelli di nuovo allo stesso istante) | risultato |
+|---|---|
+| **radio** al livello 10 contro la stessa radio fatta correre **da sola** | differenza relativa **4,8·10⁻⁷** (criterio 10⁻³: PASS) |
+| la radio si è spostata | 7,93 celle grosse in 8 tick (0,991 c: è la velocità della regola a 60° per questo pacchetto, identica a quella della radio da sola) |
+| energia della radio | conservata entro 2·10⁻¹⁰ |
+| **gamma** al livello 0 contro la soluzione esatta della regola | **fedeltà 0,9999999**, fase 3,5·10⁻⁶ rad, energia −1,8·10⁻⁵ |
+| il gamma si è spostato | 8190,5 h₀ su 8192 attesi (0,99981 c: un fascio largo di traverso va un filo più piano di c, anche in Maxwell) |
+| energia di **tutto il mondo** (ha senso solo quando tutti i livelli sono allo stesso istante) | conservata entro **2·10⁻¹⁰** |
+| celle | 634 112 all'inizio, **1 373 952** alla fine (66 MB): il gamma si allarga per diffrazione (livello 0: 633 → 1187 blocchi) e il suo fantasma gonfia i livelli 2–4 (§7) |
+| tempo | 97 ms per tick del gamma, 13 minuti in tutto (in due pezzi da < 10 minuti, con salvataggio) |
+
+Quindi **sì: nello stesso mondo, una radio e un gamma 1000 volte più corto corrono tutti e due, ognuno al suo
+livello, ognuno corretto, e non si disturbano** (la luce nel vuoto non interagisce con altra luce: il reticolo lo
+rispetta a 5·10⁻⁷). Figura: `lab/out/reticolo_zoom_both.png` (a sinistra la vista larga al livello 10: la radio e,
+a destra, il camino del gamma; poi lo zoom sul gamma ai livelli 0, 2, 4, 6, 8).
 
 ## 6. R4: quanto costa tenere le cose
 
@@ -209,7 +224,7 @@ analitico per la luce libera, che nel vuoto è nota esattamente).
   questa è una deviazione dalla pre-registrazione.
 * **Il fantasma del gamma** ai livelli 2–7: la restrizione fine→grosso è un'interpolazione (ottima per onde con
   ≥ 16 celle/λ), ma per contenuto troppo fine per il livello grosso ripiega l'onda invece di mediarla. Gonfia i
-  blocchi dei livelli 2–4 (da 140→355 blocchi in 2048 tick). Va sostituita, per il contenuto non risolto, con una
+  blocchi dei livelli 2–4 (livello 2: 140 → 355 blocchi in 2048 tick; in R3b 224 → 859 in 8192 tick). Va sostituita, per il contenuto non risolto, con una
   media conservativa — o meglio con un agglomerato che sa cosa rappresenta.
 * **Energia non conservata esattamente all'interfaccia**: −0,12 % / +0,04 % a 30° e 16 celle/λ (v2). Una cucitura
   a flusso conservativo sarebbe la versione seria.
@@ -218,7 +233,8 @@ analitico per la luce libera, che nel vuoto è nota esattamente).
   senso solo quando tutti i livelli sono allo stesso istante (ogni 2^(K+1) tick fini).
 * **Solo luce**. Le palline con massa hanno θ = m c h/ħ che raddoppia a ogni livello: oltre pochi livelli servono gli
   agglomerati con la regola imparata (`lab/agg_zz_*`), qui non collegati. Il formato ha il "gancio" per farlo.
-* **3-D**: provato solo sull'interfaccia (R2 3-D), non il mondo intero con il camino.
+* **3-D**: provato solo sull'interfaccia (R2 3-D) e solo in direzioni che si riducono all'1-D o al 2-D; non il
+  mondo intero con il camino, non una direzione fuori dai piani.
 * **Python lento**: 52 ms per tick del gamma con ~10⁶ celle in 21 livelli; il Rust deve fare 10–100 volte meglio.
 
 **Numero di parametri**: **0 di fisica** (c e la regola sono quelli di `ZIGZAG.md`), **0 imparati**; di ingegneria:

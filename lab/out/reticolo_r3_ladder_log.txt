@@ -1,0 +1,53 @@
+built 20 cells 717568 MB 34.7 24s [(0, 337), (1, 196), (2, 140), (3, 120), (4, 100), (5, 100), (6, 100), (7, 100), (8, 100), (9, 100), (10, 100), (11, 100), (12, 100), (13, 100), (14, 100), (15, 100), (16, 100), (17, 100), (18, 100), (19, 119), (20, 391)]
+t 256 cells 721408 lvl0 blocks 347 11s
+{
+ "mode": "ladder",
+ "sync_every": 2,
+ "W_band": 4,
+ "K": 20,
+ "build_s": 24.467859983444214,
+ "cells_t0": 717568,
+ "bytes_t0": 34701312,
+ "run_s": 106.50175952911377,
+ "ticks_level0": 2048,
+ "ticks_per_level": [
+  2048,
+  1024,
+  512,
+  256,
+  128,
+  64,
+  32,
+  16,
+  8,
+  4,
+  2,
+  1,
+  1,
+  1,
+  1,
+  1,
+  1,
+  1,
+  1,
+  1,
+  1
+ ],
+ "s_per_level0_tick": 0.05200281227007508,
+ "max_cells": 945408,
+ "max_bytes": 45637632,
+ "rebuilds": 514,
+ "all_levels_synchronised": false,
+ "energy_total_ratio": null,
+ "gamma": {
+  "fidelity": 0.9997326457433134,
+  "phase": -8.354556336852452e-07,
+  "amp_ratio": 1.0002643637555388,
+  "energy_level0_over_exact": 1.9636253408178879,
+  "x_centroid": 2046.0722524028233,
+  "x_expected": 2048.0
+ },
+ "note_time": "Berger-Oliger: at t=0 every level ticks once and waits ahead in time; levels >= 12 are at their next tick time (2^k h0/c), level 20 at 2^20: the radio has made 1 tick",
+ "wall_s": 210.83931946754456
+}
+exit 0

@@ -1,0 +1,38 @@
+{'k': 0, 'h_over_h0': 1.0, 'blocks': 416, 'cells': 106496, 'region_side_cells': 352, 'region_side_h0': 352.0, 'bytes': 5124096}
+{'k': 1, 'h_over_h0': 2.0, 'blocks': 416, 'cells': 106496, 'region_side_cells': 352, 'region_side_h0': 704.0, 'bytes': 5124096}
+{'k': 5, 'h_over_h0': 32.0, 'blocks': 416, 'cells': 106496, 'region_side_cells': 352, 'region_side_h0': 11264.0, 'bytes': 5124096}
+{'k': 10, 'h_over_h0': 1024.0, 'blocks': 416, 'cells': 106496, 'region_side_cells': 352, 'region_side_h0': 360448.0, 'bytes': 5124096}
+{'k': 20, 'h_over_h0': 1048576.0, 'blocks': 416, 'cells': 106496, 'region_side_cells': 352, 'region_side_h0': 369098752.0, 'bytes': 5124096}
+{'k': 30, 'h_over_h0': 1073741824.0, 'blocks': 416, 'cells': 106496, 'region_side_cells': 352, 'region_side_h0': 377957122048.0, 'bytes': 5124096}
+{'k': 40, 'h_over_h0': 1099511627776.0, 'blocks': 416, 'cells': 106496, 'region_side_cells': 352, 'region_side_h0': 387028092977152.0, 'bytes': 5124096}
+2 {'blocks': [338, 272, 391], 'cells': 256256, 'bytes': 12337152, 'build_s': 11.040070056915283}
+5 {'blocks': [337, 196, 140, 120, 128, 391], 'cells': 335872, 'bytes': 16195584, 'build_s': 10.648938655853271}
+10 {'blocks': [337, 196, 140, 120, 100, 100, 100, 100, 100, 119, 391], 'cells': 461568, 'bytes': 22290432, 'build_s': 11.839131593704224}
+{
+ "a_identical_cells": true,
+ "b_linear_fit_cells_vs_m": {
+  "slope_cells_per_level": 25610.448979591834,
+  "intercept": 206106.1224489797
+ },
+ "b_chimney_fixed_point_blocks_per_level": 100,
+ "c_estimates": {
+  "pulse_cells_3d": 43614208,
+  "pulse_bytes_3d": 2093481984,
+  "note_box": "a single pulse needs NO level above its own: the box size L does not enter the cost at all",
+  "levels_gamma_to_radio": 39.552983184246,
+  "chimney_cells_3d_per_level": 4096000.0,
+  "gamma_plus_radio_cells_3d": 249237435.12267163,
+  "address_bits_level0_gamma_across_universe": 133.64557967578853,
+  "address_bits_level0_gamma_across_milky_way": 113.81845451566247,
+  "radio_filling_milky_way_cells": 1.1705865738852693e+67,
+  "radio_filling_milky_way_bytes": 5.618815554649293e+68,
+  "gamma_filling_milky_way_cells": 6.141954686052073e+102,
+  "ticks_radio_cross_milky_way": 2.270568e+22,
+  "ticks_gamma_cross_milky_way": 1.831339527680991e+34,
+  "gamma_ticks_per_radio_tick": 1099511627776.0,
+  "radio_min_beam_width_cross_mw_m": 17353484780.351723,
+  "gamma_min_beam_width_cross_mw_m": 19322.776074821937,
+  "radio_min_beam_cells_across": 416483634728.44135,
+  "gamma_min_beam_cells_across": 3.740374772516828e+17
+ }
+}
