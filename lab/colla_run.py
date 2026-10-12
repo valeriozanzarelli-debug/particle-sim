@@ -8,7 +8,7 @@ import colla_core as cc, knot_core as kc, nuclei_core as nc
 import nuclei_run as nr
 torch.set_num_threads(int(os.environ.get('COLLA_THREADS', '2')))
 HERE = os.path.dirname(os.path.abspath(__file__)); OUT = os.path.join(HERE, "out")
-H = 0.2; MAXIT = 400; TOL = 1e-8
+H = 0.2; MAXIT = 400; TOL = 1e-7   # 1e-8 for an_B1..4 and ghs95_B1; 1e-7 from 22:25 (budget)
 
 
 def spec(job):

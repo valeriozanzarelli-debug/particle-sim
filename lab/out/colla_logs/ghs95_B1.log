@@ -1,0 +1,10 @@
+start ghs95_B1 {'m': 1.0, 'alpha': 0.95}: E = 91.018278
+    lbfgs   10  E = 86.49790445
+chunk end: 10 its, E = 86.49790445, converged=False, 432s
+resume ghs95_B1: 10 its, E = 86.497904
+    lbfgs   20  E = 86.48518504
+chunk end: 25 its, E = 86.48507703, converged=False, 432s
+resume ghs95_B1: 25 its, E = 86.485077
+    lbfgs   30  E = 86.48506980
+chunk end: 32 its, E = 86.48506923, converged=True, 208s
+FINAL ghs95_B1: E = 86.485069  E/12pi^2B = 0.730231  B = 0.9974  peaks = 1  q = [0.0, 0.0, 0.001]  ring c/max = 1.000

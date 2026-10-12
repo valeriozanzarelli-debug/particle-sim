@@ -1,0 +1,4 @@
+start an_B2 {'m': 0.52646279270117}: E = 298.059398
+    lbfgs   10  E = 293.82416571
+chunk end: 13 its, E = 293.82416541, converged=True, 239s
+FINAL an_B2: E = 293.824165  E/12pi^2B = 1.240442  B = 1.9918  peaks = 8  q = [0.244, 0.0, 0.03]  ring c/max = 0.011
