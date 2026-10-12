@@ -1,0 +1,417 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>L'Universo di Palline</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: one long dark "observatory" scroll; text column ~65ch, images break wider; single dark world on purpose (all images are taken on black). */
+:root {
+  color-scheme: dark;
+  --bg: #07090f;
+  --surface: #0f131c;
+  --surface-2: #161b27;
+  --line: #252b3a;
+  --fg: #ecebf3;
+  --muted: #a3a8bb;
+  --gold: #f2c14e;      /* the light ball */
+  --cyan: #6fd3e0;      /* the electron ball */
+  --ok: #6fd39a;
+  --no: #f07a7a;
+  --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181;  /* validated categorical, dark */
+  --display: "Bricolage Grotesque", "Arial Narrow", system-ui, sans-serif;
+  --body: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+body { background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 1.06rem; line-height: 1.6; margin: 0; }
+a { color: var(--cyan); }
+:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; border-radius: 4px; }
+
+.bar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 10; display: flex; justify-content: space-between; align-items: center; gap: 12px;
+  padding: 10px max(16px, env(safe-area-inset-left, 0px)); background: color-mix(in srgb, var(--bg) 82%, transparent); backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--line); }
+.brand { font-family: var(--display); font-weight: 600; letter-spacing: .01em; font-size: .95rem; color: var(--fg); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.brand b { color: var(--gold); font-weight: 800; }
+.langs { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; padding: 3px; gap: 2px; flex: none; }
+.langs button { font: 600 .78rem/1 var(--mono); letter-spacing: .06em; color: var(--muted); background: none; border: 0; padding: 7px 11px; border-radius: 999px; cursor: pointer; }
+.langs button[aria-pressed="true"] { background: var(--fg); color: var(--bg); }
+
+.hero { position: relative; overflow: hidden; border-bottom: 1px solid var(--line); }
+.hero img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: .95; filter: brightness(1.7) saturate(1.2); }
+.hero::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(7,9,15,0) 0%, rgba(7,9,15,.35) 50%, var(--bg) 100%); }
+.hero .in { position: relative; z-index: 1; max-width: 1100px; margin: 0 auto; padding: clamp(80px, 16vw, 180px) 20px 40px; }
+.kicker { font: 600 .74rem/1.3 var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--gold); margin: 0 0 14px; }
+h1 { font-family: var(--display); font-weight: 800; font-size: clamp(2.6rem, 9vw, 6.2rem); line-height: .95; letter-spacing: -.02em; margin: 0 0 22px; text-wrap: balance; max-width: 12ch; }
+.hero .sub { font-size: clamp(1.08rem, 2.2vw, 1.3rem); max-width: 54ch; margin: 0 0 18px; }
+.hero .cap { color: var(--muted); font-size: .88rem; max-width: 60ch; margin: 0; }
+
+main { max-width: 1100px; margin: 0 auto; padding-inline: 20px; padding-block: 8px 80px; }
+section { padding-block: clamp(48px, 8vw, 96px) 0; }
+.text { max-width: 68ch; }
+h2 { font-family: var(--display); font-weight: 800; font-size: clamp(1.75rem, 4.6vw, 2.9rem); line-height: 1.04; letter-spacing: -.015em; margin: 0 0 20px; text-wrap: balance; max-width: 22ch; }
+p { margin: 0 0 1em; }
+.how { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px 20px; margin-top: 28px; max-width: 74ch; }
+.how h3 { font-family: var(--display); font-size: 1.05rem; margin: 0 0 6px; }
+.how p { margin: 0; color: var(--muted); }
+
+figure { margin: 28px 0 0; }
+figure img { width: 100%; max-width: 100%; display: block; border-radius: 12px; background: #000; }
+figcaption { color: var(--muted); font-size: .9rem; margin-top: 10px; max-width: 70ch; }
+.plate img { background: #fff; padding: 8px; }
+.pair { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: 18px; margin-top: 28px; }
+.pair figure { margin: 0; }
+.gallery { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 18px; }
+.gallery figure { margin: 0; }
+.gallery figcaption { font-size: .82rem; }
+
+blockquote { margin: 32px 0 0; padding: 0 0 0 20px; border-left: 3px solid var(--gold); font-family: var(--display); font-weight: 400; font-size: clamp(1.25rem, 3vw, 1.7rem); line-height: 1.3; max-width: 40ch; }
+
+.anim { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; margin-top: 28px; overflow: hidden; }
+.anim canvas { display: block; width: 100%; height: clamp(260px, 42vw, 380px); }
+.anim figcaption { padding: 0 16px 14px; margin: 0; }
+.anim .ctrl { display: flex; justify-content: flex-end; padding: 10px 12px 0; }
+.btn { font: 600 .8rem/1 var(--mono); letter-spacing: .04em; color: var(--fg); background: var(--surface-2); border: 1px solid var(--line); border-radius: 999px; padding: 8px 14px; cursor: pointer; }
+.btn:hover { border-color: var(--muted); }
+
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 12px; margin-top: 26px; max-width: 760px; }
+.stat { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; min-width: 0; }
+.stat .v { font: 800 clamp(1.9rem, 6vw, 2.6rem)/1 var(--display); color: var(--gold); font-variant-numeric: tabular-nums; }
+.stat .l { color: var(--muted); font-size: .9rem; margin-top: 8px; }
+.stat.bad .v { color: var(--no); }
+.stat.good .v { color: var(--ok); }
+
+/* chart */
+.chart { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px 16px 14px; margin-top: 26px; position: relative; }
+.legend { display: flex; flex-wrap: wrap; gap: 8px 16px; margin: 0 0 14px; padding: 0; list-style: none; font-size: .86rem; color: var(--muted); }
+.legend li { display: inline-flex; align-items: center; gap: 7px; }
+.legend i { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+.axis { margin: 0 0 10px; }
+.axt { font: 600 .72rem/1.3 var(--mono); color: var(--muted); letter-spacing: .03em; margin-bottom: 6px; }
+.track { position: relative; margin-right: 76px; }
+.ticks { height: 16px; border-bottom: 1px solid var(--line); }
+.ticks span { position: absolute; top: 0; transform: translateX(-50%); font: 500 .7rem/1 var(--mono); color: var(--muted); white-space: nowrap; }
+.ticks span:last-child { transform: translateX(-100%); }
+.crow { padding: 7px 4px; border-radius: 8px; }
+.crow:hover, .crow:focus-visible { background: var(--surface-2); }
+.clab { font-size: .9rem; line-height: 1.3; margin-bottom: 5px; }
+.cbar { position: relative; }
+.cbar .track { height: 12px; background-image: linear-gradient(to right, var(--line) 1px, transparent 1px); background-size: 16.6667% 100%; }
+.cbar .track i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 4px; }
+.cval { position: absolute; right: 0; top: -2px; width: 72px; text-align: right; font: 500 .74rem/1.4 var(--mono); color: var(--muted); font-variant-numeric: tabular-nums; }
+.chart .row { cursor: default; outline: none; }
+.chart .row:focus-visible rect.hit { stroke: var(--gold); stroke-width: 1.5; }
+.tip { position: absolute; pointer-events: none; background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; font-size: .84rem; box-shadow: 0 8px 24px rgba(0,0,0,.45); max-width: 280px; z-index: 5; }
+.tip b { font-family: var(--display); display: block; margin-bottom: 4px; font-size: .92rem; }
+.tip .k { color: var(--muted); }
+.tip .n { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.tablewrap { overflow-x: auto; margin-top: 14px; }
+table { border-collapse: collapse; width: 100%; font-size: .88rem; min-width: 560px; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { color: var(--muted); font: 600 .72rem/1.2 var(--mono); letter-spacing: .08em; text-transform: uppercase; }
+td.n { font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+.fails { list-style: none; padding: 0; margin: 22px 0 0; display: grid; gap: 10px; max-width: 78ch; }
+.fails li { background: var(--surface); border: 1px solid var(--line); border-left: 3px solid var(--no); border-radius: 10px; padding: 12px 16px; }
+.fails li:last-child { border-left-color: var(--gold); }
+
+footer { border-top: 1px solid var(--line); color: var(--muted); font-size: .85rem; padding: 24px 20px calc(24px + env(safe-area-inset-bottom, 0px)); text-align: center; }
+@media (max-width: 520px) { .gallery { grid-template-columns: 1fr 1fr; gap: 8px; } .langs button { padding: 7px 9px; } }
+</style>
+
+<header class="bar">
+  <div class="brand"><b>●</b> <span data-i18n="hero_title">L'Universo di Palline</span></div>
+  <div class="langs" role="group" aria-label="Lingua / Language / Idioma">
+    <button type="button" data-lang="it" aria-pressed="true">IT</button>
+    <button type="button" data-lang="en" aria-pressed="false">EN</button>
+    <button type="button" data-lang="es" aria-pressed="false">ES</button>
+  </div>
+</header>
+
+<figure class="hero" style="margin:0">
+  <img src="img/atomo_spirali.webp" alt="" data-i18n-alt="hero_cap">
+  <div class="in">
+    <p class="kicker" data-i18n="hero_kicker"></p>
+    <h1 data-i18n="hero_title"></h1>
+    <p class="sub" data-i18n="hero_sub"></p>
+    <p class="cap" data-i18n="hero_cap"></p>
+  </div>
+</figure>
+
+<main>
+  <div class="how"><h3 data-i18n="how_title"></h3><p data-i18n="how_p"></p></div>
+
+  <section id="regola">
+    <div class="text">
+      <p class="kicker" data-i18n="s1_kicker"></p>
+      <h2 data-i18n="s1_title"></h2>
+      <p data-i18n="s1_p1"></p>
+      <p data-i18n="s1_p2"></p>
+    </div>
+    <figure class="anim">
+      <div class="ctrl"><button type="button" class="btn" id="animBtn">▶︎ / ❚❚</button></div>
+      <canvas id="st" role="img" data-i18n-aria="s1_anim_cap"></canvas>
+      <figcaption data-i18n="s1_anim_cap"></figcaption>
+    </figure>
+    <blockquote data-i18n="s1_quote"></blockquote>
+  </section>
+
+  <section id="spaziotempo">
+    <div class="text">
+      <p class="kicker" data-i18n="s2_kicker"></p>
+      <h2 data-i18n="s2_title"></h2>
+      <p data-i18n="s2_p1"></p>
+      <p data-i18n="s2_p2"></p>
+    </div>
+    <figure class="plate"><img src="img/geo.webp" alt="" data-i18n-alt="s2_cap_geo" loading="lazy"><figcaption data-i18n="s2_cap_geo"></figcaption></figure>
+    <div class="text" style="margin-top:28px"><p data-i18n="s2_p3"></p></div>
+    <figure class="plate"><img src="img/ladder.webp" alt="" data-i18n-alt="s2_cap_ladder" loading="lazy"><figcaption data-i18n="s2_cap_ladder"></figcaption></figure>
+  </section>
+
+  <section id="vuoto">
+    <div class="text">
+      <p class="kicker" data-i18n="s3_kicker"></p>
+      <h2 data-i18n="s3_title"></h2>
+      <p data-i18n="s3_p1"></p>
+      <p data-i18n="s3_p2"></p>
+    </div>
+    <div class="stats"><div class="stat good"><div class="v" data-num="0.3%">0,3%</div><div class="l" data-i18n="s3_stat"></div></div></div>
+  </section>
+
+  <section id="luce">
+    <div class="text">
+      <p class="kicker" data-i18n="s4_kicker"></p>
+      <h2 data-i18n="s4_title"></h2>
+      <p data-i18n="s4_p1"></p>
+    </div>
+    <div class="pair">
+      <figure><img src="img/fotone_circ.webp" alt="" data-i18n-alt="s4_cap_circ" loading="lazy"><figcaption data-i18n="s4_cap_circ"></figcaption></figure>
+      <figure><img src="img/fotone_lin.webp" alt="" data-i18n-alt="s4_cap_lin" loading="lazy"><figcaption data-i18n="s4_cap_lin"></figcaption></figure>
+    </div>
+    <div class="text" style="margin-top:24px"><p data-i18n="s4_p2"></p></div>
+  </section>
+
+  <section id="atomo">
+    <div class="text">
+      <p class="kicker" data-i18n="s5_kicker"></p>
+      <h2 data-i18n="s5_title"></h2>
+      <p data-i18n="s5_p1"></p>
+    </div>
+    <figure><img src="img/atomo.webp" alt="" data-i18n-alt="s5_cap_atomo" loading="lazy"><figcaption data-i18n="s5_cap_atomo"></figcaption></figure>
+    <div class="gallery">
+      <figure><img src="img/orb_2p3d.webp" alt="" data-i18n-alt="s5_cap_2p3d" loading="lazy"><figcaption data-i18n="s5_cap_2p3d"></figcaption></figure>
+      <figure><img src="img/orb_3d.webp" alt="" data-i18n-alt="s5_cap_3d" loading="lazy"><figcaption data-i18n="s5_cap_3d"></figcaption></figure>
+      <figure><img src="img/orb_4f.webp" alt="" data-i18n-alt="s5_cap_4f" loading="lazy"><figcaption data-i18n="s5_cap_4f"></figcaption></figure>
+      <figure><img src="img/orb_3d4f.webp" alt="" data-i18n-alt="s5_cap_3d4f" loading="lazy"><figcaption data-i18n="s5_cap_3d4f"></figcaption></figure>
+    </div>
+    <div class="text" style="margin-top:28px"><p data-i18n="s5_p2"></p></div>
+    <figure><img src="img/atomo_luce.webp" alt="" data-i18n-alt="s5_cap_luce" loading="lazy"><figcaption data-i18n="s5_cap_luce"></figcaption></figure>
+    <div class="text" style="margin-top:24px"><p data-i18n="s5_p3"></p></div>
+  </section>
+
+  <section id="nucleo">
+    <div class="text">
+      <p class="kicker" data-i18n="s6_kicker"></p>
+      <h2 data-i18n="s6_title"></h2>
+      <p data-i18n="s6_p1"></p>
+    </div>
+    <figure><img src="img/nucleo.webp" alt="" data-i18n-alt="s6_cap_nucleo" loading="lazy"><figcaption data-i18n="s6_cap_nucleo"></figcaption></figure>
+    <div class="text" style="margin-top:28px"><p data-i18n="s6_p2"></p></div>
+    <div class="pair">
+      <figure class="plate"><img src="img/press.webp" alt="" data-i18n-alt="s6_cap_press" loading="lazy"><figcaption data-i18n="s6_cap_press"></figcaption></figure>
+      <figure class="plate"><img src="img/nuclei.webp" alt="" data-i18n-alt="s6_cap_nuclei" loading="lazy"><figcaption data-i18n="s6_cap_nuclei"></figcaption></figure>
+    </div>
+    <div class="text" style="margin-top:24px"><p data-i18n="s6_p3"></p></div>
+  </section>
+
+  <section id="glueball">
+    <div class="text">
+      <p class="kicker" data-i18n="s7_kicker"></p>
+      <h2 data-i18n="s7_title"></h2>
+      <p data-i18n="s7_p1"></p>
+    </div>
+    <div class="stats"><div class="stat good"><div class="v" data-num="4%">4%</div><div class="l" data-i18n="s7_stat"></div></div></div>
+  </section>
+
+  <section id="zoom">
+    <div class="text">
+      <p class="kicker" data-i18n="s8_kicker"></p>
+      <h2 data-i18n="s8_title"></h2>
+      <p data-i18n="s8_p1"></p>
+      <p data-i18n="s8_p2"></p>
+    </div>
+    <div class="stats">
+      <div class="stat bad"><div class="v" data-num="68%">68%</div><div class="l" data-i18n="s8_stat_a"></div></div>
+      <div class="stat good"><div class="v" data-num="0.08%">0,08%</div><div class="l" data-i18n="s8_stat_b"></div></div>
+    </div>
+  </section>
+
+  <section id="numeri">
+    <div class="text">
+      <p class="kicker" data-i18n="chart_kicker"></p>
+      <h2 data-i18n="chart_title"></h2>
+      <p data-i18n="chart_sub"></p>
+    </div>
+    <div class="chart" id="chart">
+      <ul class="legend" id="legend"></ul>
+      <div id="chartSvg" aria-hidden="true"></div>
+      <div class="tip" id="tip" hidden></div>
+      <div style="display:flex;justify-content:flex-end;margin-top:10px"><button type="button" class="btn" id="tblBtn" aria-expanded="false"></button></div>
+      <div class="tablewrap" id="tblWrap" hidden><table id="tbl"></table></div>
+    </div>
+  </section>
+
+  <section id="onesta">
+    <div class="text">
+      <p class="kicker" data-i18n="fail_kicker"></p>
+      <h2 data-i18n="fail_title"></h2>
+      <p data-i18n="fail_p"></p>
+    </div>
+    <ul class="fails">
+      <li data-i18n="f1"></li><li data-i18n="f2"></li><li data-i18n="f3"></li><li data-i18n="f4"></li><li data-i18n="f5"></li><li data-i18n="f6"></li>
+    </ul>
+  </section>
+
+  <section id="fine">
+    <p class="kicker" data-i18n="end_kicker"></p>
+    <blockquote data-i18n="end_quote" style="margin-top:0"></blockquote>
+    <div class="text" style="margin-top:24px"><p data-i18n="end_p"></p></div>
+  </section>
+</main>
+<footer data-i18n="footer"></footer>
+
+<script>
+const I18N = /*__I18N__*/null;
+const DATA = /*__DATA__*/null;
+const LEVELS = ["lv_light", "lv_atom", "lv_mol", "lv_nucleus", "lv_vacuum"];
+const LEVEL_VAR = { lv_light: "--s1", lv_atom: "--s2", lv_mol: "--s3", lv_nucleus: "--s4", lv_vacuum: "--s5" };
+let lang = "it";
+
+function t(k) { return (I18N[lang] && I18N[lang][k]) || I18N.it[k] || k; }
+function dec(s) { return lang === "en" ? s.replace(/(\d),(\d)/g, "$1.$2") : s; }
+function css(v) { return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
+function fmtErr(e) {
+  const a = Math.abs(e), sign = e < 0 ? "−" : (e > 0 ? "+" : "");
+  if (a < 1e-4) return sign + Math.round(a * 1e6) + " ppm";
+  const p = a * 100;
+  const s = p >= 1 ? p.toFixed(1) : p >= 0.1 ? p.toFixed(2) : p.toFixed(3);
+  return sign + dec(s.replace(".", ",")) + "%";
+}
+
+function applyLang(l) {
+  lang = l;
+  document.documentElement.lang = l;
+  document.querySelectorAll("[data-i18n]").forEach(el => { el.textContent = t(el.dataset.i18n); });
+  document.querySelectorAll("[data-i18n-alt]").forEach(el => { el.alt = t(el.dataset.i18nAlt); });
+  document.querySelectorAll("[data-i18n-aria]").forEach(el => { el.setAttribute("aria-label", t(el.dataset.i18nAria)); });
+  document.querySelectorAll("[data-num]").forEach(el => { el.textContent = l === "en" ? el.dataset.num : el.dataset.num.replace(".", ","); });
+  document.querySelectorAll(".langs button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.lang === l)));
+  document.title = t("hero_title");
+  try { localStorage.setItem("lang", l); } catch (e) {}
+  drawChart(); buildTable(); drawStatic();
+}
+
+/* ---------- spacetime animation ---------- */
+const cv = document.getElementById("st"), ctx = cv.getContext("2d");
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+let playing = !reduce, t0 = performance.now(), paused = 0;
+function size() { const r = cv.getBoundingClientRect(), d = devicePixelRatio || 1; cv.width = r.width * d; cv.height = r.height * d; ctx.setTransform(d, 0, 0, d, 0, 0); }
+function electronX(s) {            // zig-zag at c: right 3 units, left 1.5 units, repeated
+  const seg = 4.5, k = Math.floor(s / seg), r = s - k * seg, base = k * 1.5;
+  return r < 3 ? base + r : base + 3 - (r - 3);
+}
+function frame(now) {
+  const W = cv.clientWidth, H = cv.clientHeight, pad = 34;
+  const T = 9;                              // time units shown
+  const sc = Math.min((W - pad * 2) / 10, (H - pad * 2) / T);
+  const ox = pad + 6, oy = H - pad;
+  const elapsed = playing ? (now - t0) / 1000 : paused;
+  const s = reduce ? T : (elapsed * 1.6) % (T + 1.5);
+  const tt = Math.min(s, T);
+  ctx.clearRect(0, 0, W, H);
+  // axes
+  ctx.strokeStyle = css("--line"); ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(ox, oy); ctx.lineTo(ox, pad - 10); ctx.moveTo(ox, oy); ctx.lineTo(W - pad, oy); ctx.stroke();
+  ctx.fillStyle = css("--muted"); ctx.font = "12px " + css("--mono");
+  ctx.save(); ctx.translate(ox - 14, pad + 40); ctx.rotate(-Math.PI / 2); ctx.fillText(t("s1_anim_time") + " ↑", -30, 0); ctx.restore();
+  ctx.fillText(t("s1_anim_space") + " →", W - pad - 70, oy + 22);
+  // light cone guide
+  ctx.setLineDash([3, 5]); ctx.strokeStyle = css("--line");
+  ctx.beginPath(); ctx.moveTo(ox, oy); ctx.lineTo(ox + T * sc, oy - T * sc); ctx.stroke(); ctx.setLineDash([]);
+  // light path
+  const gold = css("--gold"), cyan = css("--cyan");
+  ctx.lineWidth = 2.5; ctx.strokeStyle = gold; ctx.beginPath(); ctx.moveTo(ox, oy); ctx.lineTo(ox + tt * sc, oy - tt * sc); ctx.stroke();
+  // electron path
+  ctx.strokeStyle = cyan; ctx.beginPath(); ctx.moveTo(ox, oy);
+  for (let u = 0; u <= tt; u += 0.05) ctx.lineTo(ox + electronX(u) * sc, oy - u * sc);
+  ctx.lineTo(ox + electronX(tt) * sc, oy - tt * sc); ctx.stroke();
+  // heads
+  const head = (x, y, c) => { const g = ctx.createRadialGradient(x, y, 0, x, y, 14); g.addColorStop(0, c); g.addColorStop(1, "rgba(0,0,0,0)"); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, 14, 0, 7); ctx.fill(); ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(x, y, 3, 0, 7); ctx.fill(); };
+  head(ox + tt * sc, oy - tt * sc, gold); head(ox + electronX(tt) * sc, oy - tt * sc, cyan);
+  ctx.font = "600 13px " + css("--body");
+  ctx.fillStyle = gold; ctx.fillText(t("s1_anim_light"), ox + tt * sc + 12, oy - tt * sc + 4);
+  ctx.fillStyle = cyan; ctx.fillText(t("s1_anim_electron"), ox + electronX(tt) * sc + 12, oy - tt * sc + 18);
+  if (playing && !reduce) requestAnimationFrame(frame);
+}
+function drawStatic() { size(); frame(performance.now()); }
+document.getElementById("animBtn").addEventListener("click", () => {
+  if (reduce) return;
+  if (playing) { paused = (performance.now() - t0) / 1000; playing = false; frame(performance.now()); }
+  else { t0 = performance.now() - paused * 1000; playing = true; requestAnimationFrame(frame); }
+});
+addEventListener("resize", drawStatic);
+
+/* ---------- chart: error per measurement, longer bar = more precise ---------- */
+const svg = document.getElementById("chartSvg"), tip = document.getElementById("tip"), chartEl = document.getElementById("chart");
+function digits(e) { return Math.min(6, -Math.log10(Math.abs(e))); }
+function drawChart() {
+  const legend = document.getElementById("legend");
+  legend.innerHTML = LEVELS.map(k => `<li><i style="background:var(${LEVEL_VAR[k]})"></i>${t(k)}</li>`).join("");
+  const rows = [...DATA].sort((a, b) => digits(b.err) - digits(a.err));
+  const narrow = chartEl.clientWidth < 520;
+  const ticks = narrow ? [2, 4, 6] : [1, 2, 3, 4, 5, 6];
+  const tickLab = d => dec(({ 1: "10%", 2: "1%", 3: "0,1%", 4: "0,01%", 5: "10 ppm", 6: "1 ppm" })[d]);
+  let h = `<div class="axis"><div class="axt">${t("chart_axis")} · ${t("chart_better")}</div><div class="track ticks">` +
+    ticks.map(d => `<span style="left:${(d / 6) * 100}%">${tickLab(d)}</span>`).join("") + `</div></div>`;
+  h += rows.map(r => {
+    const d = digits(r.err);
+    return `<div class="crow" tabindex="0" data-i="${DATA.indexOf(r)}"><div class="clab">${t(r.key)}</div>` +
+      `<div class="cbar"><div class="track"><i style="width:${Math.max(1.5, (d / 6) * 100)}%;background:var(${LEVEL_VAR[r.level]})"></i></div><span class="cval">${fmtErr(r.err)}</span></div></div>`;
+  }).join("");
+  svg.innerHTML = h;
+  svg.querySelectorAll(".crow").forEach(g => {
+    const show = ev => {
+      const r = DATA[+g.dataset.i];
+      tip.innerHTML = `<b>${t(r.key)}</b><div><span class="k">${t("th_ours")}:</span> <span class="n">${dec(r.ours)}</span></div><div><span class="k">${t("th_ref")}:</span> <span class="n">${dec(r.ref)}</span></div><div><span class="k">${t("th_err")}:</span> <span class="n">${fmtErr(r.err)}</span></div><div><span class="k">${t("th_level")}:</span> ${t(r.level)}</div>`;
+      tip.hidden = false;
+      const cb = chartEl.getBoundingClientRect(), gb = g.getBoundingClientRect();
+      let left = (ev && ev.clientX ? ev.clientX - cb.left + 14 : 24), topp = gb.bottom - cb.top + 6;
+      left = Math.max(8, Math.min(left, cb.width - tip.offsetWidth - 8));
+      tip.style.left = left + "px"; tip.style.top = topp + "px";
+    };
+    g.addEventListener("pointermove", show); g.addEventListener("focus", () => show(null));
+    g.addEventListener("pointerleave", () => tip.hidden = true); g.addEventListener("blur", () => tip.hidden = true);
+  });
+}
+function buildTable() {
+  const rows = [...DATA].sort((a, b) => digits(b.err) - digits(a.err));
+  document.getElementById("tbl").innerHTML =
+    `<thead><tr><th>${t("th_what")}</th><th>${t("th_level")}</th><th>${t("th_ours")}</th><th>${t("th_ref")}</th><th>${t("th_err")}</th></tr></thead><tbody>` +
+    rows.map(r => `<tr><td>${t(r.key)}</td><td>${t(r.level)}</td><td class="n">${dec(r.ours)}</td><td class="n">${dec(r.ref)}</td><td class="n">${fmtErr(r.err)}</td></tr>`).join("") + "</tbody>";
+  const open = !document.getElementById("tblWrap").hidden;
+  document.getElementById("tblBtn").textContent = open ? t("chart_hide") : t("chart_table");
+}
+document.getElementById("tblBtn").addEventListener("click", e => {
+  const w = document.getElementById("tblWrap"); w.hidden = !w.hidden;
+  e.currentTarget.setAttribute("aria-expanded", String(!w.hidden)); buildTable();
+});
+
+document.querySelectorAll(".langs button").forEach(b => b.addEventListener("click", () => applyLang(b.dataset.lang)));
+let start = "it";
+try { start = localStorage.getItem("lang") || ""; } catch (e) { start = ""; }
+if (!start) { const n = (navigator.language || "it").slice(0, 2); start = ["it", "en", "es"].includes(n) ? n : "en"; }
+applyLang(start);
+if (playing) requestAnimationFrame(frame);
+</script>

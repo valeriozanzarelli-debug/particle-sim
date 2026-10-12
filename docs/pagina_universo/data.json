@@ -1,0 +1,128 @@
+[
+ {
+  "key": "q_lya",
+  "level": "lv_atom",
+  "ours": "121,5681 nm",
+  "ref": "121,567 nm",
+  "err": 9e-06
+ },
+ {
+  "key": "q_bala",
+  "level": "lv_atom",
+  "ours": "656,4674 nm",
+  "ref": "656,46 nm",
+  "err": 1.1e-05
+ },
+ {
+  "key": "q_heline",
+  "level": "lv_atom",
+  "ours": "58,437 nm",
+  "ref": "58,4334 nm",
+  "err": 6.2e-05
+ },
+ {
+  "key": "q_he",
+  "level": "lv_atom",
+  "ours": "−78,994 eV",
+  "ref": "−79,005 eV",
+  "err": -0.00014
+ },
+ {
+  "key": "q_hagg",
+  "level": "lv_atom",
+  "ours": "−13,59967 eV",
+  "ref": "−13,60569 eV",
+  "err": -0.00044
+ },
+ {
+  "key": "q_c",
+  "level": "lv_atom",
+  "ours": "−37,826 Eₕ",
+  "ref": "−37,845 Eₕ",
+  "err": -0.00051
+ },
+ {
+  "key": "q_zoomp",
+  "level": "lv_nucleus",
+  "ours": "12,23",
+  "ref": "12,24",
+  "err": -0.0008
+ },
+ {
+  "key": "q_c_light",
+  "level": "lv_light",
+  "ours": "0,97475 c",
+  "ref": "0,97558 c",
+  "err": -0.00085
+ },
+ {
+  "key": "q_bell",
+  "level": "lv_light",
+  "ours": "2,8322",
+  "ref": "2,8284",
+  "err": 0.0013
+ },
+ {
+  "key": "q_h2vib",
+  "level": "lv_mol",
+  "ours": "4393 cm⁻¹",
+  "ref": "4401 cm⁻¹",
+  "err": -0.0018
+ },
+ {
+  "key": "q_d2",
+  "level": "lv_nucleus",
+  "ours": "1,1760",
+  "ref": "1,1791",
+  "err": -0.0026
+ },
+ {
+  "key": "q_he4",
+  "level": "lv_nucleus",
+  "ours": "1,1167",
+  "ref": "1,1201",
+  "err": -0.003
+ },
+ {
+  "key": "q_pairs",
+  "level": "lv_vacuum",
+  "ours": "0,998–1,003",
+  "ref": "1",
+  "err": 0.003
+ },
+ {
+  "key": "q_knot",
+  "level": "lv_nucleus",
+  "ours": "1,2410",
+  "ref": "1,2314",
+  "err": 0.0078
+ },
+ {
+  "key": "q_lorentz",
+  "level": "lv_vacuum",
+  "ours": "0,9855",
+  "ref": "1",
+  "err": -0.0145
+ },
+ {
+  "key": "q_mu",
+  "level": "lv_nucleus",
+  "ours": "1,398",
+  "ref": "1,460",
+  "err": -0.042
+ },
+ {
+  "key": "q_press",
+  "level": "lv_nucleus",
+  "ours": "0,605 fm",
+  "ref": "0,586 fm",
+  "err": 0.032
+ },
+ {
+  "key": "q_glue",
+  "level": "lv_nucleus",
+  "ours": "4,92",
+  "ref": "4,737",
+  "err": 0.039
+ }
+]

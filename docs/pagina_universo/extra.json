@@ -1,0 +1,29 @@
+{
+ "it": {
+  "s5_cap_luce": "L'atomo dopo essere stato colpito da un impulso di luce: i gusci dorati e azzurri sono le onde di luce che rimanda indietro, calcolate con la stessa regola.",
+  "s3_stat": "differenza massima dalla formula di Schwinger",
+  "s7_stat": "differenza dai supercomputer per il grumo più leggero",
+  "s8_stat_a": "errore sulla pressione al centro del nodo, con palline grosse ovunque",
+  "s8_stat_b": "lo stesso errore con lo zoom intelligente",
+  "chart_better": "più a destra = più preciso",
+  "chart_axis": "errore rispetto al valore vero"
+ },
+ "en": {
+  "s5_cap_luce": "The atom after being hit by a pulse of light: the gold and blue shells are the light waves it sends back, computed with the same rule.",
+  "s3_stat": "largest gap from Schwinger's formula",
+  "s7_stat": "gap from supercomputer results for the lightest lump",
+  "s8_stat_a": "error on the pressure at the centre of the knot, with big beads everywhere",
+  "s8_stat_b": "the same error with the smart zoom",
+  "chart_better": "further right = more precise",
+  "chart_axis": "error vs the true value"
+ },
+ "es": {
+  "s5_cap_luce": "El átomo después de recibir un pulso de luz: las capas doradas y azules son las ondas de luz que devuelve, calculadas con la misma regla.",
+  "s3_stat": "diferencia máxima con la fórmula de Schwinger",
+  "s7_stat": "diferencia con los superordenadores para el grumo más ligero",
+  "s8_stat_a": "error en la presión en el centro del nudo, con bolitas grandes en todas partes",
+  "s8_stat_b": "el mismo error con el zoom inteligente",
+  "chart_better": "más a la derecha = más preciso",
+  "chart_axis": "error respecto al valor real"
+ }
+}
