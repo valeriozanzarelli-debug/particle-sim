@@ -67,6 +67,8 @@ pub struct Lab {
     /// what the orbital panel will show
     pub orb_scelta: orbitali::Scelta,
     pub ritmo_orb: f64,
+    /// radius of the orbital view (λ_C) the camera was last set for
+    pub orb_r: f64,
     /// photon energy for the zig-zag atom (keV) and the worker pace (ticks per second)
     pub e_kev: f64,
     pub ritmo: f64,
@@ -100,7 +102,7 @@ impl Lab {
         let w_rot = prof.omega_rot_s();
         let info2 = [prof.inerzia(), prof.delta_n_mev(), w_rot, w_resp, e_resp];
         Lab {
-            scena: Scena::Fotone, fot: None, fot_par: par, ritmo_fot: 20.0, segui: false, vista_fot: fotscena::Vista::default(), lambda_m: 500e-9, zz: None, orb: None, orb_scelta: orbitali::Scelta::default(), ritmo_orb: 30.0, e_kev: 0.0, ritmo: 25.0,
+            scena: Scena::Fotone, fot: None, fot_par: par, ritmo_fot: 20.0, segui: false, vista_fot: fotscena::Vista::default(), lambda_m: 500e-9, zz: None, orb: None, orb_scelta: orbitali::Scelta::default(), ritmo_orb: 30.0, orb_r: 25.0, e_kev: 0.0, ritmo: 25.0,
             t_nucleo: 0.0, omega_rot: OMEGA_ROT_SCHERMO, omega_resp: OMEGA_ROT_SCHERMO * w_resp / w_rot, nodo_info2: info2,
             modo: Modo::Avanti, spara: false, panel_open: false, mostra_protone: true, bagliore: true, grandezza: 1.0, luce: 1.0,
             nodo_palline, nodo_info: info, frame_count: 0, palline_disegnate: 0, fps: 0.0,

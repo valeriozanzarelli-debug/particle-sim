@@ -138,7 +138,8 @@ pub fn aggiorna(
     let (s_main, g_main) = match scena {
         Scena::Fotone => ((0.0032 * r_cam).min(0.9), lab.luce),
         Scena::Atomo => ((0.0035 * r_cam).min(0.12), lab.luce * (1.0 - 0.8 * g_nodo)),
-        Scena::Orbitali => ((0.0045 * r_cam).min(1.2), lab.luce * (1.0 - 0.8 * g_nodo)),
+        // balls about half a grid step at the full view (the grid step is 2R/64), smaller when zooming in
+        Scena::Orbitali => ((0.0045 * r_cam).min(0.018 * lab.orb_r), lab.luce * (1.0 - 0.8 * g_nodo)),
     };
     if let Some(m) = mats.get_mut(&vis.mats[0]) { m.params = BallParams { size: (s_main * lab.grandezza as f64) as f32, gain: g_main, soft: 3.0, core: 0.3, blend: 0.0 }; }
     if let Some(m) = mats.get_mut(&vis.mats[1]) { m.params = BallParams { size: ((0.004 * r_cam).min(0.06 * fm)) as f32, gain: 1.3 * g_nodo, soft: 3.0, core: 0.4, blend: 0.0 }; }

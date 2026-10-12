@@ -228,19 +228,3 @@ fn orbitali_livelli() {
     }
 }
 
-#[test]
-#[ignore]
-fn orbitali_debug() {
-    use crate::walk::Radial;
-    let za = crate::zz::z_alpha();
-    for rmax in [60.0, 120.0, 358.0] {
-        let w = Radial::new(-1, crate::zz::A, rmax, za);
-        let mut v = vec![];
-        for k in 0..48 {
-            let b = 0.3 * (0.002f64 / 0.3).powf(k as f64 / 47.0);
-            let (om, _) = w.eigen(1.0 - b, 30);
-            v.push((b, 1.0 - om));
-        }
-        eprintln!("rmax {rmax}: {:?}", v.iter().map(|x| format!("{:.4}->{:.5}", x.0, x.1)).collect::<Vec<_>>());
-    }
-}

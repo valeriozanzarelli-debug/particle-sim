@@ -132,6 +132,12 @@ pub fn draw_hud(mut ctx: EguiContexts, mut lab: ResMut<Lab>, mut cam: ResMut<Cam
         pnt.text(egui::pos2(x0, y - 8.0), egui::Align2::LEFT_BOTTOM, format!("{}   ·  {}", fmt_len(len_m), livello(cam.r() * mpu)),
                  egui::FontId::monospace(13.0), Color32::from_rgb(220, 225, 235));
     });
+    // the orbital view: when a new state set changes the size, the camera follows
+    if lab.scena == Scena::Orbitali {
+        if let Some(r) = lab.orb.as_ref().and_then(|o| { let g = o.lock().unwrap(); if g.out.pronto { Some(g.out.r) } else { None } }) {
+            if (r - lab.orb_r).abs() > 1e-6 { lab.orb_r = r; if cam.bersaglio == Bersaglio::Atomo { cam.vai(Bersaglio::Atomo, 2.4 * r); } }
+        }
+    }
     barra_tempo(ctx, lab);
     if lab.panel_open {
         match lab.scena {

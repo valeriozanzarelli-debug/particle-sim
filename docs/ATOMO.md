@@ -8,7 +8,8 @@ Binario: `atomo` (`src/atomo/`). Eseguibile: `Laboratorio Atomo.exe` sul Desktop
 Si apre su **un fotone solo**, fatto di palline a spin 1, che vola in una scatola vuota in 3-D: si vede il campo
 elettrico e magnetico, l'elica della luce circolare, i fronti d'onda e il fascio che si allarga. La seconda scena è
 **un atomo con un elettrone** (Nd⁵⁹⁺) dove le palline si muovono tutte, a ogni tick, con la stessa regola più la
-massa; zoomando nel nucleo c'è il **protone come nodo** che gira e respira.
+massa; zoomando nel nucleo c'è il **protone come nodo** che gira e respira. La terza scena mostra gli
+**orbitali** di quell'elettrone (n = 1..4, s p d f, e sovrapposizioni che battono), dalla stessa regola.
 
 ## 1. Una sola regola
 
@@ -107,6 +108,48 @@ Tolto dal laboratorio in questa versione (resta nella storia di git, commit `a84
 * Il nodo B = 1 del campo dei pioni (Skyrme), calcolato qui: B = 1,00000, E/12π² = 1,23150, raggio rms 0,59 fm,
   massa 863 MeV; 40 000 palline estratte dalla densità barionica.
 * **Gira** (M_Δ − M_N = 319 MeV, misura 293, +9 %) e **respira** (ħω = 216 MeV, stima grezza). Orologio rallentato.
+
+### 3.3 Gli orbitali: n = 1..4, s p d f, e sovrapposizioni (scena "orbitali", `orbitali.rs`)
+
+* **Da dove vengono.** Sono gli stati di UN elettrone che dà la regola zig-zag nella sua **forma radiale** (la
+  stessa regola scritta per un'onda parziale κ: stessa cella a = 0,5 ħ/mc, stessa fase di Coulomb,
+  `src/zigzag/walk.rs` `Radial`). La regola viene "ascoltata" a 48 frequenze; ogni stato trovato viene ripreso
+  alla sua frequenza; gli stati distinti, dal più legato, sono n = l+1, l+2, ... Poi in 3-D:
+  ψ = (g/r Ω_{κm}, i f/r Ω_{−κm}) con le funzioni d'angolo di Dirac (armoniche sferiche). Una sovrapposizione
+  evolve con le frequenze della regola, ψ(t) = Σ c_k ψ_k e^{−i(ω_k − 1)t}: la nuvola **batte** a ω₁ − ω₂.
+* **Perché non sul reticolo dal vivo.** La scatola dal vivo (48³ celle da 0,5 ħ/mc, 24 ħ/mc di lato) tiene l'1s;
+  il 3d di Nd⁵⁹⁺ arriva a ~52 ħ/mc e il 4f a ~82 (99,5 % della probabilità): servirebbero ~350³ celle. Per un
+  elettrone in un campo centrale la forma radiale è la stessa regola, senza approssimazioni in più.
+* **Livelli della regola contro Dirac esatto** (test `orbitali_livelli`; tutti trovati, nell'ordine giusto):
+
+| stato | legame, regola (mc²) | Dirac esatto | scarto |
+|---|---|---|---|
+| 1s½ | 0,14124 | 0,10095 | +39,9 % |
+| 2s½ | 0,03298 | 0,02556 | +29,0 % |
+| 2p3/2 | 0,02510 | 0,02426 | +3,5 % |
+| 3s½ | 0,01374 | 0,01121 | +22,5 % |
+| 3p3/2 | 0,01142 | 0,01082 | +5,5 % |
+| 3d5/2 | 0,01090 | 0,01071 | +1,8 % |
+| 4s½ | 0,00744 | 0,00625 | +19,1 % |
+| 4p3/2 | 0,00648 | 0,00608 | +6,5 % |
+| 4d5/2 | 0,00625 | 0,00603 | +3,7 % |
+| 4f7/2 | 0,00609 | 0,00601 | +1,3 % |
+
+  Le celle grosse legano troppo gli stati che vanno vicino al nucleo (s); quelli lontani (d, f) sono quasi giusti.
+* **Come si vede.** Da lontano: **gusci morbidi** a tre livelli di densità |ψ|² (50 %, 18 %, 5 % del massimo),
+  colore = **fase dell'onda** (gira nel tempo; attorno all'asse z si avvolge come e^{imφ}). Da vicino: 5 000
+  **palline-surfista** portate dalla corrente dell'onda, v = j/ρ (≤ c), con il colore della fase dove sono; sei con
+  la scia bianca. Il protone (nodo B = 1) al centro, zoom con 2.
+* Scelte rapide: 1s, 2s, 2p, 3d, 4f, 1s+2p, 2p+3d, 3d+4f, 2s+2p; oppure su misura: n, l, j = l ± ½, m_j e un
+  secondo stato con il suo peso.
+* **Atomi con più elettroni: non qui.** Aspettano la regola a molti elettroni degli agglomerati (`lab/agg_zz_*`).
+  Non li fingiamo con orbitali di tabella.
+* Niente tremolio di Zitterbewegung in questa vista: gli stati sono di sola energia positiva. Il tremolio si vede
+  nella scena "atomo zig-zag" dal vivo (lì la partenza è solo ~60 % l'1s della regola 3-D).
+
+  ![3d](fig/orbitale_3d.jpg)
+  ![2p + 3d](fig/orbitale_2p_3d.jpg)
+  ![4f](fig/orbitale_4f.jpg)
 
 ## 4. Il fotone libero: pre-registrazione (scritta prima delle corse) e risultati
 
@@ -207,6 +250,9 @@ Debiti:
 5. La doppia fenditura è tolta (§5): tornerà con le fenditure fatte di atomi.
 6. **Scena futura: il geone** (luce tenuta insieme dalla sua gravità). Fuori portata ora: abbiamo già visto che
    senza gravità la luce non si intrappola da sola.
+7. **Orbitali** (§3.3): dalla forma radiale della regola, non dal reticolo 3-D dal vivo (troppo piccolo per
+   n ≥ 3); celle grosse (1s +40 %, 4f +1,3 %); niente fotone e niente Zitterbewegung in quella vista; atomi con
+   più elettroni rimandati alla regola degli agglomerati.
 
 ## 7. Come si usa
 
@@ -216,11 +262,12 @@ Debiti:
   direzione, strati, numeri misurati).
 * Rotella = zoom, trascinare = girare attorno. Tasti: Spazio pausa, F lancia un fotone (o spara all'atomo),
   1 vista intera; nell'atomo 2 nucleo, 3 elettrone.
-* Riga di comando: `"Laboratorio Atomo.exe" --scena fotone|atomo [--zoom nucleo]`; per il fotone
+* Riga di comando: `"Laboratorio Atomo.exe" --scena fotone|atomo|orbitali [--zoom nucleo]`; orbitali
+  `--stati 3d` o `--stati 2p+3d` (m = +½, j = l + ½);; per il fotone
   `--qual 0..3 --w0 <λ> --dir 0..4 --polar h|v|c+|c- --lambda-m <metri> --strati tflEBsox`
   (t palline che corrono, f fronti d'onda, l elica di E, E e B tratti, s Poynting, o spin, x sezione).
 * Prove senza mani: `--foto file.png --frames N [--spara-al F] [--yaw a --pitch b] [--ritmo r]` salva
   un'immagine ed esce.
-* Test: `cargo test --bin atomo` (6 veloci: F1a, F2, F4, la regressione dell'apertura, l'atomo, il nodo; F1b e F3 sono
+* Test: `cargo test --bin atomo` (7 veloci: F1a, F2, F4, la regressione dell'apertura, i livelli degli orbitali, l'atomo, il nodo; F1b e F3 sono
   segnati "ignored" perché registrati come FAIL) e `cargo test --bin atomo -- --ignored` (lunghi e i FAIL registrati:
   risonanza dell'atomo, direzioni oblique del fotone, `bench_fotone`).

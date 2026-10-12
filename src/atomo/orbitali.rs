@@ -357,7 +357,7 @@ fn disegna(m: &Mondo, v: &[[C; 4]]) -> (Vec<Ball>, Vec<Ball>) {
     let rho: Vec<f32> = v.par_iter().map(|p| p.iter().map(|c| c.norm2()).sum::<f64>() as f32).collect();
     let rmax = rho.iter().cloned().fold(0.0f32, f32::max).max(1e-30);
     // three density levels: inner bright shell, middle, faint outer
-    const LIV: [(f32, f32, f32); 3] = [(0.50, 0.22, 1.25), (0.18, 0.11, 1.1), (0.05, 0.05, 1.0)];
+    const LIV: [(f32, f32, f32); 3] = [(0.50, 0.30, 1.3), (0.18, 0.16, 1.15), (0.05, 0.08, 1.0)];
     let h = g.passo();
     let palline: Vec<Ball> = (0..G * G * G).into_par_iter().flat_map_iter(|q| {
         let mut out = Vec::new();
@@ -389,7 +389,7 @@ fn disegna(m: &Mondo, v: &[[C; 4]]) -> (Vec<Ball>, Vec<Ball>) {
     let onde: Vec<Ball> = m.surf.par_iter().skip(N_SCIE).map(|p| {
         let s = campiona(g, v, *p);
         let r: f64 = s.iter().map(|c| c.norm2()).sum();
-        let a = (0.25 + 0.6 * (r as f32 / rmax).powf(0.35)).min(0.85);
+        let a = (0.12 + 0.4 * (r as f32 / rmax).powf(0.35)).min(0.6);
         (schermo(*p).to_array(), 0.7, phase_color(fase(&s), a))
     }).collect();
     (palline, onde)
