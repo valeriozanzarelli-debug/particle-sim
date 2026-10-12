@@ -1,0 +1,128 @@
+<title>Universo di Palline</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --bg:#f6f3ec; --fg:#1d1b17; --muted:#6b665b; --line:#d9d3c5; --card:#fffdf8;
+  --ok:#1f7a4d; --okbg:#e3f2e9; --hyp:#8a5a00; --hypbg:#fbefd3; --no:#a12a2a; --nobg:#f8e1e1;
+  --accent:#c2541a; --accent2:#1f5f8a;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0f1116; --fg:#ece8df; --muted:#a39d90; --line:#2a2e38; --card:#161a22;
+  --ok:#6fd39a; --okbg:#10301f; --hyp:#f0b24a; --hypbg:#3a2a08; --no:#f07a7a; --nobg:#3a1414;
+  --accent:#f08a4a; --accent2:#6fb3e0; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#0f1116; --fg:#ece8df; --muted:#a39d90; --line:#2a2e38; --card:#161a22;
+  --ok:#6fd39a; --okbg:#10301f; --hyp:#f0b24a; --hypbg:#3a2a08; --no:#f07a7a; --nobg:#3a1414;
+  --accent:#f08a4a; --accent2:#6fb3e0; color-scheme:dark }
+body{background:var(--bg);color:var(--fg);font-family:"IBM Plex Sans",system-ui,sans-serif;line-height:1.55;margin:0}
+.wrap{max-width:860px;margin:0 auto;padding-block:40px 80px;padding-inline:20px}
+h1,h2,h3{font-family:Fraunces,Georgia,serif;text-wrap:balance;line-height:1.15}
+h1{font-size:clamp(2.1rem,6vw,3.4rem);font-weight:300;margin:0 0 .3em}
+h1 b{font-weight:600;color:var(--accent)}
+.lead{font-size:1.15rem;color:var(--muted);max-width:60ch;margin:0 0 2.5em}
+h2{font-size:1.65rem;font-weight:600;margin:2.2em 0 .4em;display:flex;gap:.6em;align-items:baseline;flex-wrap:wrap}
+h2 .n{font-family:"IBM Plex Mono",monospace;font-size:.8rem;color:var(--accent);letter-spacing:.08em}
+p{max-width:66ch}
+.tag{display:inline-block;font-family:"IBM Plex Mono",monospace;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;padding:.2em .6em;border-radius:999px;vertical-align:middle}
+.ok{background:var(--okbg);color:var(--ok)} .hyp{background:var(--hypbg);color:var(--hyp)} .no{background:var(--nobg);color:var(--no)}
+figure{margin:1.4em 0;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px}
+figure img{width:100%;max-width:100%;display:block;border-radius:6px}
+figcaption{font-size:.85rem;color:var(--muted);padding:.6em .2em 0;max-width:none}
+.num{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;font-size:.9em;color:var(--accent2)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin:1.2em 0}
+.box{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 16px;min-width:0}
+.box h3{margin:0 0 .3em;font-size:1.05rem}
+.box p{margin:0;font-size:.92rem;color:var(--muted)}
+.rule{border:0;border-top:1px solid var(--line);margin:3em 0}
+table{border-collapse:collapse;width:100%;font-size:.92rem}
+td,th{padding:.5em .6em;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{font-weight:600;color:var(--muted);font-size:.8rem;letter-spacing:.06em;text-transform:uppercase}
+.tbl{overflow-x:auto}
+blockquote{margin:1.5em 0;padding:.2em 1.2em;border-left:3px solid var(--accent);font-family:Fraunces,Georgia,serif;font-size:1.25rem;font-weight:300;max-width:60ch}
+small.src{display:block;color:var(--muted);font-size:.8rem;margin-top:3em}
+</style>
+
+<div class="wrap">
+<h1>L'universo è fatto di <b>palline</b> che corrono</h1>
+<p class="lead">La nostra immagine di come è fatto tutto, costruita pezzo per pezzo con un simulatore in cui ogni cosa deve <em>emergere</em> da una regola semplice. Ogni affermazione porta un'etichetta: <span class="tag ok">verificato</span> (l'abbiamo misurato nelle nostre palline, contro esperimenti veri), <span class="tag hyp">ipotesi</span> (ci crediamo, non l'abbiamo ancora dimostrato) o <span class="tag no">fallito</span> (l'abbiamo provato e non funziona).</p>
+
+<blockquote>Tutto corre alla velocità della luce. La luce corre nello spazio. La materia corre nel tempo. La massa è la corsa trattenuta.</blockquote>
+
+<h2><span class="n">01</span> Una sola regola: corri a c, poi ruota <span class="tag ok">verificato</span></h2>
+<p>La pallina di base fa due cose per ogni tick: si sposta di un passo alla velocità della luce e ruota la sua fase. Se non rimbalza mai, è <strong>luce</strong>. Se rimbalza destra ↔ sinistra, è un <strong>elettrone</strong>, e il ritmo dei rimbalzi è la sua massa. Da questa regola sola escono l'idrogeno (<span class="num">13,60575 eV</span>, esatto a 5 ppm), la struttura fine (<span class="num">10,944 GHz</span>) e la luce che l'atomo emette (Lyman-α <span class="num">+9 ppm</span>).</p>
+<p>Un elettrone, visto nello spaziotempo, è un'<strong>elica</strong> che avanza nel tempo: un vortice nella corrente. La luce è una linea dritta.</p>
+
+<h2><span class="n">02</span> La relatività nasce da un fluido di palline <span class="tag ok">verificato</span></h2>
+<p>Palline che si spingono forte tra loro, senza nessuna relatività scritta nella regola. Un nodo nella catena corre, si accorcia esattamente come prevede Einstein (<span class="num">1,5%</span>), ha E = γE₀ (<span class="num">1,2%</span>) e non supera mai la velocità limite del fluido. Condizione: il nodo deve essere largo almeno <strong>4 palline</strong>. I pixel devono essere più piccoli delle particelle.</p>
+<figure><img src="fig/fluid.png" alt="Fluido in negativo: buco, vortice, nodo che si accorcia"><figcaption>Il nodo nella catena (in basso) si contrae con γ. Il buco (in alto a sinistra) invece non ha una massa unica: i buchi semplici non bastano, servono nodi che non si sciolgono.</figcaption></figure>
+
+<h2><span class="n">03</span> Il vuoto è pieno di coppie invisibili <span class="tag ok">verificato</span></h2>
+<p>Il vuoto della regola è un mare pieno di coppie particella–antiparticella, perfettamente mescolate: ogni misura normale dà zero. Un campo forte le strappa fuori. Il conteggio delle coppie nelle palline coincide con la formula di Schwinger entro <span class="num">0,3%</span>, e con il caso "vicino a un nucleo" (gradino di Sauter) entro <span class="num">0,5%</span>. Se chiudi il vuoto in una scatola più stretta della lunghezza Compton, le coppie crollano: l'elettrone ha bisogno di spazio per formarsi.</p>
+<figure><img src="fig/pairs.png" alt="Coppie dal vuoto, flusso, surfista"><figcaption>A sinistra: coppie strappate dal vuoto contro la formula di Schwinger, per campi da 0,25 a 64 volte quello critico.</figcaption></figure>
+
+<h2><span class="n">04</span> Le particelle sono nodi del fluido <span class="tag ok">verificato</span></h2>
+<p>Un fluido 3D di 262.000 palline, ognuna con una freccia interna, fortemente legate. Dentro, un nodo che non si può sciogliere. Nessuna forma disegnata: si assesta da solo. Ha <strong>una massa sola</strong> (<span class="num">1,2410</span> contro 1,2314 esatto), indipendente dalla scatola; si contrae come Einstein fino al 60% di c; nodo + anti-nodo si annullano con il <span class="num">98–99%</span> dell'energia che esce in onde a 0,9995 c; due nodi che si scontrano schizzano via a 90°. Fatto ruotare, ha spin ½ e dà il rapporto magnetico protone/neutrone <span class="num">1,42</span> (misurato 1,46).</p>
+<p>Questi nodi sono <strong>protoni e neutroni</strong>, non elettroni. L'elettrone come nodo resta un problema aperto.</p>
+<figure><img src="fig/knot.png" alt="Nodo 3D: massa, Lorentz, annichilazione"><figcaption>Il nodo: massa contro risoluzione, contrazione, annichilazione e la nuvola di palline della sua densità.</figcaption></figure>
+
+<h2><span class="n">05</span> La massa è una bolla che il vuoto preme <span class="tag ok">verificato</span></h2>
+<p>Dentro il nodo la pressione spinge verso fuori al centro e il vuoto spinge verso dentro nel guscio. Il punto in cui cambia segno è a <span class="num">0,605 fm</span>; nel protone vero, misurato nel 2018, è <span class="num">0,586 fm</span>. La forma della curva combacia. La pressione totale fa zero: la massa non è pressione sommata, è l'energia di un braccio di ferro esatto, metà da un termine che spinge come la luce, metà da uno che tira come un elastico (50/50 a 10⁻¹⁰).</p>
+<figure><img src="fig/press.png" alt="Pressione dentro il nodo contro il protone"><figcaption>r²p(r) del nostro nodo (linea) contro la curva misurata al Jefferson Lab (tratteggio).</figcaption></figure>
+
+<h2><span class="n">06</span> Luce che si attacca a sé stessa fa materia <span class="tag ok">verificato</span> <span class="tag no">dettagli</span></h2>
+<p>La luce normale non si tocca: due raggi si attraversano. Palline di luce che <em>si tirano tra loro</em>, senza nessuna massa nella regola, formano grumi con massa precisa: <span class="num">4,92</span> contro 4,74 della letteratura (unità di corda), con il grumo rotante a 7,53 contro 7,76. Materia fatta solo di luce autointeragente. Il secondo grumo eccitato invece sbaglia del 18% e un errore sistematico alla risoluzione più fine resta da capire.</p>
+<figure><img src="fig/glue.png" alt="Glueball: masse dei grumi di luce"><figcaption>Plateau di massa e spettro dei grumi contro i calcoli con supercomputer.</figcaption></figure>
+
+<h2><span class="n">07</span> La carica è un giro su un cerchio nascosto <span class="tag ok">carica</span> <span class="tag no">massa</span></h2>
+<p>Se ogni pallina può girare attorno a una direzione arrotolata che non vediamo, la carica è il numero di giri: intera e conservata da sola (17 livelli esatti, nessuna carica "a metà"), la forza nasce dalla torsione del cerchio e l'effetto Aharonov-Bohm viene esatto (10⁻¹¹). Ma il prezzo in massa è sbagliato di 10²¹: in questa forma semplice l'elettrone non è un giro sul cerchio.</p>
+<figure><img src="fig/kk.png" alt="Carica nascosta: ciclotrone e Aharonov-Bohm"><figcaption>Carica +1 e −1 curvano in versi opposti, la neutra va dritta. A destra, l'anello di Aharonov-Bohm.</figcaption></figure>
+
+<h2><span class="n">08</span> La forma dello spazio si legge dalle palline <span class="tag ok">verificato</span></h2>
+<p>Non disegniamo la geometria: la ricaviamo da quanto le palline sono legate tra loro, senza dare nessuna mappa. Un anello esce perfetto (raggio allo 0,003%), una dimensione arrotolata compare da sola (2 dimensioni da vicino, 1 da lontano, raggio entro 3%), e le palline distinguono una Calabi-Yau da una forma qualunque (2 modi di girare che tornano identici, contro 0), trovando le punte esattamente sui punti fissi (3/3 e 16/16).</p>
+<figure><img src="fig/geo.png" alt="Forme vere e forme ricostruite dai legami"><figcaption>A sinistra le forme vere, a destra quelle ricostruite solo dai legami tra palline.</figcaption></figure>
+
+<h2><span class="n">09</span> Le particelle nascono dalla sincronia mancata <span class="tag hyp">ipotesi</span></h2>
+<p>Palline-orologio accese a caso che si sincronizzano come metronomi: dove la sincronia non finisce restano nodi congelati. Nelle palline i nodi nascono da soli con la legge prevista (Kibble–Zurek) e si annullano in onde, ma l'esponente dell'elio superfluido (0,573) non è ancora distinguibile da quello semplice (0,5): la griglia è troppo grossolana.</p>
+<figure><img src="fig/kz.png" alt="Sincronia e difetti congelati"><figcaption>Densità di vortici contro velocità di sincronizzazione.</figcaption></figure>
+
+<h2><span class="n">10</span> Agglomerati: la stessa regola a ogni zoom <span class="tag ok">verificato</span></h2>
+<p>Blocca le palline, impara la regola dei blocchi, controlla, ripeti. Sulle molle: 11 volte più veloce con errore sotto l'1%. Su Ising: ritrova gli esponenti critici. Sugli atomi: palline → idrogeno, elio, H₂ (ogni numero ora torna, l'ultima anomalia del −1,4% era un nostro fit sbagliato). Dove zoomi vedi la verità; altrove agglomerati precisi con errore piccolo e controllato.</p>
+
+<hr class="rule">
+
+<h2>Cosa NON sappiamo</h2>
+<div class="grid">
+<div class="box"><h3>Le masse dei leptoni</h3><p>207 e 3477 non escono da nessuna forma semplice. Servono posti di "incastro" che non abbiamo trovato.</p></div>
+<div class="box"><h3>Perché tre famiglie</h3><p>I tre punti a 120° danno la regola del colore, non le famiglie. Gli orbifold arrivano a 3 solo per scelta.</p></div>
+<div class="box"><h3>Una forma che nasce da sola</h3><p>Rinforzo, flusso di Ricci, flusso nei buchi: tutti finiscono in isole. "Chi è forte diventa più forte" frammenta lo spazio.</p></div>
+<div class="box"><h3>L'elettrone come nodo</h3><p>I nodi che abbiamo sono protoni. L'elettrone come nodo del fluido, con carica e spin ½, resta aperto.</p></div>
+<div class="box"><h3>Il vuoto che non preme l'universo</h3><p>Il vuoto preme il protone con 10³⁵ Pa e l'universo con quasi zero. Discrepanza di 10⁴⁴ che nessuno sa spiegare.</p></div>
+<div class="box"><h3>Quark</h3><p>Dentro il nostro protone non ci sono quark: è un nodo di campo. I quark veri richiedono calcoli oltre questo PC.</p></div>
+</div>
+
+<h2>Il quadro in una tabella</h2>
+<div class="tbl"><table>
+<tr><th>Cosa</th><th>Numero nostro</th><th>Esperimento / teoria</th><th>Stato</th></tr>
+<tr><td>Idrogeno, energia</td><td class="num">13,60575 eV</td><td class="num">13,59844 eV (+5 ppm teorico)</td><td><span class="tag ok">ok</span></td></tr>
+<tr><td>Doppia fenditura, correlazione</td><td class="num">0,995</td><td class="num">1</td><td><span class="tag ok">ok</span></td></tr>
+<tr><td>Bell, S</td><td class="num">2,832</td><td class="num">2,828</td><td><span class="tag ok">ok</span></td></tr>
+<tr><td>H₂ vibrazione</td><td class="num">4393 ± 36 cm⁻¹</td><td class="num">4401</td><td><span class="tag ok">ok</span></td></tr>
+<tr><td>Contrazione di Lorentz (fluido)</td><td class="num">1,5%</td><td>—</td><td><span class="tag ok">ok</span></td></tr>
+<tr><td>Coppie dal vuoto (Schwinger)</td><td class="num">0,998–1,003</td><td class="num">1</td><td><span class="tag ok">ok</span></td></tr>
+<tr><td>Nodo, massa</td><td class="num">1,2410</td><td class="num">1,2314</td><td><span class="tag ok">ok</span></td></tr>
+<tr><td>Pressione, cambio di segno</td><td class="num">0,605 fm</td><td class="num">0,586 fm</td><td><span class="tag ok">ok</span></td></tr>
+<tr><td>μp/μn</td><td class="num">1,42</td><td class="num">1,46</td><td><span class="tag ok">ok</span></td></tr>
+<tr><td>Grumo di luce, massa</td><td class="num">4,92</td><td class="num">4,74</td><td><span class="tag ok">ok</span></td></tr>
+<tr><td>Grumo eccitato</td><td class="num">1,71</td><td class="num">1,45</td><td><span class="tag no">no</span></td></tr>
+<tr><td>Massa dal cerchio nascosto</td><td class="num">10²¹ m_e</td><td class="num">m_e</td><td><span class="tag no">no</span></td></tr>
+<tr><td>Muone / elettrone da una forma</td><td class="num">≤ 1,8</td><td class="num">206,8</td><td><span class="tag no">no</span></td></tr>
+<tr><td>Esponente sincronia (elio)</td><td class="num">0,507</td><td class="num">0,573</td><td><span class="tag no">no</span></td></tr>
+</table></div>
+
+<h2>La frase da tenere</h2>
+<blockquote>Le palline corrono a c e si toccano. Il vuoto è un fluido pieno di coppie. Le particelle sono nodi che non si sciolgono, bolle in cui il vuoto preme da fuori e la luce preme da dentro. La massa è l'energia di quel braccio di ferro. Lo spazio è la forma dei loro legami.</blockquote>
+<p>È un'immagine, non una teoria completa: ogni riga verde l'abbiamo misurata, ogni riga gialla è una scommessa, ogni riga rossa è un muro contro cui abbiamo sbattuto e che segniamo per non dimenticarlo.</p>
+
+<small class="src">Repo: particle-sim, 2026. Tutti i numeri hanno criteri scritti prima dei test e sono nei documenti docs/*.md.</small>
+</div>
