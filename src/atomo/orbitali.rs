@@ -22,6 +22,7 @@ use std::time::{Duration, Instant};
 use rayon::prelude::*;
 
 use crate::cplx::C;
+use crate::misura::{Opzioni, Rivelatore};
 use crate::render::{phase_color, schermo, Ball};
 use crate::rng::{hash01, Rng};
 use crate::walk::{surfer_velocity, Radial};
@@ -278,12 +279,17 @@ pub struct Uscita {
     pub periodo: f64,
     pub ms: f64,
     pub pronto: bool,
+    pub n_clic: usize,
+    pub ultimo_clic: Option<[f64; 3]>,
 }
 
 pub struct Condiviso {
     pub comando: Comando,
     pub ritmo: f64,
     pub scegli: Option<Scelta>,
+    pub opz: Opzioni,
+    pub misura: bool,
+    pub azzera: bool,
     pub fine: bool,
     pub out: Uscita,
 }
@@ -323,9 +329,20 @@ impl Mondo {
         Mondo { g, scelta: s, t: 0.0, dt, surf, scie, rng }
     }
 
-    fn passo(&mut self, verso: f64) -> Vec<[C; 4]> {
+    fn passo(&mut self, verso: f64, surfisti: bool) -> Vec<[C; 4]> {
         self.t += verso * self.dt;
         let v = self.g.al_tempo(self.t);
+        if !surfisti {
+            // without the surfers (Bohm trajectories) the balls are just the wave: they stay, 5 % reborn per step
+            let g = &self.g;
+            let nuovi = nasci(g, &v, N_SURF_ORB / 20, &mut self.rng);
+            for (j, p) in nuovi.into_iter().enumerate() {
+                let i = (self.rng.next_u64() as usize + j) % N_SURF_ORB;
+                self.surf[i] = p;
+            }
+            for (s, p) in self.scie.iter_mut().zip(self.surf.iter()) { *s = vec![*p]; }
+            return v;
+        }
         // surfers: v = j/ρ of the wave (≤ c), in 4 midpoint sub-steps
         let g = &self.g;
         let sub = 4;
@@ -352,7 +369,7 @@ impl Mondo {
 }
 
 /// Shells (glow) and surfers (wave balls) of the wave `v` at time t.
-fn disegna(m: &Mondo, v: &[[C; 4]]) -> (Vec<Ball>, Vec<Ball>) {
+fn disegna(m: &Mondo, v: &[[C; 4]], surfisti: bool) -> (Vec<Ball>, Vec<Ball>) {
     let g = &m.g;
     let rho: Vec<f32> = v.par_iter().map(|p| p.iter().map(|c| c.norm2()).sum::<f64>() as f32).collect();
     let rmax = rho.iter().cloned().fold(0.0f32, f32::max).max(1e-30);
@@ -377,7 +394,7 @@ fn disegna(m: &Mondo, v: &[[C; 4]]) -> (Vec<Ball>, Vec<Ball>) {
     }).collect();
     let mut palline = palline;
     // surfers with trails (bright, glowing)
-    for s in &m.scie {
+    for s in m.scie.iter().filter(|_| surfisti) {
         let k = s.len();
         for (j, p) in s.iter().enumerate() {
             let x = (j + 1) as f32 / k as f32;
@@ -386,7 +403,7 @@ fn disegna(m: &Mondo, v: &[[C; 4]]) -> (Vec<Ball>, Vec<Ball>) {
         if let Some(p) = s.last() { palline.push((schermo(*p).to_array(), 2.2, [1.0, 0.97, 0.9, 1.0])); }
     }
     // the other surfers: wave balls with the phase colour where they are
-    let onde: Vec<Ball> = m.surf.par_iter().skip(N_SCIE).map(|p| {
+    let onde: Vec<Ball> = m.surf.par_iter().skip(if surfisti { N_SCIE } else { 0 }).map(|p| {
         let s = campiona(g, v, *p);
         let r: f64 = s.iter().map(|c| c.norm2()).sum();
         let a = (0.12 + 0.4 * (r as f32 / rmax).powf(0.35)).min(0.6);
@@ -397,9 +414,9 @@ fn disegna(m: &Mondo, v: &[[C; 4]]) -> (Vec<Ball>, Vec<Ball>) {
 
 pub fn avvia() -> Arc<Mutex<Condiviso>> {
     let c = Arc::new(Mutex::new(Condiviso {
-        comando: Comando::Avanti, ritmo: 30.0, scegli: None, fine: false,
+        comando: Comando::Avanti, ritmo: 30.0, scegli: None, opz: Opzioni::default(), misura: false, azzera: false, fine: false,
         out: Uscita { palline: Arc::new(vec![]), onde: Arc::new(vec![]), versione: 0, t: 0.0, scelta: Scelta::default(), livelli: vec![],
-                      r: 20.0, periodo: 1.0, ms: 0.0, pronto: false },
+                      r: 20.0, periodo: 1.0, ms: 0.0, pronto: false, n_clic: 0, ultimo_clic: None },
     }));
     let cc = c.clone();
     std::thread::spawn(move || {
@@ -408,28 +425,43 @@ pub fn avvia() -> Arc<Mutex<Condiviso>> {
         let mut v = m.g.al_tempo(0.0);
         let mut versione = 0u64;
         let mut ms = 0.0;
+        let mut riv = Rivelatore::default();
+        let mut opz_prima = Opzioni::default();
         loop {
             let t0 = Instant::now();
-            let (cmd, ritmo, scegli, fine) = {
+            let (cmd, ritmo, scegli, fine, opz, misura, azzera) = {
                 let mut g = cc.lock().unwrap();
-                (g.comando, g.ritmo, g.scegli.take(), g.fine)
+                let s = (g.comando, g.ritmo, g.scegli.take(), g.fine, g.opz, g.misura, g.azzera);
+                g.misura = false;
+                g.azzera = false;
+                s
             };
             if fine { break; }
-            let mut cambiato = false;
-            if let Some(s) = scegli { m = Mondo::new(s, &mut cache); v = m.g.al_tempo(0.0); cambiato = true; }
+            let mut cambiato = riv.invecchia() || opz != opz_prima || azzera;
+            opz_prima = opz;
+            if azzera { riv.azzera(); }
+            if let Some(s) = scegli { m = Mondo::new(s, &mut cache); v = m.g.al_tempo(0.0); riv.azzera(); cambiato = true; }
+            if misura {
+                // Born rule: one point drawn with |ψ|² at this instant (here only recorded: this view has no
+                // live lattice to collapse; the atom scene does)
+                let p = nasci(&m.g, &v, 1, &mut m.rng)[0];
+                riv.registra(p);
+                cambiato = true;
+            }
             match cmd {
-                Comando::Avanti => { v = m.passo(1.0); cambiato = true; }
-                Comando::Indietro => { v = m.passo(-1.0); cambiato = true; }
+                Comando::Avanti => { v = m.passo(1.0, opz.surfisti); cambiato = true; }
+                Comando::Indietro => { v = m.passo(-1.0, opz.surfisti); cambiato = true; }
                 Comando::Pausa => {}
             }
             if cambiato || versione == 0 {
-                let (p, o) = disegna(&m, &v);
+                let (mut p, o) = disegna(&m, &v, opz.surfisti);
+                riv.disegna(&mut p, 0.08 * m.g.r, opz.mostra_clic);
                 versione += 1;
                 let el = t0.elapsed().as_secs_f64() * 1e3;
                 ms += 0.15 * (el.min(500.0) - ms);
                 let livelli = m.g.stati.iter().zip(&m.g.omega).map(|(s, w)| (*s, *w, dirac_esatto(s.n, s.kappa()))).collect();
                 let out = Uscita { palline: Arc::new(p), onde: Arc::new(o), versione, t: m.t, scelta: m.scelta.clone(), livelli,
-                                   r: m.g.r, periodo: m.g.periodo(), ms, pronto: true };
+                                   r: m.g.r, periodo: m.g.periodo(), ms, pronto: true, n_clic: riv.clic.len(), ultimo_clic: riv.ultimo() };
                 cc.lock().unwrap().out = out;
             }
             let want = Duration::from_secs_f64(1.0 / ritmo.max(0.5));

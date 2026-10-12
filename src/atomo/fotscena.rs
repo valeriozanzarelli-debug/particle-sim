@@ -17,7 +17,9 @@ use std::time::{Duration, Instant};
 
 use crate::fotone3d::{base_trasversa, norma, punto, Cf, Fotone3D, Lancio, Misura, Polar};
 use crate::fotdisegno::{self, Traccianti};
+use crate::misura::{Opzioni, Rivelatore};
 use crate::render::Ball;
+use crate::rng::Rng;
 
 /// Quality: (cells per wavelength, cells per side of the box). The box is 8–12 λ wide.
 pub const QUALITA: [(f64, usize, &str); 4] = [
@@ -94,6 +96,8 @@ pub struct Uscita {
     pub theta: Option<f64>,
     pub ms_tick: f64,
     pub pronto: bool,
+    pub n_clic: usize,
+    pub ultimo_clic: Option<[f64; 3]>,
 }
 
 pub struct Condiviso {
@@ -102,6 +106,9 @@ pub struct Condiviso {
     /// launch a new photon with these parameters
     pub lancia: Option<Parametri>,
     pub vista: Vista,
+    pub opz: Opzioni,
+    pub misura: bool,
+    pub azzera: bool,
     pub fine: bool,
     pub out: Uscita,
 }
@@ -219,9 +226,9 @@ fn risolvi3(mut a: [[f64; 3]; 3], mut r: [f64; 3]) -> Option<[f64; 3]> {
 
 pub fn avvia(par: Parametri) -> Arc<Mutex<Condiviso>> {
     let c = Arc::new(Mutex::new(Condiviso {
-        comando: Comando::Avanti, ritmo: 30.0, lancia: None, vista: Vista::default(), fine: false,
+        comando: Comando::Avanti, ritmo: 30.0, lancia: None, vista: Vista::default(), opz: Opzioni::default(), misura: false, azzera: false, fine: false,
         out: Uscita { palline: Arc::new(vec![]), onde: Arc::new(vec![]), versione: 0, ticks: 0, lanci: 0, par, centro: [0.0; 3], v: None, v_continuo: 1.0,
-                      elicita: None, w: 0.0, theta: None, ms_tick: 0.0, pronto: false },
+                      elicita: None, w: 0.0, theta: None, ms_tick: 0.0, pronto: false, n_clic: 0, ultimo_clic: None },
     }));
     let cc = c.clone();
     std::thread::spawn(move || {
@@ -230,15 +237,31 @@ pub fn avvia(par: Parametri) -> Arc<Mutex<Condiviso>> {
         let mut versione = 0u64;
         let mut ms = 0.0;
         let mut vista_prima = Vista::default();
+        let mut riv = Rivelatore::default();
+        let mut opz_prima = Opzioni::default();
+        let mut rng = Rng::new(4242);
         loop {
             let t0 = Instant::now();
-            let (cmd, ritmo, lancia, vista, fine) = {
+            let (cmd, ritmo, lancia, vista, fine, opz, misura, azzera) = {
                 let mut g = cc.lock().unwrap();
-                (g.comando, g.ritmo, g.lancia.take(), g.vista, g.fine)
+                let s = (g.comando, g.ritmo, g.lancia.take(), g.vista, g.fine, g.opz, g.misura, g.azzera);
+                g.misura = false;
+                g.azzera = false;
+                s
             };
             if fine { break; }
-            let mut cambiato = vista != vista_prima;
+            let mut cambiato = vista != vista_prima || opz != opz_prima || riv.invecchia() || azzera;
             vista_prima = vista;
+            opz_prima = opz;
+            if azzera { riv.azzera(); }
+            if misura {
+                // a detector click: one point drawn with the energy density |F|² of the photon
+                let p = fotdisegno::semina(&m.f, 1, &mut rng)[0];
+                riv.registra([p[0] as f64, p[1] as f64, p[2] as f64]);
+                cambiato = true;
+                // collapse: a photon detected is absorbed; the next one leaves
+                if opz.collassa { let l = m.lanci + 1; m = Mondo::new(m.par, l, &mut cache); }
+            }
             if let Some(p) = lancia { let l = m.lanci + 1; m = Mondo::new(p, l, &mut cache); cambiato = true; }
             match cmd {
                 Comando::Avanti => {
@@ -252,7 +275,8 @@ pub fn avvia(par: Parametri) -> Arc<Mutex<Condiviso>> {
             }
             if cambiato || versione == 0 {
                 let ep = m.e_prima.as_ref().filter(|(t, _)| *t == m.f.ticks).map(|(_, e)| e.as_slice());
-                let (p, onde) = fotdisegno::palline(&m.f, &m.l, atteso(&m.l, m.f.ticks), &m.tr, ep, vista);
+                let (mut p, onde) = fotdisegno::palline(&m.f, &m.l, atteso(&m.l, m.f.ticks), &m.tr, ep, vista, opz.surfisti);
+                riv.disegna(&mut p, 0.6 * m.l.lambda, opz.mostra_clic);
                 versione += 1;
                 let tick_ms = t0.elapsed().as_secs_f64() * 1e3;
                 ms += 0.15 * (tick_ms.min(500.0) - ms);
@@ -260,7 +284,7 @@ pub fn avvia(par: Parametri) -> Arc<Mutex<Condiviso>> {
                 let out = Uscita {
                     palline: Arc::new(p), onde: Arc::new(onde), versione, ticks: m.f.ticks, lanci: m.lanci, par: m.par, centro: ult.centro,
                     v: m.velocita(), v_continuo: m.v_continuo, elicita: m.elicita, w: m.larghezza(&ult), theta: theta_da(&m.storia, m.l.dir),
-                    ms_tick: ms, pronto: true,
+                    ms_tick: ms, pronto: true, n_clic: riv.clic.len(), ultimo_clic: riv.ultimo(),
                 };
                 cc.lock().unwrap().out = out;
             }

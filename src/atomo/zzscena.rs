@@ -15,6 +15,7 @@ use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
 use crate::rng::Rng;
+use crate::misura::{Opzioni, Rivelatore};
 use crate::render::{schermo, Ball};
 use crate::zz::{self, Atomo, Impulso, A};
 
@@ -46,6 +47,9 @@ pub struct Uscita {
     pub legame_1s: f64,
     pub punto: [f64; 3],
     pub pronto: bool,
+    /// clicks of the detector: how many, and the last one (λ_C)
+    pub n_clic: usize,
+    pub ultimo_clic: Option<[f64; 3]>,
 }
 
 pub struct Condiviso {
@@ -55,6 +59,10 @@ pub struct Condiviso {
     /// a photon to send: its frequency (mc²/ħ)
     pub spara: Option<f64>,
     pub ricomincia: bool,
+    pub opz: Opzioni,
+    /// a measurement asked (button MISURA) / clear the clicks
+    pub misura: bool,
+    pub azzera: bool,
     pub fine: bool,
     pub out: Uscita,
 }
@@ -99,7 +107,7 @@ fn tinta(angle: f32, a: f32) -> [f32; 4] {
     [p[0] + (q[0] - p[0]) * s, p[1] + (q[1] - p[1]) * s, p[2] + (q[2] - p[2]) * s, a]
 }
 
-fn palline(m: &Mondo) -> Vec<Ball> {
+fn palline(m: &Mondo, surfisti: bool) -> Vec<Ball> {
     use rayon::prelude::*;
     let t = m.at.t();
     let rho_max = m.at.psi.par_iter().map(|p| p.iter().map(|c| c.norm2()).sum::<f64>()).reduce(|| 0.0, f64::max).max(1e-300);
@@ -114,7 +122,7 @@ fn palline(m: &Mondo) -> Vec<Ball> {
         let a = (0.03 + 0.30 * (rho / rho_max).powf(0.35)) as f32;
         (schermo(*p).to_array(), 1.0, tinta(ph, a))
     }).collect();
-    for s in &m.scie {
+    for s in m.scie.iter().filter(|_| surfisti) {
         for (j, p) in s.iter().enumerate() {
             let a = (j + 1) as f32 / s.len() as f32;
             out.push((schermo(*p).to_array(), 0.5 + 0.9 * a, [1.0, 0.97, 0.9, 0.15 + 0.85 * a * a]));
@@ -155,11 +163,12 @@ fn palline(m: &Mondo) -> Vec<Ball> {
     out
 }
 
-fn passo(m: &mut Mondo, verso: f64) {
+fn passo(m: &mut Mondo, verso: f64, surfisti: bool) {
     if verso > 0.0 { m.at.avanti(); } else { m.at.indietro(); }
-    m.at.muovi_surfisti(&mut m.surf, verso);
-    // a few balls are reborn with |ψ|² each tick (keeps the cloud faithful on the coarse lattice)
-    let k = 40;
+    // with the surfers (Bohm trajectories) the balls ride the current j/ρ; without them the balls are just
+    // the wave: they stay where they are and 8 % are drawn again from |ψ|² every tick
+    if surfisti { m.at.muovi_surfisti(&mut m.surf, verso); }
+    let k = if surfisti { 40 } else { N_SURF / 12 };
     let nuovi = m.at.nascite(k, &mut m.rng);
     for (j, p) in nuovi.into_iter().enumerate() {
         let i = N_SCIA + (m.rng.next_u64() as usize + j) % (N_SURF - N_SCIA);
@@ -176,9 +185,9 @@ fn passo(m: &mut Mondo, verso: f64) {
 /// Start the worker. The shared state is read by the window every frame.
 pub fn avvia() -> Arc<Mutex<Condiviso>> {
     let c = Arc::new(Mutex::new(Condiviso {
-        comando: Comando::Avanti, ritmo: 25.0, spara: None, ricomincia: false, fine: false,
+        comando: Comando::Avanti, ritmo: 25.0, spara: None, ricomincia: false, opz: Opzioni::default(), misura: false, azzera: false, fine: false,
         out: Uscita { palline: Arc::new(vec![]), onde: Arc::new(vec![]), versione: 0, ticks: 0, p1s: 1.0, dipolo: 0.0, campo: 0.0, ms_tick: 0.0,
-                      omega_res: 0.0, legame_1s: 0.0, punto: [0.0; 3], pronto: false },
+                      omega_res: 0.0, legame_1s: 0.0, punto: [0.0; 3], pronto: false, n_clic: 0, ultimo_clic: None },
     }));
     let cc = c.clone();
     std::thread::spawn(move || {
@@ -188,16 +197,34 @@ pub fn avvia() -> Arc<Mutex<Condiviso>> {
         let mut m = nuovo_mondo();
         let mut versione = 0u64;
         let mut ms = 0.0;
+        let mut riv = Rivelatore::default();
+        let mut opz_prima = Opzioni::default();
         loop {
             let t0 = Instant::now();
-            let (cmd, ritmo, spara, ric, fine) = {
+            let (cmd, ritmo, spara, ric, fine, opz, misura, azzera) = {
                 let mut g = cc.lock().unwrap();
-                let s = (g.comando, g.ritmo, g.spara.take(), g.ricomincia, g.fine);
+                let s = (g.comando, g.ritmo, g.spara.take(), g.ricomincia, g.fine, g.opz, g.misura, g.azzera);
                 g.ricomincia = false;
+                g.misura = false;
+                g.azzera = false;
                 s
             };
             if fine { break; }
             if ric { m = nuovo_mondo(); }
+            if azzera { riv.azzera(); }
+            let mut flash = riv.invecchia();
+            if misura {
+                // Born rule: one point drawn with |ψ|²
+                let p = m.at.nascite(1, &mut m.rng)[0];
+                riv.registra(p);
+                flash = true;
+                if opz.collassa {
+                    m.at.collassa(p);
+                    m.surf = m.at.nascite(N_SURF, &mut m.rng);
+                    for (s, q) in m.scie.iter_mut().zip(m.surf.iter()) { *s = vec![*q]; }
+                }
+            }
+            if opz != opz_prima { flash = true; opz_prima = opz; }
             if let Some(w) = spara {
                 // the pulse peaks when the drawn packet reaches the atom
                 let t_arrivo = m.at.t() + 2.5 * SIGMA_IMP;
@@ -205,13 +232,14 @@ pub fn avvia() -> Arc<Mutex<Condiviso>> {
                 m.fotoni.push((w, t_arrivo));
             }
             match cmd {
-                Comando::Avanti => passo(&mut m, 1.0),
-                Comando::Indietro => if m.at.ticks > 0 { passo(&mut m, -1.0) },
+                Comando::Avanti => passo(&mut m, 1.0, opz.surfisti),
+                Comando::Indietro => if m.at.ticks > 0 { passo(&mut m, -1.0, opz.surfisti) },
                 Comando::Pausa => {}
             }
-            let moved = cmd != Comando::Pausa || spara.is_some() || ric;
+            let moved = cmd != Comando::Pausa || spara.is_some() || ric || flash || misura || azzera;
             if moved || versione == 0 {
-                let p = palline(&m);
+                let mut p = palline(&m, opz.surfisti);
+                riv.disegna(&mut p, 3.0, opz.mostra_clic);
                 versione += 1;
                 let tick_ms = t0.elapsed().as_secs_f64() * 1e3;
                 ms += 0.1 * (tick_ms - ms);
@@ -219,7 +247,7 @@ pub fn avvia() -> Arc<Mutex<Condiviso>> {
                     palline: Arc::new(p), onde: Arc::new(vec![]), versione, ticks: m.at.ticks,
                     p1s: if m.at.ticks % 4 == 0 { m.at.p_fondamentale() } else { cc.lock().unwrap().out.p1s },
                     dipolo: *m.dip.last().unwrap(), campo: m.at.campo(m.at.t()), ms_tick: ms, omega_res,
-                    legame_1s: 1.0 - l1.omega, punto: m.surf[0], pronto: true,
+                    legame_1s: 1.0 - l1.omega, punto: m.surf[0], pronto: true, n_clic: riv.clic.len(), ultimo_clic: riv.ultimo(),
                 };
                 cc.lock().unwrap().out = out;
             }

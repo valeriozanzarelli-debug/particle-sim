@@ -187,6 +187,27 @@ impl Atomo {
         out
     }
 
+    /// Position measurement with collapse: the wave becomes a narrow packet (width 2 cells) at `p`, with the
+    /// spinor the wave had there; the rule carries on from it (it spreads again).
+    pub fn collassa(&mut self, p: [f64; 3]) {
+        let n = N;
+        let mut chi = self.campiona(p);
+        let m: f64 = chi.iter().map(|c| c.norm2()).sum::<f64>().sqrt();
+        if m < 1e-300 { chi = [C::ZERO, C::ZERO, C::ONE, C::ZERO]; } else { for c in chi.iter_mut() { *c = c.scale(1.0 / m); } }
+        let sig = 2.0 * A;
+        let lato = n as f64 * A;
+        let wrap = |d: f64| d - lato * (d / lato).round();
+        self.psi.par_iter_mut().enumerate().for_each(|(s, q)| {
+            let x = [x_of(s / (n * n)), x_of((s / n) % n), x_of(s % n)];
+            let d2: f64 = (0..3).map(|c| wrap(x[c] - p[c]).powi(2)).sum();
+            let g = (-d2 / (2.0 * sig * sig)).exp();
+            for c in 0..4 { q[c] = chi[c].scale(g); }
+        });
+        let norm: f64 = self.psi.par_iter().map(|q| q.iter().map(|c| c.norm2()).sum::<f64>()).sum();
+        let k = 1.0 / norm.max(1e-300).sqrt();
+        self.psi.par_iter_mut().for_each(|q| for c in q.iter_mut() { *c = c.scale(k); });
+    }
+
     /// ⟨z⟩ (λ_C): the dipole of the atom (it radiates when it oscillates).
     pub fn dipolo(&self) -> f64 {
         self.psi.par_iter().zip(self.zs.par_iter()).map(|(p, z)| p.iter().map(|c| c.norm2()).sum::<f64>() * z).sum()

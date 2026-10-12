@@ -151,6 +151,21 @@ Tolto dal laboratorio in questa versione (resta nella storia di git, commit `a84
   ![2p + 3d](fig/orbitale_2p_3d.jpg)
   ![4f](fig/orbitale_4f.jpg)
 
+### 3.4 Misura e surfisti (in tutte e tre le scene, `misura.rs`)
+
+* **Le palline dell'onda sono l'elettrone** (o la luce): la regola muove l'onda, nient'altro.
+* **I surfisti sono un'interpretazione** (de Broglie–Bohm): palline portate dalla corrente dell'onda, v = j/ρ, con
+  la scia. La regola non ne ha bisogno. Sono spenti all'inizio; si accendono nel pannello ("surfisti (traiettorie di
+  Bohm, interpretazione)"). Senza surfisti le palline dell'atomo e degli orbitali stanno ferme e una parte rinasce
+  da |ψ|² a ogni passo.
+* **MISURA** (bottone o tasto M): una misura di posizione dà **un clic**, in un punto scelto con probabilità |ψ|² in
+  quell'istante (per il fotone: l'energia |F|²). Il clic lampeggia (una pallina e un guscio che si allarga),
+  la posizione va nel cruscotto, i clic passati restano come puntini verdi: tanti clic rifanno la forma dell'onda.
+* **Dopo la misura**: con "collassa" l'onda diventa un pacchetto stretto (2 celle) nel punto del clic e la regola
+  riparte da lì (si vede riallargarsi); per il fotone il rivelatore lo assorbe e ne parte un altro. Senza collasso
+  il clic è solo registrato: una vista non distruttiva, **non una misura vera**. Nella vista "orbitali" il collasso
+  non c'è (non ha il reticolo dal vivo): si usa la scena "atomo zig-zag".
+
 ## 4. Il fotone libero: pre-registrazione (scritta prima delle corse) e risultati
 
 Corse di sviluppo già viste (dichiarate): nel visore, qualità 8 celle per λ, w0 = λ, circolare +: velocità del
@@ -260,7 +275,7 @@ Debiti:
   (⏮ indietro esatto, ▶/⏸, ⏭, ritmo, Lancia), scala in basso a sinistra, scene in alto a sinistra ("fotone
   libero", "atomo zig-zag"), "segui il fotone", pannello con Tab o ☰ (λ vera, qualità, larghezza, polarizzazione,
   direzione, strati, numeri misurati).
-* Rotella = zoom, trascinare = girare attorno. Tasti: Spazio pausa, F lancia un fotone (o spara all'atomo),
+* Rotella = zoom, trascinare = girare attorno. Tasti: Spazio pausa, F lancia un fotone (o spara all'atomo), M misura (un clic),
   1 vista intera; nell'atomo 2 nucleo, 3 elettrone.
 * Riga di comando: `"Laboratorio Atomo.exe" --scena fotone|atomo|orbitali [--zoom nucleo]`; orbitali
   `--stati 3d` o `--stati 2p+3d` (m = +½, j = l + ½);; per il fotone

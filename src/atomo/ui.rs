@@ -74,6 +74,7 @@ pub fn draw_hud(mut ctx: EguiContexts, mut lab: ResMut<Lab>, mut cam: ResMut<Cam
         if keys.just_pressed(KeyCode::Tab) { lab.panel_open = !lab.panel_open; }
         if keys.just_pressed(KeyCode::Space) { lab.modo = if lab.modo == Modo::Avanti { Modo::Pausa } else { Modo::Avanti }; }
         if keys.just_pressed(KeyCode::KeyF) { lab.spara = true; }
+        if keys.just_pressed(KeyCode::KeyM) { lab.misura = true; }
         if keys.just_pressed(KeyCode::Digit1) { vai(lab, &mut cam, Bersaglio::Atomo); }
         if lab.scena != Scena::Fotone {
             if keys.just_pressed(KeyCode::Digit2) { vai(lab, &mut cam, Bersaglio::Nucleo); }
@@ -108,7 +109,12 @@ pub fn draw_hud(mut ctx: EguiContexts, mut lab: ResMut<Lab>, mut cam: ResMut<Cam
         });
     });
     // ── top centre: what is happening ──
-    let riga = stato_scena(lab);
+    let mut riga = stato_scena(lab);
+    if let Some((n, Some(p))) = clic_scena(lab) {
+        let r = (p[0] * p[0] + p[1] * p[1] + p[2] * p[2]).sqrt() * lab.metri_per_unita();
+        riga.1 = format!("{} · MISURA: clic n. {} a ({:.1}, {:.1}, {:.1}) unità, {} dal centro{}", riga.1, n, p[0], p[1], p[2], fmt_len(r),
+            if lab.opz.collassa { " (collasso)" } else { " (solo registrata)" });
+    }
     egui::Area::new(egui::Id::new("stato")).anchor(egui::Align2::CENTER_TOP, [0.0, 44.0]).show(ctx, |ui| {
         egui::Frame::none().fill(BG).rounding(6.0).inner_margin(egui::Margin::symmetric(10.0, 4.0)).show(ui, |ui| {
             ui.label(RichText::new(riga.0).monospace().color(CYAN));
@@ -152,6 +158,40 @@ fn vai(lab: &mut Lab, cam: &mut Cam, b: Bersaglio) {
     if b == Bersaglio::Nucleo { lab.mostra_protone = true; }
     let r = lab.distanza_tipica(b);
     cam.vai(b, r);
+}
+
+/// Clicks of the detector in the scene shown: (how many, the last one).
+fn clic_scena(lab: &Lab) -> Option<(usize, Option<[f64; 3]>)> {
+    match lab.scena {
+        Scena::Fotone => lab.fot.as_ref().map(|z| { let o = &z.lock().unwrap().out; (o.n_clic, o.ultimo_clic) }),
+        Scena::Atomo => lab.zz.as_ref().map(|z| { let o = &z.lock().unwrap().out; (o.n_clic, o.ultimo_clic) }),
+        Scena::Orbitali => lab.orb.as_ref().map(|z| { let o = &z.lock().unwrap().out; (o.n_clic, o.ultimo_clic) }),
+    }
+}
+
+/// The MEASUREMENT block of every panel.
+fn pannello_misura(ui: &mut egui::Ui, lab: &mut Lab) {
+    ui.separator();
+    ui.label(RichText::new("MISURA E SURFISTI").strong().color(GOLD));
+    ui.horizontal(|ui| {
+        if ui.add(egui::Button::new(RichText::new("  MISURA (M)  ").strong()).fill(Color32::from_rgb(40, 100, 60))).clicked() { lab.misura = true; }
+        if ui.button("cancella i clic").clicked() { lab.azzera_clic = true; }
+        ui.checkbox(&mut lab.opz.mostra_clic, "mostra i clic passati");
+    });
+    let etichetta = match lab.scena {
+        Scena::Fotone => "dopo la misura: il fotone è assorbito (ne parte un altro)",
+        Scena::Atomo => "dopo la misura: collassa (un pacchetto stretto nel punto del clic)",
+        Scena::Orbitali => "dopo la misura: collassa (non disponibile qui: usa la scena atomo)",
+    };
+    ui.add_enabled(lab.scena != Scena::Orbitali, egui::Checkbox::new(&mut lab.opz.collassa, etichetta));
+    if !lab.opz.collassa || lab.scena == Scena::Orbitali {
+        ui.label(RichText::new("Senza collasso il clic è solo registrato: una vista non distruttiva, non una misura vera (una misura \
+            vera cambia l'onda).").small().color(GREY));
+    }
+    ui.checkbox(&mut lab.opz.surfisti, "surfisti (traiettorie di Bohm, interpretazione)");
+    ui.label(RichText::new("Una misura di posizione dà UN clic, in un punto scelto con probabilità |ψ|² in quell'istante (per il fotone: \
+        l'energia |F|²). Tanti clic, uno dopo l'altro, rifanno la forma dell'onda. I surfisti sono palline portate dalla corrente \
+        dell'onda (de Broglie–Bohm): un'interpretazione, non servono alla regola; le palline dell'onda sono l'elettrone (o la luce).").small().color(GREY));
 }
 
 fn stato_scena(lab: &Lab) -> (String, String) {
@@ -230,6 +270,8 @@ fn barra_tempo(ctx: &egui::Context, lab: &mut Lab) {
                         ui.label(RichText::new(format!("t = {}", fmt_t(ticks as f64 * spt))).monospace().color(CYAN));
                     }
                 }
+                ui.separator();
+                if ui.add(egui::Button::new(RichText::new(" MISURA (M) ").strong()).fill(Color32::from_rgb(40, 100, 60))).on_hover_text("un clic del rivelatore, con probabilità |ψ|²").clicked() { lab.misura = true; }
             });
         });
     });
@@ -367,6 +409,7 @@ fn pannello_fotone(ctx: &egui::Context, lab: &mut Lab) {
             ui.add(egui::Slider::new(&mut lab.luce, 0.2..=4.0).text("luce"));
             ui.checkbox(&mut lab.bagliore, "bagliore");
         });
+        pannello_misura(ui, lab);
         ui.label(RichText::new("DEBITI: l'ampiezza è quella di un'onda classica normalizzata (la regola è lineare: un fotone e un \
             impulso forte hanno la stessa forma; il \"clic\" di un solo fotone non c'è ancora). Il reticolo cubico rallenta un po' \
             l'apertura di lato del fascio (fattore ka/tan ka: −21 % con 8 celle per λ, −6 % con 16, −2 % con 24) e rallenta la luce \
@@ -443,6 +486,7 @@ fn pannello_atomo(ctx: &egui::Context, lab: &mut Lab, cam: &mut Cam) {
         if ui.button("ricomincia dall'1s").clicked() {
             if let Some(z) = &lab.zz { z.lock().unwrap().ricomincia = true; }
         }
+        pannello_misura(ui, lab);
         ui.label(RichText::new("DEBITI: il campo del fotone è un impulso forte (come un laser), non un fotone solo; l'emissione \
             spontanea (vuoto quantistico) non c'è: la sovrapposizione non decade da sola. Il nucleo di Nd ha B = 144: si vede un protone.").small());
     });
@@ -525,6 +569,7 @@ fn pannello_orbitali(ctx: &egui::Context, lab: &mut Lab) {
             });
             ui.label(RichText::new(format!("raggio mostrato {:.0} ħ/mc = {} · {:.0} ms per passo", o.r, fmt_len(o.r * zz::LAMBDA_C_M), o.ms)).small().color(GREY));
         }
+        pannello_misura(ui, lab);
         ui.label(RichText::new("DEBITI: le celle grosse (0,5 ħ/mc) legano troppo (1s +40 % rispetto a Dirac; gli stati alti meno). \
             Gli orbitali n = 3, 4 non stanno nella scatola dal vivo (48³): la forma viene dalla regola radiale, esatta per un \
             elettrone in un campo centrale; qui niente fotone e niente tremolio di Zitterbewegung (stati di sola energia positiva). \

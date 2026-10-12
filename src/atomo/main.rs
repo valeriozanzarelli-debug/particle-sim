@@ -22,6 +22,7 @@ mod cplx;
 mod fotdisegno;
 mod fotone3d;
 mod fotscena;
+mod misura;
 mod orbitali;
 mod render;
 mod render_zz;
@@ -67,6 +68,10 @@ pub struct Lab {
     /// what the orbital panel will show
     pub orb_scelta: orbitali::Scelta,
     pub ritmo_orb: f64,
+    /// measurement and surfer options (all scenes), a measurement asked, clear the clicks
+    pub opz: misura::Opzioni,
+    pub misura: bool,
+    pub azzera_clic: bool,
     /// radius of the orbital view (λ_C) the camera was last set for
     pub orb_r: f64,
     /// photon energy for the zig-zag atom (keV) and the worker pace (ticks per second)
@@ -102,7 +107,7 @@ impl Lab {
         let w_rot = prof.omega_rot_s();
         let info2 = [prof.inerzia(), prof.delta_n_mev(), w_rot, w_resp, e_resp];
         Lab {
-            scena: Scena::Fotone, fot: None, fot_par: par, ritmo_fot: 20.0, segui: false, vista_fot: fotscena::Vista::default(), lambda_m: 500e-9, zz: None, orb: None, orb_scelta: orbitali::Scelta::default(), ritmo_orb: 30.0, orb_r: 25.0, e_kev: 0.0, ritmo: 25.0,
+            scena: Scena::Fotone, fot: None, fot_par: par, ritmo_fot: 20.0, segui: false, vista_fot: fotscena::Vista::default(), lambda_m: 500e-9, zz: None, orb: None, orb_scelta: orbitali::Scelta::default(), ritmo_orb: 30.0, opz: misura::Opzioni::default(), misura: false, azzera_clic: false, orb_r: 25.0, e_kev: 0.0, ritmo: 25.0,
             t_nucleo: 0.0, omega_rot: OMEGA_ROT_SCHERMO, omega_resp: OMEGA_ROT_SCHERMO * w_resp / w_rot, nodo_info2: info2,
             modo: Modo::Avanti, spara: false, panel_open: false, mostra_protone: true, bagliore: true, grandezza: 1.0, luce: 1.0,
             nodo_palline, nodo_info: info, frame_count: 0, palline_disegnate: 0, fps: 0.0,
@@ -192,6 +197,7 @@ impl Lab {
             Modo::Indietro => self.t_nucleo -= dt,
             Modo::Pausa => {}
         }
+        let (misura, azzera) = (self.misura, self.azzera_clic);
         match self.scena {
             Scena::Fotone => {
                 if self.spara { self.spara = false; self.lancia_fotone(); }
@@ -200,6 +206,9 @@ impl Lab {
                     g.comando = match self.modo { Modo::Avanti => fotscena::Comando::Avanti, Modo::Indietro => fotscena::Comando::Indietro, Modo::Pausa => fotscena::Comando::Pausa };
                     g.ritmo = self.ritmo_fot;
                     g.vista = self.vista_fot;
+                    g.opz = self.opz;
+                    if self.misura { g.misura = true; }
+                    if self.azzera_clic { g.azzera = true; }
                 }
             }
             Scena::Atomo => {
@@ -207,6 +216,9 @@ impl Lab {
                     let mut g = z.lock().unwrap();
                     g.comando = match self.modo { Modo::Avanti => zzscena::Comando::Avanti, Modo::Indietro => zzscena::Comando::Indietro, Modo::Pausa => zzscena::Comando::Pausa };
                     g.ritmo = self.ritmo;
+                    g.opz = self.opz;
+                    if self.misura { g.misura = true; }
+                    if self.azzera_clic { g.azzera = true; }
                     if self.spara {
                         self.spara = false;
                         if self.e_kev <= 0.0 { self.e_kev = g.out.omega_res * zz::MC2_KEV; }
@@ -220,9 +232,15 @@ impl Lab {
                     let mut g = o.lock().unwrap();
                     g.comando = match self.modo { Modo::Avanti => orbitali::Comando::Avanti, Modo::Indietro => orbitali::Comando::Indietro, Modo::Pausa => orbitali::Comando::Pausa };
                     g.ritmo = self.ritmo_orb;
+                    g.opz = self.opz;
+                    if self.misura { g.misura = true; }
+                    if self.azzera_clic { g.azzera = true; }
                 }
             }
         }
+        let _ = (misura, azzera);
+        self.misura = false;
+        self.azzera_clic = false;
     }
 }
 
@@ -243,6 +261,8 @@ fn main() {
     if let Some(v) = arg("--stati") { if let Some(s) = orbitali::scelta_da(&v) { lab.orb_scelta = s; } }
     if let Some(v) = arg("--lambda-m").and_then(|v| v.parse().ok()) { lab.lambda_m = v; }
     if let Some(v) = arg("--strati") { lab.vista_fot = strati(&v); }
+    if args.iter().any(|a| a == "--surfisti") { lab.opz.surfisti = true; }
+    if args.iter().any(|a| a == "--collassa") { lab.opz.collassa = true; }
     let scena = match (scena_arg.as_str(), zoom.as_str()) {
         ("atomo", _) | ("", "nucleo") | ("", "protone") | ("", "elettrone") => Scena::Atomo,
         ("orbitali", _) => Scena::Orbitali,
@@ -256,6 +276,7 @@ fn main() {
         auto.foto = f;
         auto.frames = arg("--frames").and_then(|v| v.parse().ok()).unwrap_or(240);
         auto.spara_al = arg("--spara-al").and_then(|v| v.parse().ok());
+        auto.misure = arg("--misure").and_then(|v| v.parse().ok()).unwrap_or(0);
         lab.panel_open = args.iter().any(|a| a == "--pannello");
         if let Some(r) = arg("--ritmo").and_then(|v| v.parse().ok()) { lab.ritmo_fot = r; }
     }
@@ -341,6 +362,8 @@ pub struct Auto {
     pub foto: String,
     pub frames: u64,
     pub spara_al: Option<u64>,
+    /// unattended: one measurement every 3 frames, this many in all
+    pub misure: u64,
     pub yaw: Option<f32>,
     pub pitch: Option<f32>,
     pub fatto: bool,
@@ -350,6 +373,7 @@ fn auto_sys(mut commands: Commands, mut auto: ResMut<Auto>, mut lab: ResMut<Lab>
     if !auto.attivo { return; }
     let f = lab.frame_count;
     if Some(f) == auto.spara_al { lab.spara = true; }
+    if auto.misure > 0 && f >= 30 && f % 3 == 0 && (f - 30) / 3 < auto.misure { lab.misura = true; }
     if f == auto.frames && !auto.fatto {
         auto.fatto = true;
         let path = auto.foto.clone();

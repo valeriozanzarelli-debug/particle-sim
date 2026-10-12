@@ -187,7 +187,7 @@ impl Traccianti {
 }
 
 /// `k` points drawn with probability ∝ |F|² (a cell, then a random point inside it).
-fn semina(f: &Fotone3D, k: usize, rng: &mut Rng) -> Vec<[f32; 3]> {
+pub fn semina(f: &Fotone3D, k: usize, rng: &mut Rng) -> Vec<[f32; 3]> {
     let n = f.n;
     let imax = f.f.par_iter().map(|p| p[0].norm2() + p[1].norm2() + p[2].norm2()).reduce(|| 0.0, f32::max).max(1e-30);
     // every other cell along each axis (a block of 2³ cells), then a random point in the block
@@ -227,7 +227,7 @@ fn tratto(out: &mut Vec<Ball>, p: [f64; 3], u: [f64; 3], l: f64, col: [f32; 3], 
 
 /// Everything drawn for the photon (scene units = cells, box centred on the origin).
 /// Returns (glowing balls, wave balls drawn with alpha blending).
-pub fn palline(f: &Fotone3D, l: &Lancio, centro: [f64; 3], tr: &Traccianti, e_prima: Option<&[[f32; 3]]>, vista: Vista) -> (Vec<Ball>, Vec<Ball>) {
+pub fn palline(f: &Fotone3D, l: &Lancio, centro: [f64; 3], tr: &Traccianti, e_prima: Option<&[[f32; 3]]>, vista: Vista, surfisti: bool) -> (Vec<Ball>, Vec<Ball>) {
     let n = f.n;
     let dir = l.dir;
     let (e1d, e2d) = base_trasversa(dir);
@@ -266,7 +266,7 @@ pub fn palline(f: &Fotone3D, l: &Lancio, centro: [f64; 3], tr: &Traccianti, e_pr
             [(pp(1.6), 0.6, [c[0], c[1], c[2], 0.25 * a]), (pp(0.8), 0.8, [c[0], c[1], c[2], 0.5 * a]), (pp(0.0), 1.0, c)]
         }).collect();
         for t in parti { onde.extend_from_slice(&t); }
-        for s in &tr.surf {
+        for s in tr.surf.iter().filter(|_| surfisti) {
             let k = s.len();
             for (j, p) in s.iter().enumerate() {
                 let x = (j + 1) as f32 / k as f32;
