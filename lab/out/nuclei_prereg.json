@@ -1,0 +1,60 @@
+{
+ "meta": {
+  "written": "2026-10-12T18:47:44",
+  "git_head_before": "4331d44afb197e3a37440bbc7aee2816c2c956d4"
+ },
+ "prereg": {
+  "engine": "massless Skyrme model, Skyrme units; static energy = knot2_core scheme c4 (4th-order staggered forward/backward differences, Dirichlet vacuum walls); minimisation by L-BFGS on phi = psi/|psi| (knot2_core.relax_lbfgs), stop when the relative energy change over 5 outer iterations < 5e-9, cap 600 outer iterations (x20 inner); chunks <= 480 s with checkpoints; float64; 2 threads. Baryon density: knot_core.baryon_density (4th-order central). L = 48, h = 0.2 (half box 4.7) unless stated. Static minimisation, not dynamics (no kinetic energy, no time).",
+  "literature": {
+   "E_over_12pi2B_BS2002": {
+    "1": 1.2322,
+    "2": 1.1791,
+    "3": 1.1462,
+    "4": 1.1201
+   },
+   "E_over_12pi2B_BS1997": {
+    "1": 1.232,
+    "2": 1.171,
+    "3": 1.143,
+    "4": 1.116
+   },
+   "rms_B_BS1997": {
+    "1": 1.034,
+    "2": 1.416,
+    "3": 1.636,
+    "4": 1.86
+   },
+   "refs": "Battye & Sutcliffe PRL 79 (1997) 363; Rev. Math. Phys. 14 (2002) 29; Houghton, Manton & Sutcliffe NPB 510 (1998) 507; Braaten, Townsend & Carson PLB 235 (1990) 147"
+  },
+  "N1_rational_maps": {
+   "runs": "jobs rm1, rm2, rm3, rm4: rational-map initial data (R = z, z^2, (sqrt3 i z^2 - 1)/(z^3 - sqrt3 i z), (z^4 + 2 sqrt3 i z^2 + 1)/(z^4 - 2 sqrt3 i z^2 + 1)) with the 1D-minimised rational-map profile; then relaxed.",
+   "N1a_shape (grid frame, about the centroid; b = max(baryon density, 0))": {
+    "B2_torus": "asym < 0.03 for rotations about z by 30, 45, 90 deg, reflection z->-z and C2 about x; asym(C4 about x) > 0.3; centre density / max < 0.3; second moments m1 < m2 <= m3 with |m3 - m2|/m3 < 0.02 and m1/m3 < 0.6 (oblate); q2 > 0.1",
+    "B3_tetrahedron": "asym < 0.03 for C2 about x, y, z and C3 about (1,1,1); asym > 0.3 for inversion and C4 about z (not cubic); q2 < 0.01, q3 > 0.1",
+    "B4_cube": "asym < 0.03 for C4 about z and x, C3 about (1,1,1), inversion; asym(C8 = 45 deg about z) > 0.3; q2, q3 < 0.01; q4 > 0.08"
+   },
+   "N1b_energy": "lattice E/(12 pi^2 B) within 2 % of BS2002 for B = 2, 3, 4 (each PASS/FAIL); B = 1 reported (same test). Also reported: the same-lattice ratio (E_B/B)/E_1 vs the literature ratio, and the BS1997 values.",
+   "N1c_order": "E/B strictly decreasing for B = 1, 2, 3, 4",
+   "N1d_charge": "|B_meas - B| / B < 1 % for each B",
+   "N1e_reported": "rms baryon radius vs BS1997 (no threshold)"
+  },
+  "N2_emergence": {
+   "pair25": "B = 2 from two ODE hedgehogs (radial_bvp, taper 3.0-3.6) at x = -1.25 and +1.25 (separation 2.5), second one isorotated by pi about z (attractive channel: axis perpendicular to the separation), product ansatz, relaxed. pair30 (separation 3.0) if time allows.",
+   "torus_test": "torus formed by itself = ALL of: final E/B within 0.5 % of rm2; in the principal-axis frame (axis = eigenvector of the baryon second-moment tensor with the most distinct eigenvalue) asym < 0.05 for rotations by 30, 45, 90 deg about the axis and the reflection through the plane normal to it; density at the centroid / ring maximum < 0.3 and (max-min)/max along the ring < 0.1; oblate as in N1a. Prediction stated before the run: the torus axis comes out along y (perpendicular to both separation x and isorotation axis z), |axis_y| > 0.95 (reported).",
+   "tet4": "B = 4 from four hedgehogs at the vertices of a regular tetrahedron of edge 2.5 (a(1,1,1), a(1,-1,-1), a(-1,1,-1), a(-1,-1,1)) with isorotations 1, pi_x, pi_y, pi_z (every pair in the attractive channel).",
+   "sq4": "B = 4 from four hedgehogs at the corners of a square of side 2.5 in the xy plane with isorotations 1, pi_z, 1, pi_z around the square (neighbours attractive, diagonals repulsive).",
+   "cube_test": "cube formed = E/B within 0.5 % of rm4 and q2, q3 < 0.01 and q4 within 15 % of rm4's q4. Otherwise report what formed (E/B, q_l, peaks, second moments, symmetry scores) and whether the run converged (a saddle/plateau is a possible outcome of a static minimiser and will be stated as such)."
+  },
+  "N3_not_the_sum": {
+   "per_B": "rms baryon radius, second-moment and inertia tensors (of the baryon density), number of density maxima above half max, for rm1..rm4.",
+   "naive": "naive B = 2 = sum of two copies of the relaxed rm1 baryon density shifted to x = +-d/2, d chosen so that its rms radius equals rm2's (d = 2 sqrt(rms2^2 - rms1^2)); same measures.",
+   "N3a": "B=2 oblate (|m3-m2|/m3 < 0.03, m1 < 0.8 m3) AND naive prolate (|m2-m1|/m2 < 0.03, m3 > 1.2 m2): PASS if both",
+   "N3b": "B=2 has a ring (centre/ring max < 0.3, ring variation < 0.1) AND the naive sum has exactly 2 maxima: PASS if both",
+   "N3c_binding": "classical binding E_bind(B) = B E_1 - E_B (same lattice) and with BS2002; MeV via ANW FIT units (F_pi = 129 MeV, e = 5.44 from M_N and M_Delta, docs/NODO_3D.md; energy unit F_pi/(4e) = 5.93 MeV, 12 pi^2 unit = 702 MeV; DECLARED AS FIT UNITS, 2 inputs). Compare deuteron 2.224 MeV, 3H 8.48, 3He 7.72, 4He 28.30 MeV. Exam: B=2 binding within a factor 2 of the deuteron -> expected FAIL (known: classical Skyrme binding ~ 10x or more too large); ratio reported for each B."
+  },
+  "N4_render": "isosurfaces (marching tetrahedra, knot_core.isosurface) of the baryon density at 25 % of each max, for rm1..rm4 and the N2 results; triangle counts and Euler characteristic chi = V - E + F after merging coincident vertices; exam: chi = 2 for B = 1 (sphere) and chi = 0 for B = 2 (torus, one hole); B = 3, 4 reported (number of holes = 1 - chi/2 for one closed surface).",
+  "N5": "docs/NUCLEI_DA_NODI.md (Italian), figure lab/out/nuclei_figure.png",
+  "parameters": "0 free parameters in Skyrme units for shapes and E/B (massless pions); 2 fit inputs (M_N, M_Delta) only for MeV in N3c",
+  "budget": "each script <= 10 min wall (chunks <= 480 s, checkpoints), 2 threads, ~3 h total; job order rm1, rm2, rm3, rm4, pair25, tet4, sq4, then pair30 and rm4_L64 (box check, half box 6.3) if time; dropped runs are declared"
+ }
+}
