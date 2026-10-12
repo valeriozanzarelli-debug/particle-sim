@@ -602,3 +602,26 @@ def auto_level(prev, rng, Nc, eps_packet=1e-3, eps_energy=1e-4, T_obs=1000, k_ob
                     cand.check = ck
                     return cand, tried
     return None, tried
+
+
+def _shift_weyl_fast(a, b, j, h, ax):
+    """same as _shift_weyl for one Weyl spinor (a, b) = components, written out for sigma_x, sigma_y, sigma_z"""
+    r = np.sqrt(0.5)
+    if j == 2:
+        return np.roll(a, h, axis=ax), np.roll(b, -h, axis=ax)
+    if j == 0:
+        cp, cm = np.roll((a + b) * r, h, axis=ax), np.roll((a - b) * r, -h, axis=ax)
+        return (cp + cm) * r, (cp - cm) * r
+    cp, cm = np.roll((a - 1j * b) * r, h, axis=ax), np.roll((a + 1j * b) * r, -h, axis=ax)
+    return (cp + cm) * r, 1j * (cp - cm) * r
+
+
+def fine3_tick_fast(psi, th, n_tick):
+    """fine3_tick, faster (explicit eigenbases); psi (S, 4, n, n, n)"""
+    L0, L1, R0, R1 = psi[:, 0], psi[:, 1], psi[:, 2], psi[:, 3]
+    for j in zz.order_of_tick(n_tick):
+        ax = j - 3
+        L0, L1 = _shift_weyl_fast(L0, L1, j, -1, ax)
+        R0, R1 = _shift_weyl_fast(R0, R1, j, +1, ax)
+    c, s = np.cos(th), np.sin(th)
+    return np.stack([c * L0 - 1j * s * R0, c * L1 - 1j * s * R1, c * R0 - 1j * s * L0, c * R1 - 1j * s * L1], axis=1)

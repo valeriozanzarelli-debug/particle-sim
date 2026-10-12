@@ -23,7 +23,7 @@ A0 = 1 / zz.ALPHA
 MC2 = zz.MC2_EV
 TH = A0 / 16 / 32
 NC = 128
-NSTEP = int(sys.argv[1]) if len(sys.argv) > 1 else 48
+NSTEP = int(sys.argv[1]) if len(sys.argv) > 1 else 24
 CK = os.path.join(OUT, "agg_zz_zoom_state.pkl")
 t_start = time.time()
 BUDGET = 500
@@ -136,7 +136,7 @@ while S["n"] < NSTEP and time.time() - t_start < BUDGET:
     psi = pro
     psi[:, :, I0:I1, I0:I1, I0:I1] = keep
     for t in range(B):
-        psi = fine3_tick(psi, TH, t) * PH[None, None]
+        psi = fine3_tick_fast(psi, TH, t) * PH[None, None]
         Li, Ri = psi[0, 0:2, I0:I1, I0:I1, I0:I1], psi[0, 2:4, I0:I1, I0:I1, I0:I1]
         S["beta"].append(float(np.sum(2 * np.real(np.conj(Li) * Ri))))
         S["pint"].append(float(np.sum(np.abs(Li) ** 2 + np.abs(Ri) ** 2)))

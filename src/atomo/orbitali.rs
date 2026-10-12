@@ -76,9 +76,12 @@ pub fn radiale(kappa: i32, n: u32, l: u32) -> Radiale {
     // bindings from 0.3 down to 0.002 mc², log-spaced
     for k in 0..48 {
         let b = 0.3 * (0.002f64 / 0.3).powf(k as f64 / 47.0);
-        let (om, gf) = w.eigen(1.0 - b, 30);
+        let (om0, _) = w.eigen(1.0 - b, 30);
+        // listen again exactly at the frequency found (converges onto the nearest state)
+        let (om, gf) = w.eigen(om0, 40);
         if om >= 1.0 || om <= 0.0 { continue; }
-        if trovati.iter().all(|t| (t.0 - om).abs() > 1e-6) { trovati.push((om, gf)); }
+        let bind = 1.0 - om;
+        if trovati.iter().all(|t| ((1.0 - t.0) - bind).abs() > 0.005 * bind) { trovati.push((om, gf)); }
     }
     trovati.sort_by(|a, b| a.0.total_cmp(&b.0));
     let idx = (n - l - 1) as usize;

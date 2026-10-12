@@ -205,3 +205,42 @@ fn bench_fotone() {
         eprintln!("qual {q} (n {}): lancia {tl:?}, tick {tt:?}, misura {tm:?}, tracers {tt2:?}, palline {tp:?} ({nb} palline)", par.n());
     }
 }
+
+/// Orbitals: the radial form of the rule finds every state n = 1..4, l = 0..3 (j = l + ½) in the right order,
+/// each one bound, less bound as n grows; printed against the exact Dirac levels (informative: cells of 0.5 λ_C).
+#[test]
+fn orbitali_livelli() {
+    use crate::orbitali::{dirac_esatto, radiale, raggio, Stato};
+    let mut ultimo_per_l = [0.0f64; 4];
+    for n in 1..=4u32 {
+        for l in 0..n {
+            let s = Stato::new(n, l, 1);
+            let r = radiale(s.kappa(), n, l);
+            let b = 1.0 - r.omega;
+            let d = 1.0 - dirac_esatto(n, s.kappa());
+            eprintln!("{}: binding {:.5} mc² (Dirac {:.5}, {:+.1} %), radius {:.1} λ_C", s.nome(), b, d, 100.0 * (b / d - 1.0), raggio(&r));
+            assert!(b > 0.0);
+            if n > l + 1 { assert!(b < ultimo_per_l[l as usize], "{}", s.nome()); }
+            ultimo_per_l[l as usize] = b;
+            // the same order as Dirac within a factor 2
+            assert!(b / d > 0.5 && b / d < 2.0, "{}", s.nome());
+        }
+    }
+}
+
+#[test]
+#[ignore]
+fn orbitali_debug() {
+    use crate::walk::Radial;
+    let za = crate::zz::z_alpha();
+    for rmax in [60.0, 120.0, 358.0] {
+        let w = Radial::new(-1, crate::zz::A, rmax, za);
+        let mut v = vec![];
+        for k in 0..48 {
+            let b = 0.3 * (0.002f64 / 0.3).powf(k as f64 / 47.0);
+            let (om, _) = w.eigen(1.0 - b, 30);
+            v.push((b, 1.0 - om));
+        }
+        eprintln!("rmax {rmax}: {:?}", v.iter().map(|x| format!("{:.4}->{:.5}", x.0, x.1)).collect::<Vec<_>>());
+    }
+}

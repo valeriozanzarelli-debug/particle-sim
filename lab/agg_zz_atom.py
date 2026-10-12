@@ -108,16 +108,17 @@ class Atom:
         return float(-np.angle(lam) / self.tau_phys), float(resid), Eg
 
 
-def solve(atom, kind, Y=None, tol=1e-12, maxiter=300):
+def solve(atom, kind, Y=None, tol=1e-12, maxiter=300, x_start=None):
     N3 = atom.N ** 3
     Aop = spl.LinearOperator((N3, N3), matvec=atom.A, matmat=atom.A, dtype=complex)
     Pop = spl.LinearOperator((N3, N3), matvec=atom.P, matmat=atom.P, dtype=complex)
-    x0 = atom.guess(kind)[:, None]
+    x0 = (atom.guess(kind) if x_start is None else x_start)[:, None]
     if Y is not None:
         x0 = x0 - Y @ (Y.conj().T @ x0)
     w, v, hist = spl.lobpcg(Aop, x0, M=Pop, Y=Y, tol=tol, maxiter=maxiter, largest=False, retResidualNormsHistory=True)
     E, resid, Eg = atom.energy(v[:, 0])
     atom.E_generator = Eg
+    atom.h_resid = float(np.max(hist[-1])) if len(hist) else float("nan")
     return E, resid, v[:, 0], len(hist)
 
 
@@ -131,7 +132,7 @@ if __name__ == "__main__":
     jobs = [("1s", L1, NN), ("1s", L2, NN), ("2s", L2, NN), ("2p", L2, NN)]
     for kind, L, N in jobs:
         key = f"{kind}_B{L['B']}_N{N}"
-        if key in res:
+        if key in res and res[key].get("converged"):
             continue
         if time.time() - t_start > 30:
             print("next call continues", flush=True)
@@ -144,19 +145,25 @@ if __name__ == "__main__":
             for k2 in ("1s", "2s"):
                 kk = f"{k2}_B{L['B']}_N{N}"
                 fn = os.path.join(OUT, ("dev_" if DEV else "") + f"agg_zz_atom_{kk}.npy")
-                if k2 != kind and kk in res and os.path.exists(fn):
+                if k2 != kind and kk in res and res[kk].get("converged") and os.path.exists(fn):
                     vecs.append(np.load(fn))
             Y = np.stack(vecs, 1) if vecs else None
-        E, resid, v, nit = solve(at, kind, Y)
-        np.save(os.path.join(OUT, ("dev_" if DEV else "") + f"agg_zz_atom_{key}.npy"), v)
+        fn = os.path.join(OUT, ("dev_" if DEV else "") + f"agg_zz_atom_{key}.npy")
+        xs = np.load(fn) if (key in res and os.path.exists(fn)) else None
+        prev_it = res.get(key, {}).get("iterations", 0)
+        E, resid, v, nit = solve(at, kind, Y, maxiter=60, x_start=xs)
+        np.save(fn, v)
         n = 1 if kind == "1s" else 2
         ex = -RY / n ** 2
+        conv = bool(at.h_resid < 1e-10 or nit < 60)
         res[key] = dict(kind=kind, B=L["B"], cell_lambdaC=at.h, cell_over_a0=at.h / A0, N=N, box_a0=N * at.h / A0,
-                        E_eV=E * MC2, schroedinger_eV=ex, rel_err=E * MC2 / ex - 1, resid=resid, iterations=nit,
+                        E_eV=E * MC2, schroedinger_eV=ex, rel_err=E * MC2 / ex - 1, resid=resid, iterations=prev_it + nit,
+                        lobpcg_resid=at.h_resid, converged=conv,
                         rule_applications=at.napply, spin_part=at.spin_part, eps_max=at.eps_max, g_min=at.g_min,
                         rest_phase=float(at.rest), E_generator_eV=at.E_generator * MC2,
-                        seconds=time.time() - t0)
-        print(f"{key}: E = {E * MC2:.6f} eV vs {ex:.6f} ({100 * (E * MC2 / ex - 1):+.4f} %), residual {resid:.1e}, "
-              f"{nit} it, {time.time() - t0:.0f} s, spin part {at.spin_part:.1e}", flush=True)
+                        seconds=time.time() - t0 + res.get(key, {}).get("seconds", 0))
+        print(f"{key}: E = {E * MC2:.6f} eV vs {ex:.6f} ({100 * (E * MC2 / ex - 1):+.4f} %), generator {at.E_generator * MC2:.6f}, "
+              f"rule residual {resid:.1e}, lobpcg residual {at.h_resid:.1e}, {nit} it, converged {conv}, "
+              f"{time.time() - t0:.0f} s, spin part {at.spin_part:.1e}, G min {at.g_min:.2e}", flush=True)
         json.dump(res, open(JS, "w"), indent=1)
         del at

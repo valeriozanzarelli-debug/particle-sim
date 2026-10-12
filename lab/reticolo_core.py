@@ -88,6 +88,49 @@ def _shift(F, nbr, j, B, tmp):
 
 
 @nb.njit(cache=True)
+def _shift_lines(F, nbr, j, B, lines, glo, ghi, cp, cm):
+    """one axis of the light rule, line by line (same result as _shift, fewer memory passes)"""
+    nbk = nbr.shape[0]
+    st = 1
+    for _ in range(j):
+        st *= B
+    j1 = (j + 1) % 3
+    j2 = (j + 2) % 3
+    s2 = 0.7071067811865476
+    nl = lines.shape[0]
+    for b in range(nbk + 1):
+        for l in range(nl):
+            s0 = lines[l]
+            sl = s0 + (B - 1) * st
+            glo[b, l] = (F[b, sl, j1] - 1j * F[b, sl, j2]) * s2
+            ghi[b, l] = (F[b, s0, j1] + 1j * F[b, s0, j2]) * s2
+    for b in range(nbk):
+        bl = nbr[b, 2 * j]
+        bh = nbr[b, 2 * j + 1]
+        for l in range(nl):
+            s0 = lines[l]
+            for i in range(B):
+                s = s0 + i * st
+                a = F[b, s, j1]
+                c = F[b, s, j2]
+                cp[i] = (a - 1j * c) * s2
+                cm[i] = (a + 1j * c) * s2
+            for i in range(B):
+                s = s0 + i * st
+                p = glo[bl, l] if i == 0 else cp[i - 1]
+                m = ghi[bh, l] if i == B - 1 else cm[i + 1]
+                F[b, s, j1] = (p + m) * s2
+                F[b, s, j2] = 1j * (p - m) * s2
+
+
+def _lines(B, d, j):
+    loc = local_coords(B, d)
+    s = np.arange(B ** d)
+    return s[loc[:, j] == 0].astype(np.int64)
+
+
+
+@nb.njit(cache=True)
 def _gather(dst, tgt, src_arr, src, w):
     """dst[tgt[i]] = sum_q w[i,q] src_arr[src[i,q]]  (flat (N,3) views)"""
     for i in range(tgt.shape[0]):
@@ -189,7 +232,8 @@ class Level:
         self.nb = len(keys)
         self.owned = None
         self.F = np.zeros((self.nb + 1, self.Bd, 3), complex)
-        self.tmp = np.zeros((self.nb + 1, self.Bd, 2), complex)
+        self.tmp = np.zeros((0, self.Bd, 2), complex)      # (v1 kernel buffer, unused by _shift_lines)
+        self._glo_n = -1
         nbr = np.empty((self.nb, 2 * self.d), np.int64)
         for j in range(self.d):
             for sgn, col in ((-1, 2 * j), (1, 2 * j + 1)):
@@ -266,8 +310,16 @@ class Level:
             self.ticks += 1
             return
         order = range(self.d) if self.ticks % 2 == 0 else range(self.d - 1, -1, -1)
+        if not hasattr(self, "_lines") or self._lines[0].shape[0] * self.B != self.Bd:
+            self._lines = [_lines(self.B, self.d, j) for j in range(self.d)]
+            self._cp = np.zeros(self.B, complex)
+            self._cm = np.zeros(self.B, complex)
+        if self._glo_n != self.nb:
+            self._glo = np.zeros((self.nb + 1, self.Bd // self.B), complex)
+            self._ghi = np.zeros((self.nb + 1, self.Bd // self.B), complex)
+            self._glo_n = self.nb
         for j in order:
-            _shift(self.F, self.nbr, j, self.B, self.tmp)
+            _shift_lines(self.F, self.nbr, j, self.B, self._lines[j], self._glo, self._ghi, self._cp, self._cm)
         self.ticks += 1
 
     def energy_density(self):
