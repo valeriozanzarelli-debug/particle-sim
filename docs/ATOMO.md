@@ -217,6 +217,24 @@ spugna / Larmor = 1,77 (la spugna prende ancora un po' d'impulso).
 
 Il tempo di decadimento classico ħω p(1−p)/P_Larmor si riporta senza soglia.
 
+**Risultati v2** (corsa del 12 ottobre 2026):
+
+| prova | misurato | esito |
+|---|---|---|
+| E1v2 | luce rimandata a **ω = 0,07970** contro ω₂₁ = 0,07444 (**+7,1 %**) | **FAIL** |
+| E2v2 | ampiezza alla sonda **4,346·10⁻⁶** contro il campo lontano del dipolo 4,375·10⁻⁶ (**−0,6 %**) | **PASS** |
+
+Tempo di decadimento classico (senza soglia): ħω p(1−p)/P_Larmor ≈ **8 900 ħ/(mc²)** (≈ 1,1·10⁻¹⁷ s) con K = 10 e
+p ≈ 0,44; senza il fattore K² sarebbe 100 volte più lungo. Dal vivo non si vede finire: si vede la luce uscire.
+
+**Diagnosi di E1v2 (dopo la corsa).** La luce rimandata è **una riga sola**, a 0,0805 alla sonda e 0,0800 nel
+dipolo dell'atomo: la luce che esce ha proprio la frequenza a cui oscilla l'elettrone (questo E2v2 lo conferma
+anche in ampiezza). Ma non è la riga 1s → 2p½ pre-registrata: con luce polarizzata lungo z l'1s (m = +½) va anche
+nel **2p3/2**, che pesa il doppio; il 2p3/2 della regola 3-D ascoltato sta a ω = 0,97880, quindi 1s → 2p3/2 =
+0,0778 (la riga misurata è +3,5 % sopra). Il resto viene dall'1s della regola 3-D, che non è un livello pulito:
+ascoltato 600 o 1200 tick sta a 0,8990 o 0,9011 (si mescola con il livello del reticolo a 0,882). Il confronto
+giusto avrebbe dovuto usare la riga 1s → 2p3/2 e un 1s misurato meglio: non lo cambiamo dopo, resta FAIL.
+
 ## 4. Il fotone libero: pre-registrazione (scritta prima delle corse) e risultati
 
 Corse di sviluppo già viste (dichiarate): nel visore, qualità 8 celle per λ, w0 = λ, circolare +: velocità del

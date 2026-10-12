@@ -315,7 +315,7 @@ fn accoppiato_post_hoc() {
 /// E2v2: its amplitude vs the far field of the atom's own dipole, e D ω² W / (4π r) (D at that frequency over
 ///       the retarded window): within 10 %.
 #[test]
-#[ignore]
+#[ignore = "pre-registered v2: E1v2 FAILED (+7.1 %), E2v2 passed (−0.6 %): docs/ATOMO.md §3.5"]
 fn accoppiato_v2() {
     use crate::accoppiato::*;
     let mut x = Esperimento::new(1200);
@@ -334,4 +334,52 @@ fn accoppiato_v2() {
     eprintln!("     Larmor power {pl:.3e} → classical decay time ħω p(1−p)/P = {:.0} λ_C/c (p ≈ {p:.3}, K = {K_ACC})", w21 * p * (1.0 - p) / pl);
     assert!((wp / w21 - 1.0).abs() < 0.02);
     assert!((ep / atteso - 1.0).abs() < 0.10);
+}
+
+/// Post hoc after E1v2: the spectrum of the light at the probe (t = 400..1200): which lines?
+#[test]
+#[ignore]
+fn accoppiato_righe() {
+    use crate::accoppiato::*;
+    let mut x = Esperimento::new(1200);
+    let w21 = x.omega_21();
+    x.spara(w21, 0.004);
+    while x.at.t() < 1200.0 { x.passo(); }
+    for (nome, serie, da) in [("probe", &x.luce.sonda, 400.0), ("dipole", &x.serie_d, 240.0)] {
+        let mut picchi = vec![];
+        let mut prev = (0.0, 0.0, 0.0);
+        for k in 0..=600 {
+            let w = 0.04 + 0.0001 * k as f64;
+            let a = ampiezza_a(serie, w, da, da + 800.0);
+            if prev.1 > prev.0 && prev.1 > a { picchi.push((prev.2, prev.1)); }
+            prev = (prev.1, a, w);
+        }
+        picchi.sort_by(|a, b| b.1.total_cmp(&a.1));
+        eprintln!("{nome}: lines {:?} (ω21 {w21:.4}, ω2p − 0.882: {:.4}, ω2p − 0.8405: {:.4})",
+            picchi.iter().take(5).map(|p| format!("{:.4} ({:.2e})", p.0, p.1)).collect::<Vec<_>>(), x.omega2p - 0.8822, x.omega2p - 0.8405);
+    }
+}
+
+/// Levels of the 3-D rule by listening (spectrum of ⟨ψ₀|ψ(t)⟩): 1s, 2p½, 2p3/2 (m = +½).
+#[test]
+#[ignore]
+fn accoppiato_livelli_3d() {
+    use crate::cplx::C;
+    let n = crate::zz::N;
+    let da_radiale = |kappa: i32, nn: u32, l: u32| {
+        let r = crate::orbitali::radiale(kappa, nn, l);
+        let mut psi: Vec<[C; 4]> = (0..n * n * n).map(|s| {
+            let x = [crate::zz::x_of(s / (n * n)), crate::zz::x_of((s / n) % n), crate::zz::x_of(s % n)];
+            crate::zz::dirac_a_chirale(crate::orbitali::spinore(&r, kappa, 1, x))
+        }).collect();
+        let nn2: f64 = psi.iter().map(|p| p.iter().map(|c| c.norm2()).sum::<f64>()).sum();
+        for p in psi.iter_mut() { for c in p.iter_mut() { *c = c.scale(1.0 / nn2.sqrt()); } }
+        let mut a = crate::zz::Atomo::new();
+        a.imposta(psi);
+        a
+    };
+    for (nome, a, lo, hi, ticks) in [("2p3/2", da_radiale(-2, 2, 1), 0.95, 0.995, 500), ("2p1/2", da_radiale(1, 2, 1), 0.95, 0.995, 500)] {
+        let (_, om) = a.ascolta(lo, hi, ticks);
+        eprintln!("{nome}: ω = {om:.5}");
+    }
 }
