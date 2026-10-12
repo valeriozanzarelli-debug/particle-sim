@@ -1,0 +1,28 @@
+C:\Users\valer\Desktop\Programma di simulazione\particle_sim\lab\knot_core.py:355: UserWarning: Converting a tensor with requires_grad=True to a scalar may lead to unexpected behavior.
+Consider using tensor.detach() first. (Triggered internally at C:\actions-runner\_work\pytorch\pytorch\torch\csrc\autograd\generated\python_variable_methods.cpp:821.)
+  E = float(opt.step(clo))
+    lbfgs     5 (x20 inner)  E/12pi^2 = 1.18364775
+    lbfgs    10 (x20 inner)  E/12pi^2 = 1.18364738
+{
+ "h": 0.25,
+ "L": 38,
+ "half_box": 4.625,
+ "crude": false,
+ "iterations": 13,
+ "E": 140.18557707792877,
+ "E_over_12pi2": 1.1836473832599932,
+ "E_start_over_12pi2": 1.2178672405276847,
+ "B": 0.9857073139358075,
+ "Fmax": 4.9988218961516395e-05,
+ "Lambda": 64.95013184294687,
+ "r_half_over_h": 3.501187557774262,
+ "baryon": {
+  "r2": 0.8123705727762279,
+  "aniso": 8.270813367516894e-09
+ },
+ "energy": {
+  "r2": 1.2763886308554504,
+  "aniso": 7.497435561276689e-09
+ },
+ "seconds": 34.23093843460083
+}

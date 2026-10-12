@@ -1,0 +1,70 @@
+t=0.00 E=145.73 E_in=145.73 B=0.9959 |B|=0.996 Ixx,Iyy,Izz=0.58,0.58,0.58 pos=0.44,0.44,0.44
+C:\Users\valer\Desktop\Programma di simulazione\particle_sim\lab\knot_core.py:262: UserWarning: Converting a tensor with requires_grad=True to a scalar may lead to unexpected behavior.
+Consider using tensor.detach() first. (Triggered internally at C:\actions-runner\_work\pytorch\pytorch\torch\csrc\autograd\generated\python_variable_methods.cpp:821.)
+  return float(H), kin.detach(), st.detach(), tangent(phi, 0.5 * mi.detach()), gr
+t=0.25 E=145.73 E_in=145.72 B=0.9958 |B|=0.996 Ixx,Iyy,Izz=0.58,0.58,0.58 pos=0.44,0.44,0.44
+t=0.50 E=145.73 E_in=145.34 B=0.9958 |B|=0.996 Ixx,Iyy,Izz=0.58,0.58,0.58 pos=0.44,0.44,0.44
+t=0.75 E=145.73 E_in=144.20 B=0.9957 |B|=0.996 Ixx,Iyy,Izz=0.58,0.58,0.58 pos=0.44,0.44,0.44
+t=1.00 E=145.73 E_in=143.54 B=0.9958 |B|=0.996 Ixx,Iyy,Izz=0.59,0.59,0.59 pos=0.44,0.44,0.44
+t=1.25 E=145.73 E_in=143.46 B=0.9958 |B|=0.996 Ixx,Iyy,Izz=0.59,0.59,0.59 pos=0.44,0.44,0.44
+t=1.50 E=145.73 E_in=143.41 B=0.9958 |B|=0.996 Ixx,Iyy,Izz=0.60,0.60,0.60 pos=0.43,0.43,0.43
+t=1.75 E=145.71 E_in=143.34 B=0.9958 |B|=0.996 Ixx,Iyy,Izz=0.60,0.60,0.60 pos=0.43,0.43,0.43
+t=2.00 E=145.68 E_in=143.28 B=0.9958 |B|=0.996 Ixx,Iyy,Izz=0.61,0.61,0.61 pos=0.43,0.43,0.43
+t=2.25 E=145.61 E_in=143.21 B=0.9958 |B|=0.996 Ixx,Iyy,Izz=0.61,0.61,0.61 pos=0.43,0.43,0.43
+t=2.50 E=145.51 E_in=143.14 B=0.9958 |B|=0.996 Ixx,Iyy,Izz=0.61,0.61,0.61 pos=0.43,0.43,0.43
+t=2.75 E=145.39 E_in=143.07 B=0.9957 |B|=0.996 Ixx,Iyy,Izz=0.61,0.61,0.61 pos=0.42,0.42,0.42
+t=3.00 E=145.27 E_in=143.01 B=0.9955 |B|=0.996 Ixx,Iyy,Izz=0.61,0.61,0.61 pos=0.42,0.42,0.42
+t=3.25 E=145.15 E_in=142.94 B=0.9950 |B|=0.995 Ixx,Iyy,Izz=0.61,0.61,0.61 pos=0.41,0.41,0.41
+t=3.50 E=145.03 E_in=142.88 B=0.9941 |B|=0.994 Ixx,Iyy,Izz=0.61,0.61,0.61 pos=0.41,0.41,0.41
+t=3.75 E=144.91 E_in=142.82 B=0.9929 |B|=0.993 Ixx,Iyy,Izz=0.61,0.61,0.61 pos=0.41,0.41,0.41
+t=4.00 E=144.80 E_in=142.76 B=0.9920 |B|=0.992 Ixx,Iyy,Izz=0.62,0.62,0.62 pos=0.41,0.41,0.41
+t=4.25 E=144.70 E_in=142.71 B=0.9934 |B|=0.993 Ixx,Iyy,Izz=0.62,0.62,0.62 pos=0.41,0.41,0.41
+t=4.50 E=144.61 E_in=142.66 B=0.9950 |B|=0.995 Ixx,Iyy,Izz=0.62,0.62,0.62 pos=0.42,0.42,0.42
+t=4.75 E=144.54 E_in=142.62 B=0.9956 |B|=0.996 Ixx,Iyy,Izz=0.63,0.63,0.63 pos=0.43,0.43,0.43
+t=5.00 E=144.48 E_in=142.59 B=0.9961 |B|=0.996 Ixx,Iyy,Izz=0.63,0.63,0.63 pos=0.44,0.44,0.44
+t=5.25 E=144.44 E_in=142.57 B=0.9963 |B|=0.996 Ixx,Iyy,Izz=0.64,0.64,0.64 pos=0.45,0.45,0.45
+t=5.50 E=144.40 E_in=142.57 B=0.9964 |B|=0.996 Ixx,Iyy,Izz=0.65,0.65,0.65 pos=0.46,0.46,0.46
+t=5.75 E=144.36 E_in=142.59 B=0.9966 |B|=0.997 Ixx,Iyy,Izz=0.65,0.65,0.65 pos=0.46,0.46,0.46
+t=6.00 E=144.33 E_in=142.62 B=0.9966 |B|=0.997 Ixx,Iyy,Izz=0.66,0.66,0.66 pos=0.46,0.46,0.46
+t=6.25 E=144.31 E_in=142.66 B=0.9967 |B|=0.997 Ixx,Iyy,Izz=0.66,0.66,0.66 pos=0.47,0.47,0.47
+t=6.50 E=144.30 E_in=142.72 B=0.9968 |B|=0.997 Ixx,Iyy,Izz=0.67,0.67,0.67 pos=0.47,0.47,0.47
+t=6.75 E=144.28 E_in=142.81 B=0.9968 |B|=0.997 Ixx,Iyy,Izz=0.67,0.67,0.67 pos=0.47,0.47,0.47
+t=7.00 E=144.27 E_in=142.90 B=0.9968 |B|=0.997 Ixx,Iyy,Izz=0.67,0.67,0.67 pos=0.47,0.47,0.47
+t=7.25 E=144.26 E_in=143.01 B=0.9968 |B|=0.997 Ixx,Iyy,Izz=0.67,0.67,0.67 pos=0.47,0.47,0.47
+t=7.50 E=144.25 E_in=143.12 B=0.9967 |B|=0.997 Ixx,Iyy,Izz=0.66,0.66,0.66 pos=0.47,0.47,0.47
+t=7.75 E=144.25 E_in=143.23 B=0.9966 |B|=0.997 Ixx,Iyy,Izz=0.66,0.66,0.66 pos=0.46,0.46,0.46
+t=8.00 E=144.24 E_in=143.29 B=0.9965 |B|=0.997 Ixx,Iyy,Izz=0.65,0.65,0.65 pos=0.46,0.46,0.46
+t=8.25 E=144.24 E_in=143.22 B=0.9964 |B|=0.996 Ixx,Iyy,Izz=0.64,0.64,0.64 pos=0.46,0.46,0.46
+t=8.50 E=144.23 E_in=142.86 B=0.9963 |B|=0.996 Ixx,Iyy,Izz=0.63,0.63,0.63 pos=0.45,0.45,0.45
+t=8.75 E=144.22 E_in=142.32 B=0.9961 |B|=0.996 Ixx,Iyy,Izz=0.62,0.62,0.62 pos=0.45,0.45,0.45
+t=9.00 E=144.21 E_in=142.03 B=0.9960 |B|=0.996 Ixx,Iyy,Izz=0.61,0.61,0.61 pos=0.44,0.44,0.44
+CHECKPOINT 184
+C:\Users\valer\Desktop\Programma di simulazione\particle_sim\lab\knot_core.py:262: UserWarning: Converting a tensor with requires_grad=True to a scalar may lead to unexpected behavior.
+Consider using tensor.detach() first. (Triggered internally at C:\actions-runner\_work\pytorch\pytorch\torch\csrc\autograd\generated\python_variable_methods.cpp:821.)
+  return float(H), kin.detach(), st.detach(), tangent(phi, 0.5 * mi.detach()), gr
+t=9.25 E=144.20 E_in=142.09 B=0.9958 |B|=0.996 Ixx,Iyy,Izz=0.60,0.60,0.60 pos=0.44,0.44,0.44
+t=9.50 E=144.18 E_in=142.18 B=0.9957 |B|=0.996 Ixx,Iyy,Izz=0.59,0.59,0.59 pos=0.43,0.43,0.43
+t=9.75 E=144.17 E_in=142.23 B=0.9955 |B|=0.995 Ixx,Iyy,Izz=0.58,0.58,0.58 pos=0.43,0.43,0.43
+t=10.00 E=144.15 E_in=142.21 B=0.9953 |B|=0.995 Ixx,Iyy,Izz=0.57,0.57,0.57 pos=0.42,0.42,0.42
+t=10.25 E=144.11 E_in=142.23 B=0.9952 |B|=0.995 Ixx,Iyy,Izz=0.56,0.56,0.56 pos=0.42,0.42,0.42
+t=10.50 E=144.05 E_in=142.28 B=0.9951 |B|=0.995 Ixx,Iyy,Izz=0.56,0.56,0.56 pos=0.42,0.42,0.42
+t=10.75 E=143.99 E_in=142.32 B=0.9949 |B|=0.995 Ixx,Iyy,Izz=0.55,0.55,0.55 pos=0.41,0.41,0.41
+t=11.00 E=143.92 E_in=142.32 B=0.9949 |B|=0.995 Ixx,Iyy,Izz=0.54,0.54,0.54 pos=0.41,0.41,0.41
+t=11.25 E=143.84 E_in=142.36 B=0.9948 |B|=0.995 Ixx,Iyy,Izz=0.53,0.53,0.53 pos=0.41,0.41,0.41
+t=11.50 E=143.75 E_in=142.39 B=0.9948 |B|=0.995 Ixx,Iyy,Izz=0.52,0.52,0.52 pos=0.41,0.41,0.41
+t=11.75 E=143.65 E_in=142.41 B=0.9948 |B|=0.995 Ixx,Iyy,Izz=0.51,0.51,0.51 pos=0.41,0.41,0.41
+t=12.00 E=143.56 E_in=142.42 B=0.9948 |B|=0.995 Ixx,Iyy,Izz=0.50,0.50,0.50 pos=0.41,0.41,0.41
+{
+ "kind": "S1",
+ "v": 0.0,
+ "h": 0.2,
+ "N": 64,
+ "R_sphere": 4.5,
+ "T": 12.0,
+ "frac_out": 0.022737785938157343,
+ "absB_final": 0.9948053956031799,
+ "absB_min": 0.9920428991317749,
+ "t_absB_below_0p2": null,
+ "B_final": 0.9948028922080994,
+ "E0": 145.73294067382812
+}

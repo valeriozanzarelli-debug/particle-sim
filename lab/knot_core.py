@@ -9,9 +9,9 @@ Dynamics: Hamiltonian form, pi = 2 M v, H = sum h^3 [ pi M^-1 pi / 4 + e ], Dira
 sphere, RK4 + renormalisation (constraint projection) every step. M^-1 by Woodbury (3x3 adjugate, all local).
 """
 import math, numpy as np, torch
-from scipy.integrate import solve_ivp
+from scipy.integrate import solve_ivp, solve_bvp
 
-torch.set_num_threads(3)
+torch.set_num_threads(2)
 TWO_PI2 = 2 * math.pi ** 2
 
 
@@ -189,12 +189,17 @@ def tangent(phi, w):
     return w - phi * (phi * w).sum(0, keepdim=True)
 
 
-def relax(phi, h, m=0.0, dt=None, maxit=4000, tol=1e-10, log=None, every=200):
-    """Arrested Newton flow. Returns phi, history of E."""
+def relax(phi, h, m=0.0, dt=None, maxit=4000, tol=1e-10, log=None, every=200, state=None, wall=None):
+    """Arrested Newton flow. Returns phi, history of E, done flag (False if stopped by the wall-clock limit;
+    then state = (v, hist) can be passed back to resume)."""
+    import time as _t
+    t0 = _t.time()
     dt = dt or 0.25 * h
-    v = torch.zeros_like(phi)
-    Eold = None; hist = []
-    for it in range(maxit):
+    v, hist = (torch.zeros_like(phi), []) if state is None else state
+    Eold = hist[-1] if hist else None
+    for it in range(len(hist), maxit):
+        if wall and _t.time() - t0 > wall:
+            return phi.detach(), hist, False, v
         p = phi.detach().requires_grad_(True)
         E = energy(p, h, m)
         (gr,) = torch.autograd.grad(E, p)
@@ -210,7 +215,7 @@ def relax(phi, h, m=0.0, dt=None, maxit=4000, tol=1e-10, log=None, every=200):
         if it > 300 and abs(hist[-100] - E) / E < tol * 100:
             break
         Eold = E
-    return phi.detach(), hist
+    return phi.detach(), hist, True, v
 
 
 # ---------------------------------------------------------------------------------------- dynamics
@@ -328,3 +333,65 @@ def isosurface(F, level, h, origin):
             tris.append(np.stack([p1, p2, p3], 1)); tris.append(np.stack([p1, p3, p4], 1))
     T = np.concatenate(tris, 0) if tris else np.zeros((0, 3, 3))
     return T * h + np.asarray(origin)[None, None, :]
+
+
+def relax_lbfgs(phi, h, m=0.0, maxit=3000, tol=1e-11, log=None, every=50, wall=None, hist=None):
+    """L-BFGS on psi with phi = psi/|psi| (no step-size stability limit). Stops when the relative energy change over
+    50 iterations < 50*tol, or at the wall-clock limit (returns done=False; restart from the returned phi)."""
+    import time as _t
+    t0 = _t.time()
+    psi = phi.detach().clone().requires_grad_(True)
+    opt = torch.optim.LBFGS([psi], lr=1, max_iter=20, history_size=30, line_search_fn="strong_wolfe",
+                            tolerance_grad=1e-14, tolerance_change=1e-16)
+    hist = list(hist or [])
+
+    def clo():
+        opt.zero_grad()
+        E = energy(normalize(psi), h, m)
+        E.backward()
+        return E
+    done = False
+    while len(hist) < maxit:
+        E = float(opt.step(clo))
+        with torch.no_grad():
+            psi.data = normalize(psi.data)
+        hist.append(float(energy(normalize(psi.detach()), h, m)))
+        it = len(hist)
+        if log and it % every == 0:
+            log(f"    lbfgs {it:5d} (x20 inner)  E/12pi^2 = {hist[-1]/(12*math.pi**2):.8f}")
+        if it > 10 and abs(hist[-6] - hist[-1]) / hist[-1] < 5 * tol:
+            done = True; break
+        if wall and _t.time() - t0 > wall:
+            break
+    return normalize(psi.detach()), hist, done
+
+
+def radial_bvp(R=60.0):
+    """Massless B=1 hedgehog by collocation (scipy solve_bvp) on [0, R] with the exact asymptotic condition
+    f'(R) = -2 f(R)/R (tail f = C/r^2), plus analytic tail corrections beyond R. More accurate than radial_profile()
+    (whose shooting + tail stitch at f = 0.05 under-estimates C and hence Lambda by 2.6 %). Skyrme units."""
+    def rhs_(r, y):
+        f, fp = y; s2 = np.sin(f) ** 2; s2f = np.sin(2 * f)
+        return np.vstack([fp, -(2 * r * fp + s2f * fp**2 - s2f - s2 * s2f / r**2) / (r**2 + 2 * s2)])
+    r0 = 1e-4
+    bc = lambda ya, yb: np.array([ya[0] - np.pi, yb[1] + 2 * yb[0] / R])
+    rg = np.concatenate([np.linspace(r0, 3, 2000), np.geomspace(3.001, R, 3000)])
+    y = np.vstack([np.pi * np.exp(-rg / 0.9), -np.pi / 0.9 * np.exp(-rg / 0.9)])
+    s = solve_bvp(rhs_, bc, rg, y, tol=1e-9, max_nodes=200000)
+    r = np.concatenate([np.linspace(r0, 3, 20000), np.geomspace(3.0001, R, 40000)])
+    f, fp = s.sol(r)
+    C = float(f[-1] * R**2)
+    s2 = np.sin(f) ** 2
+    I = lambda g: np.trapezoid(g, r)
+    E2 = 4 * np.pi * (I(r**2 * fp**2 + 2 * s2) + 2 * C**2 / R**3)     # tail: r^2 f^2 + 2 f^2 = 6 C^2 / r^4
+    E4 = 4 * np.pi * I(2 * s2 * fp**2 + s2**2 / r**2)
+    B = -(2 / np.pi) * I(s2 * fp)
+    Lam = (16 * np.pi / 3) * (I(r**2 * s2 * (1 + fp**2 + s2 / r**2)) + C**2 / R)
+    eden = (fp**2 + 2 * s2 / r**2) + (2 * s2 * fp**2 / r**2 + s2**2 / r**4)
+    bden = -(1 / (2 * np.pi**2)) * s2 * fp / r**2
+    rE2 = 4 * np.pi * (I(r**4 * eden) + 6 * C**2 / R) / (E2 + E4)
+    rB2 = 4 * np.pi * I(r**4 * bden)
+    r_half = float(np.interp(np.pi / 2, f[::-1], r[::-1]))
+    rt = np.geomspace(R, 5e3, 2000)[1:]
+    return dict(r=np.concatenate([[0.0], r, rt]), f=np.concatenate([[np.pi], f, C / rt**2]), fp=fp, C_tail=C,
+                E=E2 + E4, E2=E2, E4=E4, B=B, Lam=Lam, r_half=r_half, rE2=rE2, rB2=rB2, bvp_status=int(s.status))

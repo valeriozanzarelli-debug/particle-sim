@@ -1,0 +1,71 @@
+t=0.00 E/gE0=1.00231 B=0.9954 cx=-7.500 sx/sy(b)=0.9540 sx/sy(e)=0.9770
+C:\Users\valer\Desktop\Programma di simulazione\particle_sim\lab\knot_core.py:262: UserWarning: Converting a tensor with requires_grad=True to a scalar may lead to unexpected behavior.
+Consider using tensor.detach() first. (Triggered internally at C:\actions-runner\_work\pytorch\pytorch\torch\csrc\autograd\generated\python_variable_methods.cpp:821.)
+  return float(H), kin.detach(), st.detach(), tangent(phi, 0.5 * mi.detach()), gr
+t=0.20 E/gE0=1.00231 B=0.9954 cx=-7.440 sx/sy(b)=0.9534 sx/sy(e)=0.9774
+t=0.40 E/gE0=1.00231 B=0.9953 cx=-7.380 sx/sy(b)=0.9517 sx/sy(e)=0.9761
+t=0.60 E/gE0=1.00230 B=0.9952 cx=-7.321 sx/sy(b)=0.9494 sx/sy(e)=0.9741
+t=0.80 E/gE0=1.00230 B=0.9952 cx=-7.261 sx/sy(b)=0.9472 sx/sy(e)=0.9720
+t=1.00 E/gE0=1.00230 B=0.9952 cx=-7.202 sx/sy(b)=0.9452 sx/sy(e)=0.9698
+t=1.20 E/gE0=1.00230 B=0.9951 cx=-7.143 sx/sy(b)=0.9438 sx/sy(e)=0.9680
+t=1.40 E/gE0=1.00230 B=0.9951 cx=-7.085 sx/sy(b)=0.9430 sx/sy(e)=0.9667
+t=1.60 E/gE0=1.00230 B=0.9951 cx=-7.026 sx/sy(b)=0.9427 sx/sy(e)=0.9660
+t=1.80 E/gE0=1.00230 B=0.9951 cx=-6.967 sx/sy(b)=0.9430 sx/sy(e)=0.9658
+t=2.00 E/gE0=1.00230 B=0.9951 cx=-6.908 sx/sy(b)=0.9439 sx/sy(e)=0.9664
+t=2.20 E/gE0=1.00230 B=0.9950 cx=-6.849 sx/sy(b)=0.9455 sx/sy(e)=0.9674
+t=2.40 E/gE0=1.00230 B=0.9950 cx=-6.790 sx/sy(b)=0.9475 sx/sy(e)=0.9689
+t=2.60 E/gE0=1.00230 B=0.9950 cx=-6.731 sx/sy(b)=0.9496 sx/sy(e)=0.9705
+t=2.80 E/gE0=1.00230 B=0.9950 cx=-6.672 sx/sy(b)=0.9514 sx/sy(e)=0.9722
+t=3.00 E/gE0=1.00230 B=0.9950 cx=-6.613 sx/sy(b)=0.9527 sx/sy(e)=0.9736
+t=3.20 E/gE0=1.00230 B=0.9950 cx=-6.553 sx/sy(b)=0.9531 sx/sy(e)=0.9747
+t=3.40 E/gE0=1.00230 B=0.9950 cx=-6.494 sx/sy(b)=0.9527 sx/sy(e)=0.9754
+t=3.60 E/gE0=1.00230 B=0.9950 cx=-6.434 sx/sy(b)=0.9516 sx/sy(e)=0.9757
+t=3.80 E/gE0=1.00230 B=0.9950 cx=-6.375 sx/sy(b)=0.9499 sx/sy(e)=0.9757
+t=4.00 E/gE0=1.00230 B=0.9950 cx=-6.316 sx/sy(b)=0.9480 sx/sy(e)=0.9755
+t=4.20 E/gE0=1.00230 B=0.9950 cx=-6.256 sx/sy(b)=0.9463 sx/sy(e)=0.9753
+t=4.40 E/gE0=1.00230 B=0.9951 cx=-6.197 sx/sy(b)=0.9449 sx/sy(e)=0.9753
+t=4.60 E/gE0=1.00230 B=0.9950 cx=-6.138 sx/sy(b)=0.9440 sx/sy(e)=0.9754
+t=4.80 E/gE0=1.00230 B=0.9950 cx=-6.079 sx/sy(b)=0.9437 sx/sy(e)=0.9759
+t=5.00 E/gE0=1.00230 B=0.9950 cx=-6.019 sx/sy(b)=0.9440 sx/sy(e)=0.9767
+t=5.20 E/gE0=1.00230 B=0.9949 cx=-5.960 sx/sy(b)=0.9448 sx/sy(e)=0.9777
+t=5.40 E/gE0=1.00230 B=0.9949 cx=-5.901 sx/sy(b)=0.9460 sx/sy(e)=0.9789
+t=5.60 E/gE0=1.00230 B=0.9949 cx=-5.841 sx/sy(b)=0.9475 sx/sy(e)=0.9801
+t=5.80 E/gE0=1.00230 B=0.9949 cx=-5.782 sx/sy(b)=0.9492 sx/sy(e)=0.9812
+t=6.00 E/gE0=1.00230 B=0.9949 cx=-5.722 sx/sy(b)=0.9507 sx/sy(e)=0.9820
+t=6.20 E/gE0=1.00230 B=0.9949 cx=-5.663 sx/sy(b)=0.9519 sx/sy(e)=0.9824
+t=6.40 E/gE0=1.00230 B=0.9950 cx=-5.602 sx/sy(b)=0.9523 sx/sy(e)=0.9820
+t=6.60 E/gE0=1.00230 B=0.9950 cx=-5.542 sx/sy(b)=0.9519 sx/sy(e)=0.9809
+t=6.80 E/gE0=1.00230 B=0.9951 cx=-5.482 sx/sy(b)=0.9504 sx/sy(e)=0.9790
+t=7.00 E/gE0=1.00230 B=0.9951 cx=-5.421 sx/sy(b)=0.9479 sx/sy(e)=0.9765
+t=7.20 E/gE0=1.00230 B=0.9952 cx=-5.361 sx/sy(b)=0.9446 sx/sy(e)=0.9734
+t=7.40 E/gE0=1.00230 B=0.9952 cx=-5.301 sx/sy(b)=0.9409 sx/sy(e)=0.9701
+t=7.60 E/gE0=1.00230 B=0.9953 cx=-5.240 sx/sy(b)=0.9374 sx/sy(e)=0.9669
+t=7.80 E/gE0=1.00230 B=0.9953 cx=-5.180 sx/sy(b)=0.9346 sx/sy(e)=0.9641
+t=8.00 E/gE0=1.00230 B=0.9953 cx=-5.120 sx/sy(b)=0.9328 sx/sy(e)=0.9620
+{
+ "meta": {
+  "h": 0.2,
+  "v": 0.3,
+  "gamma": 1.0482848367219182,
+  "E0": 143.14276123046875,
+  "x0": -7.500000000000002,
+  "box": [
+   112,
+   48,
+   48
+  ],
+  "dt": 0.05,
+  "r_half_contracted_over_h": 3.779720364164055
+ },
+ "E_over_gE0": 1.0023053524503687,
+ "drift": 7.000360670756298e-06,
+ "ratio_b_late": 0.9454129252250523,
+ "ratio_b_t0": 0.9540154648498766,
+ "one_over_gamma": 0.9539392014169458,
+ "ratio_e_late": 0.975780384681418,
+ "ratio_e_t0": 0.9770448872527072,
+ "e_sx_end_over_t0": 0.9925181139261807,
+ "v_fit": 0.2989399402172539,
+ "B_min": 0.994882345199585,
+ "B_max": 0.9954221248626709
+}
