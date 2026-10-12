@@ -103,3 +103,22 @@ ricordare la storia, o meglio ancora simularla.
 - Certificazione ingegneristica: quali norme e chi firma.
 - Chiavi di servizi esterni (Meshy e altri): restano negli altri repository,
   mai copiate qui.
+
+## Il motore come Unreal, ma per simulazioni vere (12 ottobre 2026)
+
+Obiettivo di prodotto, nelle parole di Valerio: un motore grafico come Unreal, dove si importano
+scene e render, ma dietro c'è fisica vera che emerge dalle palline. Deve girare ovunque:
+
+- **Le impostazioni grafiche sono i livelli di agglomerato.** "Qualità bassa" = pochi livelli
+  fini, molti agglomerati; "qualità alta" = celle fini dove guardi. Stessa fisica, stesso
+  mondo, errore dichiarato a ogni livello (vedi ZOOM_NODO.md: 0,08% con 7 livelli).
+- **Scala con l'hardware.** Un portatile mostra l'atomo a bassa risoluzione; un super-PC con
+  molte schede video spinge i livelli fini più in là. Si deve poter lanciare il motore da
+  remoto (cluster) e guardare il risultato in locale.
+- **Il reticolo è sparso e a livelli** (RETICOLO_UNIVERSO.md): celle solo dove c'è qualcosa,
+  così lo stesso motore tiene un fotone, un atomo, una cellula, un pianeta, una galassia.
+- **Traguardi di scala:** fotone → atomo → molecola → DNA e cellule → materiali → pianeti →
+  universo. Ogni gradino è un livello di agglomerato imparato dal gradino sotto, mai una
+  tabella.
+- **Debito permanente:** ogni cosa messa a mano per far girare una scena va dichiarata e, col
+  tempo, sostituita da ciò che emerge.
