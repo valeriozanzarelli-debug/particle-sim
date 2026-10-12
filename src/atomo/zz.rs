@@ -66,6 +66,8 @@ pub struct Atomo {
     zs: Vec<f64>,
     pub ticks: u64,
     pub impulsi: Vec<Impulso>,
+    /// field of the live light at the atom, already times the charge: e·E (units mc²/(e λ_C)·e), any direction
+    pub campo_est: [f64; 3],
     /// the 1s state the atom started in (for the population of the ground state)
     pub psi0: Vec<[C; 4]>,
 }
@@ -75,10 +77,13 @@ pub fn x_of(i: usize) -> f64 { (i as f64 - N as f64 / 2.0 + 0.5) * A }
 impl Atomo {
     /// The atom in its ground state: the 1s (m = +½) wave of the radial form of the same rule (same a,
     /// same Zα), put on the cubic lattice.
-    pub fn new() -> Self {
+    pub fn new() -> Self { Self::con_stato(-1, 1) }
+
+    /// The atom started in level (κ, n) of the radial rule (κ = −1: s½; κ = +1: p½), m = +½.
+    pub fn con_stato(kappa: i32, nn: u32) -> Self {
         let n = N;
         let za = z_alpha();
-        let lv = livello(-1, 1);
+        let lv = livello(kappa, nn);
         let mut psi = vec![[C::ZERO; 4]; n * n * n];
         let mut vc = vec![0.0; n * n * n];
         let mut zs = vec![0.0; n * n * n];
@@ -87,7 +92,7 @@ impl Atomo {
             let r = (x[0] * x[0] + x[1] * x[1] + x[2] * x[2]).sqrt();
             *v = -za / r;
             *z = x[2];
-            let d = spinore(&lv, -1, x);
+            let d = spinore(&lv, kappa, x);
             *p = dirac_a_chirale(d);
         });
         let norm: f64 = psi.par_iter().map(|p| p.iter().map(|c| c.norm2()).sum::<f64>()).sum();
@@ -95,7 +100,7 @@ impl Atomo {
         psi.par_iter_mut().for_each(|p| for c in p.iter_mut() { *c = c.scale(k); });
         let psi0 = psi.clone();
         let pc = vc.iter().map(|v| C::expi(-v * A)).collect();
-        Atomo { tmp: vec![[C::ZERO; 4]; n * n * n], psi, pc, zs, ticks: 0, impulsi: vec![], psi0 }
+        Atomo { tmp: vec![[C::ZERO; 4]; n * n * n], psi, pc, zs, ticks: 0, impulsi: vec![], campo_est: [0.0; 3], psi0 }
     }
 
     pub fn t(&self) -> f64 { self.ticks as f64 * A }
@@ -128,12 +133,17 @@ impl Atomo {
         let (ct, st) = (A.cos(), A.sin());
         let e = self.campo(t);
         // phases: Coulomb part per site (fixed), field part per z-slice (N numbers per tick)
-        let pz: Vec<C> = (0..N).map(|k| C::expi(-verso * e * x_of(k) * A)).collect();
+        // V = e E·r: the prescribed pulse (along z) plus the live light at the atom (any direction)
+        let ce = self.campo_est;
+        let pz: Vec<C> = (0..N).map(|k| C::expi(-verso * (e + ce[2]) * x_of(k) * A)).collect();
+        let px: Vec<C> = (0..N).map(|k| C::expi(-verso * ce[0] * x_of(k) * A)).collect();
+        let py: Vec<C> = (0..N).map(|k| C::expi(-verso * ce[1] * x_of(k) * A)).collect();
+        let trasverso = ce[0] != 0.0 || ce[1] != 0.0;
         let pc = &self.pc;
         let mi = C::new(0.0, -verso * st);
         self.psi.par_iter_mut().enumerate().for_each(|(s, p)| {
             let c0 = if verso > 0.0 { pc[s] } else { pc[s].conj() };
-            let ph = c0 * pz[s % N];
+            let ph = if trasverso { c0 * pz[s % N] * px[s / (N * N)] * py[(s / N) % N] } else { c0 * pz[s % N] };
             for q in 0..2 {
                 let (l, r) = (p[q], p[2 + q]);
                 if verso > 0.0 {
@@ -208,6 +218,76 @@ impl Atomo {
         self.psi.par_iter_mut().for_each(|q| for c in q.iter_mut() { *c = c.scale(k); });
     }
 
+    /// ⟨α⟩ = Σ (R†σR − L†σL): the probability current of the walk summed over the atom (units of c);
+    /// the electric current is −e⟨α⟩.
+    pub fn corrente(&self) -> [f64; 3] {
+        self.psi.par_iter().map(|p| surfer_velocity_num(p)).reduce(|| [0.0; 3], |a, b| [a[0] + b[0], a[1] + b[1], a[2] + b[2]])
+    }
+
+    /// ⟨ψ|φ⟩ projection probability |⟨φ|ψ⟩|² onto a state φ of the lattice.
+    pub fn proiezione(&self, phi: &[[C; 4]]) -> f64 {
+        let s = self.psi.par_iter().zip(phi.par_iter()).map(|(a, b)| {
+            let mut acc = C::ZERO;
+            for q in 0..4 { acc += b[q].conj() * a[q]; }
+            acc
+        }).reduce(|| C::ZERO, |a, b| a + b);
+        s.norm2()
+    }
+
+    /// A level of THIS 3-D lattice rule, by listening. The start state (no light) is evolved for `ticks` ticks;
+    /// meanwhile ⟨ψ₀|ψ(t)⟩ is recorded and Σ ψ(t) e^{iωt} (Hann window) is kept at frequencies every 0.0025 in
+    /// [lo, hi]. The spectrum of ⟨ψ₀|ψ(t)⟩ shows the levels the start state contains (for the radial 1s put on the
+    /// cubic lattice: 0.901 (60 %), 0.8405 (26 %), 0.882 (13 %)); the strongest peak in [lo, hi] is taken and its
+    /// filtered wave returned with its frequency (parabolic peak). Long windows separate close levels.
+    pub fn ascolta(&self, lo: f64, hi: f64, ticks: usize) -> (Vec<[C; 4]>, f64) {
+        let mut a = self.clone();
+        a.impulsi.clear();
+        a.campo_est = [0.0; 3];
+        let p0 = a.psi.clone();
+        let nc = ((hi - lo) / 0.0025).round() as usize + 1;
+        let cand: Vec<f64> = (0..nc).map(|k| lo + 0.0025 * k as f64).collect();
+        let mut acc: Vec<Vec<[C; 4]>> = vec![vec![[C::ZERO; 4]; a.psi.len()]; cand.len()];
+        let mut serie = Vec::with_capacity(ticks);
+        let tt = ticks as f64 * A;
+        for t in 0..ticks {
+            let w = (std::f64::consts::PI * (t as f64 + 0.5) / ticks as f64).sin().powi(2);
+            let time = a.t();
+            let c = a.psi.par_iter().zip(p0.par_iter()).map(|(x, y)| { let mut s = C::ZERO; for q in 0..4 { s += y[q].conj() * x[q]; } s })
+                .reduce(|| C::ZERO, |u, v| u + v);
+            serie.push((time, c));
+            let fasi: Vec<C> = cand.iter().map(|om| C::expi(om * time).scale(w)).collect();
+            acc.par_iter_mut().zip(fasi.par_iter()).for_each(|(v, ph)| for (s, p) in v.iter_mut().zip(a.psi.iter()) { for q in 0..4 { s[q] += p[q] * *ph; } });
+            a.avanti();
+        }
+        // spectrum of the overlap on a fine grid, strongest peak in [lo, hi]
+        let spettro = |om: f64| -> f64 {
+            let mut s = C::ZERO;
+            for (t, v) in &serie { let h = (std::f64::consts::PI * t / tt).sin().powi(2); s += *v * C::expi(om * t).scale(h); }
+            s.norm2()
+        };
+        let fine: Vec<(f64, f64)> = (0..=((hi - lo) / 0.0002) as usize).map(|k| { let om = lo + 0.0002 * k as f64; (om, spettro(om)) }).collect();
+        let kb = (1..fine.len() - 1).max_by(|&i, &j| fine[i].1.total_cmp(&fine[j].1)).unwrap_or(0);
+        let mut om = fine[kb].0;
+        if kb > 0 && kb + 1 < fine.len() {
+            let (y0, y1, y2) = (fine[kb - 1].1, fine[kb].1, fine[kb + 1].1);
+            let den = y0 - 2.0 * y1 + y2;
+            if den.abs() > 0.0 { om += 0.0002 * 0.5 * (y0 - y2) / den; }
+        }
+        let kc = (0..cand.len()).min_by(|&i, &j| (cand[i] - om).abs().total_cmp(&(cand[j] - om).abs())).unwrap();
+        let mut v = std::mem::take(&mut acc[kc]);
+        let nn: f64 = v.par_iter().map(|p| p.iter().map(|c| c.norm2()).sum::<f64>()).sum();
+        let k = 1.0 / nn.max(1e-300).sqrt();
+        v.par_iter_mut().for_each(|p| for c in p.iter_mut() { *c = c.scale(k); });
+        (v, om)
+    }
+
+    /// Replace the wave (e.g. by the listened 1s); the start state follows.
+    pub fn imposta(&mut self, psi: Vec<[C; 4]>) {
+        self.psi = psi;
+        self.psi0 = self.psi.clone();
+        self.ticks = 0;
+    }
+
     /// ⟨z⟩ (λ_C): the dipole of the atom (it radiates when it oscillates).
     pub fn dipolo(&self) -> f64 {
         self.psi.par_iter().zip(self.zs.par_iter()).map(|(p, z)| p.iter().map(|c| c.norm2()).sum::<f64>() * z).sum()
@@ -255,6 +335,15 @@ impl Atomo {
         for q in 1..4 { if s[q].norm2() > s[best].norm2() { best = q; } }
         s[best].arg() as f32
     }
+}
+
+/// Numerator of the surfer velocity: R†σR − L†σL (the probability current of one site, units of c).
+pub fn surfer_velocity_num(p: &[C; 4]) -> [f64; 3] {
+    let (l0, l1, r0, r1) = (p[0], p[1], p[2], p[3]);
+    let sx = |a: C, b: C| 2.0 * (a.conj() * b).re;
+    let sy = |a: C, b: C| 2.0 * (a.conj() * b).im;
+    let sz = |a: C, b: C| a.norm2() - b.norm2();
+    [sx(r0, r1) - sx(l0, l1), sy(r0, r1) - sy(l0, l1), sz(r0, r1) - sz(l0, l1)]
 }
 
 /// Dirac representation (φ₀, φ₁, χ₀, χ₁) → chiral (L₀, L₁, R₀, R₁): L = (φ − χ)/√2, R = (φ + χ)/√2.

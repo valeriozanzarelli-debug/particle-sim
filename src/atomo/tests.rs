@@ -228,3 +228,61 @@ fn orbitali_livelli() {
     }
 }
 
+
+/// Development run of the coupled light + atom (not a check): prints populations, frequencies, decay.
+#[test]
+#[ignore]
+fn accoppiato_sviluppo() {
+    use crate::accoppiato::*;
+    let t0 = std::time::Instant::now();
+    let asc: usize = std::env::var("ASCOLTO").ok().and_then(|v| v.parse().ok()).unwrap_or(1200);
+    let mut x = Esperimento::new(asc);
+    let w_rad = crate::zz::livello(1, 2).omega - crate::zz::livello(-1, 1).omega;
+    let w_res = x.omega_21();
+    eprintln!("prepared in {:?}: ω1s(3D) = {:.5}, ω2p(3D) = {:.5}, ω21(3D) = {:.5}, radial ω21 = {:.5}", t0.elapsed(), x.omega1s, x.omega2p, w_res, w_rad);
+    let e0: f64 = std::env::var("E0").ok().and_then(|v| v.parse().ok()).unwrap_or(crate::zzscena::E0_IMP);
+    x.spara(w_res, e0);
+    let n: usize = std::env::var("TICKS").ok().and_then(|v| v.parse().ok()).unwrap_or(1500);
+    for k in 0..n {
+        x.passo();
+        if k % 150 == 0 {
+            let p = x.serie_p.last().map(|v| v.1).unwrap_or(0.0);
+            eprintln!("tick {k}: t {:.0} p_exc {:.4} p2p {:.4} dip {:+.4} light energy {:.3e} ({:?})", x.at.t(), p, x.p2p(), x.at.dipolo(), x.luce.energia(), t0.elapsed());
+        }
+    }
+    let t_pass = x.at.t() * 0.0 + 150.0;
+    eprintln!("probe frequency {:?}, dipole frequency {:?}, ω_res {:.5}", frequenza(&x.luce.sonda, t_pass), frequenza(&x.serie_d.iter().map(|p| (p.0, p.1)).collect::<Vec<_>>(), t_pass), w_res);
+    let g = decadimento(&x.serie_p, t_pass);
+    let d = x.ampiezza_dipolo(200.0);
+    let p = x.serie_p.last().unwrap().1;
+    eprintln!("Γ measured {:?}, Larmor {:.3e} (D = {:.4}, p = {:.4})", g, gamma_larmor(w_res, d, p), d, p);
+}
+
+
+/// Pre-registered E1, E2 (docs/ATOMO.md §3.5): the coupled light + atom. Long (~3 min): ignored by default.
+/// E1: the light the atom sends back (probe 160 λ_C behind it, after the pulse) has the frequency of the 1s → 2p
+///     level difference of the 3-D rule (listened) within 2 %.
+/// E2: the power it radiates (energy into the sponge + left in the box, slope over t = 600..1200) equals the
+///     Larmor power of its own dipole at that frequency (amplitude over t = 400..1000, same K, same Gaussian
+///     average) within 30 %.
+#[test]
+#[ignore]
+fn accoppiato_e1_e2() {
+    use crate::accoppiato::*;
+    let mut x = Esperimento::new(1200);
+    let w21 = x.omega_21();
+    x.spara(w21, 0.004);
+    while x.at.t() < 1200.0 { x.passo(); }
+    let wp = frequenza(&x.luce.sonda, 400.0).unwrap();
+    eprintln!("E1: ω emitted {wp:.5}, ω21 of the 3-D rule {w21:.5} ({:+.2} %); radial ω21 {:.5}", 100.0 * (wp / w21 - 1.0),
+              crate::zz::livello(1, 2).omega - crate::zz::livello(-1, 1).omega);
+    let e: Vec<(f64, f64)> = x.luce.serie_e.iter().filter(|p| p.0 >= 600.0).cloned().collect();
+    let prad = crate::fotscena::retta(&e).1;
+    let d = ampiezza_a(&x.serie_d, w21, 400.0, 1000.0);
+    let pl = potenza_larmor(w21, d);
+    eprintln!("E2: radiated power {prad:.4e}, Larmor {pl:.4e} (dipole amplitude {d:.4} λ_C) ratio {:.3}", prad / pl);
+    let gam = prad / w21; // excitation quanta per unit time
+    eprintln!("    decay: energy lost per unit time / ħω = {gam:.3e} per λ_C/c; p_exc now {:.3}", x.serie_p.last().unwrap().1);
+    assert!((wp / w21 - 1.0).abs() < 0.02);
+    assert!((prad / pl - 1.0).abs() < 0.30);
+}

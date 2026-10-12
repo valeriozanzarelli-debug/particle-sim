@@ -166,6 +166,38 @@ Tolto dal laboratorio in questa versione (resta nella storia di git, commit `a84
   il clic è solo registrato: una vista non distruttiva, **non una misura vera**. Nella vista "orbitali" il collasso
   non c'è (non ha il reticolo dal vivo): si usa la scena "atomo zig-zag".
 
+### 3.5 Luce e atomo accoppiati: eccitazione → transizione → riemissione (`accoppiato.rs`)
+
+**Come funziona.** La luce attorno all'atomo è una scatola di palline a spin 1 (128³ celle da 4 ħ/mc, 512 ħ/mc, spugna
+ai bordi); l'elettrone è la camminata di Dirac 48³ al centro. Luce → elettrone: il campo E della luce all'atomo (media
+gaussiana su σ = 8 ħ/mc) entra nella fase dell'elettrone come e E·r. Elettrone → luce: la corrente dell'elettrone
+I = −e⟨α⟩ (dallo spinore) è una sorgente della luce, ∂F/∂t = −ic∇×F − J. Niente è scritto a mano: la luce che
+l'atomo rimanda e il suo rilassamento escono dalla regola accoppiata (semiclassica: Maxwell–Dirac sul reticolo).
+**Debito**: in questa teoria semiclassica emette solo un atomo in una sovrapposizione (un dipolo che oscilla);
+uno stato eccitato puro non decade da solo: l'emissione spontanea vera vuole il campo di luce quantizzato.
+L'accoppiamento è K = 10 volte più forte del vero (e → K e, nei due versi) per vedere qualcosa in minuti; le
+prove usano formule con lo stesso K.
+
+**I livelli della regola 3-D** (ascoltati: spettro di ⟨ψ₀|ψ(t)⟩ e filtro in frequenza): l'1s radiale messo sul
+reticolo cubico contiene tre livelli, a ω = 0,901 (60 %), 0,8405 (26 %) e 0,882 (13 %) mc²/ħ; il primo è l'1s
+(legame 0,099 mc², Dirac 0,101), gli altri due sono livelli del reticolo che il continuo non ha (debito). Il 2p½
+radiale è già un solo livello: ω = 0,9755. Differenza 1s → 2p della regola 3-D: ω₂₁ ≈ 0,0744–0,0758 mc²/ħ
+(Dirac 0,0754; la forma radiale dava 0,1146). L'1s ascoltato non è perfettamente fermo: anche senza luce la
+sua popolazione oscilla (si mescola con il livello vicino a 0,882): le popolazioni sul cruscotto sono proiezioni
+"sporche" (debito).
+
+**Pre-registrazione** (scritta prima della corsa di produzione; test `accoppiato_e1_e2`, lungo, `--ignored`).
+Corse di sviluppo già viste (dichiarate): con ascolto corto (600 tick) e impulso e·E = 0,004 a ω₂₁, la luce
+rimandata misurata dietro l'atomo aveva ω = 0,07544 contro ω₂₁ = 0,07583 (−0,5 %); la prova di potenza non era
+ancora scritta.
+
+| prova | che cosa | soglia |
+|---|---|---|
+| E1 | frequenza della luce rimandata (sonda 160 ħ/mc dietro l'atomo, dopo t = 400) contro ω₂₁ della regola 3-D ascoltata (ascolto 1200 tick) | entro **2 %** |
+| E2 | potenza irradiata (energia nella spugna + rimasta nella scatola, pendenza su t = 600–1200) contro la potenza di Larmor del dipolo dell'atomo stesso alla frequenza ω₂₁ (ampiezza su t = 400–1000; stesso K, stessa media gaussiana) | entro **30 %** |
+
+Il tempo di decadimento classico che ne segue (energia persa per unità di tempo / ħω) si riporta, senza soglia.
+
 ## 4. Il fotone libero: pre-registrazione (scritta prima delle corse) e risultati
 
 Corse di sviluppo già viste (dichiarate): nel visore, qualità 8 celle per λ, w0 = λ, circolare +: velocità del

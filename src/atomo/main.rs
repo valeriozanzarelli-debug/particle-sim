@@ -15,6 +15,7 @@ use bevy::{
 };
 use bevy_egui::{EguiContexts, EguiPlugin};
 
+mod accoppiato;
 mod camera;
 #[path = "../zigzag/cplx.rs"]
 #[allow(dead_code)]
