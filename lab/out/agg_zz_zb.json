@@ -1,0 +1,14 @@
+{
+ "positive_energy_interface": {
+  "peak_omega": 0.5014911392392887,
+  "rel_osc_amplitude": 0.00010149881844076744,
+  "ticks": 64
+ },
+ "naive_interface_chi0": {
+  "peak_omega": 2.040352520790706,
+  "rel_osc_amplitude": 0.0012230348496502848,
+  "ticks": 64
+ },
+ "expected_2E": 1.9999467486454794,
+ "note": "post hoc, after A3b failed; not a pre-registered exam"
+}
