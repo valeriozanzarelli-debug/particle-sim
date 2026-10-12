@@ -1,0 +1,32 @@
+{
+ "uniform_coarse": {
+  "E_eV": -14.134764909054912,
+  "resid": 2.1816280886475773e-06,
+  "iterations": 12,
+  "rest_phase": -2.2815646355269767,
+  "B": 32,
+  "cell_lambdaC": 8.564749942730987,
+  "box_a0": 8.0,
+  "seconds": 17.120481967926025
+ },
+ "hybrid": {
+  "E_eV": -14.124739582690335,
+  "E_coarse_run_eV": -14.134765306507003,
+  "rel_diff": -0.0007092953861818074,
+  "coarse_steps": 24,
+  "fine_ticks": 768,
+  "fit_from_step": 8,
+  "C_h_abs_end": 0.9999962679456086,
+  "down_over_up_max": 1.6021735425996624e-08,
+  "zb_peak_omega": 2.2008296853472786,
+  "zb_peak_power_frac": 0.5972669693658986,
+  "zb_expected_2E": 1.9999467486454794,
+  "interior_prob_mean": 7.275658304379024e-05,
+  "cost": {
+   "uniform_fine_cells": 68719476736.0,
+   "uniform_fine_cell_ticks": 52776558133248.0,
+   "hybrid_cell_ticks": 729808896.0,
+   "ratio": 72315.58620689655
+  }
+ }
+}
