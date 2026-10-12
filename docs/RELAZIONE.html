@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Relazione particle_sim — ottobre 2026</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{--bg:#f6f3ec;--fg:#1d1b17;--muted:#6b665b;--line:#d9d3c5;--card:#fffdf8;--ok:#1f7a4d;--okbg:#e3f2e9;--hyp:#8a5a00;--hypbg:#fbefd3;--no:#a12a2a;--nobg:#f8e1e1;--accent:#c2541a;--accent2:#1f5f8a}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1116;--fg:#ece8df;--muted:#a39d90;--line:#2a2e38;--card:#161a22;--ok:#6fd39a;--okbg:#10301f;--hyp:#f0b24a;--hypbg:#3a2a08;--no:#f07a7a;--nobg:#3a1414;--accent:#f08a4a;--accent2:#6fb3e0;color-scheme:dark}}
+@media print{:root{--bg:#fff;--card:#fff}body{font-size:12.5px}.page{padding:0}figure,.box,table,blockquote{break-inside:avoid}h2{break-after:avoid}}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:"IBM Plex Sans",system-ui,sans-serif;line-height:1.55;font-size:16px}
+.page{max-width:860px;margin:0 auto;padding:40px 22px 90px}
+h1,h2,h3{font-family:Fraunces,Georgia,serif;line-height:1.15;text-wrap:balance}
+h1{font-size:clamp(2rem,6vw,3.2rem);font-weight:300;margin:0 0 .2em}
+h1 b{font-weight:600;color:var(--accent)}
+.eyebrow{font-family:"IBM Plex Mono",monospace;font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin:0 0 .8em}
+.lead{font-size:1.12rem;color:var(--muted);max-width:62ch;margin:0 0 2em}
+h2{font-size:1.55rem;font-weight:600;margin:2.2em 0 .5em}
+h3{font-size:1.12rem;margin:1.4em 0 .3em}
+p,li{max-width:68ch}
+.tag{display:inline-block;font-family:"IBM Plex Mono",monospace;font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;padding:.15em .55em;border-radius:999px;vertical-align:middle;white-space:nowrap}
+.ok{background:var(--okbg);color:var(--ok)}.hyp{background:var(--hypbg);color:var(--hyp)}.no{background:var(--nobg);color:var(--no)}
+figure{margin:1.3em 0;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px}
+figure img{width:100%;max-width:100%;display:block;border-radius:6px}
+figcaption{font-size:.84rem;color:var(--muted);padding:.5em .2em 0}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;margin:1em 0}
+.box{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 16px;min-width:0}
+.box h3{margin:0 0 .3em;font-size:1.02rem}.box p{margin:0;font-size:.92rem;color:var(--muted)}
+.tbl{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:.9rem}
+td,th{padding:.5em .6em;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{font-weight:600;color:var(--muted);font-size:.76rem;letter-spacing:.06em;text-transform:uppercase}
+.num{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;color:var(--accent2)}
+blockquote{margin:1.4em 0;padding:.2em 1.2em;border-left:3px solid var(--accent);font-family:Fraunces,Georgia,serif;font-size:1.2rem;font-weight:300;max-width:60ch}
+code{font-family:"IBM Plex Mono",monospace;font-size:.88em;background:var(--card);border:1px solid var(--line);padding:.05em .35em;border-radius:4px}
+hr{border:0;border-top:1px solid var(--line);margin:2.6em 0}
+dl{display:grid;grid-template-columns:max-content 1fr;gap:.4em 1.2em;max-width:70ch}dt{font-weight:600}dd{margin:0;color:var(--muted)}
+@media (max-width:520px){dl{grid-template-columns:1fr}}
+</style>
+</head>
+<body><div class="page">
+<p class="eyebrow">Relazione tecnica · particle_sim · 12 ottobre 2026 · versione 2</p>
+<h1>Un simulatore dove la fisica <b>nasce da sola</b></h1>
+<p class="lead">Questa relazione spiega, a chi non è fisico, cosa stiamo costruendo, cosa funziona davvero, cosa no, e dove stiamo andando. Ogni numero citato è stato misurato nel simulatore con criteri scritti <em>prima</em> di fare il test, e i fallimenti sono riportati come i successi.</p>
+
+<h2>1. L'idea in una frase</h2>
+<p>Immagina che tutto l'universo sia fatto di <strong>palline identiche</strong> che obbediscono a <strong>una regola sola</strong>, semplicissima. Non programmiamo "l'atomo" o "la luce": programmiamo la regola delle palline e guardiamo cosa succede. Se da quella regola escono da soli la luce, gli atomi, le molecole, e si comportano come quelli veri misurati nei laboratori, allora abbiamo capito qualcosa di come è fatto il mondo. Se non escono, abbiamo sbagliato regola.</p>
+<p>La regola scelta, dopo mesi di tentativi, è questa: <strong>ogni pallina corre sempre alla velocità della luce, e a ogni passo ruota un po' il suo stato interno.</strong> La chiamiamo <em>zig-zag</em>. Se la pallina non rimbalza mai, è luce. Se rimbalza avanti e indietro, è un elettrone: il ritmo dei rimbalzi è la sua massa.</p>
+<blockquote>Tutto corre alla velocità della luce. La luce corre nello spazio, la materia corre nel tempo. La massa è la corsa trattenuta.</blockquote>
+
+<h2>2. Il principio "niente fake"</h2>
+<p>Un simulatore normale usa tabelle: il ferro ha questa densità, l'idrogeno emette questa luce. Noi <strong>vietiamo le tabelle</strong>. Gli unici ingredienti ammessi sono le costanti fisiche fondamentali (velocità della luce, carica dell'elettrone, ecc.) e il numero di protoni nel nucleo. Tutto il resto deve emergere. Ogni volta che qualcosa è messo a mano, lo segniamo come "debito" nei documenti.</p>
+<p>Gli esperimenti veri (la luce dell'idrogeno, la massa delle molecole, la pressione dentro il protone) servono solo come <strong>esame finale</strong>: non per aggiustare il simulatore, ma per bocciarlo o promuoverlo.</p>
+
+<h2>3. Cosa abbiamo costruito</h2>
+<div class="grid">
+<div class="box"><h3>Laboratorio Fotone</h3><p>Un fotone fatto di 250.000 palline, in 3D, con il tempo che va avanti e indietro. 96 esperimenti storici in catalogo, dalla doppia fenditura a Bell.</p></div>
+<div class="box"><h3>Atomi e molecole</h3><p>Idrogeno, elio, H₂: ogni elettrone è una nuvola di palline. Numeri esatti al centesimo di percento, senza tabelle.</p></div>
+<div class="box"><h3>Laboratorio Atomo (nuovo)</h3><p>Tutto sulla regola zig-zag: un atomo vivo in cui l'elettrone si muove ogni istante, un fotone che lo eccita, e a zoom profondo il protone come nodo che ruota e respira.</p></div>
+<div class="box"><h3>Strumenti di misura</h3><p>Un "occhio" che legge la forma dello spazio dai legami tra palline; un agglomeratore che raggruppa palline in blocchi senza perdere precisione.</p></div>
+</div>
+
+<h2>4. Cosa abbiamo verificato</h2>
+<p>Questa è la parte che conta. Ogni riga è un confronto tra quello che esce dalle palline e quello che misurano i laboratori veri.</p>
+<div class="tbl"><table>
+<tr><th>Cosa</th><th>In parole semplici</th><th>Palline</th><th>Realtà</th><th></th></tr>
+<tr><td>Energia dell'idrogeno</td><td>quanto è legato l'elettrone al protone</td><td class="num">13,60575 eV</td><td class="num">13,598 eV</td><td><span class="tag ok">ok</span></td></tr>
+<tr><td>Luce dell'idrogeno (Lyman-α)</td><td>il colore esatto che emette</td><td class="num">121,565 nm</td><td class="num">121,567 nm</td><td><span class="tag ok">ok</span></td></tr>
+<tr><td>Doppia fenditura</td><td>il fotone passa da due buchi insieme</td><td class="num">0,995</td><td class="num">1</td><td><span class="tag ok">ok</span></td></tr>
+<tr><td>Test di Bell</td><td>due fotoni "legati" a distanza</td><td class="num">2,832</td><td class="num">2,828</td><td><span class="tag ok">ok</span></td></tr>
+<tr><td>Molecola H₂, vibrazione</td><td>quanto in fretta vibrano i due atomi</td><td class="num">4393 ± 36</td><td class="num">4401</td><td><span class="tag ok">ok</span></td></tr>
+<tr><td>Relatività dal fluido</td><td>un nodo che corre si accorcia come dice Einstein</td><td class="num">1,5%</td><td>—</td><td><span class="tag ok">ok</span></td></tr>
+<tr><td>Coppie dal vuoto</td><td>un campo forte crea elettrone + antielettrone</td><td class="num">0,3%</td><td>formula di Schwinger</td><td><span class="tag ok">ok</span></td></tr>
+<tr><td>Protone come nodo: massa</td><td>una massa sola, non dipende dalla scatola</td><td class="num">1,2410</td><td class="num">1,2314</td><td><span class="tag ok">ok</span></td></tr>
+<tr><td>Pressione dentro il protone</td><td>dove il vuoto smette di spingere</td><td class="num">0,605 fm</td><td class="num">0,586 fm</td><td><span class="tag ok">ok</span></td></tr>
+<tr><td>Magnete protone/neutrone</td><td>rapporto senza manopole</td><td class="num">1,42</td><td class="num">1,46</td><td><span class="tag ok">ok</span></td></tr>
+<tr><td>Materia da sola luce</td><td>luce che si attacca a sé stessa fa grumi con massa</td><td class="num">4,92</td><td class="num">4,74</td><td><span class="tag ok">ok</span></td></tr>
+<tr><td>Zoom con agglomerati (protone)</td><td>fine al centro, blocchi fuori: stessa precisione, costo ridotto</td><td class="num">0,08%</td><td class="num">esatto</td><td><span class="tag ok">ok</span></td></tr>
+<tr><td>Grumo di luce eccitato</td><td>il secondo livello</td><td class="num">1,71</td><td class="num">1,45</td><td><span class="tag no">no</span></td></tr>
+<tr><td>Massa del muone da una forma</td><td>perché il muone pesa 207 elettroni</td><td class="num">≤ 1,8</td><td class="num">206,8</td><td><span class="tag no">no</span></td></tr>
+<tr><td>Forma dello spazio che nasce da sola</td><td>palline che si costruiscono la geometria</td><td>isole</td><td>—</td><td><span class="tag no">no</span></td></tr>
+</table></div>
+
+<h2>5. La nostra immagine dell'universo</h2>
+<p>Mettendo insieme tutto quello che ha passato gli esami, esce un'immagine coerente, che abbiamo scritto in una pagina a parte (<em>Universo di Palline</em>). In breve:</p>
+<ul>
+<li><strong>Il vuoto è pieno.</strong> È un fluido di palline in coppia, perfettamente mescolate: ogni misura normale dà zero, ma un campo forte le strappa fuori.</li>
+<li><strong>Le particelle sono nodi</strong> di quel fluido, nodi che non si possono sciogliere. Hanno una massa sola, si contraggono come dice Einstein, e un nodo con il suo anti-nodo si annullano in onde.</li>
+<li><strong>La massa è una bolla:</strong> il vuoto preme da fuori, la "luce" dentro preme da dentro. La massa è l'energia di quel braccio di ferro. L'abbiamo confrontata con la pressione misurata dentro il protone: combacia.</li>
+<li><strong>Lo spazio è la forma dei legami</strong> tra le palline: non lo disegniamo, lo leggiamo.</li>
+</ul>
+<figure><img src="fig/press.png" alt="Pressione dentro il nodo contro il protone misurato"><figcaption>La pressione dentro il nostro nodo (linea) contro quella misurata dentro il protone vero nel 2018 (tratteggio). Il punto in cui cambia segno: 0,605 contro 0,586 fermi.</figcaption></figure>
+
+<h2>6. Cosa non funziona (e lo diciamo)</h2>
+<div class="grid">
+<div class="box"><h3>Le masse delle particelle</h3><p>Perché il muone pesa 207 volte l'elettrone? Nessuna forma che abbiamo provato lo spiega. È il problema aperto numero uno.</p></div>
+<div class="box"><h3>La geometria che nasce da sola</h3><p>Ogni regola "chi è forte diventa più forte" spezza lo spazio in isole invece di costruire una forma. Tre tentativi, tre fallimenti.</p></div>
+<div class="box"><h3>L'elettrone come nodo</h3><p>I nodi che sappiamo fare sono protoni. L'elettrone come nodo del fluido, con la sua carica, resta aperto.</p></div>
+<div class="box"><h3>Niente scoperte nuove, per ora</h3><p>Ogni numero che torna era già noto: lo abbiamo ritrovato con un metodo nostro. È validazione, non scoperta. Serve a dimostrare che il simulatore non sbaglia.</p></div>
+</div>
+
+<h2>7. Il metodo</h2>
+<ul>
+<li><strong>Criteri scritti prima.</strong> Per ogni test, le soglie di promozione o bocciatura sono salvate su GitHub prima di far girare il calcolo. Così non possiamo "aggiustare" il risultato dopo.</li>
+<li><strong>Manopole contate.</strong> Un risultato ottenuto con 2 manopole per spiegare 2 numeri non vale niente, e lo scriviamo.</li>
+<li><strong>Fallimenti dichiarati.</strong> Ogni documento ha una sezione "cosa non torna" e una lista di debiti.</li>
+<li><strong>Un'anomalia risolta.</strong> L'unico numero nostro che non tornava (la vibrazione di H₂, −1,4%) si è rivelato un errore nella nostra curva di lettura, non nelle palline. Risolto a −0,2%.</li>
+</ul>
+
+<h2>8. La strada da qui: una regola, agglomerata a ogni zoom</h2>
+<p>Un elettrone vero richiederebbe 10 miliardi di celle per essere simulato pallina per pallina a scala atomica. Un atomo d'oro, molto di più. Non è un limite: è il motivo per cui esiste l'<strong>agglomeratore</strong>.</p>
+<p>L'idea è quella dei videogiochi moderni (Nanite): da vicino vedi ogni dettaglio, da lontano i dettagli vengono raggruppati in blocchi che si comportano nello stesso modo, con un errore piccolo e controllato. Qui però i blocchi non sono disegnati: <strong>la regola dei blocchi viene imparata dalle palline stesse</strong>, un livello alla volta, scegliendo automaticamente il raggruppamento che perde meno precisione. Le palline non cambiano mai.</p>
+<p><strong>Lo abbiamo appena dimostrato sul protone.</strong> Con palline grosse ovunque, la pressione al centro sbagliava del 68%. Con palline fini solo al centro e 7 livelli di blocchi sempre più grossi all'esterno, ciascuno con una regola imparata (14 numeri in tutto), la pressione al centro è giusta allo <strong>0,08%</strong> e la massa allo 0,16%, usando meno celle di un reticolo medio uniforme. E una cosa bella: dal terzo livello in su la regola imparata <strong>diventa sempre la stessa</strong>, perché il campo lontano si ripete uguale a ogni zoom, come un frattale.</p>
+<figure><img src="fig/zoom.png" alt="Zoom del nodo: griglia annidata e errore contro costo"><figcaption>Il nodo con i livelli annidati: fine al centro, agglomerati fuori. A destra, l'errore scende sotto lo 0,2% a parità di costo.</figcaption></figure>
+<p>Il percorso, in ordine, senza saltare passi:</p>
+<ol>
+<li>il fotone libero in 3D nella regola zig-zag, con la sua forma d'onda completa;</li>
+<li>l'agglomeratore sulla zig-zag: l'idrogeno vero a scala atomica con poche celle, e lo zoom fine solo vicino al nucleo;</li>
+<li>elio e litio esatti, da cui imparare la regola "a molti elettroni";</li>
+<li>gli atomi uno a uno, numero atomico per numero atomico;</li>
+<li>pareti di atomi, e finalmente la doppia fenditura costruita con atomi veri, attraversata dal fotone;</li>
+<li>le molecole, i materiali, e oltre.</li>
+</ol>
+
+<h2>9. Come provarlo</h2>
+<dl>
+<dt>Laboratorio Atomo.exe</dt><dd>il laboratorio nuovo, tutto zig-zag. Tab apre il pannello, Spazio mette in pausa, F spara un fotone, 1/2/3 cambiano la vista (intero / nucleo / elettrone). Rotella per lo zoom, con la scala in Å, pm, fm.</dd>
+<dt>Laboratorio Fotone.exe</dt><dd>il fotone con i 96 esperimenti. <code>--esperimento fenditure|airy|arago|entanglement</code>.</dd>
+<dt>Codice e documenti</dt><dd>cartella <code>particle_sim</code>: ogni studio ha il suo documento in <code>docs/</code>, scritto in italiano semplice, con numeri, fallimenti e debiti. Tutto è su GitHub con la storia completa.</dd>
+</dl>
+
+<h2>10. Piccolo glossario</h2>
+<dl>
+<dt>Pallina</dt><dd>l'unità di base del simulatore. Non è un oggetto fisico misurato: è il "pixel" con cui costruiamo tutto.</dd>
+<dt>Zig-zag</dt><dd>la regola: corri a c, poi ruota. Luce se non rimbalza, elettrone se rimbalza.</dd>
+<dt>Nodo</dt><dd>una configurazione del fluido di palline che non si può sciogliere senza strappare. Il nostro protone.</dd>
+<dt>Agglomerato</dt><dd>un gruppo di palline trattato come uno solo, con una regola imparata dalle palline stesse.</dd>
+<dt>Debito</dt><dd>qualcosa messo a mano che un giorno dovrà emergere da solo.</dd>
+<dt>Esame</dt><dd>un confronto con un esperimento vero, con la soglia decisa prima.</dd>
+</dl>
+
+<hr>
+<p style="color:var(--muted);font-size:.9rem">La versione 1 (settembre 2026) descriveva il simulatore originale di particelle. Questa versione 2 copre il lavoro da settembre a ottobre 2026: fotone, atomi, molecole, nodi, vuoto, geometria, lo zoom con agglomerati e la scelta della regola zig-zag come unica strada.</p>
+</div></body></html>
