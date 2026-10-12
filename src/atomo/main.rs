@@ -21,6 +21,11 @@ use bevy_egui::{EguiContexts, EguiPlugin};
 
 mod camera;
 mod carbonio;
+mod fenscena;
+mod luce;
+mod render_zz;
+mod zz;
+mod zzscena;
 #[path = "../molecole/costanti.rs"]
 mod costanti;
 #[path = "../zigzag/cplx.rs"]
@@ -47,6 +52,14 @@ use tempo::Storia;
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Modo { Avanti, Pausa, Indietro }
 
+/// The three scenes. The first two are the zig-zag rule live (light; electron + light); the third is the
+/// older electron-ball rule (DMC) for carbon, kept as an optional view.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Scena { Fenditura, Atomo, Carbonio }
+
+/// The nucleus is shown on its own slowed clock: spin angular velocity on screen (rad per screen second).
+pub const OMEGA_ROT_SCHERMO: f64 = 1.1;
+
 /// Zig-zag electron: cells per side, spacing (λ_C), packet width (λ_C), ticks before a restart.
 pub const N_DIRAC: usize = 48;
 pub const A_DIRAC: f64 = 0.25;
@@ -55,6 +68,20 @@ pub const TICK_DIRAC_MAX: u64 = 100;
 
 #[derive(Resource)]
 pub struct Lab {
+    pub scena: Scena,
+    pub fen: Option<fenscena::ScenaFenditura>,
+    pub zz: Option<std::sync::Arc<std::sync::Mutex<zzscena::Condiviso>>>,
+    /// photon energy for the zig-zag atom (keV) and the worker pace (ticks per second)
+    pub e_kev: f64,
+    pub ritmo: f64,
+    pub passi_frame: f64,
+    acc_passi: f64,
+    /// the nucleus clock (screen seconds) and its angular frequencies on screen; real ones in `nodo_info2`
+    pub t_nucleo: f64,
+    pub omega_rot: f64,
+    pub omega_resp: f64,
+    /// [Λ, M_Δ−M_N (MeV), ω_rot (1/s), ω_breath (1/s), ħω_breath (MeV)]
+    pub nodo_info2: [f64; 5],
     pub r: Risultati,
     pub lv: Livelli,
     pub mondo: Mondo,
@@ -107,8 +134,14 @@ impl Lab {
         let prof = skyrme::Profilo::calcola();
         let info = [prof.a, prof.numero_barionico(), prof.energia_12pi2(), prof.raggio_rms_fm(), prof.massa_mev()];
         let nodo_palline = prof.palline(40_000, 12);
+        let (w_resp, e_resp) = prof.respiro();
+        let w_rot = prof.omega_rot_s();
+        let info2 = [prof.inerzia(), prof.delta_n_mev(), w_rot, w_resp, e_resp];
         let lambda_nm = lv.lambda_ecc_nm();
         let mut lab = Lab {
+            scena: Scena::Fenditura, fen: Some(fenscena::ScenaFenditura::new()), zz: None, e_kev: 0.0, ritmo: 25.0,
+            passi_frame: 1.0, acc_passi: 0.0, t_nucleo: 0.0, omega_rot: OMEGA_ROT_SCHERMO,
+            omega_resp: OMEGA_ROT_SCHERMO * w_resp / w_rot, nodo_info2: info2,
             r, lv, mondo, storia, vista: 0, modo: Modo::Avanti, velocita: 3.0e-18, t_kelvin: 293.0, lambda_nm, dir_sparo: 0,
             spara: false, panel_open: false, mostra_protone: true, mostra_elettrone: false, mostra_nuvola: true, bagliore: true,
             grandezza: 1.0, luce: 1.0, confini: vec![], istogramma: vec![0.0; (R_ISTO / DR_ISTO) as usize],
@@ -121,6 +154,61 @@ impl Lab {
     }
 
     pub fn dal_vivo(&self) -> bool { self.vista == self.storia.ultimo() }
+
+    /// Metres per scene unit.
+    pub fn metri_per_unita(&self) -> f64 {
+        match self.scena {
+            Scena::Carbonio => costanti::bohr_m(),
+            Scena::Atomo => zz::LAMBDA_C_M,
+            // the photon laboratory's 500 nm light: 12 cells per wavelength
+            Scena::Fenditura => 500e-9 / 12.0,
+        }
+    }
+    /// Seconds per tick of the scene's rule.
+    pub fn secondi_per_tick(&self) -> f64 {
+        match self.scena {
+            Scena::Atomo => zz::A * zz::T_UNIT_S,
+            Scena::Fenditura => 500e-9 / 12.0 / 299_792_458.0,
+            Scena::Carbonio => 0.0,
+        }
+    }
+    /// Seconds of the nucleus per screen second (its slowed clock).
+    pub fn rallentamento_nucleo(&self) -> f64 { OMEGA_ROT_SCHERMO / self.nodo_info2[2] }
+
+    pub fn cambia_scena(&mut self, s: Scena) {
+        if s == self.scena && (s != Scena::Atomo || self.zz.is_some()) { return; }
+        self.scena = s;
+        match s {
+            Scena::Fenditura => { if self.fen.is_none() { self.fen = Some(fenscena::ScenaFenditura::new()); } }
+            Scena::Atomo => { if self.zz.is_none() { self.zz = Some(zzscena::avvia()); } }
+            Scena::Carbonio => {}
+        }
+        if let Some(z) = &self.zz {
+            let mut g = z.lock().unwrap();
+            g.comando = if s == Scena::Atomo && self.modo == Modo::Avanti { zzscena::Comando::Avanti } else { zzscena::Comando::Pausa };
+        }
+    }
+    pub fn punto_scena(&self, b: Bersaglio) -> [f64; 3] {
+        match self.scena {
+            Scena::Carbonio => self.punto_bersaglio(b),
+            Scena::Fenditura => [0.0; 3],
+            Scena::Atomo => match b {
+                Bersaglio::Elettrone => self.zz.as_ref().map(|z| z.lock().unwrap().out.punto).unwrap_or([0.0; 3]),
+                _ => [0.0; 3],
+            },
+        }
+    }
+    pub fn distanza_tipica(&self, b: Bersaglio) -> f64 {
+        let u = self.metri_per_unita();
+        match (self.scena, b) {
+            (_, Bersaglio::Nucleo) => 3.0e-15 / u,
+            (Scena::Carbonio, Bersaglio::Elettrone) => 30.0 * costanti::alpha_fs(),
+            (Scena::Atomo, Bersaglio::Elettrone) => 3.0,
+            (Scena::Carbonio, _) => 9.0,
+            (Scena::Atomo, _) => 11.0,
+            (Scena::Fenditura, _) => 230.0,
+        }
+    }
 
     /// Where the camera looks (bohr).
     pub fn punto_bersaglio(&self, b: Bersaglio) -> [f64; 3] {
@@ -237,6 +325,42 @@ impl Lab {
         let dt = dt.min(0.1);
         if dt > 0.0 { self.fps += (1.0 / dt - self.fps) * 0.05; }
         match self.modo {
+            Modo::Avanti => self.t_nucleo += dt,
+            Modo::Indietro => self.t_nucleo -= dt,
+            Modo::Pausa => {}
+        }
+        match self.scena {
+            Scena::Carbonio => self.avanza_carbonio(dt),
+            Scena::Fenditura => {
+                let Some(f) = self.fen.as_mut() else { return };
+                self.acc_passi += self.passi_frame;
+                while self.acc_passi >= 1.0 {
+                    self.acc_passi -= 1.0;
+                    match self.modo {
+                        Modo::Avanti => f.avanti(),
+                        Modo::Indietro => { if f.f.ticks == 0 { self.modo = Modo::Pausa; } else { f.indietro(); } }
+                        Modo::Pausa => {}
+                    }
+                }
+                self.spara = false;
+            }
+            Scena::Atomo => {
+                if let Some(z) = &self.zz {
+                    let mut g = z.lock().unwrap();
+                    g.comando = match self.modo { Modo::Avanti => zzscena::Comando::Avanti, Modo::Indietro => zzscena::Comando::Indietro, Modo::Pausa => zzscena::Comando::Pausa };
+                    g.ritmo = self.ritmo;
+                    if self.spara {
+                        self.spara = false;
+                        if self.e_kev <= 0.0 { self.e_kev = g.out.omega_res * zz::MC2_KEV; }
+                        g.spara = Some(self.e_kev / zz::MC2_KEV);
+                    }
+                }
+            }
+        }
+    }
+
+    fn avanza_carbonio(&mut self, dt: f64) {
+        match self.modo {
             Modo::Pausa => {
                 if self.spara { self.riprendi(); self.passo_vivo(0.0); }
             }
@@ -287,7 +411,15 @@ fn main() {
         return;
     }
     let zoom = args.iter().position(|a| a == "--zoom").and_then(|i| args.get(i + 1)).map(|s| s.as_str()).unwrap_or("atomo");
+    let scena_arg = args.iter().position(|a| a == "--scena").and_then(|i| args.get(i + 1)).map(|s| s.as_str()).unwrap_or("");
     let mut lab = Lab::new();
+    let scena = match (scena_arg, zoom) {
+        ("fenditura", _) => Scena::Fenditura,
+        ("carbonio", _) => Scena::Carbonio,
+        ("atomo", _) | ("", "nucleo") | ("", "protone") | ("", "elettrone") => Scena::Atomo,
+        _ => Scena::Fenditura,
+    };
+    lab.cambia_scena(scena);
     let arg = |k: &str| args.iter().position(|a| a == k).and_then(|i| args.get(i + 1)).cloned();
     let mut auto = Auto::default();
     if let Some(f) = arg("--foto") {
@@ -300,16 +432,13 @@ fn main() {
     }
     if let Some(t) = arg("--temperatura").and_then(|v| v.parse().ok()) { lab.t_kelvin = t; }
     if let Some(v) = arg("--velocita").and_then(|v| v.parse().ok()) { lab.velocita = v; }
-    let cam = match zoom {
-        "nucleo" | "protone" => Cam::new(3.0e-15 / costanti::bohr_m(), Bersaglio::Nucleo),
-        "elettrone" => {
-            lab.mostra_elettrone = true;
-            lab.scegli_elettrone();
-            lab.reset_dirac();
-            Cam::new(30.0 * costanti::alpha_fs(), Bersaglio::Elettrone)
-        }
-        _ => Cam::new(9.0, Bersaglio::Atomo),
-    };
+    let b = match zoom { "nucleo" | "protone" => Bersaglio::Nucleo, "elettrone" => Bersaglio::Elettrone, _ => Bersaglio::Atomo };
+    if scena == Scena::Carbonio && b == Bersaglio::Elettrone {
+        lab.mostra_elettrone = true;
+        lab.scegli_elettrone();
+        lab.reset_dirac();
+    }
+    let cam = Cam::new(lab.distanza_tipica(b), b);
     App::new()
         .add_plugins(DefaultPlugins.set(WindowPlugin {
             primary_window: Some(Window {
@@ -327,13 +456,14 @@ fn main() {
         .insert_resource(auto)
         .insert_resource(cam)
         .init_resource::<PointerOverHud>()
-        .add_systems(Startup, setup_scene)
+        .add_systems(Startup, (setup_scene, render_zz::setup))
         .add_systems(Update, (
             ui::draw_hud,
             hud_pointer.after(ui::draw_hud),
             run_lab.after(hud_pointer),
             camera::camera_sys.after(run_lab),
             render::aggiorna.after(camera::camera_sys),
+            render_zz::aggiorna.after(camera::camera_sys),
             bagliore.after(run_lab),
             auto_sys.after(run_lab),
         ))
@@ -392,7 +522,8 @@ fn auto_sys(mut commands: Commands, mut auto: ResMut<Auto>, mut lab: ResMut<Lab>
         let path = auto.foto.clone();
         commands.spawn(bevy::render::view::screenshot::Screenshot::primary_window())
             .observe(bevy::render::view::screenshot::save_to_disk(path));
-        eprintln!("foto al frame {f}: {} palline, {:.0} fps, stato {:?}", lab.palline_disegnate, lab.fps, lab.mondo.p.stato);
+        let zz = lab.zz.as_ref().map(|z| { let o = z.lock().unwrap().out.clone(); format!("tick {} p1s {:.3} dip {:+.3} {:.0} ms/tick", o.ticks, o.p1s, o.dipolo, o.ms_tick) }).unwrap_or_default();
+        eprintln!("foto al frame {f}: scena {:?}, {} palline, {:.0} fps {zz}", lab.scena, lab.palline_disegnate, lab.fps);
     }
     if f >= auto.frames + 20 { exit.send(AppExit::Success); }
 }

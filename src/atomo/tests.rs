@@ -83,3 +83,44 @@ fn fotoni() {
         assert_eq!(m.dmc.g.ne(), atteso.ne());
     }
 }
+
+/// The zig-zag atom runs backwards exactly: 60 ticks forward with a photon pulse, 60 back → the start.
+#[test]
+fn zigzag_indietro_esatto() {
+    let mut at = crate::zz::Atomo::new();
+    at.impulsi.push(crate::zz::Impulso { e0: 0.01, omega: 0.11, t0: 15.0, sigma: 10.0 });
+    for _ in 0..60 { at.avanti(); }
+    for _ in 0..60 { at.indietro(); }
+    let err: f64 = at.psi.iter().zip(at.psi0.iter()).map(|(a, b)| (0..4).map(|q| (a[q] - b[q]).norm2()).sum::<f64>()).sum();
+    eprintln!("|Δψ|² after forward+back = {err:e}");
+    assert!(err < 1e-9);
+}
+
+/// The resonance comes out of the walk itself: the same pulse moves the dipole much more at the 1s→2p
+/// frequency of the rule than 30 % off it (several minutes in a dev build: ignored by default).
+#[test]
+#[ignore]
+fn zigzag_risonanza() {
+    let w = crate::zz::livello(1, 2).omega - crate::zz::livello(-1, 1).omega;
+    let amp = |omega: f64| {
+        let mut at = crate::zz::Atomo::new();
+        at.impulsi.push(crate::zz::Impulso { e0: 0.008, omega, t0: 125.0, sigma: 50.0 });
+        let mut m: f64 = 0.0;
+        for k in 0..600 { at.avanti(); if k > 450 { m = m.max(at.dipolo().abs()); } }
+        m
+    };
+    let (a1, a2) = (amp(w), amp(1.3 * w));
+    eprintln!("dipole after the pulse: on resonance {a1:.3}, 1.3× off {a2:.3}");
+    assert!(a1 > 2.0 * a2);
+}
+
+/// The double slit with the zig-zag light makes fringes: a first bright fringe exists on both sides
+/// (its position is reported, not asserted: the lattice anisotropy moves it, see docs/ATOMO.md).
+#[test]
+fn fenditura_frange() {
+    let mut f = crate::luce::Fenditura::new(36.0, 12.0);
+    for _ in 0..260 { f.tick(); }
+    let (m, e) = f.frange().expect("no fringes");
+    eprintln!("first fringe {m:.1} cells, exact geometry {e:.1} ({:+.1} %)", 100.0 * (m - e) / e);
+    assert!(m > 0.5 * e && m < 1.5 * e);
+}

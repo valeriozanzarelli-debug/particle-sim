@@ -1,18 +1,42 @@
-# PROVVISORIO: numeri della corsa di sviluppo (dev), sostituiti dalla corsa lab/atomo_misura.sh
-c_z1 = 5.58
-c_zs = 2.0174
-c_zp = 1.7851
-ione_z1 = 5.6240
-ione_zs = 2.1378
-ione_zp = 1.9706
-ecc_z1 = 5.58
-ecc_zs = 2.0174
-ecc_zp = 1.7851
-ecc_z3 = 0.3001
-ecc_d3 = 0.5282
-dmc_c = -37.8250
-dmc_c_err = 0.005
-dmc_ione = -37.4120
-dmc_ione_err = 0.005
-dmc_ecc = -37.5417
-dmc_ecc_err = 0.005
+# atomo --misura tutto (src/atomo/misura.rs)
+# V1 energia C   -37.82587 ± 0.00106 Eh  vs esatta -37.8450: +0.051 %  -> PASS
+# V2 ionizzazione 11.334 ± 0.032 eV vs 11.2603: +0.66 %  -> PASS
+# V3 2p->3s       8.036 ± 0.041 eV vs 7.482: +7.40 %  -> FAIL  (lambda 154.29 nm)
+# V4 protone B=1.00000 E/12pi2=1.23150 rms=0.592 fm M=863.1 MeV
+# corsa 'tutto' in 655 s
+c_z1 = 5.6361381120
+c_zs = 2.0316245057
+c_zp = 1.7421425050
+c_z3 = 0.3500000000
+c_d3 = 0.8000000000
+ione_z1 = 5.6321822239
+ione_zs = 2.1468309426
+ione_zp = 1.9907929163
+ione_z3 = 0.3500000000
+ione_d3 = 0.8000000000
+ecc_z1 = 5.6361381120
+ecc_zs = 2.0316245057
+ecc_zp = 1.7421425050
+ecc_z3 = 0.2361339656
+ecc_d3 = 0.5920520602
+vmc_c = -37.6856155739
+vmc_ione = -37.3393887583
+vmc_ecc = -37.4412331458
+dmc_c = -37.8258733097
+dmc_c_err = 0.0010599894
+guscio_c_0 = 0.6375000000
+dmc_ione = -37.4093499946
+dmc_ione_err = 0.0005330929
+guscio_ione_0 = 0.5875000000
+dmc_ecc = -37.5305624709
+dmc_ecc_err = 0.0010788193
+guscio_ecc_0 = 0.6625000000
+guscio_ecc_1 = 4.1375000000
+guscio_ecc_2 = 4.6625000000
+guscio_ecc_3 = 5.4875000000
+guscio_ecc_4 = 6.6125000000
+skyrme_a = 2.0116858244
+skyrme_b = 0.9999998011
+skyrme_e12pi2 = 1.2314974356
+skyrme_rms_fm = 0.5916506739
+skyrme_massa_mev = 863.0733764499

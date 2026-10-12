@@ -278,6 +278,11 @@ pub fn aggiorna(
 ) {
     let lab = &mut *lab;
     let vis = &mut *vis;
+    if lab.scena != crate::Scena::Carbonio {
+        // another scene is shown: the carbon layers are dark (and not rebuilt)
+        for h in vis.mats.values() { if let Some(m) = mats.get_mut(h) { m.params.gain = 0.0; } }
+        return;
+    }
     let p = lab.storia.frame(lab.vista).clone();
     let focus = cam.focus;
     let rel = |a: [f64; 3]| schermo([a[0] - focus[0], a[1] - focus[1], a[2] - focus[2]]);

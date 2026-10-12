@@ -17,6 +17,8 @@ use crate::risultati::Risultati;
 
 pub const MAX_FRAMES: usize = 900;
 pub const OGNI: usize = 12;
+/// Snapshots drawn: one every this many ticks.
+pub const PASSO_FOTO: u64 = 3;
 
 /// Electron positions of one tick of the rule (relative to the nucleus), with the number of electrons.
 pub struct Istantanea {
@@ -85,7 +87,8 @@ impl Storia {
 
     /// The last `k` snapshots up to (and including) the tick of frame n.
     pub fn foto_fino_a(&self, tick: u64, k: usize) -> Vec<&Istantanea> {
-        let mut v: Vec<&Istantanea> = self.foto.iter().rev().filter(|f| f.tick <= tick).take(k).collect();
+        // every PASSO_FOTO-th tick: consecutive ticks of one ball are too close (they would draw little chains)
+        let mut v: Vec<&Istantanea> = self.foto.iter().rev().filter(|f| f.tick <= tick && f.tick % PASSO_FOTO == 0).take(k).collect();
         v.reverse();
         v
     }

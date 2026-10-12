@@ -73,7 +73,7 @@ pub fn camera_sys(
     // smooth exponential approach (zoom in log space; the focus in a straight line)
     let a = 1.0 - (-6.0 * dt).exp();
     cam.ln_r += (cam.ln_r_target - cam.ln_r) * a;
-    let target = lab.punto_bersaglio(cam.bersaglio);
+    let target = lab.punto_scena(cam.bersaglio);
     // the focus moves at a speed proportional to the view size, so long flights stay smooth
     for c in 0..3 { cam.focus[c] += (target[c] - cam.focus[c]) * a; }
     if let Ok(w) = windows.get_single() { cam.altezza_px = w.height().max(100.0); }

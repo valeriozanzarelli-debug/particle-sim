@@ -141,6 +141,54 @@ impl Profilo {
     /// Mass of the classical knot in MeV (E × F_π/4e).
     pub fn massa_mev(&self) -> f64 { self.energia_12pi2() * 12.0 * std::f64::consts::PI.powi(2) * unita_mev() }
 
+
+    /// Isospin moment of inertia Λ (Skyrme units, ħ_sk = 2e² in these units), T = ½ Λ ω²:
+    /// Λ = (16π/3) ∫ r² sin²f (1 + f′² + sin²f / r²) dr, plus the massless tail f = C/r² beyond the grid.
+    pub fn inerzia(&self) -> f64 {
+        let mut s = 0.0;
+        for i in 1..self.f.len() {
+            let r = self.r(i);
+            let (sf, g) = (self.f[i].sin(), self.df[i]);
+            s += r * r * sf * sf * (1.0 + g * g + sf * sf / (r * r)) * self.h;
+        }
+        let (rl, c) = self.coda();
+        s += c * c / rl;
+        16.0 * std::f64::consts::PI / 3.0 * s
+    }
+    /// End of the grid and the tail constant C (f = C/r²).
+    pub fn coda(&self) -> (f64, f64) {
+        let i = self.f.len() - 1;
+        let r = self.r(i);
+        (r, self.f[i] * r * r)
+    }
+    /// ħ in Skyrme units: ħc / (energy unit × length unit) = 2 e².
+    pub fn hbar_sk() -> f64 { 2.0 * E_SKYRME * E_SKYRME }
+    /// M_Δ − M_N = 3ħ²/(2Λ) in MeV (ANW fixed e, F_π with it: a self-check of Λ, should be ≈ 293 MeV).
+    pub fn delta_n_mev(&self) -> f64 { 3.0 * Self::hbar_sk().powi(2) / (2.0 * self.inerzia()) * unita_mev() }
+    /// Angular velocity of the spinning nucleon (J = ½): ω = ħ √(J(J+1)) / Λ, in 1/s.
+    pub fn omega_rot_s(&self) -> f64 {
+        let w_sk = Self::hbar_sk() * (0.75f64).sqrt() / self.inerzia(); // per Skyrme time unit (length unit / c)
+        w_sk / (unita_fm() * 1e-15 / 299_792_458.0)
+    }
+    /// Breathing (scaling) mode from Derrick's scaling: V(λ) = λE₂ + E₄/λ, kinetic ½ I λ̇² with
+    /// I = 2·4π ∫ r⁴ f′² (1 + 2 sin²f / r²) dr. ω² = V″(1)/I = 2E₄/I. Returns (ω in 1/s, ħω in MeV).
+    pub fn respiro(&self) -> (f64, f64) {
+        let (mut e4, mut ii) = (0.0, 0.0);
+        for i in 1..self.f.len() {
+            let r = self.r(i);
+            let (sf, g) = (self.f[i].sin(), self.df[i]);
+            e4 += (2.0 * sf * sf * g * g + sf.powi(4) / (r * r)) * self.h;
+            ii += r.powi(4) * g * g * (1.0 + 2.0 * sf * sf / (r * r)) * self.h;
+        }
+        let (rl, c) = self.coda();
+        ii += 4.0 * c * c / rl;
+        let e4 = 4.0 * std::f64::consts::PI * e4;
+        let ii = 2.0 * 4.0 * std::f64::consts::PI * ii;
+        let w_sk = (2.0 * e4 / ii).sqrt();
+        let t_unit = unita_fm() * 1e-15 / 299_792_458.0;
+        (w_sk / t_unit, w_sk * Self::hbar_sk() * unita_mev())
+    }
+
     /// Balls drawn with the baryon density: (position in fm, relative density 0..1).
     pub fn palline(&self, n: usize, seed: u64) -> Vec<([f64; 3], f32)> {
         let mut rng = crate::carbonio::Rng::new(seed);
