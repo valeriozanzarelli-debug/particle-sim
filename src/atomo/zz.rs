@@ -288,6 +288,15 @@ impl Atomo {
         self.ticks = 0;
     }
 
+    /// ⟨r⟩ (λ_C): the position of the electron, all three components.
+    pub fn posizione(&self) -> [f64; 3] {
+        let n = N;
+        self.psi.par_iter().enumerate().map(|(s, p)| {
+            let w: f64 = p.iter().map(|c| c.norm2()).sum();
+            [w * x_of(s / (n * n)), w * x_of((s / n) % n), w * x_of(s % n)]
+        }).reduce(|| [0.0; 3], |a, b| [a[0] + b[0], a[1] + b[1], a[2] + b[2]])
+    }
+
     /// ⟨z⟩ (λ_C): the dipole of the atom (it radiates when it oscillates).
     pub fn dipolo(&self) -> f64 {
         self.psi.par_iter().zip(self.zs.par_iter()).map(|(p, z)| p.iter().map(|c| c.norm2()).sum::<f64>() * z).sum()

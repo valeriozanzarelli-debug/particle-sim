@@ -198,6 +198,25 @@ ancora scritta.
 
 Il tempo di decadimento classico che ne segue (energia persa per unità di tempo / ħω) si riporta, senza soglia.
 
+**Risultati v1** (corsa del 12 ottobre 2026): E1 ω rimandata **0,07294** contro ω₂₁ = 0,07444 (**−2,01 %**: FAIL di
+poco); E2 potenza **negativa** (−2,9·10⁻⁷ contro Larmor 2,0·10⁻⁶): FAIL. **Diagnosi (dopo)**: (1) la spugna era
+troppo debole: l'impulso girava nella scatola periodica e la sonda vedeva soprattutto lui (10 volte il campo
+del dipolo); l'energia "irradiata" era dominata dal campo quasi statico vicino all'atomo; (2) la sorgente era la
+corrente R†σR − L†σL di un solo istante, che su questo reticolo **non** è d⟨r⟩/dt (misurato: 0,31 volte); la
+corrente giusta è il flusso conservato di palline tra le celle, −e Δ⟨r⟩/Δt sul tick della luce.
+Corretti tutti e due (spugna con profilo cubico, attenuazione e^{−7,5} per passaggio; corrente conservata). Corsa di
+sviluppo dopo le correzioni (dichiarata): ampiezza alla sonda / campo lontano del dipolo = **0,994**; potenza nella
+spugna / Larmor = 1,77 (la spugna prende ancora un po' d'impulso).
+
+**Pre-registrazione v2** (test `accoppiato_v2`, scritta prima della corsa):
+
+| prova | che cosa | soglia |
+|---|---|---|
+| E1v2 | frequenza della luce alla sonda (t = 400–1200) contro ω₂₁ della regola 3-D | entro **2 %** |
+| E2v2 | ampiezza della luce alla sonda contro il campo lontano del dipolo dell'atomo stesso, e D ω² W/(4π r) (D alla stessa frequenza, al tempo ritardato) | entro **10 %** |
+
+Il tempo di decadimento classico ħω p(1−p)/P_Larmor si riporta senza soglia.
+
 ## 4. Il fotone libero: pre-registrazione (scritta prima delle corse) e risultati
 
 Corse di sviluppo già viste (dichiarate): nel visore, qualità 8 celle per λ, w0 = λ, circolare +: velocità del

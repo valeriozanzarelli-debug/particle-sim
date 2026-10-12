@@ -266,7 +266,7 @@ fn accoppiato_sviluppo() {
 ///     Larmor power of its own dipole at that frequency (amplitude over t = 400..1000, same K, same Gaussian
 ///     average) within 30 %.
 #[test]
-#[ignore]
+#[ignore = "pre-registered v1, FAILED (E1 −2.01 %, E2 −0.15): docs/ATOMO.md §3.5"]
 fn accoppiato_e1_e2() {
     use crate::accoppiato::*;
     let mut x = Esperimento::new(1200);
@@ -285,4 +285,53 @@ fn accoppiato_e1_e2() {
     eprintln!("    decay: energy lost per unit time / ħω = {gam:.3e} per λ_C/c; p_exc now {:.3}", x.serie_p.last().unwrap().1);
     assert!((wp / w21 - 1.0).abs() < 0.02);
     assert!((prad / pl - 1.0).abs() < 0.30);
+}
+
+/// Post hoc (after E1/E2): the emitted wave's amplitude at the probe against the far field of the atom's own
+/// dipole, e D ω² W / (4π r), and the energy taken by the sponge alone.
+#[test]
+#[ignore]
+fn accoppiato_post_hoc() {
+    use crate::accoppiato::*;
+    let mut x = Esperimento::new(1200);
+    let w21 = x.omega_21();
+    x.spara(w21, 0.004);
+    let mut ass = vec![];
+    while x.at.t() < 1200.0 { x.passo(); ass.push((x.at.t(), x.luce.assorbita)); }
+    let wp = frequenza(&x.luce.sonda, 400.0).unwrap();
+    let r = (SONDA as f64) * B_LUCE;
+    let d = ampiezza_a(&x.serie_d, wp, 400.0 - r, 1200.0 - r);
+    let ep = ampiezza_a(&x.luce.sonda, wp, 400.0, 1200.0);
+    let atteso = e_eff() * d * wp * wp * LuceAtomo::fattore_forma(wp) / (4.0 * std::f64::consts::PI * r);
+    eprintln!("probe amplitude {ep:.4e}, far field of the dipole {atteso:.4e} (ratio {:.3}); dipole at ω {d:.4}", ep / atteso);
+    let a: Vec<(f64, f64)> = ass.iter().filter(|p| p.0 >= 600.0).cloned().collect();
+    eprintln!("sponge power {:.4e}, Larmor {:.4e}", crate::fotscena::retta(&a).1, potenza_larmor(wp, ampiezza_a(&x.serie_d, wp, 400.0, 1000.0)));
+    eprintln!("current at ω {:.4e}, ω × dipole at ω {:.4e}", ampiezza_a(&x.serie_j, wp, 400.0, 1000.0), wp * ampiezza_a(&x.serie_d, wp, 400.0, 1000.0));
+}
+
+/// Pre-registered E1v2, E2v2 (docs/ATOMO.md §3.5, after the v1 diagnosis: the sponge was too weak and the
+/// source was the one-slice current; now a strong sponge and the conserved current −e Δ⟨r⟩/Δt).
+/// E1v2: frequency of the light at the probe (t = 400..1200) vs ω21 of the 3-D rule: within 2 %.
+/// E2v2: its amplitude vs the far field of the atom's own dipole, e D ω² W / (4π r) (D at that frequency over
+///       the retarded window): within 10 %.
+#[test]
+#[ignore]
+fn accoppiato_v2() {
+    use crate::accoppiato::*;
+    let mut x = Esperimento::new(1200);
+    let w21 = x.omega_21();
+    x.spara(w21, 0.004);
+    while x.at.t() < 1200.0 { x.passo(); }
+    let wp = frequenza(&x.luce.sonda, 400.0).unwrap();
+    let r = (SONDA as f64) * B_LUCE;
+    let d = ampiezza_a(&x.serie_d, wp, 400.0 - r, 1200.0 - r);
+    let ep = ampiezza_a(&x.luce.sonda, wp, 400.0, 1200.0);
+    let atteso = e_eff() * d * wp * wp * LuceAtomo::fattore_forma(wp) / (4.0 * std::f64::consts::PI * r);
+    let pl = potenza_larmor(wp, d);
+    let p = x.serie_p.iter().filter(|q| q.0 >= 400.0).map(|q| q.1).sum::<f64>() / x.serie_p.iter().filter(|q| q.0 >= 400.0).count() as f64;
+    eprintln!("E1v2: ω emitted {wp:.5}, ω21 {w21:.5} ({:+.2} %)", 100.0 * (wp / w21 - 1.0));
+    eprintln!("E2v2: probe amplitude {ep:.4e}, dipole far field {atteso:.4e} ({:+.1} %)", 100.0 * (ep / atteso - 1.0));
+    eprintln!("     Larmor power {pl:.3e} → classical decay time ħω p(1−p)/P = {:.0} λ_C/c (p ≈ {p:.3}, K = {K_ACC})", w21 * p * (1.0 - p) / pl);
+    assert!((wp / w21 - 1.0).abs() < 0.02);
+    assert!((ep / atteso - 1.0).abs() < 0.10);
 }

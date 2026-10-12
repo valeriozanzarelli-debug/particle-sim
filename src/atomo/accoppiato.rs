@@ -55,9 +55,11 @@ impl LuceAtomo {
         let mut maschera = vec![1.0f32; n * n * n];
         maschera.par_iter_mut().enumerate().for_each(|(s, m)| {
             let c = [s / (n * n), (s / n) % n, s % n];
-            let mut d2 = 0.0;
-            for q in c { let d = (SPUGNA as f64 - q.min(n - 1 - q) as f64).max(0.0) / SPUGNA as f64; d2 += d * d; }
-            *m = (1.0 - 0.10 * d2) as f32;
+            let mut d2: f64 = 0.0;
+            // a smooth cubic profile: one crossing of the sponge attenuates by ~e^{−7.5} (the light must not come
+            // back around the periodic box: the atom's own light is ~10⁻³ of the pulse)
+            for q in c { let d = (SPUGNA as f64 - q.min(n - 1 - q) as f64).max(0.0) / SPUGNA as f64; d2 += d * d * d; }
+            *m = (-2.5 * d2).exp() as f32;
         });
         let mut pesi = vec![];
         let r = (3.0 * SIGMA_S).ceil() as i64;
@@ -170,9 +172,12 @@ pub struct Esperimento {
     /// (t, excited population 1 − |⟨1s|ψ⟩|²) every light tick, and (t, ⟨z⟩) every atom tick
     pub serie_p: Vec<(f64, f64)>,
     pub serie_d: Vec<(f64, f64)>,
+    /// (t, ⟨α_z⟩) every atom tick: the current of the walk (it should be d⟨z⟩/dt)
+    pub serie_j: Vec<(f64, f64)>,
     /// time the last pulse was launched (λ_C/c)
     pub t_impulso: Option<f64>,
-    acc: [f64; 3],
+    /// ⟨r⟩ at the start of the current light tick
+    r0: Option<[f64; 3]>,
     sub: usize,
 }
 
@@ -186,8 +191,8 @@ impl Esperimento {
         let a2 = crate::zz::Atomo::con_stato(1, 2);
         let (phi2, om2) = a2.ascolta(0.96, 0.99, ascolto / 3);
         at.imposta(phi.clone());
-        Esperimento { at, luce: LuceAtomo::new(), phi1s: phi, omega1s: om, phi2p: phi2, omega2p: om2, serie_p: vec![], serie_d: vec![],
-                      t_impulso: None, acc: [0.0; 3], sub: 0 }
+        Esperimento { at, luce: LuceAtomo::new(), phi1s: phi, omega1s: om, phi2p: phi2, omega2p: om2, serie_p: vec![], serie_d: vec![], serie_j: vec![],
+                      t_impulso: None, r0: None, sub: 0 }
     }
 
     /// The 1s → 2p level difference of the 3-D rule (listened).
@@ -206,15 +211,19 @@ impl Esperimento {
         let e = e_eff();
         let ea = self.luce.campo_atomo();
         self.at.campo_est = [e * ea[0], e * ea[1], e * ea[2]];
+        if self.r0.is_none() { self.r0 = Some(self.at.posizione()); }
         self.at.avanti();
-        let j = self.at.corrente();
-        for c in 0..3 { self.acc[c] += -e * j[c]; }
         self.sub += 1;
-        self.serie_d.push((self.at.t(), self.at.dipolo()));
+        let r = self.at.posizione();
+        self.serie_d.push((self.at.t(), r[2]));
         if self.sub == SUB {
-            let i = [self.acc[0] / SUB as f64, self.acc[1] / SUB as f64, self.acc[2] / SUB as f64];
+            // the current of the light tick: the charge that moved, −e Δ⟨r⟩/Δt (the walk's conserved flux of
+            // balls between cells; the instantaneous R†σR − L†σL of one time slice is not it on this lattice)
+            let r0 = self.r0.take().unwrap();
+            let dt = SUB as f64 * crate::zz::A;
+            let i = [-e * (r[0] - r0[0]) / dt, -e * (r[1] - r0[1]) / dt, -e * (r[2] - r0[2]) / dt];
+            self.serie_j.push((self.at.t(), (r[2] - r0[2]) / dt));
             self.luce.passo(i);
-            self.acc = [0.0; 3];
             self.sub = 0;
             let p = 1.0 - self.at.proiezione(&self.phi1s);
             self.serie_p.push((self.at.t(), p));
