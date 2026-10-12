@@ -86,7 +86,7 @@ def measures(phi, h, B):
 
 
 def main():
-    ap = argparse.ArgumentParser(); ap.add_argument("job"); ap.add_argument("--wall", type=float, default=480)
+    ap = argparse.ArgumentParser(); ap.add_argument("job"); ap.add_argument("--wall", type=float, default=480); ap.add_argument("--finalize", action="store_true")
     a = ap.parse_args()
     sp = job_spec(a.job)
     logf = open(os.path.join(OUT, "nuclei_logs", f"{a.job}.log"), "a")
@@ -103,9 +103,13 @@ def main():
         log(f"start {a.job}: E/12pi^2B = {m0['E_over']:.6f}  B = {m0['B_meas']:.4f}")
     if st_done(ck):
         log("already done"); return
-    phi, hist, done = k2.relax_lbfgs(phi, H, maxit=MAXIT, tol=TOL, log=lambda s: log(s.replace("E/12pi^2", "E/12pi^2(total)")),
+    if a.finalize:      # budget stop (declared): measure the current, not converged, field
+        done = False; MAX = len(hist)
+    else:
+        MAX = MAXIT
+    phi, hist, done = (phi, hist, False) if a.finalize else k2.relax_lbfgs(phi, H, maxit=MAXIT, tol=TOL, log=lambda s: log(s.replace("E/12pi^2", "E/12pi^2(total)")),
                                      every=10, wall=a.wall - (time.time() - t0) - 40, hist=hist)
-    fin = done or len(hist) >= MAXIT
+    fin = done or len(hist) >= MAX
     torch.save(dict(phi=phi, hist=hist, extra=extra, done=fin), ck)
     log(f"chunk end: {len(hist)} its, E/12pi^2B = {hist[-1]/(PI2*sp['B']):.7f}, converged={done}, {time.time()-t0:.0f}s")
     if fin:

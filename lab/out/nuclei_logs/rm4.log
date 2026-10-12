@@ -1,0 +1,7 @@
+  rational map B=4: angular B=4.00000 I=20.6496  ansatz E/12pi^2B=1.13656
+start rm4: E/12pi^2B = 1.139106  B = 3.9927
+    lbfgs    10 (x20 inner)  E/12pi^2(total) = 4.46690784
+chunk end: 12 its, E/12pi^2B = 1.1167270, converged=False, 489s
+resume rm4: 12 outer iterations so far, E/12pi^2B = 1.116727
+chunk end: 14 its, E/12pi^2B = 1.1167270, converged=True, 71s
+FINAL rm4: E/12pi^2B = 1.116727  B = 3.9926  rms_B = 1.799  q = {1: 5.425122607783402e-17, 2: 8.214280513957664e-09, 3: 2.168554678478813e-09, 4: 0.1468542162979437, 5: 3.7464370070564867e-11, 6: 0.004527248499911531}

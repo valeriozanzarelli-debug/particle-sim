@@ -1,0 +1,92 @@
+  rational map B=1: angular B=1.00000 I=1.0000  ansatz E/12pi^2B=1.23230
+start rm1: E/12pi^2B = 1.259631  B = 0.9972
+    lbfgs    10 (x20 inner)  E/12pi^2(total) = 1.22716134
+chunk end: 16 its, E/12pi^2B = 1.2271613, converged=True, 364s
+FINAL rm1: E/12pi^2B = 1.227161  B = 0.9965  rms_B = 1.001  q = {1: 4.9293757249047486e-17, 2: 3.3678634871669014e-10, 3: 1.4834699526138062e-09, 4: 0.0015066313972318033, 5: 1.2147549228606902e-09, 6: 6.57848463080841e-05}
+JOBDONE rm1
+  rational map B=2: angular B=2.00000 I=5.8083  ansatz E/12pi^2B=1.20837
+start rm2: E/12pi^2B = 1.218967  B = 1.9946
+    lbfgs    10 (x20 inner)  E/12pi^2(total) = 2.35199452
+chunk end: 16 its, E/12pi^2B = 1.1759972, converged=True, 369s
+FINAL rm2: E/12pi^2B = 1.175997  B = 1.9949  rms_B = 1.374  q = {1: 4.6213128279511456e-17, 2: 0.2476774990628608, 3: 3.2555696512111324e-10, 4: 0.031037427597418597, 5: 1.6202817479911554e-10, 6: 0.0021042219285212}
+JOBDONE rm2
+  rational map B=3: angular B=3.00000 I=13.5772  ansatz E/12pi^2B=1.18447
+start rm3: E/12pi^2B = 1.189690  B = 2.9921
+    lbfgs    10 (x20 inner)  E/12pi^2(total) = 3.42856765
+chunk end: 16 its, E/12pi^2B = 1.1428559, converged=True, 352s
+FINAL rm3: E/12pi^2B = 1.142856  B = 2.9932  rms_B = 1.613  q = {1: 7.40164558605709e-17, 2: 2.680422164173779e-08, 3: 0.19736282165871488, 4: 0.014011459357495502, 5: 6.188749440290177e-09, 6: 0.010446511062693495}
+JOBDONE rm3
+  rational map B=4: angular B=4.00000 I=20.6496  ansatz E/12pi^2B=1.13656
+start rm4: E/12pi^2B = 1.139106  B = 3.9927
+    lbfgs    10 (x20 inner)  E/12pi^2(total) = 4.46690784
+chunk end: 12 its, E/12pi^2B = 1.1167270, converged=False, 489s
+resume rm4: 12 outer iterations so far, E/12pi^2B = 1.116727
+chunk end: 14 its, E/12pi^2B = 1.1167270, converged=True, 71s
+FINAL rm4: E/12pi^2B = 1.116727  B = 3.9926  rms_B = 1.799  q = {1: 5.425122607783402e-17, 2: 8.214280513957664e-09, 3: 2.168554678478813e-09, 4: 0.1468542162979437, 5: 3.7464370070564867e-11, 6: 0.004527248499911531}
+JOBDONE rm4
+start pair25: E/12pi^2B = 1.315958  B = 1.9948
+    lbfgs    10 (x20 inner)  E/12pi^2(total) = 2.35209549
+chunk end: 16 its, E/12pi^2B = 1.1760328, converged=False, 446s
+resume pair25: 16 outer iterations so far, E/12pi^2B = 1.176033
+    lbfgs    20 (x20 inner)  E/12pi^2(total) = 2.35206061
+    lbfgs    30 (x20 inner)  E/12pi^2(total) = 2.35199486
+chunk end: 37 its, E/12pi^2B = 1.1759972, converged=False, 470s
+resume pair25: 37 outer iterations so far, E/12pi^2B = 1.175997
+chunk end: 39 its, E/12pi^2B = 1.1759972, converged=True, 21s
+FINAL pair25: E/12pi^2B = 1.175997  B = 1.9949  rms_B = 1.374  q = {1: 1.2169478148203771e-17, 2: 0.24767705227700224, 3: 4.243653510100707e-09, 4: 0.031037046562892804, 5: 4.553680047738752e-09, 6: 0.002104820062499261}
+JOBDONE pair25
+start tet4: E/12pi^2B = 1.355127  B = 3.9900
+    lbfgs    10 (x20 inner)  E/12pi^2(total) = 4.46681340
+    lbfgs    20 (x20 inner)  E/12pi^2(total) = 4.46656358
+    lbfgs    30 (x20 inner)  E/12pi^2(total) = 4.46548818
+chunk end: 33 its, E/12pi^2B = 1.1163335, converged=False, 442s
+resume tet4: 33 outer iterations so far, E/12pi^2B = 1.116334
+    lbfgs    40 (x20 inner)  E/12pi^2(total) = 4.46527717
+    lbfgs    50 (x20 inner)  E/12pi^2(total) = 4.46475193
+chunk end: 58 its, E/12pi^2B = 1.1161615, converged=False, 447s
+resume tet4: 58 outer iterations so far, E/12pi^2B = 1.116161
+    lbfgs    60 (x20 inner)  E/12pi^2(total) = 4.46464275
+    lbfgs    70 (x20 inner)  E/12pi^2(total) = 4.46461974
+    lbfgs    80 (x20 inner)  E/12pi^2(total) = 4.46461684
+chunk end: 81 its, E/12pi^2B = 1.1161541, converged=False, 460s
+chunk exit 127 for tet4
+resume tet4: 81 outer iterations so far, E/12pi^2B = 1.116154
+    lbfgs    90 (x20 inner)  E/12pi^2(total) = 4.46461514
+    lbfgs   100 (x20 inner)  E/12pi^2(total) = 4.46460933
+chunk end: 103 its, E/12pi^2B = 1.1161523, converged=False, 454s
+resume tet4: 103 outer iterations so far, E/12pi^2B = 1.116152
+    lbfgs   110 (x20 inner)  E/12pi^2(total) = 4.46460847
+    lbfgs   120 (x20 inner)  E/12pi^2(total) = 4.46460545
+chunk end: 126 its, E/12pi^2B = 1.1161511, converged=False, 448s
+resume tet4: 126 outer iterations so far, E/12pi^2B = 1.116151
+    lbfgs   130 (x20 inner)  E/12pi^2(total) = 4.46460391
+chunk exit 127 for tet4
+resume tet4: 126 outer iterations so far, E/12pi^2B = 1.116151
+chunk end: 126 its, E/12pi^2B = 1.1161511, converged=False, 0s
+FINAL tet4: E/12pi^2B = 1.116151  B = 3.9922  rms_B = 1.805  q = {1: 9.136319150339132e-16, 2: 0.0011226683162537247, 3: 0.00012245241712928, 4: 0.1481665253573144, 5: 1.9205094897981563e-05, 6: 0.004040330618981916}
+JOBDONE tet4
+start sq4: E/12pi^2B = 1.352898  B = 3.9878
+    lbfgs    10 (x20 inner)  E/12pi^2(total) = 4.57864234
+    lbfgs    20 (x20 inner)  E/12pi^2(total) = 4.46571871
+chunk end: 26 its, E/12pi^2B = 1.1164280, converged=False, 457s
+resume sq4: 26 outer iterations so far, E/12pi^2B = 1.116428
+    lbfgs    30 (x20 inner)  E/12pi^2(total) = 4.46571048
+chunk end: 38 its, E/12pi^2B = 1.1164225, converged=False, 496s
+resume sq4: 38 outer iterations so far, E/12pi^2B = 1.116422
+    lbfgs    40 (x20 inner)  E/12pi^2(total) = 4.46568965
+chunk end: 46 its, E/12pi^2B = 1.1164224, converged=True, 320s
+FINAL sq4: E/12pi^2B = 1.116422  B = 3.9925  rms_B = 1.802  q = {1: 4.885713202977917e-17, 2: 0.0006340288158832781, 3: 6.651636302662086e-06, 4: 0.14760530002569272, 5: 1.5588915225598885e-06, 6: 0.004272753867761245}
+JOBDONE sq4
+start pair30: E/12pi^2B = 1.314431  B = 1.9949
+    lbfgs    10 (x20 inner)  E/12pi^2(total) = 2.35209895
+    lbfgs    20 (x20 inner)  E/12pi^2(total) = 2.35201768
+    lbfgs    30 (x20 inner)  E/12pi^2(total) = 2.35199456
+chunk end: 38 its, E/12pi^2B = 1.1759972, converged=True, 371s
+FINAL pair30: E/12pi^2B = 1.175997  B = 1.9949  rms_B = 1.374  q = {1: 3.316848130038816e-17, 2: 0.24767676567258762, 3: 2.5062363429059586e-08, 4: 0.031036428678528145, 5: 3.3705247658974896e-08, 6: 0.0021049743312757004}
+JOBDONE pair30
+  rational map B=4: angular B=4.00000 I=20.6496  ansatz E/12pi^2B=1.13656
+start rm4_L64: E/12pi^2B = 1.131833  B = 3.9926
+    lbfgs    10 (x20 inner)  E/12pi^2(total) = 4.45736488
+chunk end: 16 its, E/12pi^2B = 1.1143412, converged=True, 329s
+FINAL rm4_L64: E/12pi^2B = 1.114341  B = 3.9929  rms_B = 1.822  q = {1: 2.756917599605285e-17, 2: 4.4579416595895194e-09, 3: 2.0072421008808316e-09, 4: 0.14798973711921629, 5: 1.32954089180379e-10, 6: 0.00404621315474973}
+JOBDONE rm4_L64

@@ -1,0 +1,10 @@
+start pair25: E/12pi^2B = 1.315958  B = 1.9948
+    lbfgs    10 (x20 inner)  E/12pi^2(total) = 2.35209549
+chunk end: 16 its, E/12pi^2B = 1.1760328, converged=False, 446s
+resume pair25: 16 outer iterations so far, E/12pi^2B = 1.176033
+    lbfgs    20 (x20 inner)  E/12pi^2(total) = 2.35206061
+    lbfgs    30 (x20 inner)  E/12pi^2(total) = 2.35199486
+chunk end: 37 its, E/12pi^2B = 1.1759972, converged=False, 470s
+resume pair25: 37 outer iterations so far, E/12pi^2B = 1.175997
+chunk end: 39 its, E/12pi^2B = 1.1759972, converged=True, 21s
+FINAL pair25: E/12pi^2B = 1.175997  B = 1.9949  rms_B = 1.374  q = {1: 1.2169478148203771e-17, 2: 0.24767705227700224, 3: 4.243653510100707e-09, 4: 0.031037046562892804, 5: 4.553680047738752e-09, 6: 0.002104820062499261}

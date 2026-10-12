@@ -1,0 +1,11 @@
+start sq4: E/12pi^2B = 1.352898  B = 3.9878
+    lbfgs    10 (x20 inner)  E/12pi^2(total) = 4.57864234
+    lbfgs    20 (x20 inner)  E/12pi^2(total) = 4.46571871
+chunk end: 26 its, E/12pi^2B = 1.1164280, converged=False, 457s
+resume sq4: 26 outer iterations so far, E/12pi^2B = 1.116428
+    lbfgs    30 (x20 inner)  E/12pi^2(total) = 4.46571048
+chunk end: 38 its, E/12pi^2B = 1.1164225, converged=False, 496s
+resume sq4: 38 outer iterations so far, E/12pi^2B = 1.116422
+    lbfgs    40 (x20 inner)  E/12pi^2(total) = 4.46568965
+chunk end: 46 its, E/12pi^2B = 1.1164224, converged=True, 320s
+FINAL sq4: E/12pi^2B = 1.116422  B = 3.9925  rms_B = 1.802  q = {1: 4.885713202977917e-17, 2: 0.0006340288158832781, 3: 6.651636302662086e-06, 4: 0.14760530002569272, 5: 1.5588915225598885e-06, 6: 0.004272753867761245}
