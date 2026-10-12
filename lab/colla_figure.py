@@ -19,7 +19,10 @@ sc = R["C3a_scan"]
 if "0.95" in sc:
     routes.append(("C3a GHS alpha=0.95", {k: sc["0.95"][k]["MeV"] for k in nuc if k in sc["0.95"]}, "#2ca02c"))
 st = R.get("C3a_alpha_star")
-if st:
+ds = R.get("C3a_direct_alpha_star")
+if ds:
+    routes.append((f"C3a GHS alpha*={ds['alpha']:.3f} (4He fit, corsa diretta)", {k: ds[k]["MeV"] for k in nuc if k in ds}, "#98df8a"))
+elif st:
     routes.append(("C3a GHS alpha* (4He = fit)", {"d": st.get("d"), "3He": st.get("3He"), "4He": EXP["4He"]}, "#98df8a"))
 if "200" in R.get("C3b", {}):
     routes.append(("C3b sestico c6=200", {k: R["C3b"]["200"][k]["MeV"] for k in ("d", "4He")}, "#9467bd"))
@@ -61,12 +64,16 @@ ax.grid(alpha=0.3, axis="y")
 ax = fig.add_subplot(2, 2, 3)
 al = sorted(float(a) for a in sc)
 for n, c in zip(nuc, ("#1f77b4", "#ff7f0e", "#2ca02c")):
-    xs = [a for a in al if n in sc[str(a) if str(a) in sc else a]]
+    xs = [a for a in al if n in sc[str(a)]]
     ys = [sc[str(a)][n]["MeV"] for a in xs]
     ax.semilogy(xs, ys, "o-", color=c, label=f"{n} (modello)")
     ax.axhline(EXP[n], color=c, ls="--", lw=1)
 if st:
     ax.axvline(st["alpha"], color="k", ls=":", lw=1); ax.text(st["alpha"], 1.0, " alpha*", fontsize=8)
+if ds:
+    for n, c in zip(nuc, ("#1f77b4", "#ff7f0e", "#2ca02c")):
+        if n in ds:
+            ax.plot([ds["alpha"]], [ds[n]["MeV"]], "*", ms=13, color=c, mec="k")
 ax.set_xlabel("alpha (peso del potenziale GHS, 1 parametro in piu')"); ax.set_ylabel("legame (MeV, calibrazione E1 = 938 MeV)")
 ax.set_title("(c) Nodi 'leggermente legati' (Gillard-Harland-Speight)"); ax.legend(fontsize=8); ax.grid(alpha=0.3, which="both")
 

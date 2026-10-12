@@ -195,6 +195,19 @@ else:
     ys = {a: round(scan[a]["4He"]["MeV"], 2) for a in al}
     exam("C3a-iv", None, f"4He binding not bracketed by the scan: {ys} - alpha* outside [0, 0.95]")
 
+# post-hoc (not an exam): direct runs at alpha* (model ghsS in colla_units.json) to check the interpolation
+e1s = E("ghsS_B1")
+if e1s is not None:
+    ds = dict(alpha=units["models"]["ghsS"]["alpha"])
+    for B in (2, 3, 4):
+        eb, jb = best([f"ghsS_B{B}"])
+        if eb is not None:
+            fr_ = (B * e1s - eb) / (B * e1s)
+            f = run(jb)["final"]
+            ds[NAME[B]] = dict(frac=fr_, MeV=fr_ * B * GHS_E1, n_peaks=f["n_peaks"], q=f["q"])
+    N["C3a_direct_alpha_star"] = ds
+    print("post-hoc alpha* direct:", {k: (round(v["MeV"], 2) if isinstance(v, dict) else v) for k, v in ds.items()})
+
 # ------------------------------------------------------------------ C3b
 sx = {}
 for c6, mo in ((0, "an"), (50, "sx50"), (200, "sx200")):

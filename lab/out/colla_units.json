@@ -117,6 +117,11 @@
   "sx200": {
    "m": 0.52646279270117,
    "c6": 200.0
+  },
+  "ghsS": {
+   "m": 1.0,
+   "alpha": 0.894
   }
- }
+ },
+ "note_ghsS": "post-hoc (23:31): alpha* from log-linear interpolation of the 4He binding between alpha=0.8 and 0.95 (C3a-iv fit); direct runs at alpha* to check the interpolation"
 }
