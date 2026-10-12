@@ -41,7 +41,7 @@ def ladder(tag="ladder_t0"):
     Z = np.load(f)
     center = Z["center"]
     ks = sorted(int(n[1:]) for n in Z.files if n.startswith("v"))
-    fig, axs = plt.subplots(3, 7, figsize=(17, 8.4))
+    fig, axs = plt.subplots(3, 7, figsize=(17, 9.6))
     for ax, k in zip(axs.flat, ks):
         panel(ax, Z, k, float(Z["half%02d" % k]), None, center)
     fig.suptitle("Un solo mondo, 21 livelli: lo stesso campo F = E + icB (parte reale di F_z) visto da vicino (livello 0, "
@@ -51,6 +51,13 @@ def ladder(tag="ladder_t0"):
     fig.tight_layout(rect=(0, 0, 1, 0.93))
     fig.savefig(os.path.join(OUT, "reticolo_zoom_ladder.png"), dpi=110)
     plt.close(fig)
+    if "wide_v" in Z.files:
+        fig, ax = plt.subplots(figsize=(7.5, 7.8))
+        wide(ax, Z, "La radio intera al livello 20 (lambda = 24 celle grosse = 2.5e7 h0)\nnero: blocchi del livello 20; "
+                    "colori: il camino dei livelli 19, 18, 17 attorno al gamma")
+        fig.tight_layout()
+        fig.savefig(os.path.join(OUT, "reticolo_zoom_radio_whole.png"), dpi=100)
+        plt.close(fig)
     for k in ks:
         fig, ax = plt.subplots(figsize=(6.4, 6.6))
         panel(ax, Z, k, float(Z["half%02d" % k]), None, center, big=True)
@@ -60,15 +67,34 @@ def ladder(tag="ladder_t0"):
         plt.close(fig)
 
 
+def wide(ax, Z, title):
+    v = np.real(Z["wide_v"])
+    c, half, k = Z["wide_c"], float(Z["wide_half"]), int(Z["wide_k"])
+    m = np.nanmax(np.abs(v[np.isfinite(v)])) or 1.0
+    ext = [c[0] - half, c[0] + half, c[1] - half, c[1] + half]
+    ax.imshow(v.T, origin="lower", extent=ext, cmap="RdBu_r", vmin=-m, vmax=m, interpolation="nearest")
+    for kk in range(k, k - 4, -1):
+        key = "wide_rect_%02d" % kk
+        if key in Z.files:
+            col = {0: "k", 1: "#e8a000", 2: "#2a9d8f", 3: "#8e44ad"}[k - kk]
+            for x0, y0, sz in Z[key]:
+                ax.add_patch(Rectangle((x0, y0), sz, sz, fill=False, ec=col, lw=0.4, alpha=0.6))
+    ax.set_xlim(ext[0], ext[1]); ax.set_ylim(ext[2], ext[3])
+    ax.set_xticks([]); ax.set_yticks([])
+    ax.set_title(title, fontsize=9)
+
+
 def both():
     f = os.path.join(OUT, "reticolo_r3_both_tend.npz")
     if not os.path.exists(f):
         return
     Z = np.load(f)
     center = Z["center"]
-    ks = [0, 2, 4, 6, 8, 10]
-    fig, axs = plt.subplots(1, 6, figsize=(18, 3.6))
-    for ax, k in zip(axs, ks):
+    ks = [0, 2, 4, 6, 8]
+    fig, axs = plt.subplots(1, 6, figsize=(19, 3.9))
+    if "wide_v" in Z.files:
+        wide(axs[0], Z, "livello 10, vista larga: radio a sinistra,\ncamino del gamma a destra (blocchi 10/9/8/7)")
+    for ax, k in zip(axs[1:], ks):
         panel(ax, Z, k, float(Z["half%02d" % k]), None, center)
     fig.suptitle("R3b: radio al livello 10 (lambda = 24 x 1024 h0) e gamma al livello 0 nello stesso mondo, dopo 8 tick "
                  "radio = 8192 tick gamma (vista centrata sul gamma)", fontsize=10)
