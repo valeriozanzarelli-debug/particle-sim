@@ -1,0 +1,30 @@
+C:\Users\valer\Desktop\Programma di simulazione\particle_sim\lab\agg_zz_atom.py:121: ComplexWarning: Casting complex values to real discards the imaginary part
+  atom.h_resid = float(np.max(hist[-1])) if len(hist) else float("nan")
+1s_B256_N192: E = -13.599670 eV vs -13.605693 (-0.0443 %), generator -13.599685, rule residual 6.0e-07, lobpcg residual 5.6e-13, 10 it, converged True, 65 s, spin part 1.5e-08, G min 6.26e-13
+next call continues
+C:\Users\valer\Desktop\Programma di simulazione\particle_sim\lab\agg_zz_atom.py:121: ComplexWarning: Casting complex values to real discards the imaginary part
+  atom.h_resid = float(np.max(hist[-1])) if len(hist) else float("nan")
+1s_B512_N192: E = -13.547762 eV vs -13.605693 (-0.4258 %), generator -13.547786, rule residual 4.2e-07, lobpcg residual 4.9e-13, 10 it, converged True, 72 s, spin part 1.1e-08, G min -6.09e-12
+next call continues
+C:\Users\valer\Desktop\Programma di simulazione\particle_sim\lab\agg_zz_atom.py:121: ComplexWarning: Casting complex values to real discards the imaginary part
+  atom.h_resid = float(np.max(hist[-1])) if len(hist) else float("nan")
+2s_B512_N192: E = -3.435525 eV vs -3.401423 (+1.0026 %), generator -3.435528, rule residual 1.4e-07, lobpcg residual 7.6e-13, 35 it, converged True, 227 s, spin part 1.1e-08, G min -6.09e-12
+next call continues
+C:\Users\valer\Desktop\Programma di simulazione\particle_sim\lab\agg_zz_atom.py:118: UserWarning: Exited at iteration 60 with accuracies 
+[3.76409387e-10]
+not reaching the requested tolerance 1e-12.
+Use iteration 61 instead with accuracy 
+3.764093868402457e-10.
+
+  w, v, hist = spl.lobpcg(Aop, x0, M=Pop, Y=Y, tol=tol, maxiter=maxiter, largest=False, retResidualNormsHistory=True)
+C:\Users\valer\Desktop\Programma di simulazione\particle_sim\lab\agg_zz_atom.py:118: UserWarning: Exited postprocessing with accuracies 
+[3.76409387e-10]
+not reaching the requested tolerance 1e-12.
+  w, v, hist = spl.lobpcg(Aop, x0, M=Pop, Y=Y, tol=tol, maxiter=maxiter, largest=False, retResidualNormsHistory=True)
+C:\Users\valer\Desktop\Programma di simulazione\particle_sim\lab\agg_zz_atom.py:121: ComplexWarning: Casting complex values to real discards the imaginary part
+  atom.h_resid = float(np.max(hist[-1])) if len(hist) else float("nan")
+2p_B512_N192: E = -3.391591 eV vs -3.401423 (-0.2891 %), generator -3.391591, rule residual 1.4e-08, lobpcg residual 3.8e-10, 63 it, converged False, 365 s, spin part 1.1e-08, G min -6.09e-12
+C:\Users\valer\Desktop\Programma di simulazione\particle_sim\lab\agg_zz_atom.py:121: ComplexWarning: Casting complex values to real discards the imaginary part
+  atom.h_resid = float(np.max(hist[-1])) if len(hist) else float("nan")
+2p_B512_N192: E = -3.391591 eV vs -3.401423 (-0.2891 %), generator -3.391591, rule residual 1.2e-08, lobpcg residual 6.5e-13, 37 it, converged True, 199 s, spin part 1.1e-08, G min -6.09e-12
+ATOMDONE

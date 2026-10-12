@@ -1,0 +1,16 @@
+level 1: from B = 1 (dirac4), cell target <= 256, k_obs = 0.0072973525693 m
+    cand B=   16 pauli2 b=16 w=1: train nan packet(63 st) 1.6e-15 energy 7.0e-05 rest 2.3e-07 bz 4.9e-01 neg 0.0e+00 raw|K| 1.0000 
+    cand B=   16 pauli2 b=16 w=2: train nan packet(63 st) 1.1e-15 energy 8.8e-05 rest 1.8e-08 bz 8.9e-02 neg 0.0e+00 raw|K| 1.0000 OK
+  CHOSEN B=16 (0.535 lambda_C = a0/256.0) pauli2 b=16 w=2: packet 1.1e-15 energy 8.8e-05 rest 1.8e-08; rest phase -0.53530 vs fine -0.53530; max |eps-eps_fine| (x) 1.61e-02; spin part 4.3e-11
+level 2: from B = 16 (pauli2), cell target <= 256, k_obs = 0.0072973525693 m
+    cand B=  256 pauli2 b=16 w=1: train nan packet(4 st) 1.2e-14 energy 8.9e-04 rest 1.8e-07 bz 2.4e-01 neg 0.0e+00 raw|K| 1.0000 
+    cand B=  256 pauli2 b=16 w=2: train nan packet(4 st) 2.5e-14 energy 8.3e-04 rest 5.2e-08 bz 1.1e-01 neg 0.0e+00 raw|K| 1.0000 
+    cand B=  256 pauli2 b=16 w=3: train nan packet(4 st) 8.6e-16 energy 6.5e-04 rest 4.3e-08 bz 8.5e-02 neg 0.0e+00 raw|K| 1.0000 
+    cand B=  256 pauli2 b=16 w=4: train nan packet(4 st) 6.4e-17 energy 6.3e-05 rest 2.8e-09 bz 8.1e-02 neg 0.0e+00 raw|K| 1.0000 OK
+  CHOSEN B=256 (8.565 lambda_C = a0/16.0) pauli2 b=16 w=4: packet 6.4e-17 energy 6.3e-05 rest 2.8e-09; rest phase -2.28156 vs fine -2.28156; max |eps-eps_fine| (x) 8.08e-06; spin part 1.4e-10
+level 3: from B = 256 (pauli2), cell target <= 512, k_obs = 0.00364867628465 m
+    cand B=  512 pauli2 b=2 w=1: train nan packet(2 st) 8.2e-16 energy 6.4e-04 rest 3.2e-07 bz 2.6e-01 neg 0.0e+00 raw|K| 1.0000 
+    cand B=  512 pauli2 b=2 w=2: train nan packet(2 st) 1.3e-15 energy 5.5e-04 rest 1.0e-07 bz 1.1e-01 neg 0.0e+00 raw|K| 1.0000 
+    cand B=  512 pauli2 b=2 w=3: train nan packet(2 st) 1.1e-16 energy 2.8e-04 rest 5.4e-08 bz 8.0e-02 neg 0.0e+00 raw|K| 1.0000 OK
+  CHOSEN B=512 (17.129 lambda_C = a0/8.0) pauli2 b=2 w=3: packet 1.1e-16 energy 2.8e-04 rest 5.4e-08; rest phase +1.72006 vs fine +1.72006; max |eps-eps_fine| (x) 7.80e-07; spin part 5.5e-10
+hierarchy complete

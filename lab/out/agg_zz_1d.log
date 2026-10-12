@@ -1,0 +1,33 @@
+=== chain ladder ===
+  [ladder] B=   2 b=2 w=1: exam |dpsi|^2 = 1.85e-08 over 1000 fine ticks (500 steps); m_kin/m = 1.000381 (fine 1.000380); c4*8m^3 = 0.9971 (fine 0.9971); rest phase -0.06691 vs -0.06691; max|K| 1.000000
+  [ladder] B=   4 b=2 w=1: exam |dpsi|^2 = 2.63e-05 over 1000 fine ticks (250 steps); m_kin/m = 1.000383 (fine 1.000381); c4*8m^3 = 0.9970 (fine 0.9970); rest phase -0.13382 vs -0.13382; max|K| 1.000000
+  [ladder] B=   8 b=2 w=1: exam |dpsi|^2 = 1.66e-04 over 1000 fine ticks (125 steps); m_kin/m = 1.000409 (fine 1.000381); c4*8m^3 = 0.9964 (fine 0.9970); rest phase -0.26765 vs -0.26765; max|K| 1.000000
+  [ladder] B=  16 b=2 w=2: exam |dpsi|^2 = 6.99e-06 over 992 fine ticks (62 steps); m_kin/m = 1.000398 (fine 1.000381); c4*8m^3 = 0.9968 (fine 0.9970); rest phase -0.53530 vs -0.53530; max|K| 1.000000
+  [ladder] B=  32 b=2 w=2: exam |dpsi|^2 = 7.85e-08 over 992 fine ticks (31 steps); m_kin/m = 1.000179 (fine 1.000381); c4*8m^3 = 1.0063 (fine 0.9971); rest phase -1.07059 vs -1.07059; max|K| 1.000000
+  stop at B = 32 (no admissible candidate below B <= 32)
+=== chain auto ===
+  [auto] B=   4 b=4 w=1: exam |dpsi|^2 = 7.95e-06 over 1000 fine ticks (250 steps); m_kin/m = 1.000383 (fine 1.000381); c4*8m^3 = 0.9970 (fine 0.9970); rest phase -0.13382 vs -0.13382; max|K| 1.000000
+  [auto] B=  16 b=4 w=2: exam |dpsi|^2 = 4.29e-07 over 992 fine ticks (62 steps); m_kin/m = 1.000373 (fine 1.000381); c4*8m^3 = 0.9974 (fine 0.9970); rest phase -0.53530 vs -0.53530; max|K| 1.000000
+  [auto] B=  64 b=4 w=4: exam |dpsi|^2 = 1.55e-09 over 960 fine ticks (15 steps); m_kin/m = 1.000258 (fine 1.000381); c4*8m^3 = 0.9959 (fine 0.9971); rest phase -2.14119 vs -2.14119; max|K| 1.000000
+  [auto] B= 192 b=3 w=6: exam |dpsi|^2 = 1.44e-09 over 960 fine ticks (5 steps); m_kin/m = 1.000114 (fine 1.000373); c4*8m^3 = 1.0279 (fine 0.9992); rest phase -0.14037 vs -0.14038; max|K| 1.000000
+  [auto] B= 384 b=2 w=6: exam |dpsi|^2 = 9.53e-10 over 768 fine ticks (2 steps); m_kin/m = 0.999947 (fine 1.000373); c4*8m^3 = 1.4972 (fine 0.9992); rest phase -0.28075 vs -0.28075; max|K| 1.000000
+  stop at B = 384 (no admissible candidate below B <= 512)
+[PASS] A1a ladder B=2
+[PASS] A1a ladder B=4
+[PASS] A1a ladder B=8
+[PASS] A1a ladder B=16
+[PASS] A1a ladder B=32
+[PASS] A1b ladder B=32 m_kin
+[PASS] A1c ladder B=32 c4
+[PASS] A1a auto B=4
+[PASS] A1a auto B=16
+[PASS] A1a auto B=64
+[PASS] A1b auto B=64 m_kin
+[PASS] A1c auto B=64 c4
+[PASS] A1a auto B=192
+[PASS] A1b auto B=192 m_kin
+[PASS] A1c auto B=192 c4
+[PASS] A1a auto B=384
+[PASS] A1b auto B=384 m_kin
+[FAIL] A1c auto B=384 c4
+done 33 s
