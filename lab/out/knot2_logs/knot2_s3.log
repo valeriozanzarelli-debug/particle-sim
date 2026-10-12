@@ -1,0 +1,70 @@
+Q {'out': 10.445107454088062, 'Q63': np.float64(19.53891910693359), 'Q127': np.float64(19.622519842299425), 'Q': np.float64(19.650386754088036), 'Q_sphere': 22.61946710584651, 'kappa_vs_sphere': np.float64(0.8687378293279487)}
+c4_h0.2_L48 {'tag': 'c4', 'h': 0.2, 'L': 48, 'R_eff': 4.9, 'Lambda_lat': 78.2108, 'C_fit': np.float64(2.0048), 'fit_rel_residual': 0.0109, 'dLambda': np.float64(21.4912), 'Lambda_corr': np.float64(99.702), 'dev_from_ODE': np.float64(-0.0662), 'dLambda_with_C_ODE': np.float64(24.939), 'E': 145.3392, 'rB2': 1.0022}
+c4_h0.2_L64 {'tag': 'c4', 'h': 0.2, 'L': 64, 'R_eff': 6.5, 'Lambda_lat': 83.8661, 'C_fit': np.float64(2.0143), 'fit_rel_residual': 0.0072, 'dLambda': np.float64(16.3544), 'Lambda_corr': np.float64(100.2205), 'dev_from_ODE': np.float64(-0.0613), 'dLambda_with_C_ODE': np.float64(18.8001), 'E': 144.9003, 'rB2': 1.0328}
+c4_h0.15_L64 {'tag': 'c4', 'h': 0.15, 'L': 64, 'R_eff': 4.875, 'Lambda_lat': 79.5607, 'C_fit': np.float64(2.0373), 'fit_rel_residual': 0.0098, 'dLambda': np.float64(22.3082), 'Lambda_corr': np.float64(101.8689), 'dev_from_ODE': np.float64(-0.0459), 'dLambda_with_C_ODE': np.float64(25.0668), 'E': 146.0087, 'rB2': 1.0251}
+old_h0.2_L48 {'tag': 'old', 'h': 0.2, 'L': 48, 'R_eff': 4.9, 'Lambda_lat': 72.2833, 'C_fit': np.float64(1.8536), 'fit_rel_residual': 0.0115, 'dLambda': np.float64(18.3713), 'Lambda_corr': np.float64(90.6547), 'dev_from_ODE': np.float64(-0.1509), 'dLambda_with_C_ODE': np.float64(24.939), 'E': 142.8071, 'rB2': 0.9169}
+old_h0.2_L64 {'tag': 'old', 'h': 0.2, 'L': 64, 'R_eff': 6.5, 'Lambda_lat': 77.1497, 'C_fit': np.float64(1.8587), 'fit_rel_residual': 0.007, 'dLambda': np.float64(13.9256), 'Lambda_corr': np.float64(91.0753), 'dev_from_ODE': np.float64(-0.147), 'dLambda_with_C_ODE': np.float64(18.8001), 'E': 142.4427, 'rB2': 0.9432}
+old_h0.15_L64 {'tag': 'old', 'h': 0.15, 'L': 64, 'R_eff': 4.875, 'Lambda_lat': 76.4963, 'C_fit': np.float64(1.9599), 'fit_rel_residual': 0.0103, 'dLambda': np.float64(20.6449), 'Lambda_corr': np.float64(97.1411), 'dev_from_ODE': np.float64(-0.0902), 'dLambda_with_C_ODE': np.float64(25.0668), 'E': 144.6316, 'rB2': 0.9805}
+{
+ "Q": {
+  "out": 10.445107454088062,
+  "Q63": 19.53891910693359,
+  "Q127": 19.622519842299425,
+  "Q": 19.650386754088036,
+  "Q_sphere": 22.61946710584651,
+  "kappa_vs_sphere": 0.8687378293279487
+ },
+ "primary": {
+  "Lambda_corr": 101.86892165444974,
+  "dev": -0.04589975848210581,
+  "pass_": false
+ },
+ "secondary_old_richardson": {
+  "value": 105.48085098461895,
+  "dev": -0.012070572992642248
+ },
+ "secondary_fit_c4_h0.2": {
+  "R": [
+   3.3000000000000003,
+   4.9,
+   6.5
+  ],
+  "Lambda": [
+   67.91855248211603,
+   78.21079189595247,
+   83.86611732195
+  ],
+  "Lam_inf": 102.16117498860947,
+  "a": 120.97267495824309,
+  "b": -86.81530527941202,
+  "a_theory": 106.30336267485968,
+  "dev": -0.0431625254558049
+ },
+ "mu": {
+  "lattice_primary": {
+   "e": 5.3824282838325646,
+   "F_pi": 127.6444325245068,
+   "mu_p": 1.8674224855825603,
+   "mu_n": -1.3362079224971444,
+   "mu_ratio": 1.3975538193881283
+  },
+  "ode": {
+   "e": 5.444514262960624,
+   "F_pi": 129.2603142278133,
+   "mu_p": 1.8782493276872567,
+   "mu_n": -1.325381080392448,
+   "mu_ratio": 1.41713908209034
+  },
+  "lattice_uncorrected": {
+   "e": 5.059906718800177,
+   "F_pi": 119.99582487484554,
+   "mu_p": 1.941896653140689,
+   "mu_n": -1.2617337549390157,
+   "mu_ratio": 1.5390700657244032
+  },
+  "experiment": 1.4599059069524307,
+  "pass_": false,
+  "dev_exp": -0.04270966181270075,
+  "dev_ode": -0.013820282673541517
+ }
+}

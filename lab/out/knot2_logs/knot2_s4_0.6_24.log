@@ -1,0 +1,138 @@
+t=0.00 E=373.56 E_in=367.06 B=-0.0000 |B|=1.990
+C:\Users\valer\Desktop\Programma di simulazione\particle_sim\lab\knot2_core.py:123: UserWarning: Converting a tensor with requires_grad=True to a scalar may lead to unexpected behavior.
+Consider using tensor.detach() first. (Triggered internally at C:\actions-runner\_work\pytorch\pytorch\torch\csrc\autograd\generated\python_variable_methods.cpp:821.)
+  return float(H), kin.detach(), st.detach(), tangent(phi, 0.5 * mi.detach()), gr
+t=0.25 E=373.56 E_in=367.95 B=0.0000 |B|=1.990
+t=0.50 E=373.56 E_in=369.89 B=0.0000 |B|=1.990
+t=0.75 E=373.56 E_in=371.38 B=0.0000 |B|=1.990
+t=1.00 E=373.56 E_in=371.30 B=0.0000 |B|=1.989
+t=1.25 E=373.56 E_in=371.09 B=0.0000 |B|=1.990
+t=1.50 E=373.56 E_in=370.91 B=0.0000 |B|=1.990
+t=1.75 E=373.56 E_in=370.69 B=0.0000 |B|=1.991
+t=2.00 E=373.56 E_in=370.46 B=0.0000 |B|=1.991
+t=2.25 E=373.55 E_in=370.25 B=0.0000 |B|=1.992
+CHECKPOINT 47
+C:\Users\valer\Desktop\Programma di simulazione\particle_sim\lab\knot2_core.py:123: UserWarning: Converting a tensor with requires_grad=True to a scalar may lead to unexpected behavior.
+Consider using tensor.detach() first. (Triggered internally at C:\actions-runner\_work\pytorch\pytorch\torch\csrc\autograd\generated\python_variable_methods.cpp:821.)
+  return float(H), kin.detach(), st.detach(), tangent(phi, 0.5 * mi.detach()), gr
+t=2.50 E=373.55 E_in=370.04 B=0.0000 |B|=1.993
+t=2.75 E=373.53 E_in=369.82 B=0.0000 |B|=1.993
+t=3.00 E=373.52 E_in=369.59 B=0.0000 |B|=1.991
+t=3.25 E=373.49 E_in=369.39 B=0.0000 |B|=1.985
+t=3.50 E=373.45 E_in=369.22 B=-0.0000 |B|=1.966
+t=3.75 E=373.39 E_in=369.10 B=0.0000 |B|=1.927
+t=4.00 E=373.30 E_in=369.01 B=0.0000 |B|=1.878
+t=4.25 E=373.19 E_in=368.89 B=0.0000 |B|=1.819
+t=4.50 E=373.08 E_in=368.78 B=-0.0000 |B|=1.752
+t=4.75 E=372.95 E_in=368.63 B=-0.0000 |B|=1.669
+t=5.00 E=372.80 E_in=368.41 B=0.0000 |B|=1.538
+t=5.25 E=372.65 E_in=368.08 B=0.0000 |B|=1.355
+t=5.50 E=372.50 E_in=367.68 B=0.0000 |B|=1.175
+CHECKPOINT 111
+C:\Users\valer\Desktop\Programma di simulazione\particle_sim\lab\knot2_core.py:123: UserWarning: Converting a tensor with requires_grad=True to a scalar may lead to unexpected behavior.
+Consider using tensor.detach() first. (Triggered internally at C:\actions-runner\_work\pytorch\pytorch\torch\csrc\autograd\generated\python_variable_methods.cpp:821.)
+  return float(H), kin.detach(), st.detach(), tangent(phi, 0.5 * mi.detach()), gr
+t=5.75 E=372.36 E_in=367.22 B=-0.0000 |B|=0.966
+t=6.00 E=372.22 E_in=366.67 B=0.0000 |B|=0.735
+t=6.25 E=372.08 E_in=366.00 B=-0.0000 |B|=0.541
+t=6.50 E=371.92 E_in=365.10 B=-0.0000 |B|=0.393
+t=6.75 E=371.74 E_in=363.90 B=0.0000 |B|=0.293
+t=7.00 E=371.51 E_in=362.36 B=0.0000 |B|=0.221
+t=7.25 E=371.24 E_in=360.48 B=-0.0000 |B|=0.166
+t=7.50 E=370.95 E_in=358.01 B=0.0000 |B|=0.132
+t=7.75 E=370.68 E_in=354.25 B=0.0000 |B|=0.115
+t=8.00 E=370.42 E_in=347.49 B=-0.0000 |B|=0.107
+t=8.25 E=370.16 E_in=334.49 B=0.0000 |B|=0.106
+t=8.50 E=369.91 E_in=313.40 B=-0.0000 |B|=0.100
+t=8.75 E=369.68 E_in=288.25 B=0.0000 |B|=0.094
+t=9.00 E=369.46 E_in=263.60 B=0.0000 |B|=0.081
+t=9.25 E=369.25 E_in=237.56 B=0.0000 |B|=0.068
+CHECKPOINT 187
+C:\Users\valer\Desktop\Programma di simulazione\particle_sim\lab\knot2_core.py:123: UserWarning: Converting a tensor with requires_grad=True to a scalar may lead to unexpected behavior.
+Consider using tensor.detach() first. (Triggered internally at C:\actions-runner\_work\pytorch\pytorch\torch\csrc\autograd\generated\python_variable_methods.cpp:821.)
+  return float(H), kin.detach(), st.detach(), tangent(phi, 0.5 * mi.detach()), gr
+t=9.50 E=369.05 E_in=204.43 B=0.0000 |B|=0.056
+t=9.75 E=368.85 E_in=161.36 B=-0.0000 |B|=0.046
+t=10.00 E=368.65 E_in=120.08 B=0.0000 |B|=0.038
+t=10.25 E=368.43 E_in=93.63 B=-0.0000 |B|=0.032
+t=10.50 E=368.12 E_in=77.52 B=0.0000 |B|=0.028
+t=10.75 E=367.62 E_in=65.80 B=0.0000 |B|=0.024
+t=11.00 E=366.77 E_in=55.08 B=-0.0000 |B|=0.021
+t=11.25 E=365.33 E_in=44.76 B=0.0000 |B|=0.019
+t=11.50 E=363.06 E_in=37.72 B=0.0000 |B|=0.017
+t=11.75 E=359.82 E_in=32.14 B=-0.0000 |B|=0.015
+t=12.00 E=355.48 E_in=27.29 B=0.0000 |B|=0.014
+t=12.25 E=349.80 E_in=23.57 B=-0.0000 |B|=0.013
+t=12.50 E=342.21 E_in=20.04 B=-0.0000 |B|=0.012
+t=12.75 E=332.00 E_in=17.15 B=0.0000 |B|=0.011
+t=13.00 E=319.04 E_in=15.51 B=-0.0000 |B|=0.010
+CHECKPOINT 264
+C:\Users\valer\Desktop\Programma di simulazione\particle_sim\lab\knot2_core.py:123: UserWarning: Converting a tensor with requires_grad=True to a scalar may lead to unexpected behavior.
+Consider using tensor.detach() first. (Triggered internally at C:\actions-runner\_work\pytorch\pytorch\torch\csrc\autograd\generated\python_variable_methods.cpp:821.)
+  return float(H), kin.detach(), st.detach(), tangent(phi, 0.5 * mi.detach()), gr
+t=13.25 E=303.82 E_in=14.12 B=-0.0000 |B|=0.009
+t=13.50 E=286.90 E_in=12.81 B=-0.0000 |B|=0.009
+t=13.75 E=268.73 E_in=11.75 B=-0.0000 |B|=0.009
+t=14.00 E=249.40 E_in=11.13 B=-0.0000 |B|=0.008
+t=14.25 E=228.96 E_in=10.45 B=-0.0000 |B|=0.008
+t=14.50 E=208.35 E_in=9.56 B=0.0000 |B|=0.008
+t=14.75 E=188.82 E_in=8.44 B=-0.0000 |B|=0.007
+t=15.00 E=171.00 E_in=7.40 B=0.0000 |B|=0.007
+t=15.25 E=154.81 E_in=6.44 B=0.0000 |B|=0.006
+t=15.50 E=140.10 E_in=5.62 B=-0.0000 |B|=0.005
+t=15.75 E=126.77 E_in=4.97 B=-0.0000 |B|=0.005
+t=16.00 E=114.77 E_in=4.43 B=-0.0000 |B|=0.004
+t=16.25 E=104.11 E_in=3.98 B=-0.0000 |B|=0.004
+t=16.50 E=94.62 E_in=3.67 B=-0.0000 |B|=0.003
+t=16.75 E=86.16 E_in=3.42 B=-0.0000 |B|=0.003
+t=17.00 E=78.65 E_in=3.24 B=-0.0000 |B|=0.003
+CHECKPOINT 341
+C:\Users\valer\Desktop\Programma di simulazione\particle_sim\lab\knot2_core.py:123: UserWarning: Converting a tensor with requires_grad=True to a scalar may lead to unexpected behavior.
+Consider using tensor.detach() first. (Triggered internally at C:\actions-runner\_work\pytorch\pytorch\torch\csrc\autograd\generated\python_variable_methods.cpp:821.)
+  return float(H), kin.detach(), st.detach(), tangent(phi, 0.5 * mi.detach()), gr
+t=17.25 E=72.08 E_in=3.13 B=-0.0000 |B|=0.003
+t=17.50 E=66.42 E_in=3.09 B=-0.0000 |B|=0.003
+t=17.75 E=61.59 E_in=3.15 B=-0.0000 |B|=0.003
+t=18.00 E=57.55 E_in=3.25 B=0.0000 |B|=0.003
+t=18.25 E=54.20 E_in=3.41 B=0.0000 |B|=0.003
+t=18.50 E=51.39 E_in=3.60 B=0.0000 |B|=0.003
+t=18.75 E=48.95 E_in=3.76 B=-0.0000 |B|=0.003
+t=19.00 E=46.75 E_in=3.90 B=-0.0000 |B|=0.003
+t=19.25 E=44.70 E_in=4.00 B=-0.0000 |B|=0.002
+t=19.50 E=42.77 E_in=4.07 B=-0.0000 |B|=0.002
+t=19.75 E=40.95 E_in=4.12 B=-0.0000 |B|=0.002
+t=20.00 E=39.23 E_in=4.14 B=-0.0000 |B|=0.002
+t=20.25 E=37.62 E_in=4.15 B=-0.0000 |B|=0.001
+t=20.50 E=36.12 E_in=4.12 B=-0.0000 |B|=0.001
+t=20.75 E=34.73 E_in=4.10 B=-0.0000 |B|=0.001
+CHECKPOINT 418
+C:\Users\valer\Desktop\Programma di simulazione\particle_sim\lab\knot2_core.py:123: UserWarning: Converting a tensor with requires_grad=True to a scalar may lead to unexpected behavior.
+Consider using tensor.detach() first. (Triggered internally at C:\actions-runner\_work\pytorch\pytorch\torch\csrc\autograd\generated\python_variable_methods.cpp:821.)
+  return float(H), kin.detach(), st.detach(), tangent(phi, 0.5 * mi.detach()), gr
+t=21.00 E=33.48 E_in=4.07 B=0.0000 |B|=0.001
+t=21.25 E=32.39 E_in=4.06 B=0.0000 |B|=0.002
+t=21.50 E=31.46 E_in=4.08 B=0.0000 |B|=0.002
+t=21.75 E=30.66 E_in=4.07 B=0.0000 |B|=0.002
+t=22.00 E=29.98 E_in=4.05 B=0.0000 |B|=0.002
+t=22.25 E=29.38 E_in=4.01 B=0.0000 |B|=0.002
+t=22.50 E=28.85 E_in=3.95 B=0.0000 |B|=0.002
+t=22.75 E=28.36 E_in=3.87 B=0.0000 |B|=0.001
+t=23.00 E=27.88 E_in=3.77 B=0.0000 |B|=0.001
+t=23.25 E=27.40 E_in=3.65 B=0.0000 |B|=0.001
+t=23.50 E=26.89 E_in=3.54 B=0.0000 |B|=0.001
+t=23.75 E=26.37 E_in=3.46 B=0.0000 |B|=0.001
+t=24.00 E=25.81 E_in=3.44 B=-0.0000 |B|=0.001
+{
+ "v": 0.6,
+ "h": 0.2,
+ "N": 80,
+ "R_sphere": 4.5,
+ "T": 24.0,
+ "frac_out_T": 0.99062005428951,
+ "frac_out_24": 0.99062005428951,
+ "t_cross_70": 10.25,
+ "absB_min": 0.0007141987443901598,
+ "t_absB_below_0p2": 7.25,
+ "B_final": -6.332993851554392e-11,
+ "E0": 373.56134033203125
+}

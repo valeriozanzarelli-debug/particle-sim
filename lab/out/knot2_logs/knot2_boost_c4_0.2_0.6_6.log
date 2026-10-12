@@ -1,0 +1,66 @@
+t=0.00 E/gE0=1.00456 B=0.9949 cx=-7.500 sx/sy(b)=0.8005 sx/sy(e)=0.8573
+C:\Users\valer\Desktop\Programma di simulazione\particle_sim\lab\knot2_core.py:123: UserWarning: Converting a tensor with requires_grad=True to a scalar may lead to unexpected behavior.
+Consider using tensor.detach() first. (Triggered internally at C:\actions-runner\_work\pytorch\pytorch\torch\csrc\autograd\generated\python_variable_methods.cpp:821.)
+  return float(H), kin.detach(), st.detach(), tangent(phi, 0.5 * mi.detach()), gr
+t=0.20 E/gE0=1.00456 B=0.9948 cx=-7.380 sx/sy(b)=0.7980 sx/sy(e)=0.8568
+t=0.40 E/gE0=1.00456 B=0.9947 cx=-7.262 sx/sy(b)=0.7920 sx/sy(e)=0.8545
+t=0.60 E/gE0=1.00456 B=0.9945 cx=-7.145 sx/sy(b)=0.7851 sx/sy(e)=0.8513
+t=0.80 E/gE0=1.00456 B=0.9945 cx=-7.029 sx/sy(b)=0.7799 sx/sy(e)=0.8478
+t=1.00 E/gE0=1.00456 B=0.9943 cx=-6.915 sx/sy(b)=0.7767 sx/sy(e)=0.8445
+t=1.20 E/gE0=1.00456 B=0.9942 cx=-6.801 sx/sy(b)=0.7753 sx/sy(e)=0.8418
+t=1.40 E/gE0=1.00456 B=0.9940 cx=-6.688 sx/sy(b)=0.7751 sx/sy(e)=0.8400
+t=1.60 E/gE0=1.00456 B=0.9938 cx=-6.575 sx/sy(b)=0.7757 sx/sy(e)=0.8392
+t=1.80 E/gE0=1.00456 B=0.9935 cx=-6.463 sx/sy(b)=0.7771 sx/sy(e)=0.8394
+t=2.00 E/gE0=1.00455 B=0.9933 cx=-6.351 sx/sy(b)=0.7792 sx/sy(e)=0.8405
+t=2.20 E/gE0=1.00455 B=0.9931 cx=-6.239 sx/sy(b)=0.7819 sx/sy(e)=0.8426
+t=2.40 E/gE0=1.00455 B=0.9929 cx=-6.128 sx/sy(b)=0.7848 sx/sy(e)=0.8455
+t=2.60 E/gE0=1.00455 B=0.9927 cx=-6.017 sx/sy(b)=0.7880 sx/sy(e)=0.8490
+t=2.80 E/gE0=1.00455 B=0.9925 cx=-5.906 sx/sy(b)=0.7911 sx/sy(e)=0.8530
+t=3.00 E/gE0=1.00455 B=0.9923 cx=-5.795 sx/sy(b)=0.7940 sx/sy(e)=0.8573
+t=3.20 E/gE0=1.00455 B=0.9922 cx=-5.684 sx/sy(b)=0.7968 sx/sy(e)=0.8618
+t=3.40 E/gE0=1.00455 B=0.9920 cx=-5.573 sx/sy(b)=0.7991 sx/sy(e)=0.8663
+t=3.60 E/gE0=1.00455 B=0.9920 cx=-5.463 sx/sy(b)=0.8013 sx/sy(e)=0.8709
+t=3.80 E/gE0=1.00455 B=0.9918 cx=-5.352 sx/sy(b)=0.8027 sx/sy(e)=0.8752
+CHECKPOINT 78
+C:\Users\valer\Desktop\Programma di simulazione\particle_sim\lab\knot2_core.py:123: UserWarning: Converting a tensor with requires_grad=True to a scalar may lead to unexpected behavior.
+Consider using tensor.detach() first. (Triggered internally at C:\actions-runner\_work\pytorch\pytorch\torch\csrc\autograd\generated\python_variable_methods.cpp:821.)
+  return float(H), kin.detach(), st.detach(), tangent(phi, 0.5 * mi.detach()), gr
+t=4.00 E/gE0=1.00454 B=0.9918 cx=-5.242 sx/sy(b)=0.8039 sx/sy(e)=0.8795
+t=4.20 E/gE0=1.00454 B=0.9916 cx=-5.132 sx/sy(b)=0.8044 sx/sy(e)=0.8836
+t=4.40 E/gE0=1.00454 B=0.9917 cx=-5.022 sx/sy(b)=0.8042 sx/sy(e)=0.8873
+t=4.60 E/gE0=1.00453 B=0.9916 cx=-4.912 sx/sy(b)=0.8037 sx/sy(e)=0.8912
+t=4.80 E/gE0=1.00453 B=0.9915 cx=-4.802 sx/sy(b)=0.8021 sx/sy(e)=0.8949
+t=5.00 E/gE0=1.00452 B=0.9917 cx=-4.693 sx/sy(b)=0.8012 sx/sy(e)=0.8989
+t=5.20 E/gE0=1.00451 B=0.9915 cx=-4.584 sx/sy(b)=0.7989 sx/sy(e)=0.9031
+t=5.40 E/gE0=1.00451 B=0.9917 cx=-4.475 sx/sy(b)=0.7975 sx/sy(e)=0.9078
+t=5.60 E/gE0=1.00450 B=0.9916 cx=-4.366 sx/sy(b)=0.7962 sx/sy(e)=0.9135
+t=5.80 E/gE0=1.00449 B=0.9917 cx=-4.257 sx/sy(b)=0.7951 sx/sy(e)=0.9198
+t=6.00 E/gE0=1.00448 B=0.9919 cx=-4.149 sx/sy(b)=0.7952 sx/sy(e)=0.9273
+{
+ "meta": {
+  "scheme": "c4",
+  "h": 0.2,
+  "v": 0.6,
+  "gamma": 1.25,
+  "E0": 145.80230712890625,
+  "x0": -7.500000000000002,
+  "box": [
+   112,
+   48,
+   48
+  ],
+  "dt": 0.05,
+  "r_half_contracted_over_h": 3.3312132184073184
+ },
+ "E_over_gE0": 1.004558894016933,
+ "drift": 8.150966568785615e-05,
+ "ratio_b_late": 0.7997684773456022,
+ "ratio_b_t0": 0.800476532804095,
+ "one_over_gamma": 0.8,
+ "ratio_e_late": 0.8898936410544624,
+ "ratio_e_t0": 0.8572724811303212,
+ "e_sx_end_over_t0": 1.0037648863357407,
+ "v_fit": 0.5486974050016961,
+ "B_min": 0.9914673566818237,
+ "B_max": 0.9949280023574829
+}
