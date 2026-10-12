@@ -34,6 +34,8 @@ pub enum Comando { Avanti, Pausa, Indietro }
 #[derive(Clone)]
 pub struct Uscita {
     pub palline: Arc<Vec<Ball>>,
+    /// balls drawn with alpha blending (the orbital shells)
+    pub onde: Arc<Vec<Ball>>,
     pub versione: u64,
     pub ticks: u64,
     pub p1s: f64,
@@ -175,7 +177,7 @@ fn passo(m: &mut Mondo, verso: f64) {
 pub fn avvia() -> Arc<Mutex<Condiviso>> {
     let c = Arc::new(Mutex::new(Condiviso {
         comando: Comando::Avanti, ritmo: 25.0, spara: None, ricomincia: false, fine: false,
-        out: Uscita { palline: Arc::new(vec![]), versione: 0, ticks: 0, p1s: 1.0, dipolo: 0.0, campo: 0.0, ms_tick: 0.0,
+        out: Uscita { palline: Arc::new(vec![]), onde: Arc::new(vec![]), versione: 0, ticks: 0, p1s: 1.0, dipolo: 0.0, campo: 0.0, ms_tick: 0.0,
                       omega_res: 0.0, legame_1s: 0.0, punto: [0.0; 3], pronto: false },
     }));
     let cc = c.clone();
@@ -214,7 +216,7 @@ pub fn avvia() -> Arc<Mutex<Condiviso>> {
                 let tick_ms = t0.elapsed().as_secs_f64() * 1e3;
                 ms += 0.1 * (tick_ms - ms);
                 let out = Uscita {
-                    palline: Arc::new(p), versione, ticks: m.at.ticks,
+                    palline: Arc::new(p), onde: Arc::new(vec![]), versione, ticks: m.at.ticks,
                     p1s: if m.at.ticks % 4 == 0 { m.at.p_fondamentale() } else { cc.lock().unwrap().out.p1s },
                     dipolo: *m.dip.last().unwrap(), campo: m.at.campo(m.at.t()), ms_tick: ms, omega_res,
                     legame_1s: 1.0 - l1.omega, punto: m.surf[0], pronto: true,

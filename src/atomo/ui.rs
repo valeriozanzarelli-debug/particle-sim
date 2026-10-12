@@ -90,7 +90,7 @@ pub fn draw_hud(mut ctx: EguiContexts, mut lab: ResMut<Lab>, mut cam: ResMut<Cam
             for (s, n) in [(Scena::Fotone, "fotone libero"), (Scena::Atomo, "atomo zig-zag")] {
                 if ui.add(egui::Button::new(n).fill(Color32::from_black_alpha(90)).selected(lab.scena == s)).clicked() && lab.scena != s {
                     lab.cambia_scena(s);
-                    if s == Scena::Fotone { cam.yaw = 0.0; cam.pitch = 0.2; }
+                    if s == Scena::Fotone { cam.yaw = 0.42; cam.pitch = 0.28; }
                     let r = lab.distanza_tipica(Bersaglio::Atomo);
                     cam.vai(Bersaglio::Atomo, r);
                     cam.ln_r = cam.ln_r_target;
@@ -319,22 +319,23 @@ fn pannello_fotone(ctx: &egui::Context, lab: &mut Lab) {
         ui.label(RichText::new("STRATI (tutti dallo stesso campo F = E + icB delle palline)").strong().color(GOLD));
         let v = &mut lab.vista_fot;
         ui.horizontal(|ui| {
-            ui.checkbox(&mut v.e_nuvola, "E (nuvola)");
-            ui.checkbox(&mut v.b_nuvola, RichText::new("B (nuvola, blu)").color(Color32::from_rgb(110, 160, 255)));
-            ui.checkbox(&mut v.sezione, "sezione di traverso");
+            ui.checkbox(&mut v.traccianti, "palline che corrono col campo");
+            ui.checkbox(&mut v.fronti, RichText::new("fronti d'onda").color(GOLD));
+            ui.checkbox(&mut v.elica, "elica di E");
         });
         ui.horizontal(|ui| {
-            ui.checkbox(&mut v.e_vettori, "vettori E");
-            ui.checkbox(&mut v.b_vettori, RichText::new("vettori B").color(Color32::from_rgb(110, 160, 255)));
+            ui.checkbox(&mut v.e_vettori, "tratti E");
+            ui.checkbox(&mut v.b_vettori, RichText::new("tratti B").color(Color32::from_rgb(110, 160, 255)));
             ui.checkbox(&mut v.poynting, RichText::new("Poynting S = E×B").color(GOLD));
             ui.checkbox(&mut v.spin, RichText::new("spin").color(GREEN));
+            ui.checkbox(&mut v.sezione, "sezione");
         });
-        ui.checkbox(&mut v.polarizzatore, "nuvola E vista con un polarizzatore");
-        ui.label(RichText::new("Vettori: catene di palline che partono dall'asse del fascio e da 6 linee attorno, lunghe quanto il campo. \
-            Luce circolare: la catena di E gira lungo l'asse (un'elica); lineare: oscilla in un piano. B è sempre di traverso a E. \
-            Poynting (oro): dove va l'energia, lungo il volo. Spin: E(t−1) × E(t) (verde = lungo il volo, magenta = contro): \
-            c'è solo nella luce circolare. Sezione: il piano di traverso al centro dell'impulso. Polarizzatore: solo la parte di E \
-            lungo la polarizzazione di partenza (fa vedere le creste della luce circolare, che in E² non ci sono).").small().color(GREY));
+        ui.label(RichText::new("Palline: nascono dove il fotone ha energia (più energia, più palline) e a ogni tick si muovono con \
+            la velocità dell'energia del campo, v = 2 E×cB/(E² + c²B²) (c in un'onda piana); colore = direzione di E, luce = E². \
+            Fronti d'onda: fogli sottili dove E lungo la polarizzazione ha una cresta (oro) o una valle (azzurro). \
+            Elica: la punta di E lungo l'asse del fascio; luce circolare = una vite che gira mentre vola, lineare = un'onda piatta. \
+            Tratti: E (colori) e B (blu) dall'asse. Poynting: dove va l'energia. Spin: E(t−1)×E(t), verde lungo il volo. \
+            Il disegno non tocca la fisica: tutto è letto dal campo delle palline della regola.").small().color(GREY));
         ui.horizontal(|ui| {
             ui.add(egui::Slider::new(&mut lab.grandezza, 0.3..=3.0).text("palline"));
             ui.add(egui::Slider::new(&mut lab.luce, 0.2..=4.0).text("luce"));

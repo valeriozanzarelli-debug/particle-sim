@@ -29,6 +29,8 @@ mod params {
         pub gain: f32,
         pub soft: f32,
         pub core: f32,
+        /// > 0.5: alpha blending (each ball keeps its own colour, as in the photon laboratory), else additive glow
+        pub blend: f32,
     }
 }
 pub use params::BallParams;
@@ -37,12 +39,14 @@ pub use params::BallParams;
 pub struct BallMaterial {
     #[uniform(0)]
     pub params: BallParams,
+    /// alpha blending instead of additive glow
+    pub blend: bool,
 }
 
 impl Material for BallMaterial {
     fn vertex_shader() -> ShaderRef { BALL_SHADER.into() }
     fn fragment_shader() -> ShaderRef { BALL_SHADER.into() }
-    fn alpha_mode(&self) -> AlphaMode { AlphaMode::Add }
+    fn alpha_mode(&self) -> AlphaMode { if self.blend { AlphaMode::Blend } else { AlphaMode::Add } }
     fn specialize(
         _pipeline: &MaterialPipeline<Self>,
         descriptor: &mut RenderPipelineDescriptor,

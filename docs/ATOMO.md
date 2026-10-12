@@ -44,21 +44,32 @@ Tolto dal laboratorio in questa versione (resta nella storia di git, commit `a84
   in basso a sinistra, l'orologio, e nel cruscotto λ, frequenza ν = c/λ ed energia hc/λ (con il nome della banda).
   **La forma è autosimile; l'unica cosa che cambia davvero con λ è come la luce parla con la materia** (qui non
   c'è materia). Un reticolo che coprisse 10¹² volte di scala non serve e non esiste.
-* **Strati** (tutti dallo stesso campo delle palline F = E + icB, accendibili uno per uno):
-  * **E (nuvola)**: una pallina morbida per cella (o per blocco di celle alle qualità alte), in un punto a caso
-    fisso dentro la cella (niente disegno del reticolo). Luminosità = E² (le creste). Colore = direzione di E nel
-    piano di traverso al volo (ruota di colori): luce lineare = due colori che si alternano cresta dopo cresta;
-    luce circolare = bande di tutti i colori, una vite colorata che avanza.
-  * **B (nuvola)**: luminosità c²B², in blu.
-  * **vettori E / vettori B**: catene di palline che partono dall'asse del fascio e da 6 linee attorno, lunghe
-    quanto il campo e orientate come il campo. **Luce circolare: la catena di E gira lungo l'asse, un'elica che
-    avanza; lineare: oscilla in un piano.** B è sempre di traverso a E.
-  * **Poynting S = E × B** (oro): dove va l'energia, su una griglia rada dentro l'impulso.
-  * **spin**: E(t−1) × E(t) cella per cella (verde = lungo il volo, magenta = contro): c'è solo nella luce
-    circolare.
-  * **sezione di traverso**: il piano perpendicolare al volo nel centro dell'impulso, più fitto.
-  * **polarizzatore**: la nuvola E mostra solo la parte di E lungo la polarizzazione di partenza; fa vedere le
-    creste della luce circolare, che in E² non ci sono (E² della luce circolare è uniforme).
+* **Come si vede** (`fotdisegno.rs`; il disegno legge il campo, non lo cambia). Lo stile è quello del vecchio
+  Laboratorio Fotone (`src/photon/render3d.rs`): palline d'onda con il loro colore di fase, sfumate (fuse "alpha",
+  non sommate in bianco), più poche palline-surfista luminose con la scia.
+  * **palline che corrono col campo** (32 000): nascono dove il fotone ha energia (più energia, più palline) e a
+    ogni tick si muovono con la velocità dell'energia del campo nel loro punto, v = 2 E × cB / (E² + c²B²) (c in
+    un'onda piana), letta dal reticolo per interpolazione. Ognuna ha una piccola scia. Colore = **fase dell'onda**
+    nel punto (da E lungo la polarizzazione ora e un tick prima: tutti i colori una volta per λ, come nel vecchio
+    laboratorio). Sono ben visibili solo vicino a una cresta o a una valle: il pacchetto si vede come **una pila di
+    creste colorate che avanza** (dischi che si curvano vicino al fuoco). Quando la luce se ne va, rinascono dove
+    la luce è.
+  * **surfisti**: 6 palline bianche portate dallo stesso flusso di energia, con una scia lunga.
+  * **elica di E**: la punta di E lungo l'asse del fascio, un tubo continuo (curva liscia tra i campioni delle
+    celle). Luce circolare: **una vite che gira mentre vola**; lineare: un'onda piatta in un piano.
+  * spenti all'inizio: **fronti d'onda** (fogli sottili dove E lungo la polarizzazione ha una cresta, oro, o una
+    valle, azzurro; la posizione dentro la cella da una parabola su tre celle), **tratti E e B** (pochi tratti
+    lisci dall'asse), **Poynting S = E × B** (oro), **spin** E(t−1) × E(t) (verde lungo il volo, magenta contro),
+    **sezione** di traverso.
+  * Vista di partenza di tre quarti; "segui il fotone" tiene la camera sul pacchetto. Da molto di sbieco le creste
+    si sovrappongono (è una proiezione di dischi uno dietro l'altro): di lato si vedono meglio.
+  * Confronto (stesse dimensioni della finestra): il vecchio Laboratorio Fotone (doppia fenditura) e il fotone
+    zig-zag lineare a due istanti e circolare:
+
+    ![vecchio laboratorio](fig/laboratorio_fotone_vecchio.jpg)
+    ![lineare, tick 25](fig/fotone_lineare_t25.jpg)
+    ![lineare, tick 49](fig/fotone_lineare_t49.jpg)
+    ![circolare](fig/fotone_circolare.jpg)
 * **Misurato dal vivo dal campo** (cruscotto e pannello): la velocità del centro dell'energia |F|², l'elicità
   (quanto gira E in un tick: Σ (E(t−1) × E(t))·d / (sin ω Σ|E⊥|²)), la larghezza del fascio e, dopo 20 tick di
   volo, l'angolo di apertura θ (da ⟨δ⊥²⟩(t) = a + b t + c t², θ = 2√c: per la luce libera la formula è esatta).
@@ -206,8 +217,8 @@ Debiti:
 * Rotella = zoom, trascinare = girare attorno. Tasti: Spazio pausa, F lancia un fotone (o spara all'atomo),
   1 vista intera; nell'atomo 2 nucleo, 3 elettrone.
 * Riga di comando: `"Laboratorio Atomo.exe" --scena fotone|atomo [--zoom nucleo]`; per il fotone
-  `--qual 0..3 --w0 <λ> --dir 0..4 --polar h|v|c+|c- --lambda-m <metri> --strati eEbBshxp`
-  (e nuvola E, E vettori E, b nuvola B, B vettori B, s Poynting, h spin, x sezione, p polarizzatore).
+  `--qual 0..3 --w0 <λ> --dir 0..4 --polar h|v|c+|c- --lambda-m <metri> --strati tflEBsox`
+  (t palline che corrono, f fronti d'onda, l elica di E, E e B tratti, s Poynting, o spin, x sezione).
 * Prove senza mani: `--foto file.png --frames N [--spara-al F] [--yaw a --pitch b] [--ritmo r]` salva
   un'immagine ed esce.
 * Test: `cargo test --bin atomo` (6 veloci: F1a, F2, F4, la regressione dell'apertura, l'atomo, il nodo; F1b e F3 sono

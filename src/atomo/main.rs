@@ -19,6 +19,7 @@ mod camera;
 #[path = "../zigzag/cplx.rs"]
 #[allow(dead_code)]
 mod cplx;
+mod fotdisegno;
 mod fotone3d;
 mod fotscena;
 mod render;
@@ -155,7 +156,7 @@ impl Lab {
             (_, Bersaglio::Nucleo) => 3.0e-15 / u,
             (Scena::Atomo, Bersaglio::Elettrone) => 3.0,
             (Scena::Atomo, _) => 11.0,
-            (Scena::Fotone, _) => 1.45 * self.fot.as_ref().map(|f| f.lock().unwrap().out.par.n()).unwrap_or(self.fot_par.n()) as f64,
+            (Scena::Fotone, _) => 1.0 * self.fot.as_ref().map(|f| f.lock().unwrap().out.par.n()).unwrap_or(self.fot_par.n()) as f64,
         }
     }
 
@@ -234,7 +235,7 @@ fn main() {
     if let Some(p) = arg("--pitch").and_then(|v| v.parse::<f32>().ok()) { auto.pitch = Some(p); }
     let b = match zoom.as_str() { "nucleo" | "protone" => Bersaglio::Nucleo, "elettrone" => Bersaglio::Elettrone, _ => Bersaglio::Atomo };
     let mut cam = Cam::new(lab.distanza_tipica(b), b);
-    if scena == Scena::Fotone { cam.yaw = 0.0; cam.pitch = 0.2; }
+    if scena == Scena::Fotone { cam.yaw = 0.42; cam.pitch = 0.28; }
     if let Some(y) = auto.yaw { cam.yaw = y; }
     if let Some(p) = auto.pitch { cam.pitch = p; }
     App::new()
@@ -267,11 +268,12 @@ fn main() {
         .run();
 }
 
-/// Layers from a string of letters: e E-cloud, b B-cloud, E E-vectors, B B-vectors, s Poynting, h spin, x section, p polarizer.
+/// Layers from a string of letters: t tracers, f wavefronts, l helix, E E-streaks, B B-streaks, s Poynting,
+/// o spin, x cross-section.
 fn strati(s: &str) -> fotscena::Vista {
     fotscena::Vista {
-        e_nuvola: s.contains('e'), b_nuvola: s.contains('b'), e_vettori: s.contains('E'), b_vettori: s.contains('B'),
-        poynting: s.contains('s'), spin: s.contains('h'), sezione: s.contains('x'), polarizzatore: s.contains('p'),
+        traccianti: s.contains('t'), fronti: s.contains('f'), elica: s.contains('l'), e_vettori: s.contains('E'), b_vettori: s.contains('B'),
+        poynting: s.contains('s'), spin: s.contains('o'), sezione: s.contains('x'),
     }
 }
 

@@ -10,6 +10,7 @@ struct BallParams {
     gain: f32,
     soft: f32,
     core: f32,
+    blend: f32,
 };
 
 @group(2) @binding(0) var<uniform> params: BallParams;
@@ -48,6 +49,12 @@ fn fragment(in: VertexOut) -> @location(0) vec4<f32> {
     let r2 = dot(in.corner, in.corner);
     if (r2 > 1.0) {
         discard;
+    }
+    if (params.blend > 0.5) {
+        // the photon laboratory's wave ball: bright core, smooth rim, its own colour (alpha blending)
+        let rim = 1.0 - smoothstep(0.55, 1.0, r2);
+        let f = mix(rim, exp(-params.soft * r2), 0.6);
+        return vec4<f32>(in.color.rgb, clamp(in.color.a * params.gain * f, 0.0, 1.0));
     }
     // soft glow plus a brighter core
     let glow = exp(-params.soft * r2) * (1.0 - r2);

@@ -12,20 +12,22 @@ use crate::render::{quads, schermo, BallMaterial, BallParams};
 use crate::{Lab, Scena};
 
 #[derive(Component, Clone, Copy, PartialEq, Eq, Debug)]
-pub enum ZzStrato { Palline, Nodo }
+pub enum ZzStrato { Palline, Nodo, Onde }
 
 #[derive(Resource)]
-pub struct ZzVisuals { mats: [Handle<BallMaterial>; 2], versione: u64, scena: Option<Scena>, nodo_fatto: bool }
+pub struct ZzVisuals { mats: [Handle<BallMaterial>; 3], versione: u64, scena: Option<Scena>, nodo_fatto: bool }
 
 pub fn setup(mut commands: Commands, mut meshes: ResMut<Assets<Mesh>>, mut mats: ResMut<Assets<BallMaterial>>) {
-    let p = BallParams { size: 0.1, gain: 1.0, soft: 3.0, core: 0.3 };
-    let m0 = mats.add(BallMaterial { params: p });
-    let m1 = mats.add(BallMaterial { params: p });
-    for (s, m) in [(ZzStrato::Palline, m0.clone()), (ZzStrato::Nodo, m1.clone())] {
+    let p = BallParams { size: 0.1, gain: 1.0, soft: 3.0, core: 0.3, blend: 0.0 };
+    let m0 = mats.add(BallMaterial { params: p, blend: false });
+    let m1 = mats.add(BallMaterial { params: p, blend: false });
+    let m2 = mats.add(BallMaterial { params: BallParams { blend: 1.0, ..p }, blend: true });
+    // the blended wave balls first (drawn behind), the glowing layers over them
+    for (s, m) in [(ZzStrato::Onde, m2.clone()), (ZzStrato::Palline, m0.clone()), (ZzStrato::Nodo, m1.clone())] {
         commands.spawn((s, Mesh3d(meshes.add(quads(&[]))), MeshMaterial3d(m), Transform::default(),
                         NoFrustumCulling, NotShadowCaster, NotShadowReceiver));
     }
-    commands.insert_resource(ZzVisuals { mats: [m0, m1], versione: u64::MAX, scena: None, nodo_fatto: false });
+    commands.insert_resource(ZzVisuals { mats: [m0, m1, m2], versione: u64::MAX, scena: None, nodo_fatto: false });
 }
 
 /// Hue from a direction (the pion isovector of the hedgehog points along r̂): a colour wheel in azimuth,
@@ -56,11 +58,12 @@ pub fn aggiorna(
     let focus = cam.focus;
     let scena = lab.scena;
     // what the main layer shows
-    let (items, versione): (Option<Vec<crate::render::Ball>>, u64) = match scena {
+    type Strati = (Vec<crate::render::Ball>, Vec<crate::render::Ball>);
+    let (items, versione): (Option<Strati>, u64) = match scena {
         Scena::Fotone => {
             let out = lab.fot.as_ref().map(|c| c.lock().unwrap().out.clone());
             match out {
-                Some(o) if vis.versione != o.versione || vis.scena != Some(scena) => (Some((*o.palline).clone()), o.versione),
+                Some(o) if vis.versione != o.versione || vis.scena != Some(scena) => (Some(((*o.palline).clone(), (*o.onde).clone())), o.versione),
                 Some(o) => (None, o.versione),
                 None => (None, 0),
             }
@@ -68,7 +71,7 @@ pub fn aggiorna(
         Scena::Atomo => {
             let out = lab.zz.as_ref().map(|c| c.lock().unwrap().out.clone());
             match out {
-                Some(o) if vis.versione != o.versione || vis.scena != Some(scena) => (Some((*o.palline).clone()), o.versione),
+                Some(o) if vis.versione != o.versione || vis.scena != Some(scena) => (Some(((*o.palline).clone(), (*o.onde).clone())), o.versione),
                 Some(o) => (None, o.versione),
                 None => (None, 0),
             }
@@ -79,11 +82,19 @@ pub fn aggiorna(
         match s {
             ZzStrato::Palline => {
                 tr.translation = schermo([-focus[0], -focus[1], -focus[2]]);
-                if let Some(it) = &items {
+                if let Some((it, onde)) = &items {
                     let old = m3.0.id();
                     m3.0 = meshes.add(quads(it));
                     meshes.remove(old);
-                    lab.palline_disegnate = it.len();
+                    lab.palline_disegnate = it.len() + onde.len();
+                }
+            }
+            ZzStrato::Onde => {
+                tr.translation = schermo([-focus[0], -focus[1], -focus[2]]);
+                if let Some((_, it)) = &items {
+                    let old = m3.0.id();
+                    m3.0 = meshes.add(quads(it));
+                    meshes.remove(old);
                 }
             }
             ZzStrato::Nodo => {
@@ -120,7 +131,9 @@ pub fn aggiorna(
         Scena::Fotone => ((0.0032 * r_cam).min(0.9), lab.luce),
         Scena::Atomo => ((0.0035 * r_cam).min(0.12), lab.luce * (1.0 - 0.8 * g_nodo)),
     };
-    if let Some(m) = mats.get_mut(&vis.mats[0]) { m.params = BallParams { size: (s_main * lab.grandezza as f64) as f32, gain: g_main, soft: 3.0, core: 0.3 }; }
-    if let Some(m) = mats.get_mut(&vis.mats[1]) { m.params = BallParams { size: ((0.004 * r_cam).min(0.06 * fm)) as f32, gain: 1.3 * g_nodo, soft: 3.0, core: 0.4 }; }
+    if let Some(m) = mats.get_mut(&vis.mats[0]) { m.params = BallParams { size: (s_main * lab.grandezza as f64) as f32, gain: g_main, soft: 3.0, core: 0.3, blend: 0.0 }; }
+    if let Some(m) = mats.get_mut(&vis.mats[1]) { m.params = BallParams { size: ((0.004 * r_cam).min(0.06 * fm)) as f32, gain: 1.3 * g_nodo, soft: 3.0, core: 0.4, blend: 0.0 }; }
+    // wave balls: a little smaller than the glowing layers, as in the photon laboratory
+    if let Some(m) = mats.get_mut(&vis.mats[2]) { m.params = BallParams { size: (0.8 * s_main * lab.grandezza as f64) as f32, gain: lab.luce.min(1.5), soft: 2.0, core: 0.0, blend: 1.0 }; }
     let _ = time;
 }

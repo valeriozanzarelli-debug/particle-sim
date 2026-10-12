@@ -7,16 +7,7 @@
 //! scale bar and the clock. The shape is self-similar; what changes physically with λ is only how light
 //! couples to matter (not in this scene).
 //!
-//! Layers, all drawn from the same walker field F = E + icB (one ball per cell, or per block of cells at
-//! high quality, at a fixed random point inside it — no lattice pattern on screen):
-//!   • E cloud: brightness E² (the crests), colour = direction of E across the flight (a colour wheel):
-//!     linear light = two colours alternating crest after crest, circular light = a coloured screw;
-//!   • B cloud: brightness c²B², blue;
-//!   • E and B vectors: chains of balls along E (wheel colours) or B (blue-white) from the beam axis and 6
-//!     lines around it — the E-vector helix of circular light, the swinging comb of linear light;
-//!   • Poynting flow S = E × B (energy transport): golden chains along S on a coarse grid;
-//!   • spin: chains along the local spin density E(t−1) × E(t) (green = along the flight, magenta = against);
-//!   • cross-section: the plane across the flight through the centre of the pulse, drawn denser.
+//! What is drawn (tracers riding the field, wavefront sheets, the E helix, streaks...) is in fotdisegno.rs.
 //!
 //! Measured live from the field (not drawn): speed of the centre of energy, helicity, beam width and, once
 //! the photon has flown, its spreading angle.
@@ -24,11 +15,9 @@
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
-use rayon::prelude::*;
-
 use crate::fotone3d::{base_trasversa, norma, punto, Cf, Fotone3D, Lancio, Misura, Polar};
-use crate::render::{phase_color, schermo, Ball};
-use crate::rng::hash01;
+use crate::fotdisegno::{self, Traccianti};
+use crate::render::Ball;
 
 /// Quality: (cells per wavelength, cells per side of the box). The box is 8–12 λ wide.
 pub const QUALITA: [(f64, usize, &str); 4] = [
@@ -79,25 +68,7 @@ impl Parametri {
     }
 }
 
-/// Which layers are drawn.
-#[derive(Clone, Copy, Debug, PartialEq)]
-pub struct Vista {
-    pub e_nuvola: bool,
-    pub b_nuvola: bool,
-    pub e_vettori: bool,
-    pub b_vettori: bool,
-    pub poynting: bool,
-    pub spin: bool,
-    pub sezione: bool,
-    /// brightness of the E cloud = E along the launch polarization (as through a polarizer) instead of E²
-    pub polarizzatore: bool,
-}
-
-impl Default for Vista {
-    fn default() -> Self {
-        Vista { e_nuvola: true, b_nuvola: false, e_vettori: true, b_vettori: false, poynting: false, spin: false, sezione: false, polarizzatore: false }
-    }
-}
+pub use crate::fotdisegno::Vista;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Comando { Avanti, Pausa, Indietro }
@@ -105,6 +76,8 @@ pub enum Comando { Avanti, Pausa, Indietro }
 #[derive(Clone)]
 pub struct Uscita {
     pub palline: Arc<Vec<Ball>>,
+    /// the wave balls (alpha blending, as in the photon laboratory)
+    pub onde: Arc<Vec<Ball>>,
     pub versione: u64,
     pub ticks: u64,
     pub lanci: u64,
@@ -144,6 +117,8 @@ struct Mondo {
     elicita: Option<f64>,
     lanci: u64,
     v_continuo: f64,
+    /// the balls that ride the field (drawing only)
+    tr: Traccianti,
 }
 
 impl Mondo {
@@ -158,7 +133,8 @@ impl Mondo {
         }
         let m0 = f.misura(atteso(&l, 0));
         let v_continuo = Fotone3D::velocita_continuo(&l, n);
-        Mondo { f, par, l, storia: vec![m0], e_prima: None, elicita: None, lanci, v_continuo }
+        let tr = Traccianti::new(&f, 1000 + lanci);
+        Mondo { f, par, l, storia: vec![m0], e_prima: None, elicita: None, lanci, v_continuo, tr }
     }
 
     /// Advance (or go back) one tick and measure.
@@ -171,6 +147,7 @@ impl Mondo {
         self.storia.push(m);
         self.e_prima = e.map(|e| (self.f.ticks, e));
         if let Some((_, e)) = &self.e_prima { self.elicita = Some(self.f.elicita(e, self.l.dir, self.l.lambda)); }
+        self.tr.avanza(&self.f, if avanti { 1.0 } else { -1.0 }, atteso(&self.l, self.f.ticks));
     }
 
     /// Speed of the centre of energy along the flight: straight-line fit over the last (up to) 16 ticks.
@@ -240,182 +217,10 @@ fn risolvi3(mut a: [[f64; 3]; 3], mut r: [f64; 3]) -> Option<[f64; 3]> {
     Some(x)
 }
 
-const BLU: [f32; 3] = [0.40, 0.62, 1.0];
-
-#[inline]
-fn d3(a: &[f32; 3], b: &[f32; 3]) -> f32 { a[0] * b[0] + a[1] * b[1] + a[2] * b[2] }
-#[inline]
-fn x3(a: &[f32; 3], b: &[f32; 3]) -> [f32; 3] { [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]] }
-
-/// A chain of 8 balls from `p` along the unit vector `u`, length `l` (cells).
-fn catena(out: &mut Vec<Ball>, p: [f64; 3], u: [f64; 3], l: f64, col: [f32; 3], alfa: f32, size: f32) {
-    let k = 7;
-    for q in 0..=k {
-        let t = l * q as f64 / k as f64;
-        let a = alfa * (0.3 + 0.7 * q as f32 / k as f32);
-        out.push((schermo([p[0] + u[0] * t, p[1] + u[1] * t, p[2] + u[2] * t]).to_array(), size, [col[0], col[1], col[2], a]));
-    }
-}
-
-/// The balls of the photon (scene units = cells, box centred on the origin).
-pub fn palline(f: &Fotone3D, l: &Lancio, t: u64, e_prima: Option<&[[f32; 3]]>, vista: Vista) -> Vec<Ball> {
-    let n = f.n;
-    let dir = l.dir;
-    let centro = atteso(l, t);
-    let (e1d, e2d) = base_trasversa(dir);
-    let f32v = |v: [f64; 3]| [v[0] as f32, v[1] as f32, v[2] as f32];
-    let nhat = if l.polar == Polar::Verticale { e2d } else { e1d };
-    let (e1, e2, nh, df) = (f32v(e1d), f32v(e2d), f32v(nhat), f32v(dir));
-    let (imax, emax2, bmax2) = f.f.par_iter()
-        .map(|p| (p[0].norm2() + p[1].norm2() + p[2].norm2(), p[0].re * p[0].re + p[1].re * p[1].re + p[2].re * p[2].re, p[0].im * p[0].im + p[1].im * p[1].im + p[2].im * p[2].im))
-        .reduce(|| (0.0, 0.0, 0.0), |a, b| (a.0.max(b.0), a.1.max(b.1), a.2.max(b.2)));
-    let imax = imax.max(1e-30);
-    let lam = l.lambda;
-    // one ball per block of `passo`³ cells: about the same number of balls at every quality
-    let passo = ((lam / 8.0).round() as usize).max(1);
-    let soglia = 0.006 * imax;
-    let h = (n / 2) as f32;
-    let nb = n / passo;
-    let mut out: Vec<Ball> = Vec::new();
-    // ── clouds and cross-section ──
-    if vista.e_nuvola || vista.b_nuvola || vista.sezione {
-        let mezzo_spessore = 0.5 * passo as f32 + 0.01;
-        let cf = f32v(centro);
-        let parti: Vec<Vec<Ball>> = (0..nb).into_par_iter().map(|bi| {
-            let mut v = Vec::new();
-            for bj in 0..nb {
-                for bk in 0..nb {
-                    let (i, j, k) = (bi * passo, bj * passo, bk * passo);
-                    let s = (i * n + j) * n + k;
-                    let p = &f.f[s];
-                    let i_tot = p[0].norm2() + p[1].norm2() + p[2].norm2();
-                    if i_tot < soglia { continue; }
-                    let e = [p[0].re, p[1].re, p[2].re];
-                    let b = [p[0].im, p[1].im, p[2].im];
-                    let q = s as u64 * 3;
-                    let jit = passo as f32;
-                    let pos = [i as f32 - h + jit * (hash01(q) - 0.5), j as f32 - h + jit * (hash01(q + 1) - 0.5), k as f32 - h + jit * (hash01(q + 2) - 0.5)];
-                    let ang = d3(&e, &e2).atan2(d3(&e, &e1)) as f64;
-                    let pos64 = [pos[0] as f64, pos[1] as f64, pos[2] as f64];
-                    if vista.e_nuvola {
-                        let lum = if vista.polarizzatore { d3(&e, &nh).powi(2) } else { d3(&e, &e) };
-                        let a = 0.008 + 0.03 * (i_tot / imax).sqrt() + 0.17 * (lum / imax).powf(0.75);
-                        v.push((schermo(pos64).to_array(), 1.0, phase_color(ang, a)));
-                    }
-                    if vista.b_nuvola {
-                        let a = 0.006 + 0.15 * (d3(&b, &b) / imax).powf(0.75);
-                        // a second ball, a third of a cell away, so E and B can be told apart where they overlap
-                        let pb = [pos64[0] + 0.3, pos64[1] - 0.3, pos64[2] + 0.3];
-                        v.push((schermo(pb).to_array(), 1.0, [BLU[0], BLU[1], BLU[2], a]));
-                    }
-                    if vista.sezione {
-                        let dp = [pos[0] - cf[0], pos[1] - cf[1], pos[2] - cf[2]];
-                        if d3(&dp, &df).abs() < mezzo_spessore {
-                            let a = 0.05 + 0.6 * (d3(&e, &e) / imax).powf(0.6);
-                            v.push((schermo(pos64).to_array(), 1.6, phase_color(ang, a)));
-                        }
-                    }
-                }
-            }
-            v
-        }).collect();
-        for p in parti { out.extend(p); }
-    }
-    let idx = |v: f64| ((v.round() as i64 + (n / 2) as i64).rem_euclid(n as i64)) as usize;
-    let campo = |c: [f64; 3]| f.f[(idx(c[0]) * n + idx(c[1])) * n + idx(c[2])];
-    // ── E and B vectors on 7 lines along the flight ──
-    if vista.e_vettori || vista.b_vettori {
-        let emax = (emax2.max(bmax2) as f64).sqrt().max(1e-30);
-        let lung = 1.0 * l.w0;
-        let mut linee = vec![[0.0f64; 3]];
-        for q in 0..6 {
-            let a = std::f64::consts::TAU * q as f64 / 6.0;
-            let r = 0.75 * l.w0;
-            linee.push([0, 1, 2].map(|c| r * (a.cos() * e1d[c] + a.sin() * e2d[c])));
-        }
-        for (li, off) in linee.iter().enumerate() {
-            let alfa = if li == 0 { 0.9 } else { 0.55 };
-            let mut s = -(n as f64) / 2.0;
-            while s < n as f64 / 2.0 {
-                let c = [0, 1, 2].map(|q| centro[q] + off[q] + dir[q] * s);
-                let p = campo(c);
-                for (vale, v, colore) in [(vista.e_vettori, [p[0].re, p[1].re, p[2].re], None), (vista.b_vettori, [p[0].im, p[1].im, p[2].im], Some(BLU))] {
-                    if !vale { continue; }
-                    let v = [v[0] as f64, v[1] as f64, v[2] as f64];
-                    let m = punto(v, v).sqrt();
-                    if m < 0.08 * emax { continue; }
-                    let col = match colore {
-                        Some(c) => [0.6 * c[0] + 0.4, 0.6 * c[1] + 0.4, 0.6 * c[2] + 0.4],
-                        None => { let pc = phase_color(punto(v, e2d).atan2(punto(v, e1d)), 1.0); [0.7 * pc[0] + 0.3, 0.7 * pc[1] + 0.3, 0.7 * pc[2] + 0.3] }
-                    };
-                    catena(&mut out, c, [v[0] / m, v[1] / m, v[2] / m], lung * m / emax, col, alfa, 0.8);
-                }
-                s += (lam / 8.0).max(1.0);
-            }
-        }
-    }
-    // ── Poynting flow and spin density on a coarse grid inside the pulse ──
-    if vista.poynting || vista.spin {
-        let g = ((lam / 2.0).round() as usize).max(3);
-        let ng = n / g;
-        let sin_w = (std::f64::consts::TAU / lam).sin() as f32;
-        let parti: Vec<Vec<Ball>> = (0..ng).into_par_iter().map(|gi| {
-            let mut v = Vec::new();
-            for gj in 0..ng {
-                for gk in 0..ng {
-                    let (i, j, k) = (gi * g, gj * g, gk * g);
-                    let s = (i * n + j) * n + k;
-                    let p = &f.f[s];
-                    let i_tot = p[0].norm2() + p[1].norm2() + p[2].norm2();
-                    if i_tot < 0.2 * imax { continue; }
-                    let pos = [i as f64 - h as f64, j as f64 - h as f64, k as f64 - h as f64];
-                    let e = [p[0].re, p[1].re, p[2].re];
-                    let b = [p[0].im, p[1].im, p[2].im];
-                    if vista.poynting {
-                        let sv = x3(&e, &b);
-                        let m = d3(&sv, &sv).sqrt();
-                        if m > 1e-30 {
-                            let u = [(sv[0] / m) as f64, (sv[1] / m) as f64, (sv[2] / m) as f64];
-                            catena(&mut v, pos, u, 0.9 * lam * (m / (0.5 * imax)).min(1.5) as f64, [1.0, 0.78, 0.30], 0.5, 0.7);
-                        }
-                    }
-                    if vista.spin {
-                        if let Some(ep) = e_prima {
-                            let sd = x3(&ep[s], &e);
-                            let mm = d3(&sd, &sd).sqrt();
-                            let m = mm / sin_w.abs().max(1e-6);
-                            if m > 0.05 * imax {
-                                let u = [(sd[0] / mm) as f64, (sd[1] / mm) as f64, (sd[2] / mm) as f64];
-                                let col = if d3(&sd, &df) >= 0.0 { [0.45, 1.0, 0.55] } else { [1.0, 0.40, 0.85] };
-                                catena(&mut v, [pos[0] + 0.5, pos[1] + 0.5, pos[2] + 0.5], u, 0.9 * lam * (m / (0.5 * imax)).min(1.5) as f64, col, 0.5, 0.7);
-                            }
-                        }
-                    }
-                }
-            }
-            v
-        }).collect();
-        for p in parti { out.extend(p); }
-    }
-    // ── the box: dim balls along its 12 edges (the 3-D frame while orbiting) ──
-    let lo = -h - 0.5;
-    let hi = h - 0.5;
-    let steps = 64;
-    for e in 0..12 {
-        for s in 0..=steps {
-            let t = lo + (hi - lo) * s as f32 / steps as f32;
-            let (u, v) = ([lo, hi][e & 1], [lo, hi][(e >> 1) & 1]);
-            let p = match e / 4 { 0 => [t, u, v], 1 => [u, t, v], _ => [u, v, t] };
-            out.push((schermo([p[0] as f64, p[1] as f64, p[2] as f64]).to_array(), 0.7, [0.45, 0.55, 0.75, 0.10]));
-        }
-    }
-    out
-}
-
 pub fn avvia(par: Parametri) -> Arc<Mutex<Condiviso>> {
     let c = Arc::new(Mutex::new(Condiviso {
         comando: Comando::Avanti, ritmo: 30.0, lancia: None, vista: Vista::default(), fine: false,
-        out: Uscita { palline: Arc::new(vec![]), versione: 0, ticks: 0, lanci: 0, par, centro: [0.0; 3], v: None, v_continuo: 1.0,
+        out: Uscita { palline: Arc::new(vec![]), onde: Arc::new(vec![]), versione: 0, ticks: 0, lanci: 0, par, centro: [0.0; 3], v: None, v_continuo: 1.0,
                       elicita: None, w: 0.0, theta: None, ms_tick: 0.0, pronto: false },
     }));
     let cc = c.clone();
@@ -447,13 +252,13 @@ pub fn avvia(par: Parametri) -> Arc<Mutex<Condiviso>> {
             }
             if cambiato || versione == 0 {
                 let ep = m.e_prima.as_ref().filter(|(t, _)| *t == m.f.ticks).map(|(_, e)| e.as_slice());
-                let p = palline(&m.f, &m.l, m.f.ticks, ep, vista);
+                let (p, onde) = fotdisegno::palline(&m.f, &m.l, atteso(&m.l, m.f.ticks), &m.tr, ep, vista);
                 versione += 1;
                 let tick_ms = t0.elapsed().as_secs_f64() * 1e3;
                 ms += 0.15 * (tick_ms.min(500.0) - ms);
                 let ult = *m.storia.last().unwrap();
                 let out = Uscita {
-                    palline: Arc::new(p), versione, ticks: m.f.ticks, lanci: m.lanci, par: m.par, centro: ult.centro,
+                    palline: Arc::new(p), onde: Arc::new(onde), versione, ticks: m.f.ticks, lanci: m.lanci, par: m.par, centro: ult.centro,
                     v: m.velocita(), v_continuo: m.v_continuo, elicita: m.elicita, w: m.larghezza(&ult), theta: theta_da(&m.storia, m.l.dir),
                     ms_tick: ms, pronto: true,
                 };
