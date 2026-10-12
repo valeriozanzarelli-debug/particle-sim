@@ -15,7 +15,8 @@ RULE = dict(n_bins=40, prune=1e-3, t0=0, td=1, sig_min=3.0, rel_err_max=0.20)
 
 
 def load(tag):
-    files = sorted(glob.glob(os.path.join(RAW, f"{tag}_c*.npz")))
+    # main chain first, then a second independent chain '{tag}x' if present (declared deviation for beta 12)
+    files = sorted(glob.glob(os.path.join(RAW, f"{tag}_c*.npz"))) + sorted(glob.glob(os.path.join(RAW, f"{tag}x_c*.npz")))
     d = [np.load(f) for f in files]
     names = [str(x) for x in d[0]["names"]]; pnames = [str(x) for x in d[0]["pnames"]]
     ops = np.concatenate([x["ops"] for x in d]); pops = np.concatenate([x["pops"] for x in d])

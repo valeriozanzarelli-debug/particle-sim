@@ -230,7 +230,7 @@ def wilson_loops(lat, Rmax):
     """unsmeared planar Wilson loops W(R,T), averaged over all sites and the 6 ordered planes, R,T = 1..Rmax."""
     U = lat.U
     W = np.zeros((Rmax + 1, Rmax + 1))
-    Ls = [lines(U[mu], mu, Rmax) for mu in range(3)]
+    Ls = [lines_numpy(U[mu], mu, Rmax) for mu in range(3)]   # numpy version (any direction)
     for mu in range(3):
         for nu in range(3):
             if nu == mu:
@@ -408,3 +408,56 @@ ape_smear_numpy, polyakov_spatial_numpy = ape_smear, polyakov_spatial
 ape_smear = ape_smear_fast
 def polyakov_spatial(Ux, Uy, L):
     return _poly(np.ascontiguousarray(Ux), np.ascontiguousarray(Uy))
+
+
+# numba versions of lines/loopfield (identical results; replaces the numpy ones used by glue_ops)
+@nb.njit(cache=True)
+def _lines_nb(Ud, d, lmax):
+    T, L = Ud.shape[0], Ud.shape[1]
+    out = np.empty((lmax + 1, T, L, L, 4))
+    for t in range(T):
+        for x in range(L):
+            for y in range(L):
+                p = (Ud[t, x, y, 0], Ud[t, x, y, 1], Ud[t, x, y, 2], Ud[t, x, y, 3])
+                out[1, t, x, y, 0] = p[0]; out[1, t, x, y, 1] = p[1]; out[1, t, x, y, 2] = p[2]; out[1, t, x, y, 3] = p[3]
+                for l in range(2, lmax + 1):
+                    if d == 1:
+                        u = Ud[t, (x + l - 1) % L, y]
+                    else:
+                        u = Ud[t, x, (y + l - 1) % L]
+                    p = _m(p[0], p[1], p[2], p[3], u[0], u[1], u[2], u[3])
+                    out[l, t, x, y, 0] = p[0]; out[l, t, x, y, 1] = p[1]; out[l, t, x, y, 2] = p[2]; out[l, t, x, y, 3] = p[3]
+    return out
+
+
+@nb.njit(cache=True)
+def _loop_nb(Lx, Ly, lx, ly):
+    T, L = Lx.shape[1], Lx.shape[2]
+    f = np.empty((T, L, L))
+    for t in range(T):
+        for x in range(L):
+            xr = (x + lx) % L
+            for y in range(L):
+                yu = (y + ly) % L
+                a = Lx[lx, t, x, y]; b = Ly[ly, t, xr, y]
+                A = _m(a[0], a[1], a[2], a[3], b[0], b[1], b[2], b[3])
+                a = Ly[ly, t, x, y]; b = Lx[lx, t, x, yu]
+                B = _m(a[0], a[1], a[2], a[3], b[0], b[1], b[2], b[3])
+                f[t, x, y] = A[0] * B[0] + A[1] * B[1] + A[2] * B[2] + A[3] * B[3]   # 1/2 tr(A B^+)
+    return f
+
+
+class _LinesNB:
+    def __init__(self, arr):
+        self.arr = arr
+    def __getitem__(self, l):
+        return self.arr[l]
+
+
+lines_numpy, loopfield_numpy = lines, loopfield
+def lines(Ud, d, lmax):
+    return _LinesNB(_lines_nb(np.ascontiguousarray(Ud), d, lmax))
+def loopfield(Lx, Ly, lx, ly):
+    if isinstance(Lx, _LinesNB):
+        return _loop_nb(Lx.arr, Ly.arr, lx, ly)
+    return loopfield_numpy(Lx, Ly, lx, ly)

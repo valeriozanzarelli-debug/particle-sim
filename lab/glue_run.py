@@ -24,6 +24,8 @@ def main():
     plan = json.load(open(os.path.join(OUT, planfile)))["runs"][f"{beta:g}"]
     T, L = plan["T"], plan["L"]
     tag = ("pilot_" if "pilot" in planfile else "") + f"b{beta:g}"
+    if len(sys.argv) > 4:          # second independent chain (declared deviation): tag suffix + own seed/length
+        tag += sys.argv[4]; plan = dict(plan, seed=plan["seed"] + 1, n_meas=int(sys.argv[5]))
     ck = os.path.join(RAW, f"{tag}_state.npz")
     chunks = sorted(glob.glob(os.path.join(RAW, f"{tag}_c*.npz")))
     nmeas_done = sum(int(np.load(c)["nmeas"]) for c in chunks)
@@ -59,8 +61,9 @@ def main():
             names = list(ops.keys()); pnames = list(pops.keys())
         ops_l.append(np.array([ops[q] for q in names], dtype=np.float64))
         pops_l.append(np.array([pops[q] for q in pnames], dtype=np.complex64))
-        plaq_l.append(lat.plaquette())
-        act_l.append(lat.action_density_slices().astype(np.float32))
+        act = lat.action_density_slices()
+        plaq_l.append(1.0 - act.sum() / (3 * T * L * L))
+        act_l.append(act.astype(np.float32))
         if (nmeas_done + n) % plan["creutz_every"] == 0:
             W_l.append(g.wilson_loops(lat, plan["creutz_Rmax"]))
         n += 1
