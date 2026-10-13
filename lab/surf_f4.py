@@ -29,7 +29,7 @@ def ev(x):
 
 
 class Grid:
-    def __init__(self, a):
+    def __init__(self, a, t_phys=T_PHYS):
         self.a = a
         self.n = int(round(L_BOX / a))
         x = (np.arange(self.n) - self.n / 2 + 0.5) * a
@@ -42,8 +42,8 @@ class Grid:
         self.n0 = int(np.sum(np.abs(self.R - np.sqrt(3) / 2 * a) < 1e-6 * a))
         self.n1 = int(np.sum(np.abs(self.R - np.sqrt(11) / 2 * a) < 1e-6 * a))
         self.dur = ev(5.0 / a)                                            # window length ~ 5 lambda_C / c
-        self.T = ev(T_PHYS / a)
-        self.wins = [ev(t / a) for t in W_PHYS] + [self.T - self.dur]
+        self.T = ev(t_phys / a)
+        self.wins = [ev(t / a) for t in W_PHYS if t < t_phys - 10] + [self.T - self.dur]
         self.listen = ev(1024.0 / a)                                      # 2048 ticks at a = 0.5
 
     def walk(self):
@@ -144,8 +144,8 @@ def prep(a, budget=540.0):
     pickle.dump(S, open(f, "wb")); print(a, "prep checkpoint pass", S["pas"], "tick", S["t"], flush=True); sys.exit(3)
 
 
-def run(a, budget=540.0):
-    g = Grid(a)
+def run(a, t_phys=T_PHYS, budget=540.0):
+    g = Grid(a, t_phys)
     f = os.path.join(CK, f"f4_run_{tag(a)}.pkl")
     t_start = time.time()
     p0 = np.load(os.path.join(CK, f"f4_psi0_{tag(a)}.npy"))
@@ -157,7 +157,7 @@ def run(a, budget=540.0):
         S = dict(t=0, psi=p0.copy(), c=c, x=x, start={}, win={},
                  rec=dict(t=[], fid=[], valley0=[], sigma_z=[], flux_vphi=[], z=[]))
     W = g.walk()
-    every = ev(T_PHYS / a / 40)
+    every = ev(t_phys / a / 40)
     pos = lambda: (S["c"] + S["x"] - g.n / 2) * a
     while time.time() - t_start < budget:
         t = S["t"]
@@ -207,4 +207,7 @@ def run(a, budget=540.0):
 
 
 if __name__ == "__main__":
-    {"prep": prep, "run": run}[sys.argv[1]](float(sys.argv[2]))
+    if sys.argv[1] == "prep":
+        prep(float(sys.argv[2]))
+    else:
+        run(float(sys.argv[2]), float(sys.argv[3]) if len(sys.argv) > 3 else T_PHYS)   # phase 5: a = 0.2, t_phys = 600

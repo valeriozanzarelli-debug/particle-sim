@@ -1,0 +1,45 @@
+{
+ "study": "SURFISTI_ESATTI fase 5",
+ "date": "2026-10-13",
+ "law": "d(a) = d0 + c a^(2 gamma), gamma = sqrt(1 - (Z alpha)^2), 2 gamma = 1.7981 (contact law of NUCLEO_1S)",
+ "fit_phase4": {
+  "points": {
+   "0.5": 0.13275120950378105,
+   "0.4": 0.09039831575342039,
+   "0.3": 0.056517647088242695,
+   "0.25": 0.04226425654005839
+  },
+  "d0": 0.005760103487629552,
+  "c": 0.4411563385736589
+ },
+ "prediction": {
+  "a": 0.2,
+  "deficit": 0.030181543972994475,
+  "v": 0.9698184560270056
+ },
+ "setup": {
+  "a": 0.2,
+  "n": 120,
+  "box": 24.0,
+  "nucleus": "NUCLEO_1S sec. 14 transfer line: s(0.2) = (0.584934, 1.002032)",
+  "preparation": "identical to phase 4 (spectrum pass + 2 filtering passes of 1024/a = 5120 ticks, projection on valley k = 0)",
+  "run": "shorter than phase 4 (time budget at 120^3, ~1 s per tick): physical time 600 lambda_C/c = 3000 ticks; windows of 24 ticks (4.8 lambda_C/c) starting at t = 250, 500 and one closing at 600. v(0.2) = mean of the windows at 250 and 500, exactly as in phase 4 (the phase-4 deficits use the same two windows)."
+ },
+ "exams": {
+  "H1": {
+   "what": "prediction: |d(0.2) measured - 0.0302| <= 0.005",
+   "thr": 0.005
+  },
+  "H2": {
+   "what": "continuum limit: 5-point fit d0 + c a^(2 gamma) (a = 0.5, 0.4, 0.3, 0.25, 0.2): |d0| <= 0.01",
+   "thr": 0.01
+  },
+  "H3": {
+   "what": "the law fits: R^2 >= 0.999 on the 5 points",
+   "thr": 0.999
+  },
+  "H4": {
+   "what": "a = 0.2 run is sound: prepared valley-0 weight >= 0.99, <Sigma_z> >= 0.9; fidelity >= 0.9 to the end; surfer v_phi/(Za sin) in [0.75, 1.25] in all 3 windows; max |z| <= 4"
+  }
+ }
+}
