@@ -293,41 +293,58 @@ def _advance_with_traj(R, L, Rn, Ln, c, s, nact, absorber, damp, jL, nticks, a, 
 
 
 # ------------------------------------------------------------------ driver: hybrid trajectories + flux
-SCHEDULE = ((0.05, 2e-4), (2.0, 2e-3), (1e9, 1e-2))      # (until tau, step in DD units), as the NR reference
+# (until tau, step in DD units). The NR reference uses RK4 with (2e-4, 2e-3, 1e-2); the hybrid uses Heun, which
+# with those steps is NOT converged for omega = 1000 (mean -2.6 %): amendment A2, steps x 0.1 (converged to 1e-3).
+SCHEDULE = ((0.05, 2e-5), (2.0, 2e-4), (1e9, 1e-3))
 
 
 def run_hybrid(D, a, Lz, omega, alpha, XYZ0, tau_end, edge="cone", ramp=None, schedule=SCHEDULE,
-               do_traj=True, verbose=False):
+               do_traj=True, verbose=False, ckpt=None, budget_s=1e9, chunk=100000):
     """Das-Duerr on the rule. Lz, omega, tau in DD units (d = 1). XYZ0: initial (X, Y, Z) in DD units.
-    returns dict: tau (bond times), flux density (DD units), arrival times T (DD units, nan = not arrived)."""
+    With ckpt (npz path) the run stops after budget_s seconds and resumes from the checkpoint at the next call
+    (returns None until finished). Returns dict: tau (bond times), flux density (DD units), arrival times T."""
+    import os
     import time
     t0 = time.time()
     zL = Lz * D
     t_end = tau_end * D**2
     run = Run1D(D, a, zL, "free", t_end, edge=edge, ramp=ramp)
     N = run.N
-    X = XYZ0[0] * D
-    Y = XYZ0[1] * D
-    Z = XYZ0[2] * D
-    T = np.full(X.shape[0], np.nan)
-    alive = np.ones(X.shape[0], np.bool_)
     om = omega / D**2
     ca, sa = np.cos(alpha), np.sin(alpha)
     rho0, J0, d0 = np.zeros(N), np.zeros(N), np.zeros(N)
     rho1, J1, d1 = np.zeros(N), np.zeros(N), np.zeros(N)
-    _fields(run.R, run.L, a, N, rho0, J0, d0)
-    fl_all, tick = [], 0
-    tsnap = 0.0
-    m = run.nact
+    if ckpt is not None and os.path.exists(ckpt):
+        ck = np.load(ckpt)
+        run.R[:], run.L[:] = ck["R"], ck["L"]
+        X, Y, Z, T = ck["X"], ck["Y"], ck["Z"], ck["T"]
+        alive = ck["alive"].astype(np.bool_)
+        rho0[:], J0[:], d0[:] = ck["rho0"], ck["J0"], ck["d0"]
+        tick, tsnap, m = int(ck["tick"]), float(ck["tsnap"]), int(ck["m"])
+        fl_all = [ck["fl"]]
+    else:
+        X = XYZ0[0] * D
+        Y = XYZ0[1] * D
+        Z = XYZ0[2] * D
+        if alpha == 0.0:
+            # spin along the guide: the transverse rotation (rate omega) does not touch Z; keep X = Y = 0
+            # (otherwise the explicit Heun step of the fast rotation blows up and inf * sin(0) = nan)
+            X = np.zeros_like(X)
+            Y = np.zeros_like(Y)
+        T = np.full(X.shape[0], np.nan)
+        alive = np.ones(X.shape[0], np.bool_)
+        _fields(run.R, run.L, a, N, rho0, J0, d0)
+        fl_all, tick, tsnap, m = [], 0, 0.0, run.nact
     n_end = int(np.ceil(t_end / a))
-    for (tau_until, hDD) in schedule:
-        n_until = min(n_end, int(np.ceil(tau_until * D**2 / a)))
-        if n_until <= tick:
-            continue
+    while tick < n_end:
+        # current schedule segment
+        for (tau_until, hDD) in schedule:
+            n_until = min(n_end, int(np.ceil(tau_until * D**2 / a)))
+            if n_until > tick:
+                break
         stride = max(1, int(round(hDD * D**2 / a)))
         nsub = max(1, int(np.ceil(a / (hDD * D**2))))
-        # make the segment a multiple of the stride
-        nt = n_until - tick
+        nt = min(n_until - tick, chunk)
         fl = np.empty(nt)
         ab = np.empty(nt)
         m, tsnap = _advance_with_traj(run.R, run.L, run.Rn, run.Ln, run.c, run.s, m, False, run.damp, run.jL,
@@ -336,11 +353,15 @@ def run_hybrid(D, a, Lz, omega, alpha, XYZ0, tau_end, edge="cone", ramp=None, sc
         tick += nt
         fl_all.append(fl)
         if verbose:
-            print("  seg to tau %.3g: ticks %d stride %d nsub %d alive %d  (%.0f s)" %
-                  (tick * a / D**2, tick, stride, nsub, alive.sum(), time.time() - t0), flush=True)
-        if tick >= n_end:
-            break
+            print("  tau %.4g: ticks %d/%d stride %d nsub %d alive %d  (%.0f s)" %
+                  (tick * a / D**2, tick, n_end, stride, nsub, alive.sum(), time.time() - t0), flush=True)
+        if ckpt is not None and tick < n_end and time.time() - t0 > budget_s:
+            np.savez(ckpt, R=run.R, L=run.L, X=X, Y=Y, Z=Z, T=T, alive=alive, rho0=rho0, J0=J0, d0=d0,
+                     tick=tick, tsnap=tsnap, m=m, fl=np.concatenate(fl_all))
+            return None
     fl = np.concatenate(fl_all) / a * D**2
     tau = (np.arange(fl.shape[0]) + 0.5) * a / D**2
     norm = float(np.sum(np.abs(run.R)**2 + np.abs(run.L)**2))
+    if ckpt is not None and os.path.exists(ckpt):
+        os.remove(ckpt)
     return dict(tau=tau, flux=fl, T=T / D**2, norm=norm, omega_box=run.omega_box, N=N, secs=time.time() - t0)

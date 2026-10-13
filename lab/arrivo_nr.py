@@ -74,17 +74,27 @@ def vel(X, Y, Z, t, omega, alpha):
     W, dW = W_and_dW(Z, t)
     g = dW / W
     ca, sa = np.cos(alpha), np.sin(alpha)
+    if alpha == 0.0:
+        return (0.0 * X, 0.0 * Y, np.imag(g))
     return (-omega * Y * ca, np.real(g) * sa + omega * X * ca, np.imag(g) + omega * Y * sa)
 
 
-def bohm_arrivals(N, L, omega, alpha, t_end, rng, dt_fn=None, t0=1e-6):
+def bohm_arrivals(N, L, omega, alpha, t_end, rng, dt_fn=None, t0=1e-6, XYZ0=None):
     """RK4 Bohmian trajectories; returns first-arrival times at Z = L (nan if not arrived by t_end)
     and the number of crossings recorded (first passage only). dt_fn(t) gives the step."""
     if dt_fn is None:
         def dt_fn(t):
             return 2e-4 if t < 0.05 else (2e-3 if t < 2 else 1e-2)
-    X, Y, Z = sample_initial(N, omega, rng)
+    if XYZ0 is None:
+        X, Y, Z = sample_initial(N, omega, rng)
+    else:
+        X, Y, Z = (np.array(q, float) for q in XYZ0)
+        N = X.shape[0]
     T = np.full(N, np.nan)
+    if alpha == 0.0:
+        # spin along the guide: Z decouples (the transverse rotation omega cos(alpha) does not touch Z)
+        Y = np.zeros_like(Y)
+        X = np.zeros_like(X)
     t = t0
     alive = np.ones(N, bool)
     while t < t_end and alive.any():
