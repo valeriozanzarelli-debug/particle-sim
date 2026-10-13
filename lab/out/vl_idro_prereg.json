@@ -1,0 +1,26 @@
+{
+ "studio": "VIDEO IDROGENO (prefisso vl_idro_): zoom 'dal piccolo al grande' sull'idrogeno vero (Z=1) a scala di Bohr",
+ "data": "2026-10-13",
+ "dati": "/mnt/project-files/ripresa/dati/idrogeno_bohr/ (manifest commit 918a71e; impronta sha256 registrata in lab/out/vl_idro_esami.json)",
+ "scritto_prima_di": "qualunque moto di palline e qualunque fotogramma di questo video",
+ "gia_misurato_prima (dichiarato)": {
+  "lontano": "rho e j: solo armoniche 0 e 1 del periodo di Lyman-alfa (potenza delle altre 2e-9): interpolazione esatta in Fourier; continuita' della j esportata: residuo 7.6% (differenze centrali), corr 0.90; massa nella scatola +-6 a0: 0.920; dipolo sulla griglia 0.719 a0 contro 0.749 del file (code fuori dalla scatola)",
+  "fine": "densita' 0.230..0.318 a0^-3 nel blocco (quasi uniforme: e' lungo 0.19 a0), al nucleo 0.3174; stazionaria a 3e-4",
+  "chiralita": "chir_fine NON cambia segno tick per tick come dice il manifest: e' un dipolo fermo lungo z (corr con z -0.95 a ogni tick, +-1e-3 della densita'), fluttuazione 14% rms, celle che cambiano segno fra tick consecutivi 1.5-3.6%"
+ },
+ "configurazione": {
+  "A_lontano": {"griglia": "96^3, a0/8, +-6 a0", "stato": "(1s+2p_z)/sqrt2 della regola (cartolina)", "palline": 100000, "seme": 20261014, "smussamento": "nessuno", "flusso": "j esportata corretta col cambio minimo pesato (J = j - rho grad chi, div(rho grad chi) = div j + drho/dt) sulle facce, rho lineare fra i 24 fotogrammi; la correzione relativa si riporta", "durata": "3 periodi di Lyman-alfa (50.5 u.a. = 1.22 fs), 96 fotogrammi video per periodo", "colore": "drho rispetto alla media sul periodo: oro cresce, blu cala"},
+  "B_zoom": {"stato": "1s fermo", "livelli": "griglia grossa a0/16 (+-2 a0, 100000 palline prop. rho_grosso, fuori dal blocco fine) e blocco fine a0/512 (lato 0.1875 a0, 100000 palline prop. rho_fine tick 0)", "palline_ferme": "si': in un livello puro non c'e' corrente netta (j_grosso e' un residuo spurio <= 0.0065, debito del manifest)", "camera": "mezzo campo da 6 a0 a 0.11 a0, logaritmico; esposizione automatica dichiarata"},
+  "C_tick": {"cosa": "32 tick del blocco fine, 6 fotogrammi video per tick; colore = chir/rho (|R|^2-|L|^2 sulla densita'), pieno a 2e-3: amplificazione dichiarata", "taglio": "si disegna la sfera r < 0.094 a0 dentro il blocco (vista, dichiarata)"}
+ },
+ "esami": {
+  "H1_palline_lontano_fedeli": {"misura": "CIC su 96^3 smussato sigma=1 cella contro rho(t) smussata uguale, 72 istanti (3 periodi)", "soglia": "Pearson >= 0.97 sempre, TV <= TV(0)+0.05"},
+  "H2_dipolo_lontano": {"misura": "massa_scatola * <z>_palline contro sum rho z a^3 (griglia)", "soglia": "Pearson >= 0.99; ampiezza entro 3%", "riportato": "contro 0.749 del file"},
+  "H3_flusso_esportato": {"misura": "|rho grad chi| / |j| (mediana sui 24 intervalli)", "soglia": "<= 0.25 per dire che la j della regola e' gia' quasi un flusso"},
+  "H4_ritorno_dopo_un_periodo": {"misura": "spostamento rms delle palline dopo 1 periodo (in a0)", "soglia": "solo riportato"},
+  "H5_blocco_fine": {"misura": "palline fine contro rho_fine (CIC 96^3, sigma=1), e densita' al nucleo dalle palline (r < 4 celle fini) contro 0.3174", "soglia": "Pearson >= 0.97; nucleo entro 10%"},
+  "H6_tremolio_tick_per_tick": {"misura": "frazione di celle in cui chir cambia segno fra tick consecutivi", "soglia": ">= 0.5 (come dice il manifest)", "previsione": "FAIL (0.015-0.036 gia' misurato)"},
+  "H7_dichiarazioni": {"soglia": "a schermo: cambi di scala a0/8, a0/16, a0/512; amplificazione del colore della chiralita'; palline ferme nel livello puro; taglio a sfera; esposizione automatica nello zoom"}
+ },
+ "manopole_fisiche": 0
+}
