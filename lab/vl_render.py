@@ -55,20 +55,27 @@ def _csv(path):
     return {h: rows[:, i] for i, h in enumerate(head)}
 
 
+MAN = json.load(open("/mnt/project-files/ripresa/dati/atomo_accoppiato/manifest.json"))
 FR = _csv("/mnt/project-files/ripresa/dati/atomo_accoppiato/fotogrammi.csv")
 _FL = open(os.path.join(SCR, "flusso.txt")).read().strip() if os.path.exists(os.path.join(SCR, "flusso.txt")) else "continuita"
 _PASSO = str(MAN["griglia_atomo"]["passo"]).replace(".", ",")
 _RAPP = {0.5: "0,867", 0.4: "0,910", 0.3: "0,943", 0.25: "0,958"}.get(MAN["griglia_atomo"]["passo"], "?")   # Debiti, surfers phase 4
 if _FL == "corrente":   # new export (1s started in the k = 0 valley, learned nucleus): the rule's own current
-    RIGHE_FLUSSO = [(f"le palline girano attorno a z a {_RAPP} della velocità di Dirac (a = {_PASSO} λ_C): errore del passo del reticolo, niente ritocchi", (190, 215, 255)),
+    try:
+        _E8 = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "out", "vl_esami.json")))["E8_giro_su_Dirac"]
+        _MIS = f"{float(np.median(list(_E8.values()))):.2f}".replace(".", ",")
+    except Exception:
+        _MIS = "?"
+    RIGHE_FLUSSO = [(f"le palline girano attorno a z a ~{_MIS} di Dirac (il passo a = {_PASSO} λ_C da solo: {_RAPP}): errore del reticolo, niente ritocchi", (190, 215, 255)),
                     ("l'1s di partenza (valle k = 0, nucleo imparato) non è un livello esatto: deriva del 3,5 % in 4000 tick;", (170, 175, 200)),
                     ("per questo dopo t ≈ 800 p_exc non scende più (non è fisica)", (170, 175, 200))]
 else:
     RIGHE_FLUSSO = [("in un livello puro questo reticolo non porta corrente: le palline stanno ferme", (170, 175, 200)),
                     ("(debito aperto: le copie del reticolo, da provare); si muovono solo per la luce", (170, 175, 200))]
+RIGHE_FAIL = ([("riga forte a −0,45 % da 1s→2p3/2 (soglia 0,3 %): FAIL dichiarato · eventuali archi deboli in più: effetto della scatola periodica", (255, 150, 140))]
+              if _FL == "corrente" else [])
 REFS = json.load(open(REFS_FILE)) if os.path.exists(REFS_FILE) else {}
 NV = len(TV)
-MAN = json.load(open("/mnt/project-files/ripresa/dati/atomo_accoppiato/manifest.json"))
 _SIG = float(open(os.path.join(SCR, "sigma.txt")).read()) if os.path.exists(os.path.join(SCR, "sigma.txt")) else 2.0
 DIR_DATI = "/mnt/project-files/ripresa/dati/atomo_accoppiato"
 ETICHETTA = os.environ.get("VL_ETICHETTA", "BOZZA")
@@ -382,15 +389,15 @@ def pannello_info(draw, x0, y0, w, h, iv, dzs):
     draw.text((cx + cw - 52 * s, cy2 + ch2 + 3 * s), "t = 1600", fill=(120, 120, 140), font=font(11))
     # captions
     lines = [
-        (("elettrone: 120 000 palline messe una volta sola dove |ψ|² è grande, mosse dalla corrente della regola" if _FL == "corrente" else "elettrone: 120 000 palline messe una volta sola dove |ψ|² è grande, mosse dal flusso di |ψ|²"), (205, 208, 230)),
-        ("oro = qui la densità cresce rispetto all'1s, blu = cala (pieno a circa ±25 % di cambio locale)", (255, 205, 120)),
-        (("smussato su ~2 λ_C: tolta la trama a scacchiera del reticolo (4 valli)" if _SIG > 0 else
-          "nessuno smussamento: la scacchiera delle 4 valli è ≤ 7·10⁻³ in questa esportazione"), (170, 175, 200)),
+        ((("elettrone: 120 000 palline messe una volta sola dove |ψ|² è grande, mosse dalla corrente della regola" if _FL == "corrente" else
+           "elettrone: 120 000 palline messe una volta sola dove |ψ|² è grande, mosse dal flusso di |ψ|²")), (205, 208, 230)),
+        ("oro = qui la densità cresce rispetto all'1s, blu = cala (pieno a ±25 % di cambio locale)" +
+         (" · smussato su ~2 λ_C (scacchiera)" if _SIG > 0 else " · nessuno smussamento"), (255, 205, 120)),
         ("luce: palline di energia (E²+B²)/2, colore = direzione di E; vista tagliata (fetta 0 < y < 72 λ_C)", (205, 208, 230)),
-        ("luce dell'atomo-antenna (da t = 240): ogni pallina vale 1/1000 → energia ×1000", (255, 160, 200)),
-        ("accoppiamento ×10 (K = 10) per vedere lo svuotamento; λ_C = 3,9·10⁻¹³ m", (170, 175, 200)),
+        ("luce dell'atomo-antenna (da t = 240): ogni pallina vale 1/1000 → energia ×1000 · accoppiamento ×10 (K = 10)", (255, 160, 200)),
         *RIGHE_FLUSSO,
-        (f"dati: esportazione {IMPRONTA[0]} del {IMPRONTA[1]} UTC · {ETICHETTA.lower()}", (120, 125, 150)),
+        *RIGHE_FAIL,
+        (f"dati: esportazione {IMPRONTA[0]} del {IMPRONTA[1]} UTC · λ_C = 3,9·10⁻¹³ m" + (f" · {ETICHETTA.lower()}" if ETICHETTA else ""), (120, 125, 150)),
     ]
     y = 128 + 78 + 10 + 62 + 24
     for txt, col in lines:

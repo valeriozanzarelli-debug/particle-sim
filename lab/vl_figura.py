@@ -57,7 +57,7 @@ def main():
     a1.axhline(0.97, color="#2e86c1", ls=":", lw=1)
     a1.set_ylim(0.95, 1.001)
     a1.set_xlabel("t (λ_C/c)")
-    a1.set_title(f"E1 palline contro |ψ|² smussata: min {ex['E1']['corr_min']:.4f}", fontsize=10)
+    a1.set_title(f"E1 palline contro |ψ|²: min {ex['E1']['corr_min']:.4f} ({'PASS' if ex['E1']['PASS'] else 'FAIL'})", fontsize=10)
     a1b = a1.twinx()
     a1b.plot(t, se["tv"], color="#c0392b", lw=1, label="TV")
     a1b.set_ylim(0, 0.1)
@@ -77,8 +77,10 @@ def main():
     a3.set_xlabel("t (λ_C/c)")
     a3.set_ylim(0, 0.2)
     a3.legend(fontsize=7, loc="lower right")
-    a3.set_title("E3a PASS (palline = reticolo), E3b FAIL (+0.05)", fontsize=10)
-    fig.suptitle("VIDEO ATOMO: l'atomo (Z = 60, 1s esatto) assorbe un impulso e si svuota riemettendo luce — palline e controlli",
+    a3.set_ylim(0, max(0.2, 1.1 * max(se["p_manifest"])))
+    a3.set_title(f"E3a {'PASS' if ex['E3a']['PASS'] else 'FAIL'} (palline = reticolo), E3b {'PASS' if ex['E3b']['PASS'] else 'FAIL'} "
+                 f"(max {ex['E3b']['max_diff_palline_vs_manifest']:.3f})", fontsize=10)
+    fig.suptitle(f"VIDEO ATOMO: l'elettrone (Z = 60) gira, assorbe un impulso e lo rimanda come un'antenna — palline e controlli (dati {ex['impronta_esportazione']})",
                  fontsize=12)
     out = os.path.join(FIG, "video_atomo.png")
     fig.savefig(out, dpi=72, bbox_inches="tight")

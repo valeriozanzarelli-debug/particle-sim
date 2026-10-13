@@ -1,55 +1,63 @@
 {
  "fotogrammi_valutati": 201,
- "impronta_esportazione": "12322e1817",
- "manifest_mtime_utc": "13/10/2026 01:46",
+ "impronta_esportazione": "c7c193e6bf",
+ "manifest_mtime_utc": "13/10/2026 17:07",
  "E1": {
-  "corr_min": 0.9995951316586733,
-  "corr_min_fotogramma": 21,
-  "TV0": 0.022281294204847264,
-  "TV_max": 0.028522491923721027,
-  "TV_max_fotogramma": 18,
-  "PASS": true
+  "corr_min": 0.9579141842737463,
+  "corr_min_fotogramma": 129,
+  "TV0": 0.022357857214346973,
+  "TV_max": 0.10502935879563699,
+  "TV_max_fotogramma": 200,
+  "PASS": false
  },
  "E2": {
-  "pearson": 0.9999966498656618,
-  "rms_lambdaC": 0.01509079108000674,
-  "ampiezza_max_palline": 1.1693104288571325,
-  "ampiezza_max_manifest": 1.165855,
+  "pearson": 0.9988310687479939,
+  "rms_lambdaC": 0.025695980608477737,
+  "ampiezza_max_palline": 1.2129719696035943,
+  "ampiezza_max_manifest": 1.204543,
   "PASS": true
  },
  "E3a": {
-  "max_diff_palline_vs_reticolo": 0.01344965350619809,
+  "max_diff_palline_vs_reticolo": 0.012944249074939962,
   "PASS": true
  },
  "E3b": {
-  "max_diff_palline_vs_manifest": 0.06779868146560722,
-  "media_diff": 0.04999218006265937,
+  "max_diff_palline_vs_manifest": 0.04529470320446831,
+  "media_diff": -0.022633169197854144,
   "PASS": false
  },
  "E6": {
   "pearson": {
-   "10": 0.9848274841988516,
-   "20": 0.9840049122695876,
-   "30": 0.9801849314923067
+   "10": 0.9851834236116673,
+   "20": 0.9846869620662337,
+   "30": 0.9809241844847889
   },
   "PASS": true
  },
  "E4": {
-  "media": 0.9628705390209656,
-  "min": 0.8316925562241441,
+  "media": 0.9530583317620738,
+  "min": 0.8421783461131149,
   "PASS": true
  },
  "E5": {
-  "rapporto": 0.9058614047814186,
-  "PASS": true
+  "rapporto": 1.6095719840796532,
+  "PASS": false
+ },
+ "E8_giro_su_Dirac": {
+  "1": 0.8587852404505291,
+  "25": 0.8271070189071585,
+  "50": 0.8257799918867204,
+  "100": 0.8327354216031598,
+  "150": 0.8169851957893829,
+  "199": 0.7887846295330109
  },
  "elettrone_corsa": {
   "kind": "elettrone",
   "iv": 1121,
   "nv": 1121,
   "t": 1600.0,
-  "secondi": 256.97658920288086,
-  "clipped": 311,
+  "secondi": 152.0297544002533,
+  "clipped": 14011,
   "outside": 0
  },
  "luce_corsa": {
@@ -57,11 +65,11 @@
   "iv": 1121,
   "nv": 1121,
   "t": 1600.0,
-  "secondi": 314.13609862327576,
-  "alive": 28050,
-  "atom_balls": 28050,
-  "born": 251271,
-  "dead": 373221,
-  "q_a": 0.000125176846435076
+  "secondi": 466.8688144683838,
+  "alive": 19045,
+  "atom_balls": 19045,
+  "born": 221110,
+  "dead": 352065,
+  "q_a": 0.00012227575005894858
  }
 }
