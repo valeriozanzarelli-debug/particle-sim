@@ -134,4 +134,11 @@ if __name__ == "__main__":
         Z, a, pred = int(sys.argv[2]), float(sys.argv[3]), sys.argv[4]
         s = P5["predictions"][pred][f"Z{Z}_a{a}"]
         scan(Z, a, tuple(s), f"use_{pred}_Z{Z}_{a}", P5["config"]["use_T"])
+    elif p == "pc":            # amendment 2 (nucleo1s_f5_amend2.json): s = (P_C1(Z) at a = 0.01, 1)
+        Z, a = int(sys.argv[2]), float(sys.argv[3])
+        s0 = json.load(open(os.path.join(OUT, "nucleo1s_f5_pc.json")))[f"PC1_Z{Z}_a0.01"]["s"]
+        scan(Z, a, (round(s0, 6), 1.0), f"pc_Z{Z}_{a}", P5["config"]["use_T"])
+    elif p == "posthoc":       # DECLARED post hoc (not pre-registered): one universal s0 for every Z, s1 = 1
+        Z, a, s0 = int(sys.argv[2]), float(sys.argv[3]), float(sys.argv[4])
+        scan(Z, a, (s0, 1.0), f"posthoc_s0{s0}_Z{Z}_{a}", P5["config"]["use_T"])
     log("done", p)
