@@ -830,3 +830,92 @@ misurate. Come valore tardivo c'è la corrente dello stato a t = 3900: 0,834.
 2. **Che velocità aspettarsi.** Il giro dei surfisti è l'87 % di quello di Dirac sul reticolo del Laboratorio.
    Vuoi che il prossimo passo sia vedere se va a 1 restringendo la cella, o metterlo subito nel Laboratorio come
    è (si vede già girare)?
+
+---
+
+## 14. Fase 4: il 13 % che manca a Dirac scende con il passo
+
+Pre-registrazione: `lab/surf_f4_prereg.py` → `lab/out/surf_f4_prereg.json` (commit 676bf07, prima delle corse).
+Codice `lab/surf_f4.py` (`prep`, `run`), driver `lab/surf_f4_drive.sh`, giudizio `lab/surf_f4_judge.py` →
+`lab/out/surf_f4_results.json`, figura `lab/out/surf_f4_figure.png`. Emendamento (solo un fit dopo):
+`lab/out/surf_f4_amend.json` (D1). **Esiti: PASS 5, FAIL 1.**
+
+![fase 4](../lab/out/surf_f4_figure.png)
+
+### 14.1 In breve, come a un ventenne
+
+Stessa prova della fase 3 (1s con lo spin su, tenuto nella valle k = 0, 200 000 surfisti esatti), ma su celle
+sempre più piccole: a = 0,5, 0,4, 0,3, 0,25 λ_C, scatola fissa di 24 λ_C (fino a 96³). Il nucleo è quello
+**trasferito** di NUCLEO_1S §14: i due numeri seguono una retta in a, imparata a 0,5 e 0,3; a 0,4 e 0,25 non è
+mai stato allenato. Il tempo fisico è uguale per tutti: 2000 λ_C/c, cioè da 4000 a 8000 tick. Questa volta c'è
+anche la finestra alla fine della corsa.
+
+| a (λ_C) | celle | giro dei surfisti (tempi 250 / 500 / 1000 / 1500 / 1995) | quanto manca a Dirac | fedeltà alla fine |
+|---|---|---|---|---|
+| 0,5 | 48³ | 0,869 / 0,866 / 0,857 / 0,847 / **0,825** | 13,3 % | 0,965 |
+| 0,4 | 60³ | 0,911 / 0,909 / 0,906 / 0,898 / 0,891 | 9,0 % | 0,985 |
+| 0,3 | 80³ | 0,943 / 0,943 / 0,942 / 0,939 / 0,936 | 5,7 % | 0,994 |
+| 0,25 | 96³ | 0,958 / 0,958 / 0,957 / 0,956 / 0,954 | **4,2 %** | 0,997 |
+
+(Il giro è in unità di Zα c sinθ; "quanto manca" = 1 − media delle prime due finestre.)
+
+**Risposta:** sì, la parte che manca scende con il passo, e più in fretta che in modo lineare. Con la legge
+del contatto del nucleo (a^{2γ}, γ = 0,899), cioè la stessa che NUCLEO_1S usa per il legame, il limite continuo
+è **0,6 %**. Ma questo fit è fatto dopo (D1). Con la retta pre-registrata il limite viene −5,1 %, cioè 0,08 punti
+oltre la soglia del 5 %: **G6 FAIL**, dichiarato. Più si stringe la cella, più lo stato sta fermo e più gira
+uguale dall'inizio alla fine: la discesa lenta, cioè il battimento residuo delle valli, quasi sparisce a a = 0,25
+(0,958 → 0,954).
+
+### 14.2 Esami pre-registrati
+
+| esame | cosa | misura | soglia | esito |
+|---|---|---|---|---|
+| G1 | stato preparato: valle 0, spin | peso in k = 0 = 1,000 a tutti gli a; ⟨Σz⟩ 0,933 / 0,935 / 0,935 / 0,934 (circa) | ≥ 0,99; ≥ 0,9 | **PASS** |
+| G2 | quasi stazionario | fedeltà minima 0,965 / 0,985 / 0,994 / 0,997 | ≥ 0,9 | **PASS** |
+| G3 | i surfisti girano in tutte e 5 le finestre (anche quella finale) | da 0,825 a 0,958 (tabella sopra) | [0,75; 1,25] | **PASS** |
+| G4 | i surfisti restano \|ψ\|² | max \|z\| 1,9 / 2,0 / 2,1 / 2,6 | ≤ 4 | **PASS** |
+| G5 | la parte che manca scende con a | 0,133 > 0,090 > 0,057 > 0,042 | ordine | **PASS** |
+| G6 | limite continuo con d = d0 + c·a | d0 = **−0,051** (R² 0,994) | \|d0\| ≤ 0,05 | **FAIL** |
+
+**La legge** (riportata, non giudicata):
+- d0 + c·a²: d0 = +0,013 (R² 0,9998);
+- potenza C·a^p: p = 1,65 (R² 0,9998);
+- **d0 + c·a^{2γ}** (fit fatto dopo, D1): d0 = **+0,006**, R² = 0,99998, il migliore.
+
+La retta va peggio (R² 0,994) e porta il limite sotto zero, cioè oltre Dirac. È il segno che la legge non è
+lineare: la scelta della retta nella pre-registrazione era sbagliata. Lo dico ma non lo cambio.
+
+### 14.3 Cosa vuol dire
+
+* **Validazione:** il giro dei surfisti tende al valore di Bohm–Dirac (Zα c sinθ) quando la cella si
+  rimpicciolisce. La differenza va come a^{1,6–2}, compatibile con la legge del contatto a^{2γ}. Il 13 % della
+  fase 3 era l'errore del reticolo a θ = 0,5, non un difetto della regola o dei surfisti.
+* Il limite continuo stimato (0,6 % con a^{2γ}, 1,3 % con a²) sta entro l'1–1,5 % da Dirac. Visto che G6 è FAIL,
+  però, il "Dirac ritrovato al 5 %" **non** è un risultato pre-registrato: è un'indicazione forte, non un esame
+  passato.
+* Il nucleo trasferito funziona anche per una grandezza che non aveva mai visto: la corrente, non solo il livello.
+  Lo stato resta al 99,7 % nella valle k = 0 per 8000 tick a a = 0,25.
+* Per il Laboratorio (a = 0,5) il giro visibile è 0,87 Zα c sinθ: giusto nel verso, l'87 % del valore.
+
+### 14.4 Debiti e parametri (fase 4)
+
+* Parametri nuovi: **0**. I numeri s(a) vengono da NUCLEO_1S §14.
+* Scelte dichiarate:
+  - stesso tempo fisico per tutti;
+  - finestre di ~5 λ_C/c;
+  - v(a) dalle prime due finestre;
+  - scatola 24 λ_C;
+  - ricetta di preparazione con passata di spettro + 2 filtri (diversa dalla fase 3 per stare nella memoria a 96³,
+    scritta nella pre-registrazione).
+* Debiti:
+  - G6 FAIL: la legge giusta (forse a^{2γ}) va pre-registrata e controllata su un quinto reticolo (a = 0,2, 120³:
+    ~1,6 GB, al limite della memoria);
+  - lo stato resta quasi stazionario e non stazionario (§13.5).
+
+### 14.5 Dove l'intuizione di Valerio può aiutare (fase 4)
+
+1. **Quanto fine basta?** A a = 0,25 il giro è al 96 % di Dirac. Per il Laboratorio ti basta l'87 % di a = 0,5
+   (veloce), o vuoi la cella fine solo vicino al nucleo (la "cipolla" di NUCLEO_1S), dove la corrente è più forte?
+2. **La legge a^{2γ}.** È la stessa del legame: tutto quello che "sbaglia" vicino al nucleo scala con la potenza
+   del contatto di Dirac. Ti piace come regola generale da usare nell'agglomeratore ("ogni errore vicino al
+   nucleo va come a^{2γ}")? Si può mettere alla prova con un reticolo in più.

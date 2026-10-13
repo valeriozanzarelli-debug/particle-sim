@@ -1,0 +1,10 @@
+{
+ "date": "2026-10-13",
+ "changes": [
+  {
+   "id": "D1",
+   "when": "after production",
+   "what": "POST-HOC fit (not an exam, not counted): d(a) = d0 + c a^(2 gamma), gamma = sqrt(1 - Za^2) = 0.899 (the contact law of NUCLEO_1S): d0 = 0.0058, R^2 = 0.99998. Chosen after seeing that the pre-registered linear law fails G6 by 0.0008 while d0 + c a^2 gives 0.013."
+  }
+ ]
+}
