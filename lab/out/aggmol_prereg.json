@@ -1,0 +1,49 @@
+{
+ "written": "2026-10-13T19:23:43",
+ "git_head": "03dab0d0130d31a0e6a96a8f141d650c144254cf",
+ "asked": "prepare the next step of the agglomerator for the two-atom scale (H2: protons 1.4 a0 apart, cloud 5-10 a0) WITHOUT computing the H2 bond: (1) cost law; (2) learn the next coarser level with the automatic machine and the exact constraints of AGGLOMERATO_COMPLETO phase 3 (Taylor pinned, parity, moment bound for positivity), exams on one atom; (3) two-centre test with ONE electron (H2+ with clamped protons, declared as a test of the machine) against the exact two-centre solution; (4) list what is missing for real H2",
+ "rules": "molecules (two or more electrons) are NOT computed: only after the many-electron rule and after helium (Valerio's decision). H2+ has one electron: it is the collaudo of the two-centre machine, not chemistry.",
+ "frozen inputs": {
+  "levels a0/16, a0/8": "lab/out/aggfull_relearnT.pkl (kinetic T: c2, c4, c6 pinned + parity) and lab/out/aggfull_learn.pkl (coupling, star stencil); used as they are",
+  "code": "frozen copies lab/aggmol_fz_core.py, aggmol_fz_l1.py, aggmol_fz_atom.py of aggfull_core/l1/atom at commit a70a372 (the aggfull_ agent edits its files in parallel)",
+  "inputs of physics": "m_e (theta), alpha, Z = 1 per proton and the proton positions; nothing else"
+ },
+ "development (declared)": [
+  "exact parabola k^2/2 + Galerkin field (not the learned rule), box +-8 a0 (aggmol_dev.json): 1s -0.68 % (a0/2), -0.094 % (a0/4), -0.011 % (a0/8); H2+ R = 2: -0.42 %, -0.057 %, -0.0074 %; D_e: -1.25, -0.16, -0.025 mEh",
+  "dev learning (seed 777, dev_aggmol_learn.json): a0/2 REJECTED by the free check both from a0/8 (b = 4) and from a0/4 (b = 2): energy_rel 1.5-1.7e-3 > 3e-4 (w = 4 and 5); a0/4 accepted (w = 4, energy 2.3e-5); coupling at a0/4: point and star fail (star rel 2.2e-2 > 2e-2), cube passes (1.8e-2); Darwin gk -0.1261, gx +0.2502, spin-orbit +0.2520; Markov infeasible (c4 off by 280 at a0/4, 1100 at a0/2); 1s at a0/4 -0.4997634 Eh, +0.41 mEh from a0/8 (admissible)",
+  "dev two-centre at a0/4 (dev levels): H2+ R = 2 -0.354 mEh (-3.2e-4); half-cell shift 3.9e-5 relative, random shift 3.0e-5, axis (1,1,1) 1.7e-6; 1su -3.5e-4, 1pu +3.0e-4, 2sg +1.2e-4 (box +-12); 2sg node: xi spread 0.083 % (r spread 5.7 %), xi0 = 1.90742 vs exact 1.90781; gaps sigma_u - sigma_g at R = 4 / 6: +0.048 % / +0.12 % (box +-10)",
+  "dev single atom at a0/4, box +-16 a0: 1s E0 -13.59911 eV, 2s -3.40313, 2p -3.40216 (before first order)",
+  "a bug found in development and fixed: rounding of the zero-padding index in the node finder (moved the node 5 %)"
+ ],
+ "machine (task 2)": {
+  "candidates": "from a0/8 (B = 512): b = 4 (a0/2) then b = 2 (a0/4), largest first; then REPEAT from the chosen level with b = 2",
+  "free learner": "aggfull_l1.fit mode T: c2, c4, c6 pinned to the level below on 13 directions (kappa <= 1.5), parity; 75 % state-like samples (1s of size a0) + 25 % uniform, weight 3e-4 (the a0/8 value); w smallest of 4, 5",
+  "free check": "kcheck state mode, packet <= 1e-3, energy and rest <= 3e-4, bz_rel90 <= 0.2, neg_gen <= 0.01",
+  "positivity": "Markov fit (w = 4, c2, c4 pinned) reported; prediction: infeasible",
+  "coupling": "point/star/cube, abs <= 1e-4, rel <= 2e-2, tame <= 1.5 (aggfull_prereg values)",
+  "atom check": "1s (box +-8 a0) within 0.001594 Eh (1 kcal/mol) of the 1s of the level below -> admissible",
+  "seed": 20261013
+ },
+ "exams": {
+  "L1": "the machine chooses a0/4 as the two-atom level and rejects a0/2 (prediction from the dev run; a prediction, scored)",
+  "L2": "Markov (positive hops) infeasible at every new level: max constraint deviation > 1 (moment bound |c4|/c2 >= 1/12 vs needed ~1/(4 h^2))",
+  "L3": "Darwin (gk -> -1/8, gx -> +1/4) and spin-orbit (gso -> +1/4) read off the learned a0/4 coupling within 2 %",
+  "A1": "single atom at a0/4 (box +-16 a0, E0 + first order of the learned coupling): 1s, 2s, 2p1/2, 2p3/2 each within 0.25 % AND within 1 kcal/mol of the FINE zig-zag walk (aggfull_fineref.json, same theta)",
+  "A2": "the same four within 0.25 % and 1 kcal/mol of Dirac",
+  "A3": "2p fine structure (2p3/2 - 2p1/2) at a0/4 within 2 % of Dirac; interval ratio 0.5 within 1 %",
+  "C1": "H2+ 1 sigma_g at R = 1.4 and 2.0 a0, level a0/4 (box +-8 a0): |E - E_exact| <= 1 kcal/mol and <= 0.1 % (exact = clamped-nucleus non-relativistic; the rule's mass tan(theta)/theta = 1 + 3.7e-4 and alpha^2 terms are inside the threshold, declared)",
+  "C2": "binding of H2+ at R = 2: D_e = E(H, same level and box) - E_tot(H2+) within 1 kcal/mol of the exact 102.6342 mEh",
+  "C3": "curve at a0/4 (R = 1.6..2.4, quartic fit, the same fit applied to the exact values): R_e within 0.5 %, curvature k_e within 2 %",
+  "C4": "excited states at R = 2 (box +-12 a0): 1 sigma_u, 1 pi_u, 2 sigma_g each within 0.1 % of exact",
+  "C5": "translation covariance: three shifts of the pair by fractions of a cell change E by <= 1e-4 relative",
+  "C6": "rotation: pair along (1,1,1) vs along z: |dE| <= 1e-4 relative",
+  "C7": "geometry of the 2 sigma_g node (idea 'nodi confocali'): spread of xi = (r_a + r_b)/R on the node <= 0.5 % and <= 1/5 of the spread of r; mean xi within 1 % of (xi0_exact - 1) from xi0_exact",
+  "C8": "ladder a0/4 -> a0/8 (box +-8) -> a0/16 (box +-6): H2+ at R = 2 vs the exact key with the rule's own kinetic mass (E_m(R) = m E_1(m R), m = tan(theta)/theta): |error| decreasing along the ladder and <= 0.02 % at a0/16; D_e within 1 kcal/mol at all three levels",
+  "C9": "electron hopping between the protons (visual idea): gap sigma_u - sigma_g at R = 4 and 6 a0 (a0/4, box +-10 a0) within 1 % of exact (hop period 2 pi / gap)"
+ },
+ "not scored (reported)": [
+  "cost law (task 1): cells, memory, measured CPU time per H application (this container, 1 thread) and the Intel UHD / 16 GB estimate (bandwidth model, catalogue numbers of docs/MOTORE_OTTIMIZZATO.md section 8), for a box of two atoms",
+  "mass and k^4 of the new levels (pinned by construction)",
+  "the cost of exact two-electron H2 in configuration space (M^2) per level"
+ ]
+}
