@@ -5,10 +5,10 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from vuoto_core import chi1d_cont, chi_1d, species_weight, pitR_uehling, uehling_V, LOGCOEF, ALPHA, PI
-from vuoto_levels import load_pitR, make_interp
+from vuoto_levels import load_pitR, make_interp, load_3d
 
 OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "out")
-D = json.load(open(os.path.join(OUT, "vuoto_3d.json")))
+D = load_3d()
 fig, ax = plt.subplots(2, 2, figsize=(12, 9))
 
 # (a) 1-D
@@ -56,8 +56,8 @@ for k, v in D.items():
         fq.append(float(k.split("|")[3])); fv.append(v[0])
 if fq:
     o = np.argsort(fq); fq = np.array(fq)[o]; fv = np.array(fv)[o]
-    c.plot(fq, -(fv - fv[-1]), "s--", color="C3", ms=4, label="mare intero: −(Π(q)−Π(3m)) (log a grande distanza)")
-c.set_xscale("log"); c.set_yscale("symlog", linthresh=1e-5)
+    c.plot(fq, -fv, "s--", color="C3", ms=4, label="mare intero (tutti i doppioni): −Π(q)/(4πα) > 0, anti-schermo, cresce come ln(1/q)")
+c.set_xscale("log"); c.set_yscale("log")
 c.set_xlabel("q / m"); c.set_ylabel("Π_R(q)/(4πα)")
 c.set_title("(c) polarizzazione rinormalizzata contro Uehling"); c.legend(fontsize=8)
 
@@ -68,13 +68,15 @@ try:
     rr = np.array(L["V3_r"])
     d.plot(rr, np.array(L["V3_ratio_lat_ref"]), "o-", label="V_U zig-zag / V_U Uehling (stesso nucleo smussato)")
     d.axhspan(0.98, 1.02, color="0.9", label="soglia ±2 %")
-    txt = (f"H 2S: {L['H']['2s']['extrap_MHz']:.2f} MHz (rif. {L['H_ref_MHz']['2s'] if 'H_ref_MHz' in L else L['H']['H_ref_MHz']['2s']:.2f})\n"
-           if False else "")
     H = L["H"]
-    txt = (f"H 2S: {H['2s']['extrap_MHz']:.2f} MHz  (rif. {H['H_ref_MHz']['2s']:.2f})\n"
-           f"H 1S: {H['1s']['extrap_MHz']:.1f} MHz  (rif. {H['H_ref_MHz']['1s']:.1f})\n"
+    F = json.load(open(os.path.join(OUT, "vuoto_posthoc_Hfine.json")))
+    e2 = F["2s_0.00625"] + (F["2s_0.00625"] - F["2s_0.0125"]) / 3
+    e1 = F["1s_0.00625"] + (F["1s_0.00625"] - F["1s_0.0125"]) / 3
+    txt = (f"H 2S: {H['2s']['extrap_MHz']:.2f} MHz pre-reg. (FAIL); a posteriori {e2:.2f}  (rif. {H['H_ref_MHz']['2s']:.2f})\n"
+           f"H 1S: {H['1s']['extrap_MHz']:.1f} MHz pre-reg. (FAIL); a posteriori {e1:.1f}  (rif. {H['H_ref_MHz']['1s']:.1f})\n"
            f"Nd⁵⁹⁺ 1s: {L['Nd']['extrap2_eV']:.3f} eV  (rif. {L['Nd']['ref_eV']:.3f})")
-    d.text(0.05, 0.05, txt, transform=d.transAxes, fontsize=10, family="monospace")
+    d.text(0.03, 0.04, txt, transform=d.transAxes, fontsize=8, family="monospace")
+    d.set_ylim(0.975, 1.025)
 except Exception as e:
     d.text(0.1, 0.5, "livelli non ancora calcolati: " + str(e)[:60])
 d.set_xscale("log"); d.set_xlabel("r / λ_C"); d.set_ylabel("rapporto")

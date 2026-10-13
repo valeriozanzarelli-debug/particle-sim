@@ -7,7 +7,9 @@ import numpy as np
 from vuoto_core import chi_3d, chi_full_3d, species_weight
 
 OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "out")
-FN = os.path.join(OUT, "vuoto_3d.json")
+W2 = os.environ.get("VUOTO_WORKER2") == "1"          # second worker: reversed order, its own file (merged later)
+FN = os.path.join(OUT, "vuoto_3d_b.json" if W2 else "vuoto_3d.json")
+FO = os.path.join(OUT, "vuoto_3d.json" if W2 else "vuoto_3d_b.json")
 T0 = time.time()
 LIMIT = 540
 DIRS = {"x": (1, 0, 0), "y": (0, 1, 0), "z": (0, 0, 1), "d": (1, 1, 1)}
@@ -49,13 +51,22 @@ def key(t):
 
 def main():
     D = json.load(open(FN)) if os.path.exists(FN) else {}
-    todo = [t for t in tasks() if key(t) not in D]
+    other = json.load(open(FO)) if os.path.exists(FO) else {}
+    todo = [t for t in tasks() if key(t) not in D and key(t) not in other]
+    if W2:
+        todo = todo[::-1]
     print(f"{len(D)} done, {len(todo)} to do", flush=True)
     for t in todo:
         if time.time() - T0 > LIMIT:
             json.dump(D, open(FN, "w"), indent=0)
             print("checkpoint, rerun me", flush=True)
             sys.exit(3)
+        try:
+            other = json.load(open(FO)) if os.path.exists(FO) else {}
+        except Exception:
+            other = {}
+        if key(t) in other:
+            continue
         kind, th, dn, qm, n, beta, K1, K2 = t
         d = np.array(DIRS[dn], float); d /= np.linalg.norm(d)
         q = qm * th * d
