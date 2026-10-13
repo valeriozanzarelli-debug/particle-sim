@@ -3,7 +3,7 @@
 Studio `sottoreticolo_`. Codice: `src/atomo/zz.rs` (opzione `colore` di `Atomo`, `Atomo::new_in`, `con_stato_in`,
 `colore_lab`), `src/atomo/accoppiato.rs` (`Esperimento::nuovo(ascolto, colore)`), `src/atomo/zzscena.rs` (la scena usa
 `zz::colore_lab()`), test in `src/atomo/test_sottoreticolo.rs`. Pre-registrazione: `lab/out/sottoreticolo_prereg.json`
-(**commit 3636311, prima dell'esame**). Risultati: `lab/out/sottoreticolo_results.json` (commit 52f88d5).
+(**commit 3636311, prima dell'esame**). Risultati: `lab/out/sottoreticolo_results.json` (commit 617ef33).
 Figura: `lab/out/sottoreticolo_figure.png` (`lab/sottoreticolo_figure.py`).
 
 ![figura](../lab/out/sottoreticolo_figure.png)
