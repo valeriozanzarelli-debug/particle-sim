@@ -1,0 +1,86 @@
+{
+ "meta": {
+  "written": "2026-10-13T19:26:14",
+  "git_head_before": "98628caa55f399f36169d7d3a31c5b39f2db2c8f",
+  "study": "docs/FW1_VUOTO.md",
+  "prefix": "fw1vuoto_",
+  "engine": "lab/fw1vuoto_core.py (moves; Debiti's stroboscopic response copied from lab/vuoto_core.py, origin/master 48fbe35; new sea-energy second-order response)",
+  "rule_under_test": "FW1 = frozen rule + ONE twisted Wilson (axis Y, links +-2e_j, h = 0,4, half before and half after the coin of the EVEN ticks): senzadoppi_r5.FW1 (commit 1f024e7). VARIANT IN TEST next to the frozen rule (reference). h = 0,4 is a DECLARED DEBT."
+ },
+ "question": "With FW1 and the WHOLE Dirac sea (no species projector), does the vacuum polarize like QED: charge-renormalization log 2 alpha/3 pi and Uehling shape, with the heavy twins (>= 0,37/a) giving only a constant (counterterm)? What does the frozen whole sea do (validation of the problem)? Speed of dressed light and the odd (T-breaking) responses of the FW1 vacuum.",
+ "development_seen_before_prereg": [
+  "Engine checks: moves reproduce zz_core.bloch_batch (1e-15) and senzadoppi_r5.FW1.bloch (1e-15); the new sea-energy second-order formula against brute-force supercell finite differences (M = 4, q = pi/2, one k orbit): V, A_x (longitudinal: 0 exactly, Ward), A_y for F0 and FW1, agreement 1e-6 (finite-difference error).",
+  "Stroboscopic engine against Debiti's production numbers (origin/master 4f50e2c, vuoto_3d.json / vuoto_3d_b.json): proj|0.1|x|1: 0.026648008902998 vs 0.026648008902998; full|0.1|x|3 and |1: equal to 1e-15.",
+  "ONE FW1 number seen (timing test): theta = 0.1, q = m along x, whole sea, pi-cell: stroboscopic pit = 0.013902 (n = 48 and 64 agree to 3e-9), sea-energy pit_E = 0.011492. Nothing else on FW1 has been computed."
+ ],
+ "declared_choices": {
+  "potential_position": "phase e^{-iV} after every tick (FW1 tick 0: after the second Wilson half). Sensitivity: theta = 0.025, q/m = 0.05, 1, 3 along x with the potential between coin and second Wilson half.",
+  "density": "stroboscopic, end of the period (slice 0), exactly as Debiti; the sea-energy method gives the slice-AVERAGED density (Hellmann-Feynman) and the current; both reported.",
+  "renormalization": "on-shell, Pi_R(q n) = Pi(0 n) - Pi(q n), Pi(0 n) by Richardson from q = 0.05 m and 0.025 m along the same n; observable = average over n = x, y, z (as Debiti).",
+  "normalisation": "per pi-cell of the zone (the rule has 8 exact copies W(k + pi e_j) = W(k)): FW1 has 1 light species per cell; frozen has 4 massive species + 4 massless cones per cell (Debiti divides by 4).",
+  "gauge_field": "Peierls phase = exact line integral of A along every hop along j (axis steps and +-2e_j Wilson links); scalar potential only through the rule's phase.",
+  "free_parameters": "0 fitted. Inputs theta (= m a), alpha. FW1: h = 0.4 (debt, fixed in senzadoppi A3). Projector runs only: K1 = 0.6, K2 = 1.05 (Debiti's)."
+ },
+ "configs": {
+  "theta": [
+   0.1,
+   0.05,
+   0.025,
+   0.0125
+  ],
+  "q_over_m": [
+   0.025,
+   0.05,
+   0.2,
+   0.3,
+   1,
+   3,
+   10
+  ],
+  "dirs": [
+   "x",
+   "y",
+   "z"
+  ],
+  "quadrature": "FW1 whole sea: pi-cell [-pi/2, pi/2]^3, product sinh-Gauss at Gamma, n = 64, beta = 5 (theta >= 0.025), 6.5 (theta = 0.0125); convergence check n = 80. Frozen whole sea: Debiti's special rule (n = 64). Projector: Debiti's box rule n = 64, beta 5 / 6.",
+  "runs": [
+   "F0 proj (validation of Debiti)",
+   "F0 whole sea",
+   "FW1 whole sea (main)",
+   "FW1 proj (control)",
+   "FW1 whole sea, sea-energy method: chi_E, magnetic K_T, mixed V-A, antisymmetric A-A"
+  ]
+ },
+ "predictions_and_exams": {
+  "E1_validation_frozen_proj": "my engine vs Debiti's file for every overlapping (theta, dir, q): PASS if max relative difference <= 1e-9.",
+  "E2_frozen_whole_sea": {
+   "prediction": "per pi-cell = 4 massive species (normal) MINUS 4 massless cones of velocity cos theta (sea upside down): d pit_cell/d ln q = 4 [1/(6 pi^2 cos theta) - d pitR_Uehling/d ln q]. So: no finite Pi(0) (IR log, anti-screening, 4 'anti-species' for q << m); in the window m << q << 1/a the running is ~0 (4 - 4 species: 4 (1/cos theta - 1)/(6 pi^2)). It does NOT count '1 species'.",
+   "exam": "for theta in {0.1, 0.05, 0.025}: measured pit_cell(q_i) - pit_cell(q_{i+1}) along x for q/m in {0.05, 0.1, 0.2, 0.4, 1, 3} vs the prediction (cone log + 4 x Uehling): PASS if each difference within 3 % of the cone part 4/(6 pi^2 cos theta) ln(q_{i+1}/q_i) at theta = 0.05 and 0.025."
+  },
+  "E3_FW1_whole_sea": {
+   "E3a_finite_Pi0": "|d pit/d ln q| between q = 0.025 m and 0.05 m <= 0.02 x 1/(6 pi^2) = 0.016887 (= 2 alpha/3 pi after 4 pi alpha) at every theta (no massless cones: Pi(0) finite). Predicted: ~ 2 C2 q^2/m^2 ~ 1e-4 of L.",
+   "E3b_log": "pit(0)(theta) (xyz average) fitted L (-ln theta) + c + d theta^2 on the 4 thetas: PASS if L within x = 2 % of 1/(6 pi^2) = 0.016887 (= 2 alpha/3 pi after 4 pi alpha) AND the finite difference 0.025 -> 0.0125 within 2 %. Predicted |error| <= 0.5 %: the twins (>= 0.37/a, mass fixed in lattice units) only shift the constant c (= a counterterm).",
+   "E3c_uehling": "Pi_R/Pi_R,Uehling - 1 (xyz avg) at theta = 0.0125: PASS if <= y = 0.5 % for q/m in {0.3, 1, 3} and <= 1.5 % at q = 10 m. Predicted <= 0.3 % for q <= 3 m; at 10 m the twins add O((q a)^2) ~ (0.125)^2 x O(0.1-1): could be up to ~1 % (honest uncertainty).",
+   "E3d_convergence": "the E3c error at q = 1 m and 3 m falls by >= 3x from theta = 0.025 to 0.0125, or is already < 0.1 %.",
+   "E3e_q2_coefficient": "pitR/pitR_Uehling at q = 0.2 m, theta = 0.0125, within 1 %.",
+   "E3f_isotropy": "Pi_R along (1,1,1) vs xyz avg at q = 3 m, theta = 0.0125: within 1 %.",
+   "E3g_anisotropy": "prediction: FW1 puts the Wilson only on EVEN ticks, so the frozen rule's local x <-> z symmetry (one-tick time shift + spin rotation + L<->R) is broken: pit(0) along x and z DIFFER (|x - z| > 1e-6 L), all three axes distinct. Reported with (z - x)/L and (y - (x+z)/2)/L."
+  },
+  "E4_FW1_projector_control": "FW1 proj vs F0 proj Pi_R at theta = 0.0125, q/m in {0.3, 1, 3}: within 0.3 %; L(FW1 proj) within 2 %. FW1 whole vs FW1 proj Pi_R at theta = 0.0125, q <= 3 m: within 0.5 %.",
+  "E5_dressed_light_sea_energy": {
+   "method": "sea quasi-energy E = sum_occ Omega, exact second order in static V (chi_E, slice-averaged density) and static A (magnetic kernel K_jk); vacuum: eps - 1 = 4 pi alpha pit_e, 1/mu - 1 = 4 pi alpha pit_b, pit_e = chi_E/q^2, pit_b = K_T/q^2 (q -> 0, Richardson); light speed for wavevector n and polarisation E along e (B along n x e): delta c/c = 2 pi alpha [pit_b(along n x e) - pit_e(along e)] (static, per direction; pit_e(e) from q along e, pit_b(b) from the transverse kernel with A perp b). Only FW1 (whole sea gapped at 0 and pi: f = i log analytic); the frozen whole sea has cones at pi (not possible).",
+   "E5a_ward": "longitudinal K(q x, A_x) <= 1e-6 |K_T| at theta = 0.05, q = 0.05 m. Predicted: 0 up to quadrature.",
+   "E5b_massless_photon": "K_T(q) = K0 + K2 q^2: |K0/(K2 m^2)| <= 1e-4 at every theta (no photon mass, unlike the projector of Debiti phase 4, -0.73 alpha).",
+   "E5c_log_b": "pit_b(0)(theta) fit as in E3b: L_b within 2 % of 1/(6 pi^2) = 0.016887 (= 2 alpha/3 pi after 4 pi alpha).",
+   "E5d_chiE": "chi_E (slice-averaged) gives the same: L within 2 %; Uehling within 0.5 % at theta = 0.0125, q <= 3 m.",
+   "E5e_delta_c": "delta c_light/(alpha c) per (n, e), and its isotropic average, extrapolated a -> 0 (line in theta, as Debiti): REPORTED. Prediction: finite, does NOT vanish as a -> 0 (Collins et al.: a lattice cut with a preferred frame), |isotropic| between 0.005 and 0.2 alpha, sign not predicted; anisotropic (x, y, z all different, E3g). Compared with Debiti phase 4 (frozen, cut sea): +0.047 alpha (K12), +0.029 alpha (K12/3), and with the dressed electron of Debiti phase 3. c_e of FW1 (electron loop with the Wilson links) is NOT planned (declared)."
+  },
+  "E6_odd_responses_T_broken": {
+   "E6a_control_frozen": "frozen rule (T symmetric: Kramers 8e-15) + projector, stroboscopic density response to a static A_m with q along i (i != m), theta = 0.05, q = 0.05, 0.1 m: predicted 0 (|F| <= 1e-9 of q^2 L).",
+   "E6b_CFJ_CPT_odd": "FW1 whole sea, sea-energy mixed V-A_m kernel, part ODD in q (linear, b . B, Carroll-Field-Jackiw b-vector) and antisymmetric part of K_jk odd in q (b_0, chiral-magnetic type): predicted 0 (CPT is kept by a twisted Wilson term), threshold 1e-8 x L per unit q a.",
+   "E6c_magnetoelectric": "FW1 whole sea, mixed V-A_m kernel EVEN in q (order q^2): kappa_ij in L = E.kappa.B. P-odd and T-odd, CPT-even: ALLOWED if the Wilson-Y breaks parity as well as T (expected, as for a twisted mass). Reported with classification: 'seen' if |kappa_ij| > 1e-6 L at theta = 0.0125 and stable under theta -> 0. Not predicted in size.",
+   "E6d_scalar_odd": "Im chi(q) of the whole FW1 sea: <= 1e-10 (hermiticity: no odd static scalar response)."
+  }
+ },
+ "what_is_not_done": "electron dressing c_e with FW1 (needs the photon loop with Wilson-link Peierls couplings); levels (Nd59+, H) with FW1; dynamic (omega != 0) responses."
+}
