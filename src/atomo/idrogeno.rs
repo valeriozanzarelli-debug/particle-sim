@@ -864,12 +864,16 @@ pub fn angolo_fine(lv: &Livello, a: f64) -> f64 {
     let kappa = if modo == "fisica" { 1.0 } else { kappa_regola(lv) };
     (a / kappa).atan()
 }
-/// kinetic coefficient of the coarse rule: G(k)/(k²h/2) at the smallest k (k per cell = 2π/N), mean of the three axes
+/// kinetic coefficient of the coarse rule at k → 0: G(k)/(k²h/2) at the two smallest k of the box (k per cell
+/// 2π/N and 4π/N, mean of the three axes), extrapolated with κ(k) = κ₀ − c k² (so it does not depend on the box)
 pub fn kappa_regola(lv: &Livello) -> f64 {
     let n = lv.n;
     let k = 2.0 * std::f64::consts::PI / n as f64;
-    let g = lv.gk[lv.idx(1, 0, 0)] + lv.gk[lv.idx(0, 1, 0)] + lv.gk[lv.idx(0, 0, 1)];
-    (g / 3.0) / (k * k / (2.0 * lv.h))
+    let kap = |m: usize| {
+        let g = lv.gk[lv.idx(m, 0, 0)] + lv.gk[lv.idx(0, m, 0)] + lv.gk[lv.idx(0, 0, m)];
+        (g / 3.0) / ((m as f64 * k).powi(2) / (2.0 * lv.h))
+    };
+    (4.0 * kap(1) - kap(2)) / 3.0
 }
 
 pub struct Fine {

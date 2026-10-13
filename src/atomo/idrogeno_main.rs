@@ -153,10 +153,12 @@ pub fn dev_test_fine() {
     f.tick = 0;
     f.tick(1);
     f.tick(2);
-    let w = bloch_due_tick(k, th);
+    // the block walks with the derived angle and the uniform rest phase e^{-i(a_f - angle)} per tick
+    let w = bloch_due_tick(k, f.ang);
     let (i, j, l) = (p / 2, p / 2 + 3, p / 2 - 5);
     let s = (i * p + j) * p + l;
-    let ph = C::expi(k[0] * i as f64 + k[1] * j as f64 + k[2] * l as f64);
+    let ph = C::expi(k[0] * i as f64 + k[1] * j as f64 + k[2] * l as f64) * C::expi(-2.0 * (f.th - f.ang));
+    println!("block: a_f = {:.6}, derived angle {:.6}", f.th, f.ang);
     let mut err: f64 = 0.0;
     for a in 0..4 { let mut v = C::ZERO; for bq in 0..4 { v += w[a][bq] * s0[bq]; } err = err.max((v * ph - f.psi[a][s]).abs()); }
     println!("walk vs Bloch (2 ticks): {err:.2e}");

@@ -19,14 +19,47 @@
     "P6": "attraversa 64 3 0.5 3 -20 80 e attraversa 64 3 0.25 3 -20 160 — pacchetto libero che attraversa il blocco fine"
   },
   "esami": {
-    "E1_energia_1s": {"cosa": "E(1s) dell'ibrido P1 (fase della proiezione dal passo 8) contro Dirac×mu", "soglia": "|err| <= 0.10 %", "perché": "livello di NUCLEO_1S §5.2 (debolezza della colla ~0.1 %); in sviluppo il solo grosso a ±8 a0 dà -0.091 %, l'ibrido sposta di +0.02…+0.06 %", "anche": "riportato il solo grosso e il debito di massa della regola di base (theta_base·cot theta_base = 0.999627 → +0.037 % di legame atteso)"},
-    "E2_energie_n2": {"cosa": "E(2s) e E(2p baricentro) di P4 contro Dirac×mu", "soglia": "|err| <= 0.25 % per ciascuno; tripletto 2p (x,y,z) aperto <= 1e-4 relativo", "perché": "a h = a0/8 l'1s sbaglia di -0.35…-0.43 %; gli stati n=2 sono 4 volte più larghi, l'errore di cella relativo atteso è minore. La coda fuori da ±18 a0 è ~1e-4"},
-    "E3_stazionarieta": {"cosa": "densità 1s di P1 fra il passo 12 e il 24", "soglia": "max|Δrho|/max rho <= 1e-3 sulla griglia grossa e <= 1e-2 nel blocco fine (che ha un transitorio: nasce dalla ricostruzione liscia e forma la cuspide)", "perché": "invisibile a occhio nel video; il blocco fine parte senza cuspide"},
-    "E4_risonanza_1s_2p": {"cosa": "omega dalla pendenza delle fasi di <1s|psi(t)> e <2p|psi(t)> lungo 150 passi veri (P5)", "soglia": "(a) coerenza con la differenza degli autovalori della regola <= 1e-4 relativo; (b) contro Dirac×mu (10.19887 eV) |err| <= 0.6 %", "perché": "(b) è limitato dall'1s a a0/8 (-0.35 %), noto in sviluppo; a a0/16 il 2p non entra in una scatola che la CPU regge"},
-    "E5_costo": {"cosa": "secondi per passo grosso di P1 (32 tick fini dentro) e del solo grosso", "soglia": "<= 10 s per passo grosso su 2 thread (vincolo di questa sessione: 2 dei 4 core sono di altri)", "perché": "'gira su CPU'; si riporta anche la stima a 4 thread come stima, non misura"},
-    "E6_quota_della_colla": {"cosa": "(a) P3: |E_ibrido/E_grosso - 1| con potenziale liscio, blocco 3^3; (b) dispersione di E_ibrido fra blocchi 1^3, 3^3, 5^3 (P1, P2)", "soglia": "(a) <= 1e-4; (b) riportata (descrittiva) come quota della colla nell'errore 3-D", "perché": "con potenziale liscio una colla perfetta darebbe 0; in sviluppo 7e-5"},
-    "E7_nessuna_riflessione": {"cosa": "P6: pacchetto libero che attraversa il blocco", "soglia": "fedeltà con il solo grosso >= 0.99 (passa >= 99 %, come nel reticolo) e parte riflessa <= 1e-2", "perché": "criterio del reticolo (RETICOLO_UNIVERSO)"},
-    "E8_conservazione_attraverso_la_colla": {"cosa": "carica (norma) e energia attraverso la colla, come chiesto dal coordinatore e misurato in docs/MOTORE_OTTIMIZZATO.md §6 (D2: media di blocco non conserva, spettrale conserva a 1e-15, gradini inventano +105…+3800 % di energia cinetica)", "soglia": "P1: |deriva di carica| <= 3e-7 per passo grosso; deriva di <H_grosso> nella seconda metà <= 1e-5 relativa; P6: variazione di carica <= 1e-4", "perché": "in sviluppo: -1.9e-7 (blocco 1), +8e-8 (blocco 3) per passo; pacchetto -3.6e-5. La nostra colla NON è quella spettrale: ci aspettiamo 1e-7, non 1e-15"}
+    "E1_energia_1s": {
+      "cosa": "E(1s) dell'ibrido P1 (fase della proiezione dal passo 8) contro Dirac×mu",
+      "soglia": "|err| <= 0.10 %",
+      "perché": "livello di NUCLEO_1S §5.2 (debolezza della colla ~0.1 %); in sviluppo il solo grosso a ±8 a0 dà -0.091 %, l'ibrido sposta di +0.02…+0.06 %",
+      "anche": "riportato il solo grosso e il debito di massa della regola di base (theta_base·cot theta_base = 0.999627 → +0.037 % di legame atteso)"
+    },
+    "E2_energie_n2": {
+      "cosa": "E(2s) e E(2p baricentro) di P4 contro Dirac×mu",
+      "soglia": "|err| <= 0.25 % per ciascuno; tripletto 2p (x,y,z) aperto <= 1e-4 relativo",
+      "perché": "a h = a0/8 l'1s sbaglia di -0.35…-0.43 %; gli stati n=2 sono 4 volte più larghi, l'errore di cella relativo atteso è minore. La coda fuori da ±18 a0 è ~1e-4"
+    },
+    "E3_stazionarieta": {
+      "cosa": "densità 1s di P1 fra il passo 12 e il 24",
+      "soglia": "max|Δrho|/max rho <= 1e-3 sulla griglia grossa e <= 1e-2 nel blocco fine (che ha un transitorio: nasce dalla ricostruzione liscia e forma la cuspide)",
+      "perché": "invisibile a occhio nel video; il blocco fine parte senza cuspide"
+    },
+    "E4_risonanza_1s_2p": {
+      "cosa": "omega dalla pendenza delle fasi di <1s|psi(t)> e <2p|psi(t)> lungo 150 passi veri (P5)",
+      "soglia": "(a) coerenza con la differenza degli autovalori della regola <= 1e-4 relativo; (b) contro Dirac×mu (10.19887 eV) |err| <= 0.6 %",
+      "perché": "(b) è limitato dall'1s a a0/8 (-0.35 %), noto in sviluppo; a a0/16 il 2p non entra in una scatola che la CPU regge"
+    },
+    "E5_costo": {
+      "cosa": "secondi per passo grosso di P1 (32 tick fini dentro) e del solo grosso",
+      "soglia": "<= 10 s per passo grosso su 2 thread (vincolo di questa sessione: 2 dei 4 core sono di altri)",
+      "perché": "'gira su CPU'; si riporta anche la stima a 4 thread come stima, non misura"
+    },
+    "E6_quota_della_colla": {
+      "cosa": "(a) P3: |E_ibrido/E_grosso - 1| con potenziale liscio, blocco 3^3; (b) dispersione di E_ibrido fra blocchi 1^3, 3^3, 5^3 (P1, P2)",
+      "soglia": "(a) <= 1e-4; (b) riportata (descrittiva) come quota della colla nell'errore 3-D",
+      "perché": "con potenziale liscio una colla perfetta darebbe 0; in sviluppo 7e-5"
+    },
+    "E7_nessuna_riflessione": {
+      "cosa": "P6: pacchetto libero che attraversa il blocco",
+      "soglia": "fedeltà con il solo grosso >= 0.99 (passa >= 99 %, come nel reticolo) e parte riflessa <= 1e-2",
+      "perché": "criterio del reticolo (RETICOLO_UNIVERSO)"
+    },
+    "E8_conservazione_attraverso_la_colla": {
+      "cosa": "carica (norma) e energia attraverso la colla, come chiesto dal coordinatore e misurato in docs/MOTORE_OTTIMIZZATO.md §6 (D2: media di blocco non conserva, spettrale conserva a 1e-15, gradini inventano +105…+3800 % di energia cinetica)",
+      "soglia": "P1: |deriva di carica| <= 3e-7 per passo grosso; deriva di <H_grosso> nella seconda metà <= 1e-5 relativa; P6: variazione di carica <= 1e-4",
+      "perché": "in sviluppo: -1.9e-7 (blocco 1), +8e-8 (blocco 3) per passo; pacchetto -3.6e-5. La nostra colla NON è quella spettrale: ci aspettiamo 1e-7, non 1e-15"
+    }
   },
   "manopole": "nessun parametro fittato. Scelte a mano (debiti): a_f = h/32, blocco 3^3, alone 1 cella, ordine di ricostruzione 9, scatole ±8 a0 (n=1) e ±18 a0 (n=2), passi 24/150.",
   "storia_sviluppo": [
@@ -39,5 +72,8 @@
     "correzione di contatto e covarianza (IDRO_CONTATTO, IDRO_COV): spostano ma non tolgono la dispersione; non usate in produzione",
     "passo di tempo a blocchi m (Strang): errore 1s -5.9e-5 a m=4, -4.7e-3 a m=64 → la vista lontana si fa con la 'cartolina' (autostati della regola con le loro energie), non a blocchi",
     "P4 (spettro 512 288) è partito alle 03:03, prima di questo commit, perché era in coda come prova; al momento del commit avevo letto solo la riga dell'1s (-0.3506 %). Dichiarato."
+  ],
+  "cambi_dopo_il_commit_prima_delle_corse": [
+    "kappa della regola grossa estrapolato a k -> 0 dai due k più piccoli della scatola (kappa0 = (4 kappa1 - kappa2)/3) invece del solo k più piccolo: così l'angolo derivato non dipende dalla scatola (a N=128 cambia l'angolo di ~1e-5). Nessun risultato di produzione letto prima di questo cambio."
   ]
 }
