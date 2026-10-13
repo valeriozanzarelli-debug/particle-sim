@@ -45,6 +45,11 @@ ritrovati entro 1 %). Quasi tutto l'errore 1s 3-D e tutto il −11,6 % del #6 so
 2 numeri chiude le valli ma lega il 2–6 % troppo poco (FAIL). La colla dell'ibrido ora non dipende da J0 (7·10⁻⁶).
 Esiti fase 2: 14 PASS, 6 FAIL.
 
+**Fase 3 (§13):** un secondo criterio interno (valli chiuse **e** livello sulla coppia U della regola nuda) fissa il nucleo
+imparato: a a = 0,5 l'1s 3-D va a −0,40 % con split 0,0002 (il battimento del Laboratorio cala ÷ 98); con gli stessi 2 numeri
+a = 0,4 / 0,3 / 0,24 / 0,2 danno −0,95 / **−1,02** / −0,88 / −0,72 %: l'esame "entro 1 % a tutti gli a" cade per 0,017 punti
+(FAIL). Cipolla 3-D e idrogeno Z = 1 in 3-D: progetto, non corsi. Esiti fase 3: 3 PASS, 2 FAIL.
+
 **Esiti pre-registrati (fase 1):** 11 PASS, 3 FAIL (L1, L2, L3: la legge regge, ma due soglie strette cadono a Z = 20 e Z = 92
 per motivi che spiego sotto). Dettaglio nella §6.
 
@@ -599,3 +604,154 @@ crea un errore della stessa taglia.
     for a in 0.5 0.4; do for c in bare learned; do timeout 590 python lab/nucleo1s_3d_run.py excited $a $c; done; done
     timeout 590 python lab/nucleo1s_3d_run.py glue; for a in 0.5 0.3; do timeout 590 python lab/nucleo1s_3d_run.py centre $a; done
     python lab/nucleo1s_3d_judge.py; python lab/nucleo1s_3d_figure.py
+
+---
+
+## 13. Fase 3: il secondo criterio del nucleo imparato, la cipolla 3-D, l'idrogeno 3-D
+
+File: `lab/nucleo1s_f3_prereg.py` → `lab/out/nucleo1s_f3_prereg.json` (**commit 3402bbc, prima delle corse**),
+`lab/nucleo1s_3d_run.py` (parte `learn2`, configurazione `learned2`), `lab/nucleo1s_f3_judge.py` →
+`lab/out/nucleo1s_f3_results.json`, `lab/nucleo1s_f3_figure.py` → `lab/out/nucleo1s_f3_figure.png`.
+Le soglie delle fasi 1 e 2 **non sono cambiate** (N3 e C1 restano FAIL come giudicati in fase 2).
+
+![figura fase 3](../lab/out/nucleo1s_f3_figure.png)
+
+### 13.0 In breve
+
+* **Il secondo criterio (senza Dirac).** In fase 2 l'agglomeratore aveva una sola richiesta ("le 4 righe dell'1s diventino
+  una") e trovava una **linea** di soluzioni (s0, s1); si è fermato al capo sbagliato (−5,8 %). Ora gli chiedo due cose
+  insieme: (1) una sola riga, (2) che stia **dove la regola nuda mette la coppia cieca U** (i due livelli del multipletto
+  che non vedono il nucleo, quindi non sono rovinati dalla carica puntiforme fra le celle). U è un numero **della regola**,
+  non di Dirac. In 40 prove trova **s = (0,5546; 1,0035)**: split 0,00018 mc², livello a 3·10⁻⁸ da U. **M1 PASS.**
+* **L'esame vero (M2): stessi 2 numeri, altri reticoli.** Errore del legame 1s contro Dirac:
+
+  | a (λ_C) | nudo (media) | nudo U | imparato fase 2 | **imparato fase 3** | split fase 3 (mc²) |
+  |---|---|---|---|---|---|
+  | 0,5 (allenamento) | +19,2 % | −0,40 % | −5,8 % | **−0,40 %** | 0,00020 |
+  | 0,4 | +11,5 % | −0,80 % | −5,0 % | **−0,95 %** | 0,00044 |
+  | 0,3 | +6,0 % | −0,83 % | −3,7 % | **−1,02 %** | 0,00055 |
+  | 0,24 | +3,7 % | −0,71 % | −2,9 % | **−0,88 %** | 0,00050 |
+  | 0,2 | +2,5 % | −0,57 % | −2,3 % | **−0,72 %** | 0,00043 |
+
+  Le valli restano chiuse a tutti i reticoli (split ≤ 0,00055, soglia 0,002) e tre reticoli su quattro sono entro 1 %;
+  **a = 0,3 sfora di 0,017 punti (−1,017 %)**. Come scritto nella pre-registrazione: **M2 FAIL**. Non è un caso
+  sfortunato: il nucleo imparato a a = 0,5 segue U con uno scarto in più di −0,15/−0,19 punti a tutti gli a più fini.
+  I due numeri non portano con sé la legge di scala del contatto (a^{2γ}), quindi lontano dal reticolo di allenamento
+  sbagliano un po'.
+* **M3 PASS**: il battimento del Laboratorio (split nudo 0,0196 mc² a a = 0,5) scende a 0,00020: **÷ 98**. Con questo
+  nucleo il Laboratorio non batterebbe più (periodo ~60 000 tick invece di 953).
+* **M4 PASS**: gli eccitati non peggiorano (a = 0,4, scatola 32): errore medio 5,7 % contro 6,2 % del nucleo nudo
+  (2p1/2: 1,7 % contro 2,7 %; 2s 19,1 % contro 19,9 %; 2p3/2 uguali, 1,07 %).
+* **M5 FAIL** (non giudicabile come scritto perché M2 cade). Per informazione, **non contato**: se si prende il reticolo
+  più grosso che passa (a = 0,4) servono 60³ = 2,2·10⁵ celle contro 6,1·10⁶ del reticolo uniforme nudo: ÷ 28.
+* **Cipolla 3-D (punto 2)** e **idrogeno Z = 1 in 3-D (punto 3)**: **non corsi**, come dichiarato nella pre-registrazione.
+  Sotto spiego perché e scrivo il progetto (§13.3, §13.4).
+* **Esiti fase 3: 3 PASS (M1, M3, M4), 2 FAIL (M2, M5).** Totale delle tre fasi: 28 PASS, 11 FAIL.
+
+**Onestà sul criterio.** Il secondo criterio non legge Dirac, ma l'ho scelto **dopo** aver visto in fase 2 (V2) che U
+sta entro l'1 % da Dirac. Quindi è interno ma non cieco. Quello che non si sapeva, ed è l'esame, era se i numeri
+imparati a un solo reticolo tengono gli altri: tengono quasi (3 su 4), non del tutto.
+
+### 13.1 Cosa vuol dire (come a un ventenne)
+
+Immagina il nucleo puntiforme messo nell'angolo in comune fra 8 cubetti. L'elettrone di ogni "colore" (§12.1) ha 2
+palline vicinissime al nucleo, sulla stessa diagonale del cubo, e 6 un po' più lontane. Il nucleo vero è una punta che
+nessuna cella può contenere; il nucleo imparato dice "quanto forte deve tirare il nucleo su quelle 2 + 6 palline" (s0 e
+s1, un numero ciascuno). Con la sola regola "fai diventare le 4 copie una" c'erano infinite coppie buone. La seconda
+regola sceglie la coppia dove il livello unico cade dove già stava il livello che **non vede** la punta: il nucleo
+imparato smette di disturbare le copie e smette anche di spostare l'energia. Funziona sul reticolo dove è stato imparato
+(−0,40 %, identico a U) e quasi dappertutto. A a = 0,3 tira un filo troppo poco.
+
+### 13.2 Che cosa resta aperto e il passo che ne viene
+
+* **I due numeri devono dipendere da a.** La fisica del contatto dice come: la parte di errore che il nucleo deve
+  correggere va come a^{2γ} (γ = 0,899 a Z = 60), il resto come a². Proposta per la fase successiva (non provata):
+  imparare (s0, s1) su **due** reticoli (0,5 e 0,4) con lo stesso criterio interno, e trasferirli agli altri a con la legge
+  a^{2γ} calcolata in fase 1 (K = +1,640, senza fit). Sono sempre 2 numeri più una legge già nota: niente manopole nuove.
+* Un'estrapolazione a a → 0 dei numeri della fase 3 (dopo, **non contata**) dà da −0,18 % a −0,52 % secondo i punti
+  usati: troppo instabile per dirci qualcosa.
+* **#20** (battimento del Laboratorio): ora c'è una cura che chiude le valli **e** non sposta l'energia sul reticolo del
+  Laboratorio. Patch proposta per `src/atomo/zz.rs` (non applicata, è di un altro thread): moltiplicare il potenziale
+  dei 2 siti a r0 = √3/2·a per 0,554593 e dei 6 siti a r1 = √11/2·a per 1,003549 (solo per Z = 60, a = 0,5 λ_C); per altri
+  Z o a, rieseguire `learn2`.
+
+### 13.3 La cipolla 3-D che rispetta le 4 diagonali (progetto, non corso)
+
+Perché non l'ho corsa: in 3-D non esiste ancora un raccordo fra celle grandi e piccole della regola zig-zag che
+(a) resti unitario (la probabilità non si crea e non si perde al confine) e (b) non mescoli i 4 colori. Senza (b) il
+confine stesso mescolerebbe le valli e rifarebbe il multipletto che vogliamo togliere. Scriverlo è lavoro vero.
+Il progetto, in tre pezzi:
+
+1. **Forma del guscio interno.** Ogni colore è un reticolo bcc; il suo "spazio personale" attorno al nucleo è la cella di
+   Wigner–Seitz del bcc, un **ottaedro troncato** (14 facce: 8 esagoni perpendicolari alle 4 diagonali, 6 quadrati sugli
+   assi). Se il guscio interno ha questa forma, ogni colore vede il nucleo nello stesso modo e le 4 diagonali (una per
+   colore) sono tutte equivalenti: il confine non preferisce nessuna valle.
+2. **Raccordo.** Fra un guscio e il successivo il lato si dimezza (a → a/2). Sul confine ogni pallina grossa si apre in
+   8 piccole e 8 piccole si richiudono in una, con il proiettore dello stesso colore (stessa diagonale): è l'operazione che
+   in 1-D ha funzionato (fase 1, zoom automatico) portata al bcc. Esame proposto: probabilità totale conservata a 10⁻¹²
+   per 10⁴ tick, nessuna fuga verso gli altri colori (< 10⁻¹²), una sola riga 1s (split < 0,002) **senza** nucleo
+   imparato.
+3. **Costo.** Con 3 gusci (a = 0,5 → 0,25 → 0,125 dentro r = 3, 1,5, 0,75 λ_C) le celle in più sono ~4·10⁴: il
+   Laboratorio passerebbe da 1,1·10⁵ a ~1,5·10⁵ celle.
+
+Rischio: il raccordo fra colori può non esistere unitario con dimezzamento esatto; in quel caso la via è il nucleo imparato
+con legge di scala (§13.2), che costa zero celle.
+
+### 13.4 Idrogeno vero (Z = 1) in 3-D (non corso)
+
+Il raggio di Bohr è 137 λ_C: la scatola deve essere ~1 000 λ_C di lato. A a = 0,5 servono (2 000)³ = 8·10⁹ celle per
+colore: centinaia di GB, contro i 2,5 GB permessi. Si può fare solo con un **ibrido 3-D** (zig-zag in una sfera di
+qualche λ_C attorno al nucleo, regola agglomerata fuori), che non esiste ancora; l'ibrido radiale (fase 1 e 2, colla
+del cuspide) dà già −0,024 % e varia meno di 10⁻⁵ con J0. Dato che M2 cade, la condizione "se regge" della richiesta non
+è soddisfatta. **Non fatto.**
+
+### 13.5 Lo studio REGOLA_LOCALE (letto, non toccato)
+
+Da `lab/out/locale_f3_valleys.json`: con la regola congelata (F0) e il nucleo sullo spigolo il multipletto c'è
+(0,8976 / 0,8986 / 0,8988, pesi ~0,23 ciascuno), come qui. Con il **Wilson ritorto** (F2, h = 0,1) il multipletto
+collassa: una riga principale a 0,8811 con il 78 % del peso. Quindi il Wilson toglie le valli **alla radice**, ma (a)
+quel cammino non è lo stesso schema del Laboratorio (fase di Coulomb una volta per periodo) e le energie assolute non
+sono confrontabili con le mie; (b) h = 0,1 è un regolatore scelto a mano (1 manopola). Il mio nucleo imparato invece
+lascia la regola com'è e tocca solo 8 siti. Le due cure non sono in concorrenza: se il Wilson verrà adottato, il nucleo
+imparato andrà ri-imparato sopra di esso (forse non servirà più s1).
+
+### 13.6 Debiti e parametri della fase 3
+
+* Numeri imparati: **2** (s0, s1 per Z = 60, a = 0,5), con un criterio interno a 2 richieste. Sostituiscono i 2 della fase 2
+  (non se ne aggiungono).
+* Scelto a mano: la definizione di U (righe più alte fino a peso 0,4, come in fase 2), la finestra [0,80; 0,95], pesi
+  ≥ 0,03/0,05, il punto di partenza sulla linea (preso dalle prove della fase 2).
+* **Debito #20**: diagnosi chiusa (fase 2); cura che chiude le valli **e** tiene l'energia del Laboratorio entro lo 0,4 %:
+  **trovata sul reticolo del Laboratorio**, non ancora trasferibile ad altri a entro l'1 % (M2 FAIL di 0,017 punti).
+* **Debito #6 in 3-D**: resta aperto il passo a Z = 1 in 3-D (serve l'ibrido 3-D).
+* Nessuna correzione di bug in questa fase; nessun cambio di soglia; nessun emendamento.
+
+### 13.7 Idee geometriche e visive (fase 3)
+
+1. **Il nucleo come ottaedro troncato.** A schermo: attorno al nucleo un piccolo solido a 14 facce (8 esagoni, 6
+   quadrati) che nessuno disegna: è la zona dove le palline dei 4 colori si dividono il nucleo in parti uguali. Dentro
+   le palline sono più piccole (cipolla), fuori normali. Perché: §13.3. Costo: zero in grafica (emerge dalla densità).
+2. **Le 4 diagonali che respirano.** Nella vista "valli" del Laboratorio, colorare le palline per colore (4 tinte) e
+   mostrare il battimento: con il nucleo nudo le 4 tinte pulsano a 953 tick fuori fase; con il nucleo della fase 3 il
+   pulsare scompare. È la prova visiva più semplice che il #20 è curato.
+3. **La linea delle soluzioni.** La figura (a) è già un'immagine utile per spiegare l'agglomeratore: una valle stretta
+   nel piano (s0, s1), il criterio 1 si ferma in fondo, il criterio 2 sceglie il punto dove la valle attraversa il livello
+   giusto.
+
+### 13.8 Dove l'intuizione di Valerio può aiutare (fase 3)
+
+1. **I numeri del nucleo cambiano con la cella?** Fisicamente il nucleo è lo stesso; quello che cambia è quanto la cella
+   "lo vede". Ti sembra giusto imparare il nucleo su due celle e usare la legge a^{2γ} per le altre, o preferisci una cella
+   speciale (cipolla, ottaedro troncato) che lo veda sempre allo stesso modo?
+2. **Wilson o nucleo imparato?** Il Wilson cambia la regola dappertutto (un collegamento a due passi); il nucleo imparato
+   tocca solo 8 palline vicino al nucleo. Quale ti sembra più "una sola strada"?
+3. **Z = 1 in 3-D.** Ha senso per te che l'atomo di idrogeno in 3-D si faccia con lo zig-zag solo vicino al nucleo e la regola
+   agglomerata (già imparata in 1-D radiale) fuori? È il modo di far stare un atomo da 1 000 λ_C in un portatile.
+
+### 13.9 Come rieseguire (fase 3)
+
+    python lab/nucleo1s_f3_prereg.py
+    timeout 590 python lab/nucleo1s_3d_run.py learn2          # rilanciare finché "learned2" (3 corse)
+    for a in 0.5 0.4 0.3 0.24 0.2; do timeout 590 python lab/nucleo1s_3d_run.py scan $a learned2; done
+    timeout 590 python lab/nucleo1s_3d_run.py excited 0.4 learned2
+    python lab/nucleo1s_f3_judge.py; python lab/nucleo1s_f3_figure.py
