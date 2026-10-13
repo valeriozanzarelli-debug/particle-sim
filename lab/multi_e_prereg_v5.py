@@ -46,11 +46,11 @@ P = {
    "R2v5": "livello M6: peso negativo di K_beta < 1e-10 per beta in {1e-6, 5e-6, 1e-5, 2e-5, 5e-5, 1e-4, 1e-3, 1e-2} (griglie 64 "
            "e 128), |sum K - 1| < 1e-9, D curvatura = D spazio reale a 2e-5, |curtosi in eccesso a beta = 1e-2| < 0.02, "
            "0 salti col segno sbagliato. Riportato lo stesso per T6",
-   "use_for_He_if": "R3v5, G0v5, R2v5 PASS (L1c_v4 non blocca: FAIL ad alto k gia' noto, dichiarato)",
+   "use_for_He_if": "R3v5, G0v5, R2v5 PASS (L1c_v5 non blocca)",
  },
  "He_with_v5": {
-   "M1v5": "stessa base ECG di v2 (he1S_Z2, K = 200), massa m0_v4: E = E_NR(m_A) x m0_v4 / m_A, tolleranza 0.29 mEh",
-   "E1v5": "come E1 v2 con m0_v4 (tolleranza 10 meV)",
+   "M1v5": "stessa base ECG di v2 (he1S_Z2, K = 200), massa m0_v5: E = E_NR(m_A) x m0_v5 / m_A, tolleranza 0.29 mEh",
+   "E1v5": "come E1 v2 con m0_v5 (tolleranza 10 meV)",
    "Q1v5": "Delta_band sull'elio al primo ordine sullo stato ECG NR con le bande T6 e M6 contro la cinetica di Dirac esatta "
            "sullo stesso stato: |band/Dirac - 1| <= 0.01 (T6) e <= 0.02 (M6) (stesse soglie di v3). DEBT-4/9: la parte non "
            "Dirac in mEh per livello vecchio, v3 T/M, v5 T6/M6",
