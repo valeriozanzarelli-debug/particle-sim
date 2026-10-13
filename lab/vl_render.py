@@ -8,6 +8,7 @@ panel is a plain chart with captions (UI, not scene).
 Visual knobs (aesthetic only, counted in docs/VIDEO_ATOMO.md): SPOT_E, GLOW_E, WAKE_E, COL_FULL, SPOT_L, GLOW_L,
 WAKE_L, STRETCH, camera paths, palette, exposure gains.
 """
+import hashlib
 import json
 import os
 import sys
@@ -42,16 +43,7 @@ DEPTH_L = 260.0
 
 TV = timeline()
 REFS_FILE = os.path.join(SCR, "vl_refs.json")
-_FL = open(os.path.join(SCR, "flusso.txt")).read().strip() if os.path.exists(os.path.join(SCR, "flusso.txt")) else "continuita"
-if _FL == "corrente":   # new export (1s started in the k = 0 valley, learned nucleus): the rule's own current
-    RIGHE_FLUSSO = [("1s partito nella valle k = 0, nucleo imparato: le palline girano attorno a z", (170, 175, 200)),
-                    ("a 0,85–0,87 della velocità di Dirac (Debiti, surfisti esatti): scarto in verifica, niente ritocchi", (170, 175, 200))]
-else:
-    RIGHE_FLUSSO = [("in un livello puro questo reticolo non porta corrente: le palline stanno ferme", (170, 175, 200)),
-                    ("(debito aperto: le copie del reticolo, da provare); si muovono solo per la luce", (170, 175, 200))]
-REFS = json.load(open(REFS_FILE)) if os.path.exists(REFS_FILE) else {}
-NV = len(TV)
-MAN = json.load(open("/mnt/project-files/ripresa/dati/atomo_accoppiato/manifest.json"))
+
 
 
 def _csv(path):
@@ -64,6 +56,20 @@ def _csv(path):
 
 
 FR = _csv("/mnt/project-files/ripresa/dati/atomo_accoppiato/fotogrammi.csv")
+_FL = open(os.path.join(SCR, "flusso.txt")).read().strip() if os.path.exists(os.path.join(SCR, "flusso.txt")) else "continuita"
+_PASSO = str(MAN["griglia_atomo"]["passo"]).replace(".", ",")
+_RAPP = {0.5: "0,867", 0.4: "0,910", 0.3: "0,943", 0.25: "0,958"}.get(MAN["griglia_atomo"]["passo"], "?")   # Debiti, surfers phase 4
+if _FL == "corrente":   # new export (1s started in the k = 0 valley, learned nucleus): the rule's own current
+    RIGHE_FLUSSO = [(f"le palline girano attorno a z a {_RAPP} della velocità di Dirac (a = {_PASSO} λ_C): errore del passo del reticolo, niente ritocchi", (190, 215, 255)),
+                    ("l'1s di partenza (valle k = 0, nucleo imparato) non è un livello esatto: deriva del 3,5 % in 4000 tick;", (170, 175, 200)),
+                    ("per questo dopo t ≈ 800 p_exc non scende più (non è fisica)", (170, 175, 200))]
+else:
+    RIGHE_FLUSSO = [("in un livello puro questo reticolo non porta corrente: le palline stanno ferme", (170, 175, 200)),
+                    ("(debito aperto: le copie del reticolo, da provare); si muovono solo per la luce", (170, 175, 200))]
+REFS = json.load(open(REFS_FILE)) if os.path.exists(REFS_FILE) else {}
+NV = len(TV)
+MAN = json.load(open("/mnt/project-files/ripresa/dati/atomo_accoppiato/manifest.json"))
+_SIG = float(open(os.path.join(SCR, "sigma.txt")).read()) if os.path.exists(os.path.join(SCR, "sigma.txt")) else 2.0
 DIR_DATI = "/mnt/project-files/ripresa/dati/atomo_accoppiato"
 ETICHETTA = os.environ.get("VL_ETICHETTA", "BOZZA")
 
@@ -318,7 +324,7 @@ def fase_testo(t):
         return "1 · arriva l'impulso di luce (da sinistra, polarizzato lungo z)"
     if t < 240:
         return "2 · l'elettrone viene scosso: la nuvola oscilla su e giù (dipolo)"
-    return "3 · l'impulso è uscito: l'atomo oscilla da solo, riemette luce e si svuota piano"
+    return "3 · impulso uscito: la sovrapposizione 1s+2p oscilla come un'antenna e irraggia (non è decadimento spontaneo)"
 
 
 def pannello_info(draw, x0, y0, w, h, iv, dzs):
@@ -376,11 +382,12 @@ def pannello_info(draw, x0, y0, w, h, iv, dzs):
     draw.text((cx + cw - 52 * s, cy2 + ch2 + 3 * s), "t = 1600", fill=(120, 120, 140), font=font(11))
     # captions
     lines = [
-        ("elettrone: 120 000 palline messe una volta sola dove |ψ|² è grande, mosse dal flusso di |ψ|²", (205, 208, 230)),
+        (("elettrone: 120 000 palline messe una volta sola dove |ψ|² è grande, mosse dalla corrente della regola" if _FL == "corrente" else "elettrone: 120 000 palline messe una volta sola dove |ψ|² è grande, mosse dal flusso di |ψ|²"), (205, 208, 230)),
         ("oro = qui la densità cresce rispetto all'1s, blu = cala (pieno a circa ±25 % di cambio locale)", (255, 205, 120)),
-        ("smussato su ~2 λ_C: tolta la trama a scacchiera del reticolo (4 valli)", (170, 175, 200)),
+        (("smussato su ~2 λ_C: tolta la trama a scacchiera del reticolo (4 valli)" if _SIG > 0 else
+          "nessuno smussamento: la scacchiera delle 4 valli è ≤ 7·10⁻³ in questa esportazione"), (170, 175, 200)),
         ("luce: palline di energia (E²+B²)/2, colore = direzione di E; vista tagliata (fetta 0 < y < 72 λ_C)", (205, 208, 230)),
-        ("luce dell'atomo (da t = 240): ogni pallina vale 1/1000 → energia ×1000", (255, 160, 200)),
+        ("luce dell'atomo-antenna (da t = 240): ogni pallina vale 1/1000 → energia ×1000", (255, 160, 200)),
         ("accoppiamento ×10 (K = 10) per vedere lo svuotamento; λ_C = 3,9·10⁻¹³ m", (170, 175, 200)),
         *RIGHE_FLUSSO,
         (f"dati: esportazione {IMPRONTA[0]} del {IMPRONTA[1]} UTC · {ETICHETTA.lower()}", (120, 125, 150)),
@@ -457,13 +464,18 @@ if __name__ == "__main__":
     elif args[0] == "ritocca":   # redraw only the info panel of already rendered frames (same code as frame())
         a, b = int(args[1]), int(args[2])
         d = os.path.join(SCR, f"frames_{int(W0 * SCALA)}")
+        tag = os.path.join(d, "ritoccati_" + hashlib.sha256(open(__file__, "rb").read()).hexdigest()[:8])
+        os.makedirs(tag, exist_ok=True)
         for iv in range(a, min(b, NV)):
             f = os.path.join(d, f"{iv:05d}.png")
+            if os.path.exists(os.path.join(tag, str(iv))):
+                continue
             if os.path.exists(f):
                 im = Image.open(f).convert("RGB")
                 info(im, dat, iv)
                 im.save(f + ".tmp.png")
                 os.replace(f + ".tmp.png", f)
+                open(os.path.join(tag, str(iv)), "w").close()
         print("ritocca", a, b)
     elif args[0] == "batch":
         a, b = int(args[1]), int(args[2])

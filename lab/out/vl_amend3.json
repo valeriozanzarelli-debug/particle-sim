@@ -1,0 +1,10 @@
+{
+ "studio": "VIDEO ATOMO, emendamento 3",
+ "data": "2026-10-13",
+ "scritto_prima_di": "muovere le palline sulla nuova esportazione (commit c473b27: 1s liscio in valle k=0, nucleo imparato, accoppiamento centrato+trasverso)",
+ "gia_visto_sui_dati_nuovi (dichiarato)": "test della regola dell'emendamento 2 sugli intervalli 1 e 100: la correzione per la continuita' e' 0.54-0.56 della j esportata (> 0.25), quindi la regola avrebbe scelto 'solo continuita'' e niente giro. Ma la parte che gira della stessa j da' v_phi/(Z alpha c sin theta) = 0.875 (intervallo 1) e 0.833 (intervallo 100) senza smussamento: lo stesso numero (0.88 -> 0.83) che Debiti trova con i surfisti esatti sui flussi dei collegamenti. La parte da correggere e' la compressione finta della lettura per cella, non il giro.",
+ "cambio": "(1) flusso = j esportata corretta al minimo per la continuita' (J = j - rho grad chi, come la pre-registrazione originale), anche se la correzione supera il 25%: la soglia dell'emendamento 2 era sbagliata, il giro e' validato indipendentemente (SURFISTI_ESATTI par. 13, fase 4). (2) Nessuno smussamento (VL_SIG = 0): la scacchiera di periodo 4 celle e' 1e-5 al fotogramma 0 e 6.5e-3 (potenza) al 200; lo smussamento sigma=2 abbasserebbe il giro a 0.72.",
+ "scritte": "giro a 0,867 della velocita' di Dirac a a = 0,5 lambda_C = errore del passo del reticolo (Debiti fase 4), nessuna scala; l'1s di partenza deriva del 3,5% in 4000 tick e dopo t ~ 800 p_exc smette di scendere per questo; anelli = antenna guidata (1s+2p), non decadimento spontaneo",
+ "esame_in_piu": "E8: velocita' di giro misurata dalle palline / (Z alpha c sin theta), riportata contro 0.83-0.88 (Debiti); nessuna soglia",
+ "invariati": "E1-E7 e soglie, palline, luce, video"
+}

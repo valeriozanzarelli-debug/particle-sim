@@ -29,7 +29,7 @@ sys.path.insert(0, QUI)
 from atomo_export_leggi import carica  # noqa: E402
 
 SCR = os.environ.get("VL_SCR", "/tmp/claude-0/-home-claude-particle-sim/a13a264e-04a0-55c0-8c14-0e293e6cf6fd/scratchpad/vl")
-SIG = 2.0          # smoothing of the electron fields, cells (1 lambda_C)
+SIG = float(os.environ.get("VL_SIG", 2.0))   # smoothing, cells (amendment 3: chosen from the checkerboard of the export)
 A = 0.5            # atom cell, lambda_C
 H = 8.0            # light cell (downsampled), lambda_C
 DT = 8.0           # time between frames, lambda_C/c
@@ -135,8 +135,9 @@ def elettrone(d, info):
     rho_s = np.zeros((nf, n, n, n), np.float32)
     js = np.zeros((nf, 3, n, n, n), np.float32)
     for k in range(nf):
-        rho_s[k] = gaussian_filter(d.rho(k), SIG, mode="constant")
-        js[k] = np.stack([gaussian_filter(c, SIG, mode="constant") for c in d.j(k)])
+        sm = (lambda x: gaussian_filter(x, SIG, mode="constant")) if SIG > 0 else (lambda x: x)
+        rho_s[k] = sm(d.rho(k))
+        js[k] = np.stack([sm(c) for c in d.j(k)])
     Fx = np.zeros((nf - 1, n + 1, n, n), np.float32)
     Fy = np.zeros((nf - 1, n, n + 1, n), np.float32)
     Fz = np.zeros((nf - 1, n, n, n + 1), np.float32)
@@ -159,6 +160,8 @@ def elettrone(d, info):
         info["scelta_flusso_auto"] = {"correzione_relativa_sui_test": test, "scelta": FLUSSO}
     with open(os.path.join(SCR, "flusso.txt"), "w") as fh:
         fh.write(FLUSSO)
+    with open(os.path.join(SCR, "sigma.txt"), "w") as fh:
+        fh.write(str(SIG))
     miss, corr_share, its, resid = [], [], [], []
     for k in range(nf - 1):
         jm = 0.5 * (js[k].astype(np.float64) + js[k + 1])
