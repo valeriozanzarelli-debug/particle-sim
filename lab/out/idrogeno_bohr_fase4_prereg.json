@@ -1,0 +1,68 @@
+{
+ "studio": "idrogeno_bohr fase 4 - (1) la cucitura fine/grosso, (2) la massa del maestro dall'agglomeratore, (3) il grosso di default (regola T + bordi ritorti (0, pi) + coda di Born sulla cella del nucleo) come emendamento dichiarato",
+ "scritto": "2026-10-13, prima delle corse di produzione della fase 4 (dopo le corse di sviluppo elencate sotto, dichiarate)",
+ "sviluppo_gia_fatto_dichiarato": {
+  "bug_trovato": "Fine::prolunga: la derivata (per la piccola componente chi = sum G_j(-i d_j) phi) al bordo dell'alone usava la differenza centrata con l'indice CLAMPATO (= derivata dimezzata sull'ultima cella grossa del patch). Effetto: perdita di carica DC ~5e-6 per passo (la causa del reflux della fase 2-3) e mismatch libero (Z=0) della gaussiana liscia g4 2.8e-5 (alone 1) contro 4.1e-6 (alone 2). Correzione: differenza unilatera del 2o ordine (-3,4,-1)/2 sulla prima/ultima cella. Vecchio comportamento con IDRO_BORDO_VECCHIO=1.",
+  "partenza_veff": "IDRO_PARTENZA=veff:M:R. Stato di partenza = (approssimazione del) proprio autostato dell'ibrido, senza regola fittata: M passi dell'ibrido, su ogni cella coperta la fase che l'ibrido aggiunge al passo grosso semplice -> potenziale locale diagonale V_c; nuova partenza = stato piu' basso di G/tau + V + V_c (LOBPCG); R volte. Cambia solo la partenza; la dinamica dopo e' l'ibrido senza aggiunte.",
+  "misure_nuove": "IDRO_DIAG=k: per passo perdita (carica guadagnata dalla cucitura, relativa) e sfasamento; ogni k passi corrente grossa max sulle celle coperte (j_coperte), max fuori (j_fuori). RISULTATO 'stazionarieta fuori dal blocco' = max|drho|/max rho sulle sole celle grosse NON coperte (le coperte sono solo la media del campo fine).",
+  "numeri_di_sviluppo (N=128, +-4 a0, asset T_v1, blocco 7, ORD 9, B 16, reflux)": {
+   "sola_regola_grossa (pavimento, 240 passi)": "j_fuori 8.8e-7 al passo 240 (2.8e-5 al 48), stazionarieta 2.2e-6",
+   "cucitura vecchia (bug), 400 passi": "perdita DC 5.1e-6/passo, j_coperte 1.44e-3, stazionarieta 3.9e-4",
+   "bordo corretto, partenza 1s grosso, 240 passi": "perdita ~3e-8..5e-7/passo, j_fuori 1.7e-4 (in calo), stazionarieta fuori 5.2e-4, ibrido/grosso-1 +6.20e-4",
+   "bordo corretto + partenza veff:32:3, 240 passi": "perdita 2e-8..6e-7/passo, j_fuori 1.3e-4 (costante), j_coperte 1.48e-3, stazionarieta fuori 1.5e-5, fine 3.1e-4, ibrido/grosso-1 +6.21e-4",
+   "convergenza nel blocco, 48 passi, finestra [24,48], partenza 1s grosso (ibrido/grosso-1, blocchi 3/5/7/9/11)": "bordo corretto +0.97/+3.15/+6.17/+5.65/+5.85 e-4; bordo vecchio +0.72/+2.37/+4.88/+3.44/+2.60 e-4"
+  },
+  "strada_scartata": "Delta imparato sulle celle coperte (comando impara, classi O_h): il fit non regge (residuo 0.65-1.26, E salta di +1.1e-3). Non adottato, dichiarato."
+ },
+ "manopole": "nessuna fittata. Impostazioni dichiarate: M = 32, R = 3 della partenza veff (solo lo stato iniziale); EPS_M = 1e-5 e JMAX = 4 del controllo 'maestro abbastanza fine'. Il reflux resta acceso (fattore di carica totale, 0 parametri).",
+ "esami": {
+  "C_cucitura": {
+   "corse": {
+    "pavimento": "IDRO_ASSET=<asset M> IDRO_ORD=9 IDRO_B=16 IDRO_REFLUX=1 IDRO_DIAG=48 esame_ibrido <Ba0/16> 128 0 240",
+    "ibrido": "come sopra + IDRO_PARTENZA=veff:32:3, blocco 7: esame_ibrido <Ba0/16> 128 7 240"
+   },
+   "criteri": {
+    "C1_perdita": "mediana di |perdita| sui passi 121..240 <= 2e-7 per passo (fase 3: 5e-6 DC)",
+    "C2_stazionarieta_fuori": "stazionarieta delle celle grosse non coperte (passo 120 -> 240) <= 10 x pavimento (stessa misura, sola regola grossa, stessa corsa)",
+    "C2b_stazionarieta_fase3": "stazionarieta grosso (tutte le celle) <= 1e-4 (soglia della fase 3, invariata)",
+    "C3_corrente_fuori": "j_fuori al passo 240 <= 10 x pavimento (j_fuori della sola regola grossa al passo 240). Previsione scritta prima: FAIL (sviluppo 1.3e-4, ~150 x): la corrente al bordo del blocco e' un flusso fermo della cucitura, non un transitorio.",
+    "C3b_corrente_coperte": "descrittivo (j_coperte; fase 3 1.66e-3)",
+    "C4_energia": "E1 dell'ibrido entro 0.10 % di Dirac x mu nella corsa N=256 (sotto)"
+   }
+  },
+  "V_convergenza_blocco": {
+   "corse": "IDRO_ASSET=<asset M> IDRO_ORD=9 IDRO_B=16 IDRO_REFLUX=1 IDRO_PARTENZA=veff:32:2 esame_ibrido <Ba0/16> 128 {3,5,7,9,11} 144 (finestra [72,144])",
+   "criteri": {
+    "V1_monotona": "E(blocco) sempre piu' legata (o uguale entro 1e-5 relativo) passando 3 -> 5 -> 7 -> 9 -> 11",
+    "V2_plateau": "|E11 - E9|/|E| < 3e-5 e |E9 - E7|/|E| < 1e-4 (soglia di convergenza della fase 2 sugli ultimi passi)",
+    "V3_picco": "|E7 - (E5+E9)/2|/|E| < 1e-4 (come fase 3)"
+   },
+   "previsione": "dallo sviluppo (48 passi): V2 PASS, V3 PASS, V1 a rischio sul passo 7 -> 9 (-5e-5)."
+  },
+  "R_energia_N256": {
+   "corsa": "IDRO_ASSET=<asset M> IDRO_ORD=9 IDRO_B=16 IDRO_REFLUX=1 IDRO_PARTENZA=veff:32:2 esame_ibrido <Ba0/16> 256 9 120",
+   "criterio": "E1 entro 0.10 % di Dirac x mu (soglia di fase 1); il valore e' descrittivo per il confronto con fase 2-3 (-0.01..-0.05 %)"
+  },
+  "M_massa_del_maestro": {
+   "corse": "python3 lab/idrogeno_bohr_fase4_regola.py J per J = 0..4 (maestro theta_A/2^J, stesso learner P4 della fase 3, kcheck con tempo fisico fisso), poi 'scegli' -> lab/out/idrogeno_bohr_fase4_regola.json = <asset M> (B_fine_cells = 256*2^j per a0/16 e 512*2^j per a0/8)",
+   "criteri": {
+    "M1_convergenza": "esiste j <= 4 con |m_j - m_(j-1)| < 1e-5 (massa assoluta della regola a0/16); il primo e' il maestro scelto. Altrimenti FAIL e si usa T_v1 (dichiarato).",
+    "M2_massa": "m - 1 della regola scelta (a0/16 e a0/8) <= 2e-5 (prima 3.73e-4)",
+    "M3_2p_rust": "2p della regola scelta a a0/8 (motore Rust, livello <B a0/8> 256 2p con IDRO_TORSIONE=000 e 111, media) entro +-0.005 % di Dirac x mu (prima +0.0338 %)",
+    "M4_kcheck": "ogni livello passa kcheck (packet <= 1e-3, energia e riposo <= 3e-4, bz90 <= 0.2, neg <= 0.01), come fase 3"
+   },
+   "previsione": "m - 1 ~ 3.73e-4 / 4^j: scelta j = 4 (theta = a0/65536), m - 1 ~ 1.5e-6; 2p ~ +0.0005 %"
+  },
+  "G_grosso_di_default": {
+   "cosa": "emendamento dichiarato al livello grosso di default: regola T (ora quella di <asset M>) + bordi ritorti (media di theta = 0 e pi su tutti e tre gli assi) + coda di Born sulla cella del nucleo (0 parametri: Delta E_B = -2 m (4 pi Z alpha)^2 rho_c J, rho_B = rho_c/(1 - 8 pi m Z alpha I)^2, costanti I, J del cubo di Brillouin). Motore: lab/agg2s_core.py in sola lettura (campo di Galerkin, TwistAtom), configurazione di AGGLOMERATO_2S: a0/8, N = 256 (L = 32 a0), dV del primo ordine dell'accoppiamento letto da aggfull_atomK.json come in agg2s_analyze.py.",
+   "corse": "python3 lab/idrogeno_bohr_fase4_grosso.py <job> per 1s, 2s, 2p x twist 000, 111 (a pezzi <= 10 min, vettori non committati)",
+   "criteri": {
+    "G1_livelli": "1s (con Born), 2s (con Born), 2p1/2, 2p3/2 entro +-0.005 % di Dirac (riferimento di agg2s_analyze); prima (vecchio maestro) +0.026..+0.038 %",
+    "G2_nucleo": "rho_B(0) dell'1s (media dei bordi) entro 0.5 % dell'esatto (prima: grezzo 0.916 -> Born 0.998)",
+    "G3_massa": "senza Born, 1s e 2s entro 0.005 % di m_kin x Dirac piu' l'errore di cella atteso (descrittivo)"
+   },
+   "nell_ibrido": "dove c'e' il blocco fine la coda di Born non si usa: il blocco risolve il nucleo (dichiarato). Il motore Rust ha i bordi ritorti (IDRO_TORSIONE) ma non il campo di Galerkin: Born nel Rust resta un debito."
+  }
+ },
+ "economia": "max 3 thread, corse in coda seriale, ogni script <= 10 min; nessuna corsa oltre quelle elencate senza emendamento dichiarato"
+}
