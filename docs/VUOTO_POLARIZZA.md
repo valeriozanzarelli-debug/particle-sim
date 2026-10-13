@@ -40,7 +40,7 @@ fatto in parte nella fase 2, §13: δm e g−2 sì, il Lamb completo non ancora)
 **Fase 2 (§13), in cinque righe.**
 1. **Autoenergia dalla regola** (elettrone-walk × luce-walk, loop in k): la massa vestita cresce come
    (3α/2π) m ln(1/ma), il coefficiente di Weisskopf, entro lo **0,06 % (PASS)**.
-2. **g−2 della regola = α/2π entro il 2,4 % (PASS)**, ma dipende dall'orientazione (0,94–0,99, non converge: G3
+2. **g−2 della regola = α/2π entro il 2,4 % (PASS; [correzione fase 3: non robusto, sull'altra fetta di tempo 0,91, §14.1])**, ma dipende dall'orientazione (0,94–0,99, non converge: G3
    FAIL) perché il "c" dell'elettrone vestito è **anisotropo** (nuovo: viene dall'ordine dei passi xyz/zyx).
 3. **Logaritmo di Bethe** dalla regola radiale: 1S uguale alla QM fino a 300 Ry entro 0,006 (ibrido ln k₀ = 2,978
    contro 2,984), ma **FAIL pre-registrato** (2S a θ = 0,05 rotto, due emendamenti dichiarati non lo curano).
@@ -49,6 +49,12 @@ fatto in parte nella fase 2, §13: δm e g−2 sì, il Lamb completo non ancora)
    esplorazione, la regola **non** è cambiata.
 5. **Idrogeno col proiettore anche sull'elettrone: PASS**, 1S–2S di vuoto +188,57 MHz contro +188,21 (+0,19 %).
 Le 4 specie massive di questo studio sono **le 4 valli** di BATTIMENTO_1S; i 4 coni sono in più.
+
+**Fase 3 (§14), in tre righe.** Rifatto il loop **esatto** nel tempo discreto della regola: il c dell'elettrone
+vestito è diverso da quello della luce nuda di −0,067 α (in media) e lungo **y** di altri −0,093 α, e **non cala** con il
+reticolo: è l'effetto di Collins–Perez–Sudarsky–Urrutia–Vucetich. La simmetria spiega perché y è speciale (A1 PASS).
+L'ordine degli assi che gira toglie l'anisotropia (A4 PASS) ma non il pezzo isotropo e restringe la zona di Floquet
+(A7 FAIL). Correzione: i δv di fase 2 erano un artefatto, e il g−2 di fase 2 dipende dalla fetta di tempo (6 %).
 
 **Validazione, non scoperta.** Uehling è del 1935: qui la regola lo **ritrova**. Le cose nuove sono sulla regola: il
 teorema "il mare intero 1-D non polarizza", i 32 coni senza massa del 3-D, l'anisotropia del vuoto del reticolo, e il
@@ -314,6 +320,9 @@ RETICOLO_UNIVERSO servirebbero ~16 livelli). Il loop in k e il risolvente radial
    anche sull'elettrone. Pre-registrato FAIL.
 7. Il metodo in spazio q ha un pavimento ~0,005 MHz (stati p).
 8. **Parametri liberi: 0 adattati.** Ingressi: θ (= mₑ), α, Z. K1, K2: regolatore dichiarato (variato).
+10. **Fase 3** (§14.6): c vestito dell'elettrone ≠ c della luce (−0,067 α isotropo, −0,093 α in più lungo y, taglio di
+   fase 2), non cala con il reticolo (Collins e colleghi); modello di accoppiamento elettrone–luce scelto da me; vertice
+   del g−2 dipendente dalla fetta.
 9. **Fase 2** (dettagli al §13.5): θ_nudo ≠ θ_fisico (δm/m ≈ 1,55 α); controtermine di velocità δv_j anisotropo;
    massa del fotone λ → 0; nucleo di Coulomb come ingresso nella parte istantanea; filtro di banda e due emendamenti
    numerici nel logaritmo di Bethe (2S a θ = 0,05 FAIL aperto); g−2 su una sola fetta di tempo. Il debito #6
@@ -364,6 +373,10 @@ RETICOLO_UNIVERSO servirebbero ~16 livelli). Il loop in k e il risolvente radial
 7. **(fase 2) L'ordine dei passi.** Due anisotropie (vuoto e vestito) vengono dall'ordine xyz/zyx. Vale la pena
    provare l'ordine a giro (6 permutazioni)? Costa poco nei conti, ma è un cambio di regola.
 
+8. **(fase 3) Luce ed elettrone con lo stesso c.** Nella regola nuda luce ed elettrone corrono a c, ma dopo il loop
+   l'elettrone no (Collins e colleghi). Ti viene un'idea geometrica per cui le due "nuvole" di loop (quella della
+   luce e quella dell'elettrone) si compensino da sole? Senza una cura, servirebbe una manopola regolata finemente.
+
 ---
 
 ## 12. Come rieseguire
@@ -383,6 +396,9 @@ RETICOLO_UNIVERSO servirebbero ~16 livelli). Il loop in k e il risolvente radial
     sh lab/vuoto_f2_drive_breath.sh          # moneta che respira (~2 h)
     sh lab/vuoto_f2_drive_hproj.sh           # idrogeno col proiettore
     python lab/vuoto_f2_analyze.py           # → lab/out/vuoto_f2_exams.json
+    # fase 3 (pre-registrazione lab/out/vuoto_f3_prereg.json)
+    sh lab/vuoto_f3_drive_dv.sh; sh lab/vuoto_f3_drive_g2.sh; python lab/vuoto_f3_bands.py   # ~15 min in tutto
+    python lab/vuoto_f3_analyze.py; python lab/vuoto_f3_figure.py
     python lab/vuoto_figure.py
 
 ---
@@ -458,7 +474,7 @@ corrente lungo x o z danno 0,983–0,994 (quasi giuste), le 2 con la corrente lu
 **non cala** quando θ → 0 (G3 FAIL): non è un errore del reticolo che sparisce, è una proprietà del loop della regola
 vicino al taglio.
 
-**G4, la scoperta collegata: il "c" vestito della regola è anisotropo.** Il controtermine di velocità che serve sulla
+**[Correzione fase 3, §14: i numeri di δv di questo paragrafo sono un artefatto della corrente dH_eff/dk; quelli esatti sono x = z = −0,036, y = −0,129 α. Resta vero che il c vestito è anisotropo e che y è l'asse speciale.]** **G4, la scoperta collegata: il "c" vestito della regola è anisotropo.** Il controtermine di velocità che serve sulla
 regola è diverso lungo i tre assi: δv/α = (−0,005; 0,044; 0,072) sulla fetta di tempo 0 (contro 0,053 uguale in
 tutte le direzioni sul continuo), quasi indipendente da θ. Sulla fetta 1 x e z si scambiano: (0,074; 0,053; 0,007).
 Cioè: **la luce della regola veste l'elettrone in modo diverso lungo gli assi, perché i passi vanno in ordine xyz e
@@ -636,3 +652,147 @@ manopola nuova).
 1107,15 e 2S 138,39; Lamb totale 1S 8 172 847 e 2S 1 045 009,1. **Non riverificati** (scritti a memoria e quindi
 dichiarati tali): Lamb 2S–2P 1057,8 MHz, autoenergia del 2P₁/₂ −12,8 MHz, parte del momento anomalo +68 MHz, e i
 valori dei libri di ln k₀ (2,984; 2,812).
+
+---
+
+## 14. Fase 3: il c vestito dell'elettrone — effetto Collins–Perez–Sudarsky–Urrutia–Vucetich?
+
+Pre-registrazione: `lab/out/vuoto_f3_prereg.json` (commit 7bee3ed, **prima** delle corse). Codice:
+`lab/vuoto_f3_core.py` (motore nuovo), `lab/vuoto_f3_dv.py`, `lab/vuoto_f3_g2.py`, `lab/vuoto_f3_bands.py`,
+`lab/vuoto_f3_analyze.py` → `lab/out/vuoto_f3_exams.json`. Figura: `lab/out/vuoto_f3_figure.png`.
+
+**La domanda (del coordinatore).** In fase 2 l'elettrone vestito della regola correva con un "c" diverso lungo gli assi
+e la dispersione del g−2 fra le orientazioni non calava con il reticolo (G3 FAIL). Potrebbe essere l'effetto di
+Collins, Perez, Sudarsky, Urrutia e Vucetich (PRL 93, 191301, 2004; citato a memoria dal coordinatore, **non l'ho
+verificato sulla fonte**): se il taglio ad alta energia rompe Lorentz, i loop portano la rottura fino alle basse
+energie con forza α, senza nessuna soppressione dal passo del reticolo.
+
+### 14.1 Un motore nuovo: il loop "esatto" nel tempo discreto della regola
+
+In fase 2 il loop usava un'**hamiltoniana efficace** (H_eff = i log W/2, presa a una "fetta" di tempo) e la corrente
+dH_eff/dk. Qui ho rifatto il loop **senza** H_eff: il periodo della regola è una lista di mosse (salto lungo x, y, z,
+moneta); la luce è il cammino della luce stesso, che salta negli stessi istanti; la luce tocca l'elettrone **a ogni
+salto** con la fase di Peierls del collegamento (il campo A sul lato). Lo spostamento della quasi-energia si calcola
+con la teoria delle perturbazioni al secondo ordine **per l'operatore di un periodo**, che è esatta per un sistema
+a tempo discreto (con la teoria dei buchi per il mare). Il "c" vestito lungo l'asse j si legge dalla **dispersione
+vestita**: δv_j viene da E(p)δE(p) − m δE(0) a p = 0,05 m lungo j. Non dipende dalla fetta.
+
+Controlli (sviluppo, dichiarati nella pre-registrazione):
+* δm: uguale alla fase 2 entro 4·10⁻⁵ (θ = 0,05) e 0,14 % (θ = 0,0125). **La massa vestita non cambia.**
+* Teoria a una particella (senza buchi): parte immaginaria 10⁻¹⁵ relativa (A9 PASS): la normalizzazione dei fotoni e
+  le formule rispettano l'unitarietà.
+* Il risultato non cambia se il periodo comincia da un'altra mossa (10⁻¹⁵), né con la griglia ((64,12,16) →
+  (128,24,40): < 10⁻⁴ α), né con p (0,025 … 0,1 m).
+
+**Una correzione alla fase 2.** I δv di fase 2 (−0,005; 0,044; 0,072) α erano **sbagliati**: un artefatto della
+corrente dH_eff/dk, che dipende dalla fetta di tempo. Il valore esatto è molto diverso (sotto). Anche il g−2 di fase 2
+usa lo stesso vertice: preso sull'altra fetta di tempo (fetta 1) a θ = 0,0125 dà in media **0,910** invece di 0,972
+(A8). Quindi il "G1 PASS" della fase 2 (0,976 entro il 3 %) **non è robusto**: dipende da una scelta del modello del
+vertice, al livello del 6 %. Lo dichiaro come errore mio. Il g−2 con il vertice esatto a tempo discreto resta da fare.
+
+### 14.2 Risultati: il c vestito della regola (motore esatto)
+
+δv_j/α (positivo = l'elettrone vestito corre più veloce della luce nuda):
+
+| θ = m a | regola, taglio K12 (x = z, y) | regola, taglio K12/3 (x = z, y) | ordine ciclico, K12/3 | continuo (taglio K12) |
+|---|---|---|---|---|
+| 0,05 | −0,0365, −0,1286 | 0,0440, 0,0343 | 0,0396 (x = y = z) | 0,0526 |
+| 0,0125 | −0,0360, −0,1287 | 0,0480, 0,0378 | 0,0435 | 0,0530 |
+| 0,003125 | −0,0359, −0,1287 | 0,0482, 0,0380 | 0,0437 | 0,0531 |
+| **a → 0** (retta in θ, 5 punti) | anisotropia **−0,093**, isotropa **−0,067** | anisotropia **−0,0102**, isotropa **+0,045** | anisotropia 0, isotropa **+0,044** | isotropa **+0,053** |
+
+(anisotropia = δv_y − (δv_x + δv_z)/2; isotropa = media dei tre assi; θ = 0,05 … 0,003125 sono 5 passi del reticolo
+a massa fissa.)
+
+**A1 (simmetria): PASS.** δv_x = δv_z entro 6·10⁻¹¹ α, δv_y diverso di 0,09 α. **A2: l'anisotropia SOPRAVVIVE**
+a a → 0 (regola di decisione pre-registrata: |a→0| ≥ 0,01 α; −0,093 α con il taglio di fase 2, −0,0102 α con il
+taglio tre volte più basso: appena sopra la soglia). **A3: la parte isotropa SOPRAVVIVE** (−0,067 α / +0,045 α), e
+c'è anche nel **continuo** (+0,053 α, indipendente da θ e dalla scala del taglio).
+
+**Cosa vuol dire, semplice.** Il "c" con cui corre l'elettrone vestito dipende dalla forma del taglio ad alta energia,
+e questa dipendenza **non sparisce** quando il reticolo diventa fine: è esattamente il problema di Collins e
+colleghi. Due pezzi:
+1. **Pezzo isotropo** (+0,053 α nel continuo): c'è anche **senza reticolo**, basta un taglio uguale in tutte le
+   direzioni ma "fermo" (un taglio sull'impulso a 3 dimensioni rompe Lorentz, perché distingue il tempo dallo spazio).
+   Il reticolo lo sposta (a −0,067 α con il taglio di fase 2).
+2. **Pezzo anisotropo**: viene dal reticolo, ed è grande come (Λ a)²: dividendo il taglio per 3 cala di 9,1 volte
+   (−0,093 → −0,0102). Se il taglio fosse una scala fisica fissa Λ, sparirebbe come a². Ma nella regola il taglio
+   **è** il reticolo (Λ ~ 1/a), quindi Λ a resta di ordine 1 e il pezzo resta di ordine α.
+
+In numeri: con il taglio di fase 2, 1 − c_e/c ≈ 5·10⁻⁴ (isotropo) e una differenza di 7·10⁻⁴ fra l'asse y e gli altri.
+Gli esperimenti sui limiti di questo tipo di rottura di Lorentz per l'elettrone sono molto, molto più stretti (ordini
+di grandezza; lo dico a memoria, **non ho verificato i numeri**). Quindi è un problema vero per la regola come teoria
+della natura, non un dettaglio numerico. Attenzione però a due limiti di questo conto: (a) la **luce** non è stata
+vestita (il suo c cambia anche lui di ordine α col loop del mare; col proiettore di specie quel loop non è
+invariante di gauge e darebbe una massa al fotone, con il mare intero ci sono i doppioni e i coni della fase 1): il
+numero vero è c_e − c_luce, qui ho solo il lato dell'elettrone; (b) il taglio di specie è una scelta (debito di fase
+1); la regola nuda (zona di Brillouin intera) non è stata fatta.
+
+### 14.3 L'argomento di simmetria (verificato)
+
+Lo spettro della regola **libera** è uguale per tutte e 6 le permutazioni degli assi (10⁻¹⁵): guardando solo le bande
+non si vede nessuna direzione speciale. Ma una **simmetria locale** (una trasformazione che agisce sito per sito, e
+quindi vale anche quando l'elettrone è accoppiato alla luce) esiste solo per **x ↔ z**: è "sposta l'origine del tempo
+di un tick + ruota lo spin + scambia L e R" (l'ordine xyz zyx, scambiando x e z, diventa zyx xyz, cioè lo stesso
+periodo spostato di un tick). Ho cercato fra le 24 rotazioni di Clifford dello spin × scambio L/R × trasposta/coniugato
+× 8 fette × segni di k: per x ↔ y e y ↔ z non c'è. Quindi il tensore della velocità vestita deve avere la forma
+diag(a, b, a), con **y distinto** (y è sempre il passo centrale di ogni tick). Il conto esatto lo conferma: x = z entro
+6·10⁻¹¹ α, y diverso di 0,09 α (A1).
+
+### 14.4 La cura geometrica: l'ordine che gira (PROPOSTA, la regola congelata non è stata toccata)
+
+Tick con ordine xyz, zyx, yzx, xzy, zxy, yxz (tre blocchi palindromi xyzzyx, yzxxzy, zxyyxz, periodo di 6 tick).
+Rinominare gli assi in modo ciclico (x→y→z→x) manda il periodo in se stesso spostato di 2 tick: una simmetria locale.
+Con le rotazioni di 180° il tensore di rango 2 deve essere un multiplo dell'identità.
+
+| esame | risultato | esito |
+|---|---|---|
+| A4 isotropia di δv | max − min fra gli assi ≤ 1,6·10⁻¹² α a tutti i θ | **PASS** |
+| A5 massa vestita invariata | δm(ciclico)/δm(regola) = 0,99983 … 0,99993 | **PASS** |
+| A6 parte isotropa | **resta**: +0,044 α (regola allo stesso taglio: +0,045 α) | resta |
+| A7 bande libere non peggiori | massa a riposo esatta, stessa velocità, stessa curvatura (i–iii) **ma** zona di Floquet 3 volte più piccola: le bande toccano quasi-energia π già a \|k\| a = 0,52 (asse) e 0,57 (diagonale) invece di 1,55 (iv) | **FAIL** |
+
+**Cosa vuol dire.** L'ordine che gira **toglie l'anisotropia** (esattamente, per simmetria) e non tocca né la massa
+né il pezzo isotropo. Ma ha un prezzo: con un periodo di 6 tick la "zona" delle quasi-energie è 3 volte più stretta e
+le bande si ripiegano già a k a ≈ 0,5, cioè **dentro** la regione che il vuoto usa (il taglio di specie della fase 1
+va fino a 1,05). Per questo l'ho studiato solo con il taglio K12/3. Nella zona di Brillouin intera, poi, c'è una
+quasi-risonanza del mare (distanza 0,0023 da una risonanza di Floquet a |q| a ≈ 3,4): il vuoto della regola ciclica
+potrebbe non essere stabile. La regola congelata invece, sulla stessa griglia 72³, non mostra risonanze per l'elettrone
+fermo (la più vicina è a 0,23, e a 0,05 per il mare). **Verdetto:** l'ordine che gira è geometricamente giusto per l'anisotropia, ma è una
+regola diversa, con una zona di Floquet più piccola, e **non cura il problema principale** (il pezzo isotropo, che è
+Collins e colleghi in forma pura). Non lo proporrei come cambio di regola finché non c'è una cura anche per il pezzo
+isotropo.
+
+### 14.5 Il g−2 fra le orientazioni (A8, vertice H_eff approssimato)
+
+Dispersione fra le 6 coppie (asse di Q, asse della corrente), λ → 0, fetta 0:
+
+| θ | 0,05 | 0,025 | 0,0125 | 0,00625 | a → 0 |
+|---|---|---|---|---|---|
+| dispersione | 0,063 | 0,056 | 0,054 | 0,0536 | **0,052** (sopravvive) |
+| media | 0,943 | 0,965 | 0,972 | 0,974 | |
+
+Le coppie con la corrente lungo **y** (21, 01) restano a 0,94, le altre vanno verso 0,99: di nuovo **y** è
+l'asse speciale, come dice la simmetria. Però con lo stesso vertice preso **sull'altra fetta** (θ = 0,0125) la media
+scende a **0,910** e la dispersione è 0,064: il vertice H_eff non è affidabile al livello di qualche %. Quello che
+resta solido: la dispersione non cala con a (come per δv), e y è l'asse diverso. Il numero assoluto del g−2 della
+regola va rifatto con il vertice esatto.
+
+### 14.6 Debiti, manopole, cosa resta
+
+* **Nuovo debito, il più importante della fase:** la regola, vestita dalla sua luce, dà all'elettrone un c diverso da
+  quello della luce nuda di ordine α·0,1 (isotropo) e un'anisotropia di ordine α·(Λa)², che non calano con il
+  reticolo. Se la natura è questa regola, servirebbe o una simmetria che li cancelli o un controtermine (una
+  velocità nuda dell'elettrone ≠ c, cioè una **manopola** da regolare finemente): è il dilemma di Collins e colleghi.
+* Il modello di accoppiamento elettrone–luce (Peierls a ogni salto, fotone = cammino della luce, Coulomb
+  4πα/q² dopo ogni moneta) è una **scelta** mia: la regola congelata non dice come la luce tocca l'elettrone.
+  Le parti separate sono grandi e si cancellano (trasversa −0,77 α, Coulomb +0,73 α a K12): il risultato dipende da
+  queste scelte vicino al taglio.
+* Il vertice del g−2 di fase 2 dipende dalla fetta (6 %): il G1 PASS di fase 2 non è robusto.
+* Manopole adattate: 0. Il taglio di specie è stato variato (×1/3) per vedere da dove viene l'anisotropia.
+
+**Da fare:** (1) vestire anche la luce (serve un loop invariante di gauge: mare intero, con i doppioni); (2) g−2 con il
+vertice esatto a tempo discreto; (3) la regola nuda nella zona di Brillouin intera; (4) cercare una cura del pezzo
+isotropo (per esempio: luce ed elettrone che saltano con la stessa struttura in modo che i loro loop si compensino;
+oppure una simmetria tipo "supersimmetria del reticolo", che in letteratura è la via proposta contro questo problema:
+lo dico a memoria).
