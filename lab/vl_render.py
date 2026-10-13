@@ -5,8 +5,8 @@ panel is a plain chart with captions (UI, not scene).
     python3 lab/vl_render.py still IV out.png [--scala 1.0]
     python3 lab/vl_render.py batch IV0 IV1 [--scala 1.0]     # frames to <SCR>/frames_<W>/, skips existing
 
-Visual knobs (aesthetic only, counted in docs/VIDEO_ATOMO.md): SPOT_E, GLOW_E, WAKE_E, COL_FULL, SPOT_L, GLOW_L,
-WAKE_L, STRETCH, camera paths, palette, exposure gains.
+Visual knobs (aesthetic only, counted in docs/VIDEO_ATOMO.md): SPOT_E, GLOW_E, SPOT_L, GLOW_L, camera paths, palette,
+exposure gains. No trails, no streaks: every ball is one soft additive glow (Valerio, 13/10).
 """
 import hashlib
 import json
@@ -26,17 +26,14 @@ SCALA = 1.0
 FONT = "/usr/share/fonts/opentype/inter/Inter-Regular.otf"
 FONTB = "/usr/share/fonts/opentype/inter/Inter-SemiBold.otf"
 # aesthetics
-SPOT_E = 2.6         # px (at 1080p, for a ball at the centre distance)
+SPOT_E = 2.0         # px (at 1080p, for a ball at the centre distance)
 GLOW_E = 16.0
-WAKE_E = (1.0, 0.55, 0.32, 0.18, 0.10, 0.05)
 COL_FULL = 0.25      # colour full when |drho| / (0.5 rho_1s(x) + 0.05 rho_1s,max) reaches this (relative change, softened)
 SPOT_L = 1.1
 GLOW_L = 10.0
-WAKE_L = (1.0, 0.5, 0.25)
-STRETCH = 7.0
-GAIN_E = 0.9
+GAIN_E = 2.4
 GAIN_L = 1.5
-GLOW_MIX_E = 0.7
+GLOW_MIX_E = 0.45
 GLOW_MIX_L = 0.45
 DEPTH_E = 9.0        # lambda_C: depth scale of the transparency (near balls cover far ones)
 DEPTH_L = 260.0
@@ -120,6 +117,23 @@ class Dati:
         R = (1 - s) * np.asarray(self.rho[k], np.float64) + s * np.asarray(self.rho[k + 1], np.float64) - r0
         R = R / (0.5 * r0 + 0.05 * self.rho0max)
         return trilinear(R[None], p / A + NA / 2 - 0.5)[0]
+
+    def rho_at(self, p, t):
+        k = int(min(np.floor(t / DT + 1e-9), 199))
+        u = t / DT - k
+        R = (1 - u) * np.asarray(self.rho[k], np.float64) + u * np.asarray(self.rho[k + 1], np.float64)
+        return np.maximum(trilinear(R[None], p / A + NA / 2 - 0.5)[0], 1e-12)
+
+    def fase_hue(self, p, t):
+        """phase of the dominant spinor component (rest-mass phase removed), as exported for the Lab's scene;
+        interpolated as e^{i phi} in space and time"""
+        if not hasattr(self, "fa"):
+            self.fa = np.memmap(os.path.join(DIR_DATI, "fase.f16"), "<f2", "r", shape=(201, NA, NA, NA))
+        k = int(min(np.floor(t / DT + 1e-9), 199))
+        u = t / DT - k
+        z = (1 - u) * np.exp(1j * np.asarray(self.fa[k], np.float64)) + u * np.exp(1j * np.asarray(self.fa[k + 1], np.float64))
+        zr = trilinear(np.stack([z.real, z.imag]), p / A + NA / 2 - 0.5)
+        return (np.arctan2(zr[1], zr[0]) / (2 * np.pi)) % 1.0
 
     def lframe(self, k):
         if k not in self.cacheL:
@@ -208,7 +222,7 @@ C_DN = np.array([0.18, 0.52, 1.00])
 
 CAM_D = 27.0
 CAM_FOV = 38.0
-KEEP_E = 30000
+KEEP_E = 24000
 NBIN = 5
 
 
@@ -220,41 +234,46 @@ def cam_atomo(iv, w, h):
     return camera(eye, (0, 0, 0), CAM_FOV, w, h)
 
 
+def bins_by_size(rpx, nb=8):
+    """log2 bins of the on-screen glow radius (half-octave steps from 0.7 px)"""
+    return np.clip(np.round(np.log2(np.maximum(rpx / 0.7, 1.0)) * 2).astype(int), 0, nb - 1)
+
+
+def additivo(img, gain, ref=None):
+    """additive light: each colour channel accumulates and saturates on its own (overlapping hues go white)"""
+    D = img[3]
+    if ref is None:
+        ref = np.percentile(D[D > 0], 99.7) if (D > 0).any() else 1.0
+    return 1 - np.exp(-gain * img[:3] / ref), ref
+
+
 def scena_atomo(dat, iv, w, h):
-    """balls in NBIN depth slices: nearer slices get bigger, softer spots (perspective size of a ball)"""
+    """every ball is a soft additive glow: hue = phase of the wave at the ball (as the Lab's zig-zag scene),
+    glow size from perspective and local density (sparser -> larger, softer), no trails"""
     cam = cam_atomo(iv, w, h)
     s = SCALA
-    zb = CAM_D + np.array([-12.0, -5.0, -2.0, 2.0, 5.0, 99.0])   # slice edges (distance from the eye)
-    layers = np.zeros((NBIN, 4, h, w))
+    NB = 8
+    layers = np.zeros((NB, 4, h, w))
     img2 = np.zeros((4, h, w))
-    for kk, wk in enumerate(WAKE_E):
-        j = iv - kk
-        if j < 0:
-            break
-        pall = dat.el_pos(j)
-        drall = dat.drho(pall, TV[j]) / COL_FULL
-        p, dr = pall[:, :KEEP_E], drall[:KEEP_E]
-        a = np.clip(np.abs(dr), 0, 1) ** 0.8
-        tgt = np.where((dr > 0)[:, None], C_UP, C_DN)
-        col = (1 - a)[:, None] * C_BASE + a[:, None] * tgt
-        sx, sy, z = project(p, cam)
-        wt = wk * np.exp(-np.clip(z - CAM_D + 3.0, 0, None) / DEPTH_E)
-        b = np.clip(np.searchsorted(zb, z) - 1, 0, NBIN - 1)
-        for ib in range(NBIN):
-            m = b == ib
-            splat(layers[ib], sx[m], sy[m], wt[m], col[m], w, h)
-        if kk == 0:
-            a2 = np.clip(np.abs(drall), 0, 1) ** 0.8
-            col2 = (1 - a2)[:, None] * C_BASE + a2[:, None] * np.where((drall > 0)[:, None], C_UP, C_DN)
-            sx2, sy2, z2 = project(pall, cam)
-            splat(img2, sx2, sy2, np.exp(-np.clip(z2 - CAM_D + 3.0, 0, None) / DEPTH_E), col2, w, h)
+    pall = dat.el_pos(iv)
+    col_all = palette(dat.fase_hue(pall, TV[iv]), 0.9)
+    dens = np.clip((dat.rho_at(pall, TV[iv]) / dat.rho0max) ** (-1.0 / 3.0), 0.7, 2.6)   # size from local density
+    p, col, dn = pall[:, :KEEP_E], col_all[:KEEP_E], dens[:KEEP_E]
+    sx, sy, z = project(p, cam)
+    wt = np.exp(-np.clip(z - CAM_D + 3.0, 0, None) / DEPTH_E)
+    rpx = SPOT_E * s * (CAM_D / np.maximum(z, 3.0)) ** 1.3 * dn
+    b = bins_by_size(rpx, NB)
+    for ib in np.unique(b):
+        m = b == ib
+        splat(layers[ib], sx[m], sy[m], wt[m] / dn[m] ** 0.5, col[m], w, h)
+    sx2, sy2, z2 = project(pall, cam)
+    splat(img2, sx2, sy2, np.exp(-np.clip(z2 - CAM_D + 3.0, 0, None) / DEPTH_E), col_all, w, h)
     img = np.zeros((4, h, w))
-    for ib in range(NBIN):
-        zc = 0.5 * (zb[ib] + min(zb[ib + 1], CAM_D + 8))
-        sp = SPOT_E * s * (CAM_D / max(zc, 3.0)) ** 1.3
-        img += np.stack([blur(layers[ib][c], sp) for c in range(4)])
-    balls, ref = tone(img, 0.01, GAIN_E, REFS.get("eb", 0) / s ** 2 or None)
-    glow, ref2 = tone(img2, GLOW_E * s, 1.0, REFS.get("eg", 0) / s ** 2 or None)
+    for ib in range(NB):
+        if layers[ib][3].any():
+            img += np.stack([blur(layers[ib][c], 0.7 * 2 ** (ib / 2)) for c in range(4)])
+    balls, ref = additivo(img, GAIN_E, REFS.get("eb", 0) / s ** 2 or None)
+    glow, ref2 = additivo(np.stack([blur(img2[c], GLOW_E * s) for c in range(4)]), 1.0, REFS.get("eg", 0) / s ** 2 or None)
     REFS.setdefault("eb_now", ref * s ** 2)
     REFS.setdefault("eg_now", ref2 * s ** 2)
     out = 1 - (1 - np.clip(balls, 0, 1)) * (1 - GLOW_MIX_E * np.clip(glow, 0, 1))
@@ -279,35 +298,23 @@ def scena_luce(dat, iv, w, h):
     img = np.zeros((4, h, w))
     img2 = np.zeros((4, h, w))
     s = SCALA
-    for kk, wk in enumerate(WAKE_L):
-        j = iv - kk
-        if j < 0:
-            break
-        p, kb = dat.lu_pos(j)
-        keep = (p[1] > -8.0) & (p[1] < 72.0)   # cut-away: a slab 0 < y < 72 (the half facing the camera is not drawn)
-        p, kb = p[:, keep], kb[keep]
-        E, B = dat.EB(p, TV[j])
-        sx, sy, z = project(p, cam)
-        ex, ey, _ = project(p + 30.0 * E / (np.sqrt((E ** 2).sum(0)) + 1e-30), cam)
-        dx, dy = ex - sx, ey - sy
-        nr = np.hypot(dx, dy) + 1e-9
-        ux, uy = dx / nr, dy / nr
-        # hue from the direction of E (around the y axis, the view direction): +z rose, -z teal
-        hue = (np.arctan2(E[2], E[0]) / (2 * np.pi) - 0.33) % 1.0
-        col = palette(hue)
-        col = np.where((kb == 1)[:, None], 0.25 + 0.75 * col, col)
-        wt = wk * np.exp(-np.clip(z - 760 + 200, 0, None) / DEPTH_L)
-        L = STRETCH * s
-        for tt, ww in zip(np.linspace(-0.5, 0.5, 5), (0.1, 0.22, 0.36, 0.22, 0.1)):
-            splat(img, sx + tt * L * ux, sy + tt * L * uy, ww * wt, col, w, h)
-        if kk == 0:
-            splat(img2, sx, sy, wt, col, w, h)
+    p, kb = dat.lu_pos(iv)
+    keep = (p[1] > -8.0) & (p[1] < 72.0)   # cut-away: a slab 0 < y < 72 (the half facing the camera is not drawn)
+    p, kb = p[:, keep], kb[keep]
+    E, B = dat.EB(p, t)
+    sx, sy, z = project(p, cam)
+    hue = (np.arctan2(E[2], E[0]) / (2 * np.pi) - 0.33) % 1.0     # hue from the direction of E
+    col = palette(hue)
+    col = np.where((kb == 1)[:, None], 0.25 + 0.75 * col, col)
+    wt = np.exp(-np.clip(z - 760 + 200, 0, None) / DEPTH_L)
+    splat(img, sx, sy, wt, col, w, h)
+    splat(img2, sx, sy, wt, col, w, h)
     # the atom at its true size inside the light (the same electron balls, a sample)
     pe = dat.el_pos(iv)[:, ::6]
     sx, sy, z = project(pe, cam)
     splat(img, sx, sy, np.full(sx.size, 0.6), np.tile(np.array([1.0, 0.93, 0.85]), (sx.size, 1)), w, h)
-    balls, ref = tone(img, SPOT_L * s, GAIN_L, REFS.get("lb", 0) / s ** 2 or None)
-    glow, ref2 = tone(img2, GLOW_L * s, 1.0, REFS.get("lg", 0) / s ** 2 or None)
+    balls, ref = additivo(np.stack([blur(img[c], SPOT_L * s) for c in range(4)]), GAIN_L, REFS.get("lb", 0) / s ** 2 or None)
+    glow, ref2 = additivo(np.stack([blur(img2[c], GLOW_L * s) for c in range(4)]), 1.0, REFS.get("lg", 0) / s ** 2 or None)
     REFS.setdefault("lb_now", ref * s ** 2)
     REFS.setdefault("lg_now", ref2 * s ** 2)
     out = 1 - (1 - np.clip(balls, 0, 1)) * (1 - GLOW_MIX_L * np.clip(glow, 0, 1))
@@ -391,7 +398,7 @@ def pannello_info(draw, x0, y0, w, h, iv, dzs):
     lines = [
         ((("elettrone: 120 000 palline messe una volta sola dove |ψ|² è grande, mosse dalla corrente della regola" if _FL == "corrente" else
            "elettrone: 120 000 palline messe una volta sola dove |ψ|² è grande, mosse dal flusso di |ψ|²")), (205, 208, 230)),
-        ("oro = qui la densità cresce rispetto all'1s, blu = cala (pieno a ±25 % di cambio locale)" +
+        ("palline = bagliori (niente scie): colore = fase dell'onda, grandezza dalla densità" +
          (" · smussato su ~2 λ_C (scacchiera)" if _SIG > 0 else " · nessuno smussamento"), (255, 205, 120)),
         ("luce: palline di energia (E²+B²)/2, colore = direzione di E; vista tagliata (fetta 0 < y < 72 λ_C)", (205, 208, 230)),
         ("luce dell'atomo-antenna (da t = 240): ogni pallina vale 1/1000 → energia ×1000 · accoppiamento ×10 (K = 10)", (255, 160, 200)),

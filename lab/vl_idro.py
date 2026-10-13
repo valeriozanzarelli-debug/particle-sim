@@ -402,7 +402,7 @@ class Rend:
             ia = min(iv, NV_A)
             t = ia * T / VPP
             al = 1.0 if iv <= NV_A else 1 - (iv - NV_A) / NV_X
-            for kk, wk in enumerate((1.0, 0.5, 0.25)):
+            for kk, wk in enumerate((1.0,)):          # no trails: one soft glow per ball (Valerio, 13/10)
                 j = ia - kk
                 if j < 0:
                     break
@@ -435,11 +435,10 @@ class Rend:
                 img += np.stack([VR.blur(layers[ib][c], sp) for c in range(4)])
         D_ = img[3]
         ref = np.percentile(D_[D_ > 0], 99.6) if (D_ > 0).any() else 1.0   # automatic exposure (declared)
-        col = img[:3] / np.maximum(D_, 1e-12)
-        lum = 1 - np.exp(-1.0 * D_ / ref)
+        balls = 1 - np.exp(-1.6 * img[:3] / ref)                            # additive glows, channel by channel
         glow = np.stack([VR.blur(img[c], 14.0) for c in range(4)])
-        gl = (glow[:3] / np.maximum(glow[3], 1e-12)) * (1 - np.exp(-0.8 * glow[3] / max(ref * 0.5, 1e-12)))
-        out = 1 - (1 - np.clip(col * lum, 0, 1)) * (1 - 0.5 * np.clip(gl, 0, 1))
+        gl = 1 - np.exp(-0.8 * glow[:3] / max(ref * 0.5, 1e-12))
+        out = 1 - (1 - np.clip(balls, 0, 1)) * (1 - 0.45 * np.clip(gl, 0, 1))
         bg = np.array([0.012, 0.013, 0.022])[:, None, None]
         out = np.clip(out + bg * (1 - out), 0, 1) ** (1 / 1.1)
         im = Image.fromarray((out.transpose(1, 2, 0) * 255).astype(np.uint8))
@@ -465,7 +464,7 @@ class Rend:
             sup = str(ex).translate(str.maketrans("0123456789", "⁰¹²³⁴⁵⁶⁷⁸⁹"))
             lines = [(f"1s + 2p_z insieme: la nuvola oscilla su e giù · un periodo di Lyman-α = {ps * 1e15:.2f} fs (riga a 122,21 nm)", (255, 214, 140)),
                      (f"t = {t / T:.2f} periodi   ·   <z> = {zt:+.2f} a0 (dal calcolo)   ·   rallentato {slow / 10 ** ex:.0f}·10{sup} volte", (230, 232, 245)),
-                     ("palline mosse dalla corrente della regola (corretta al minimo per la continuità) · oro = più densità della media, blu = meno", (180, 185, 210)),
+                     ("palline = bagliori mossi dalla corrente della regola (niente scie) · oro = più densità della media, blu = meno (la fase non è esportata)", (180, 185, 210)),
                      ("regola con parità esatta (mescolamento s–p 2·10⁻⁹) · celle a0/8 (6,6 pm) · nessuno smussamento", (150, 155, 180))]
         elif iv < NV_A + NV_X + NV_Z:
             lines = [("ora lo stato fermo 1s: in un livello puro non c'è corrente, le palline stanno ferme (debito: le copie del reticolo)", (255, 214, 140)),
