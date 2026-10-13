@@ -1,0 +1,9 @@
+{
+ "studio": "VIDEO ATOMO, emendamento 2",
+ "data": "2026-10-13",
+ "scritto_prima_di": "la prossima esportazione dell'atomo accoppiato (1s partito nella valle k=0, nucleo imparato, smorzamento x2.2 tolto)",
+ "regola": "flusso dell'elettrone scelto in automatico dai dati, PRIMA di guardare le palline: si prova la j esportata su due intervalli (1 e meta' corsa); se la correzione minima per la continuita' e' <= 25% della j, si usa la j (corretta al minimo, come nella pre-registrazione originale: la rotazione resta); altrimenti solo continuita' (emendamento 1). Con l'esportazione attuale la correzione era 84%: continuita'.",
+ "scritta_a_schermo_se_corrente": "1s partito nella valle k = 0, nucleo imparato: le palline girano attorno a z a 0,85-0,87 della velocita' di Dirac (Debiti, surfisti esatti): scarto in verifica, niente ritocchi",
+ "vietato": "nessuna scala o ritocco della velocita' per chiudere lo scarto del 13%",
+ "invariati": "esami E1-E7 e soglie; in piu' si riportera' la velocita' di giro misurata dalle palline contro Zalpha c sin(theta)"
+}
