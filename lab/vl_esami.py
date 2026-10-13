@@ -62,7 +62,8 @@ if __name__ == "__main__":
         pb[k] = pball(p, d, k, np.asarray(rho_s[k]))
     K = np.array(ks)
     C = np.array([cor[k] for k in ks]); T = np.array([tv[k] for k in ks])
-    res = {"fotogrammi_valutati": len(ks)}
+    from vl_comune import impronta
+    res = {"fotogrammi_valutati": len(ks), "impronta_esportazione": impronta()[0], "manifest_mtime_utc": impronta()[1]}
     res["E1"] = {"corr_min": float(C.min()), "corr_min_fotogramma": int(K[C.argmin()]), "TV0": tv[0] if 0 in tv else None,
                  "TV_max": float(T.max()), "TV_max_fotogramma": int(K[T.argmax()]),
                  "PASS": bool(C.min() >= 0.97 and T.max() <= T[0] + 0.05)}

@@ -68,3 +68,18 @@ def catmull(frames, t, get):
     km, kp, kpp = max(k - 1, 0), k + 1, min(k + 2, nf - 1)
     p0, p1, p2, p3 = get(km), get(k), get(kp), get(kpp)
     return 0.5 * ((2 * p1) + (-p0 + p2) * u + (2 * p0 - 5 * p1 + 4 * p2 - p3) * u ** 2 + (-p0 + 3 * p1 - 3 * p2 + p3) * u ** 3)
+
+
+DIR_DATI = "/mnt/project-files/ripresa/dati/atomo_accoppiato"
+
+
+def impronta():
+    """fingerprint of the export (sha256 of manifest + fotogrammi.csv, first 10 hex) and manifest mtime (UTC)"""
+    import hashlib
+    import time
+    h = hashlib.sha256()
+    for f in ("manifest.json", "fotogrammi.csv"):
+        with open(os.path.join(DIR_DATI, f), "rb") as fh:
+            h.update(fh.read())
+    mt = time.strftime("%d/%m/%Y %H:%M", time.gmtime(os.path.getmtime(os.path.join(DIR_DATI, "manifest.json"))))
+    return h.hexdigest()[:10], mt

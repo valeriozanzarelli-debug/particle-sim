@@ -18,7 +18,7 @@ from PIL import Image, ImageDraw, ImageFont
 from scipy.ndimage import gaussian_filter
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from vl_comune import SCR, DT, A, NA, CHUNK, timeline, idx_light, trilinear, catmull  # noqa: E402
+from vl_comune import SCR, DT, A, NA, CHUNK, timeline, idx_light, trilinear, catmull, impronta  # noqa: E402
 
 W0, H0 = 1920, 1080
 SCALA = 1.0
@@ -57,6 +57,11 @@ def _csv(path):
 
 
 FR = _csv("/mnt/project-files/ripresa/dati/atomo_accoppiato/fotogrammi.csv")
+DIR_DATI = "/mnt/project-files/ripresa/dati/atomo_accoppiato"
+ETICHETTA = os.environ.get("VL_ETICHETTA", "BOZZA")
+
+
+IMPRONTA = impronta()
 
 
 # ------------------------------------------------------------------ data access
@@ -302,6 +307,8 @@ def pannello_info(draw, x0, y0, w, h, iv, dzs):
     def T(x, y, txt, sz=15, col=(220, 222, 235), bold=False):
         draw.text((x0 + x * s, y0 + y * s), txt, fill=col, font=font(sz, bold))
     T(22, 14, "Un atomo che assorbe luce e la riemette", 23, (245, 245, 252), True)
+    if ETICHETTA:
+        draw.text((x0 + w - 110 * s, y0 + 18 * s), ETICHETTA, fill=(255, 150, 60), font=font(18, True))
     T(22, 46, "ione idrogenoide Z = 60 · elettrone e luce dalla regola zig-zag, calcolati insieme", 13.5, (170, 175, 200))
     ex = int(np.floor(np.log10(slow)))
     sup = str(ex).translate(str.maketrans("0123456789", "⁰¹²³⁴⁵⁶⁷⁸⁹"))
@@ -351,12 +358,14 @@ def pannello_info(draw, x0, y0, w, h, iv, dzs):
         ("luce: palline di energia (E²+B²)/2, colore = direzione di E; vista tagliata (fetta 0 < y < 72 λ_C)", (205, 208, 230)),
         ("luce dell'atomo (da t = 240): ogni pallina vale 1/1000 → energia ×1000", (255, 160, 200)),
         ("accoppiamento ×10 (K = 10) per vedere lo svuotamento; λ_C = 3,9·10⁻¹³ m", (170, 175, 200)),
-        ("velocità del giro attorno a z: lettura del reticolo, non validata", (170, 175, 200)),
+        ("giro attorno a z (~0,12 di Dirac): lettura smussata della corrente, NON validata;", (170, 175, 200)),
+        ("la rotazione vera dell'1s esatto tra le 4 copie del reticolo è in verifica: debito aperto", (170, 175, 200)),
+        (f"dati: esportazione {IMPRONTA[0]} del {IMPRONTA[1]} UTC · {ETICHETTA.lower()}", (120, 125, 150)),
     ]
     y = 128 + 78 + 10 + 62 + 24
     for txt, col in lines:
         T(22, y, txt, 12.6, col)
-        y += 19.5
+        y += 18.4
 
 
 def frame(dat, iv):
@@ -380,6 +389,16 @@ def frame(dat, iv):
     dr.text((22 * s, 40 * s), "nucleo al centro (non disegnato) · palline = elettrone", fill=(140, 145, 170), font=font(12.5))
     dr.text((wa + 16 * s, 14 * s), "la luce intorno  ·  scatola 416 λ_C ≈ 5 lunghezze d'onda", fill=(200, 202, 225), font=font(14))
     dr.text((wa + 16 * s, 34 * s), "l'atomo è il puntino al centro (vero rapporto di scala)", fill=(140, 145, 170), font=font(12))
+    info(im, dat, iv)
+    return im
+
+
+def info(im, dat, iv):
+    """the right-bottom panel (chart + captions): redrawn from scratch, so it can be refreshed on old frames"""
+    s = SCALA
+    W, H = int(W0 * s), int(H0 * s)
+    wa, hl = H, int(round(600 * s))
+    dr = ImageDraw.Draw(im)
     if "dz" not in SERIE:
         f = os.path.join(SCR, "el_dipolo.npy")
         if os.path.exists(f):
@@ -390,7 +409,6 @@ def frame(dat, iv):
     dzs = [(k * DT, z) for k, z in enumerate(SERIE["dz"]) if k * DT <= TV[iv] + 1e-9]
     dr.rectangle([wa, hl, W, H], fill=(8, 9, 16))
     pannello_info(dr, wa, hl, W - wa, H - hl, iv, dzs)
-    return im
 
 
 if __name__ == "__main__":
@@ -413,6 +431,17 @@ if __name__ == "__main__":
         t0 = time.time()
         frame(dat, iv).save(args[2])
         print("still", iv, TV[iv], f"{time.time() - t0:.1f}s")
+    elif args[0] == "ritocca":   # redraw only the info panel of already rendered frames (same code as frame())
+        a, b = int(args[1]), int(args[2])
+        d = os.path.join(SCR, f"frames_{int(W0 * SCALA)}")
+        for iv in range(a, min(b, NV)):
+            f = os.path.join(d, f"{iv:05d}.png")
+            if os.path.exists(f):
+                im = Image.open(f).convert("RGB")
+                info(im, dat, iv)
+                im.save(f + ".tmp.png")
+                os.replace(f + ".tmp.png", f)
+        print("ritocca", a, b)
     elif args[0] == "batch":
         a, b = int(args[1]), int(args[2])
         d = os.path.join(SCR, f"frames_{int(W0 * SCALA)}")

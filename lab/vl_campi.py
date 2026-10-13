@@ -275,7 +275,9 @@ def luce(d, info):
 if __name__ == "__main__":
     os.makedirs(SCR, exist_ok=True)
     d = carica()
-    info = {"fonte": d.dir, "commit_dati": "addffd7"}
+    from vl_comune import impronta
+    imp = impronta()
+    info = {"fonte": d.dir, "commit_dati": "addffd7 (al 13/10, 1s esatto)", "impronta_esportazione": imp[0], "manifest_mtime_utc": imp[1]}
     elettrone(d, info)
     pc = pexc_campo(d)
     np.save(os.path.join(SCR, "pexc_campo.npy"), pc)
