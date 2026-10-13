@@ -83,9 +83,12 @@ def learn(prev, b, B, w, rng):
         Ceq.append((-0.5 * offs[:, a] ** 2) @ M)
     Ceq = np.array(Ceq); deq = np.concatenate([[0.0], c2t])
     Aw = A * sw[:, None]
-    K = np.block([[Aw.T @ Aw, Ceq.T], [Ceq, np.zeros((4, 4))]])
-    rhs = np.concatenate([Aw.T @ (tgt * sw), deq])
-    x = np.linalg.lstsq(K, rhs, rcond=1e-14)[0][:P]
+    # constrained least squares by the null-space method (no normal equations: the relative weights span 1e6)
+    from scipy.linalg import null_space
+    xp = np.linalg.lstsq(Ceq, deq, rcond=None)[0]
+    Nn = null_space(Ceq)
+    z = np.linalg.lstsq(Aw @ Nn, tgt * sw - Aw @ xp, rcond=1e-13)[0]
+    x = xp + Nn @ z
     return Stencil(M @ x, offs)
 
 
