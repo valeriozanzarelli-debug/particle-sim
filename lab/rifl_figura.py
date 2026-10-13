@@ -43,7 +43,7 @@ for n in range(nshow):
 RR, LL = np.array(RR), np.array(LL)
 sc = max(RR.max(), LL.max())
 img = np.ones(RR.shape + (3,))
-r, l = np.clip(RR / sc, 0, 1) ** 0.6, np.clip(LL / sc, 0, 1) ** 0.6
+r, l = np.clip(RR / RR.max(), 0, 1) ** 0.6, np.clip(LL / LL.max(), 0, 1) ** 0.6   # L in scala propria
 img[..., 0] -= 0.1 * r + 0.85 * l
 img[..., 1] -= 0.55 * r + 0.55 * l
 img[..., 2] -= 0.95 * r + 0.1 * l
@@ -53,7 +53,7 @@ ax.axvline(0.5, color="k", lw=0.6, ls=":")
 ax.axhline(N, color="k", lw=0.6, ls="--")
 ax.set_xlabel("sito x (taglio tra 0 e 1)")
 ax.set_ylabel("tick n")
-ax.set_title(f"(a) stato di massimo riflusso, regola θ={theta}, N={N}: R arancio, L blu")
+ax.set_title(f"(a) massimo riflusso sulla regola, θ={theta}, N={N}: |R|² arancio, |L|² blu (scala propria)", fontsize=10)
 ax2 = ax.inset_axes([0.62, 0.08, 0.35, 0.3])
 ax2.plot(np.arange(len(back)), back, color="k", lw=1)
 ax2.axvline(N, color="gray", ls="--", lw=0.6)
@@ -97,6 +97,7 @@ for col, (th, rows) in zip(cols, sorted(q2.items(), key=lambda z: float(z[0]))):
     ax.semilogx(epsN, [rows[str(n)]["intera"] for n in Ns], ":", color=col, lw=1.0)
 ax.semilogx(ee, cc, "k-", lw=2, alpha=0.4, label="Dirac continuo")
 ax.axhline(C_BM, color="gray", ls=":")
+ax.set_xlim(0.03, 40)
 ax.set_xlabel("ε = √(4/(θN))")
 ax.set_ylabel("massimo riflusso in N tick")
 ax.set_title("(c) la regola a θ finito: finestra fisica (—), banda intera (···)")
