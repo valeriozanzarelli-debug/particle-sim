@@ -51,6 +51,19 @@ def taylor(prev, b, D):
     return np.array(out)
 
 
+def taylor6(prev, b, D, kmax=0.12, npts=24, nfit=7):
+    """c2, c4, c6 (phase 4): G(kappa d) = sum_n c_2n kappa^2n fitted with nfit even powers on kappa in [kmax/30, kmax]"""
+    kk = np.linspace(kmax / 30, kmax, npts)
+    out = []
+    for d in D:
+        g = fine_band_phase(prev, kk[:, None] * d[None], b)
+        V = np.stack([kk ** (2 * n) for n in range(1, nfit + 1)], 1)
+        sc = np.abs(V).max(0)
+        c = np.linalg.lstsq(V / sc, g, rcond=None)[0] / sc
+        out.append(c[:3])
+    return np.array(out)
+
+
 def samples(prev, b, ks, rng, nk, frac_uniform, w_uniform):
     """the learn_h data: state-like + uniform + k = 0; returns kap, Gs (nk, 2, 2), weights"""
     ng = int(nk * (1 - frac_uniform))
@@ -94,10 +107,12 @@ def fit(kap, Gs, sw, phi0, w, mode, cons=None, D=None):
     Aw, yw = A * sw[:, None], y * sw
     # exact constraints: G(0) = 0; sum g (d.j)^2 = -2 c2(d); sum g (d.j)^4 = 24 c4(d)
     Crow, crhs = [mult.copy()], [0.0]
-    for d, (c2, c4) in zip(D, cons):
+    for d, cc in zip(D, cons):
         dj = ho @ d
-        Crow.append(mult * dj ** 2); crhs.append(-2 * c2)
-        Crow.append(mult * dj ** 4); crhs.append(24 * c4)
+        Crow.append(mult * dj ** 2); crhs.append(-2 * cc[0])
+        Crow.append(mult * dj ** 4); crhs.append(24 * cc[1])
+        if len(cc) > 2:                                   # phase 4: k^6 pinned too
+            Crow.append(mult * dj ** 6); crhs.append(-720 * cc[2])
     Cm, cv = np.array(Crow), np.array(crhs)
     if mode == "T":
         # null-space solution of min |Aw x - yw| s.t. C x = c
