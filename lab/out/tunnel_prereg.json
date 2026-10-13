@@ -1,0 +1,489 @@
+{
+ "studio": "TEMPO DI TUNNEL e TEMPO DI ARRIVO sulla regola zig-zag 1+1 D",
+ "data": "2026-10-13",
+ "autore": "Claude (Opus 5.5) per Valerio",
+ "regola": "lab/zz_core.py dirac1 (corri a c, poi ruota th = m a, fase e^{-iVa}); variante: th e V per sito",
+ "parametri_liberi": 0,
+ "impostazioni_esperimento": "E, V0, L (barriera rettangolare o gaussiana): condizioni dell'esperimento, non manopole",
+ "passi_reticolari": [
+  0.1,
+  0.05,
+  0.025,
+  0.0125
+ ],
+ "previsioni_continuo_dirac": {
+  "V0=1.2": {
+   "eps": 0.8,
+   "kappa": 0.5999999999999999,
+   "rows": [
+    {
+     "L": 1,
+     "T": 0.6491664189210707,
+     "tphi": 1.2603536106379627,
+     "tau_y": 1.0717733800458327,
+     "tau_z": 0.38374591303100036,
+     "tau_my": 0.6325408600228906,
+     "tau_mz": 0.6989533793400708
+    },
+    {
+     "L": 2,
+     "T": 0.2476495103310418,
+     "tphi": 2.0502518537086,
+     "tau_y": 1.7897304379347536,
+     "tau_z": 1.3616625210443678,
+     "tau_my": 1.2602077367141233,
+     "tau_mz": 2.172297206982001
+    },
+    {
+     "L": 4,
+     "T": 0.024486068585886294,
+     "tphi": 2.5965508092936953,
+     "tau_y": 2.310270630079603,
+     "tau_z": 3.934205589709215,
+     "tau_my": 1.814287612283433,
+     "tau_mz": 5.5274531933176725
+    },
+    {
+     "L": 8,
+     "T": 0.00020317244792738407,
+     "tphi": 2.6928675422070967,
+     "tau_y": 2.404211962812817,
+     "tau_z": 9.277337472744978,
+     "tau_my": 1.922806522394379,
+     "tau_mz": 12.221544856452685
+    },
+    {
+     "L": 12,
+     "T": 1.6721701757563034e-06,
+     "tphi": 2.6942843041300364,
+     "tau_y": 2.4056093345305656,
+     "tau_z": 14.611104514375887,
+     "tau_my": 1.9244805162007024,
+     "tau_mz": 18.88887959767538
+    },
+    {
+     "L": 16,
+     "T": 1.3761545176815755e-08,
+     "tphi": 2.6943010699713117,
+     "tau_y": 2.405625941462195,
+     "tau_z": 19.944444365419283,
+     "tau_my": 1.9245006774155504,
+     "tau_mz": 25.555555444973677
+    }
+   ],
+   "ratio_my_y_L16": 0.7999999685095658,
+   "eps_over_m": 0.8,
+   "slope_mz": 1.6667513235651241,
+   "m_over_kappa": 1.666666666666667,
+   "slope_z": 1.333388361584288,
+   "eps_over_kappa": 1.3333333333333337
+  },
+  "V0=1.6": {
+   "eps": 0.3999999999999999,
+   "kappa": 0.9165151389911681,
+   "rows": [
+    {
+     "L": 1,
+     "T": 0.4715436759809513,
+     "tphi": 1.129078704513202,
+     "tau_y": 0.8877645269797938,
+     "tau_z": 0.39709146054317385,
+     "tau_my": 0.4095549844870194,
+     "tau_mz": 0.827586050543867
+    },
+    {
+     "L": 2,
+     "T": 0.09589471641900923,
+     "tphi": 1.4491811135343486,
+     "tau_y": 1.1344796136875968,
+     "tau_z": 0.9651360297568184,
+     "tau_my": 0.47593778169333534,
+     "tau_mz": 2.130307173133619
+    },
+    {
+     "L": 4,
+     "T": 0.002572589717865345,
+     "tphi": 1.5105085943295324,
+     "tau_y": 1.1802086141725756,
+     "tau_z": 1.8919584308416426,
+     "tau_my": 0.47327167409467524,
+     "tau_mz": 4.418200010788156
+    },
+    {
+     "L": 8,
+     "T": 1.685080789743211e-06,
+     "tphi": 1.5118573767423875,
+     "tau_y": 1.1811387399187563,
+     "tau_z": 3.640292622113035,
+     "tau_my": 0.472457052877532,
+     "tau_mz": 8.788232080907381
+    },
+    {
+     "L": 12,
+     "T": 1.1023546740916821e-09,
+     "tphi": 1.511857886708098,
+     "tau_y": 1.181138977914715,
+     "tau_z": 5.386038883051756,
+     "tau_my": 0.47245559267941156,
+     "tau_mz": 13.152597214913934
+    },
+    {
+     "L": 16,
+     "T": 7.211433591875211e-13,
+     "tphi": 1.5118578859460463,
+     "tau_y": 1.181138978001002,
+     "tau_z": 7.131782011855119,
+     "tau_my": 0.472455591827393,
+     "tau_mz": 17.516955027799444
+    }
+   ],
+   "ratio_my_y_L16": 0.40000000053083695,
+   "eps_over_m": 0.3999999999999999,
+   "slope_mz": 1.0910903683615079,
+   "m_over_kappa": 1.0910894511799618,
+   "slope_z": 0.4364361737177605,
+   "eps_over_kappa": 0.4364357804719846
+  },
+  "V0=2.0": {
+   "eps": 0.0,
+   "kappa": 1.0,
+   "rows": [
+    {
+     "L": 1,
+     "T": 0.3519312834785951,
+     "tphi": 0.9825775181410498,
+     "tau_y": 0.7369331389206859,
+     "tau_z": 0.32403435836764194,
+     "tau_my": 0.2031876212076482,
+     "tau_mz": 0.8509370921995414
+    },
+    {
+     "L": 2,
+     "T": 0.05394086020659462,
+     "tphi": 1.1331781581611104,
+     "tau_y": 0.8498836190225982,
+     "tau_z": 0.4730295699594977,
+     "tau_my": 0.06228554021781507,
+     "tau_mz": 1.9627221442274225
+    },
+    {
+     "L": 4,
+     "T": 0.0010060502782213553,
+     "tphi": 1.15431304840219,
+     "tau_y": 0.8657347872131779,
+     "tau_z": 0.49949697493844347,
+     "tau_my": 0.0023233736419275555,
+     "tau_mz": 3.998657697518024
+    },
+    {
+     "L": 8,
+     "T": 3.3760548616527873e-07,
+     "tphi": 1.1547004056635366,
+     "tau_y": 0.8660253063492825,
+     "tau_z": 0.4999998311945727,
+     "tau_my": 1.5592734129520732e-06,
+     "tau_mz": 7.999999095459065
+    },
+    {
+     "L": 12,
+     "T": 1.1325403632409793e-10,
+     "tphi": 1.1547005341197547,
+     "tau_y": 0.8660254038361227,
+     "tau_z": 0.49999999994847244,
+     "tau_my": 8.643946171986334e-10,
+     "tau_mz": 12.000000004543647
+    },
+    {
+     "L": 16,
+     "T": 3.7992496647281656e-14,
+     "tphi": 1.1547005326944841,
+     "tau_y": 0.8660254037395014,
+     "tau_z": 0.49999999983745014,
+     "tau_my": -5.513017592749347e-11,
+     "tau_mz": 15.999999991623975
+    }
+   ],
+   "ratio_my_y_L16": -6.365884382772275e-11,
+   "eps_over_m": 0.0,
+   "slope_mz": 1.0000001120206137,
+   "m_over_kappa": 1.0,
+   "slope_z": 2.108035968007016e-08,
+   "eps_over_kappa": 0.0
+  },
+  "V0=2.4": {
+   "eps": -0.3999999999999999,
+   "kappa": 0.9165151389911681,
+   "rows": [
+    {
+     "L": 1,
+     "T": 0.2839648801124996,
+     "tphi": 0.8559541855258663,
+     "tau_y": 0.6379741075868258,
+     "tau_z": 0.2078284195869373,
+     "tau_my": 0.03991531686150718,
+     "tau_mz": 0.8229948009648489
+    },
+    {
+     "L": 2,
+     "T": 0.04501821212243273,
+     "tphi": 0.9685044740560267,
+     "tau_y": 0.7468973921510692,
+     "tau_z": -0.024674207147922383,
+     "tau_my": -0.20519036009175853,
+     "tau_mz": 1.8522763701492042
+    },
+    {
+     "L": 4,
+     "T": 0.0011450096746712178,
+     "tphi": 1.0058027317465523,
+     "tau_y": 0.785287581597056,
+     "tau_z": -0.8541923708893812,
+     "tau_my": -0.3093553168947367,
+     "tau_mz": 4.008334033630424
+    },
+    {
+     "L": 8,
+     "T": 7.489254965525197e-07,
+     "tphi": 1.0079024014694653,
+     "tau_y": 0.7874231048388537,
+     "tau_z": -2.598630143200217,
+     "tau_my": -0.3149630156993656,
+     "tau_mz": 8.371573953532133
+    },
+    {
+     "L": 12,
+     "T": 4.899354110074602e-10,
+     "tphi": 1.0079052535279018,
+     "tau_y": 0.7874259812994073,
+     "tau_z": -4.344372229555617,
+     "tau_my": -0.31497038674509037,
+     "tau_mz": 12.73593055652204
+    },
+    {
+     "L": 16,
+     "T": 3.2050815963902683e-13,
+     "tphi": 1.0079052558859232,
+     "tau_y": 0.7874259855541438,
+     "tau_z": -6.0901153449112835,
+     "tau_my": -0.3149703947655253,
+     "tau_mz": 17.10028836125989
+    }
+   ],
+   "ratio_my_y_L16": -0.4000000006906907,
+   "eps_over_m": -0.3999999999999999,
+   "slope_mz": 1.0910893009659695,
+   "m_over_kappa": 1.0910894511799618,
+   "slope_z": -0.4364356502138833,
+   "eps_over_kappa": -0.4364357804719846
+  },
+  "V0=2.8": {
+   "eps": -0.7999999999999998,
+   "kappa": 0.6000000000000003,
+   "rows": [
+    {
+     "L": 1,
+     "T": 0.25365391852202573,
+     "tphi": 0.7585660437065977,
+     "tau_y": 0.5866333462475309,
+     "tau_z": 0.07214508431290753,
+     "tau_my": -0.08854406591630831,
+     "tau_mz": 0.7761132031916212
+    },
+    {
+     "L": 2,
+     "T": 0.05701244375838795,
+     "tphi": 0.9257739355578507,
+     "tau_y": 0.7858305434243886,
+     "tau_z": -0.5840881004783381,
+     "tau_my": -0.4575004559785995,
+     "tau_mz": 1.8246492531655467
+    },
+    {
+     "L": 4,
+     "T": 0.00458917242662465,
+     "tphi": 1.1072426962743025,
+     "tau_y": 0.9820487365317222,
+     "tau_z": -2.829436023879492,
+     "tau_my": -0.7580835658257562,
+     "tau_mz": 4.6921825967189195
+    },
+    {
+     "L": 8,
+     "T": 3.732357869919262e-05,
+     "tphi": 1.153817823772405,
+     "tau_y": 1.03008777049145,
+     "tau_z": -8.088444665700687,
+     "tau_my": -0.823622002082687,
+     "tau_mz": 11.271226793014302
+    },
+    {
+     "L": 12,
+     "T": 3.071337168367424e-07,
+     "tphi": 1.154689172982179,
+     "tau_y": 1.0309711621989228,
+     "tau_z": -13.420648637133988,
+     "tau_my": -0.8247713980364338,
+     "tau_mz": 17.936524721801028
+    },
+    {
+     "L": 16,
+     "T": 2.5276307751572426e-09,
+     "tphi": 1.1547004064619983,
+     "tau_y": 1.0309824967967034,
+     "tau_z": -18.753968406525125,
+     "tau_my": -0.8247859377768011,
+     "tau_mz": 24.603174784725496
+    }
+   ],
+   "ratio_my_y_L16": -0.7999999421323235,
+   "eps_over_m": -0.7999999999999998,
+   "slope_mz": 1.6664934989638993,
+   "m_over_kappa": 1.6666666666666659,
+   "slope_z": -1.3331904676030548,
+   "eps_over_kappa": -1.3333333333333324
+  }
+ },
+ "pacchetti": {
+  "PK1": {
+   "E": 5.0,
+   "V0": 5.0,
+   "L": 10.0,
+   "sigma": 20.0,
+   "x0": -150.0,
+   "t_final": 244.94897427831782,
+   "v": 0.9797958971132712,
+   "tphi": 1.0206207233079425,
+   "T": 7.914829880146815e-09,
+   "peak_advance_pred": 9.0000000027941,
+   "margin_vs_light_pred": 4.051025724476279,
+   "superluminal_peak_pred": true
+  },
+  "PK2": {
+   "E": 2.0,
+   "V0": 2.0,
+   "L": 8.0,
+   "sigma": 20.0,
+   "x0": -150.0,
+   "t_final": 274.8187281342619,
+   "v": 0.8660254037844386,
+   "tphi": 1.1547004056635366,
+   "T": 3.3760548616527873e-07,
+   "peak_advance_pred": 7.0000001149351805,
+   "margin_vs_light_pred": -29.818728019326702,
+   "superluminal_peak_pred": false
+  }
+ },
+ "limite_NR_buttiker": [
+  {
+   "E_over_V0": 0.2,
+   "tau_y_V0": 0.5136720985543403,
+   "tau_z_V0": 2.0431320343673907,
+   "tphi_V0": 2.50836827646201,
+   "T": 0.011924150122812956
+  },
+  {
+   "E_over_V0": 0.4,
+   "tau_y_V0": 0.8164955228786013,
+   "tau_z_V0": 2.0632243084896045,
+   "tphi_V0": 2.019795954260663,
+   "T": 0.03616439578547613
+  },
+  {
+   "E_over_V0": 0.6,
+   "tau_y_V0": 1.1347869287766725,
+   "tau_z_V0": 2.0459322070258548,
+   "tphi_V0": 1.918062794555394,
+   "T": 0.08288570062887549
+  },
+  {
+   "E_over_V0": 0.8,
+   "tau_y_V0": 1.4867283466864574,
+   "tau_z_V0": 1.9526038611799537,
+   "tphi_V0": 1.9639034965944309,
+   "T": 0.1677437597276902
+  }
+ ],
+ "ramos_forma": [
+  {
+   "kappa0_w": 1.0,
+   "E_over_V0": 0.3,
+   "tau_y_V0": 0.7486809633521043,
+   "tau_z_V0": 0.8734809550075464,
+   "T": 0.3415341696184985
+  },
+  {
+   "kappa0_w": 1.0,
+   "E_over_V0": 0.5,
+   "tau_y_V0": 0.815727007335035,
+   "tau_z_V0": 0.6510476719223524,
+   "T": 0.5109103062893432
+  },
+  {
+   "kappa0_w": 1.0,
+   "E_over_V0": 0.7,
+   "tau_y_V0": 0.8148288424862014,
+   "tau_z_V0": 0.48282746450860065,
+   "T": 0.6385607786416602
+  },
+  {
+   "kappa0_w": 1.0,
+   "E_over_V0": 0.9,
+   "tau_y_V0": 0.7840788077724102,
+   "tau_z_V0": 0.3581522403586513,
+   "T": 0.7328532066417329
+  },
+  {
+   "kappa0_w": 2.0,
+   "E_over_V0": 0.3,
+   "tau_y_V0": 0.9282941452310952,
+   "tau_z_V0": 1.9941849054627796,
+   "T": 0.046217776828546574
+  },
+  {
+   "kappa0_w": 2.0,
+   "E_over_V0": 0.5,
+   "tau_y_V0": 1.3511397769438158,
+   "tau_z_V0": 1.8423535453901325,
+   "T": 0.13553042708003096
+  },
+  {
+   "kappa0_w": 2.0,
+   "E_over_V0": 0.7,
+   "tau_y_V0": 1.709181086167587,
+   "tau_z_V0": 1.5282839938025135,
+   "T": 0.29659526707359746
+  },
+  {
+   "kappa0_w": 2.0,
+   "E_over_V0": 0.9,
+   "tau_y_V0": 1.8922016783907365,
+   "tau_z_V0": 1.0910780882194389,
+   "T": 0.5074363160309352
+  }
+ ],
+ "esami": {
+  "E1_cono_di_luce": "pacchetto a supporto compatto: dopo n tick |psi|^2 == 0 esattamente oltre x_R0 + n a e prima di x_L0 - n a (con e senza barriera, tutte le copie); l'ultima cella non nulla avanza di 1 cella per tick: v_fronte = c con errore < 1e-10 (atteso 0)",
+  "E2_hartman_continuo": "tau_phi della regola (stazionario esatto, a = 0.1, 0.05, 0.025, 0.0125, Richardson in a^2) = Dirac continuo entro 1e-3 relativo per tutti V0 in V0S e L in LS",
+  "E3_saturazione": "regola a = 0.025: |tau_phi(16) - tau_phi(8)| / tau_phi(16) < 1e-3 per tutti V0 (Hartman: satura)",
+  "E4_velocita_apparente": "L / tau_phi(L=4) > c per tutti V0 (fase superluminale presente nella regola)",
+  "E5_picco_pacchetto": "PK1, PK2: spostamento del picco trasmesso rispetto al pacchetto libero = L - v tau_phi entro 0.02 L (a -> 0); segno del margine rispetto al raggio di luce dal picco incidente come previsto (PK1 positivo = picco 'prima della luce', PK2 negativo)",
+  "E6_larmor_dwell": "stazionario: tau_y(trasmessi) = tau_y(riflessi) = dwell entro 1e-3 (a -> 0); pacchetto: P_T tau_y^T + P_R tau_y^R = sum_n P_barriera a entro 1e-4 relativo",
+  "E7_larmor_pacchetto": "orologio vero (due copie V0 +- delta/2, delta = 1e-4): tau_y = media stazionaria pesata entro 1e-3, tau_z entro 1e-2",
+  "E8_larmor_continuo": "tau_y, tau_z della regola (a -> 0) = Dirac continuo entro 1e-3 relativo (V0S, L = 1, 4, 8)",
+  "E9_limite_NR": "V0/m = 0.04, 0.02, 0.01, kappa0 L = 3: tau_y V0, tau_z V0 della regola (a -> 0, poi lineare in V0/m -> 0) = Buttiker (Schroedinger) entro 1%",
+  "E10_ramos_forma": "barriera gaussiana, V0/m = 0.01: tau_y della regola = Schroedinger entro 1% (E/V0 = 0.3..0.9, kappa0 w = 1 e 2); forma prevista (Schroedinger): per kappa0 w = 2 tau_y cresce con E/V0 (energie piu' basse = tempi piu' corti, come Ramos), per kappa0 w = 1 non monotono (massimo vicino a E/V0 ~ 0.5-0.7); valori in ms per Rb87 con w = 1.3 um riportati senza soglia (altezza della barriera di Ramos non nota)",
+  "E11a_rotazioni_libere": "zona senza barriera: orologio delle rotazioni T_m = i dlnt/dm = tempo proprio L m / k entro 1e-3 (a -> 0); identita' f_w (contatore z) = s c dlnt/dth + s^2 n_w entro 1e-6",
+  "E11b_rapporto": "barriera spessa (L = 16), a -> 0: tau_my / tau_y = eps/m = (E - V0)/m entro 1% per tutti V0",
+  "E11c_pendenze": "tra L = 8 e 16: d tau_mz/dL = m/kappa e d tau_z/dL = eps/kappa entro 1%",
+  "E11d_centro_gap": "V0 = E (eps = 0): tau_mz(L) = L/c entro 1% per L >= 4; |tau_my| < 0.01 tau_y",
+  "E11e_segno": "segno di tau_my = segno di eps per L >= 8 (l'orologio delle rotazioni va all'indietro quando V0 > E)",
+  "E11f_non_causale_sottile": "previsione (non un vincolo): per barriere sottili tau_mz < L/c (Dirac: L=1, eps=0: 0.851); la regola deve ritrovarlo",
+  "E12_bohm": "traiettorie dei surfisti (quantili 1-D = Bohm): ogni traiettoria trasmessa passa >= L/c - 2a nella barriera; P_T tau_B^T + P_R tau_B^R = dwell entro 1e-3",
+  "E13_arrivo": "rivelatore assorbente ideale della regola (toglie R oltre X_D: condizione 'solo onda uscente', Tumulka): probabilita' assorbita totale = probabilita' passata oltre X_D senza rivelatore entro 1e-6; tempi medi di arrivo flusso vs assorbitore riportati senza soglia"
+ },
+ "note": [
+  "Le previsioni sono del continuo di Dirac: se la regola le ritrova e' VALIDAZIONE (Dirac lo sa gia').",
+  "La parte nuova e' l'interpretazione: orologio delle rotazioni = orologio di massa = tempo proprio, e le sue proprieta' nella barriera (rapporto eps/m, pendenza m/kappa, L/c al centro del gap). Da controllare in letteratura nel documento.",
+  "V0 = 5 e V0 = 2..2.8 superano 2 m c^2: in teoria dei campi la barriera creerebbe coppie (Klein). La lettura a una particella le ignora: DEBITO/limite dichiarato."
+ ]
+}
