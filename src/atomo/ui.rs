@@ -89,7 +89,7 @@ pub fn draw_hud(mut ctx: EguiContexts, mut lab: ResMut<Lab>, mut cam: ResMut<Cam
             if ui.add(b).on_hover_text("pannello (Tab) · pausa (Spazio) · lancia un fotone (F) · 1 vista intera · 2 nucleo · 3 elettrone").clicked() {
                 lab.panel_open = !lab.panel_open;
             }
-            for (s, n) in [(Scena::Fotone, "fotone libero"), (Scena::Atomo, "atomo zig-zag"), (Scena::Orbitali, "orbitali")] {
+            for (s, n) in [(Scena::Fotone, "fotone libero"), (Scena::Atomo, "atomo zig-zag"), (Scena::Orbitali, "orbitali"), (Scena::Elettrone, "elettrone libero")] {
                 if ui.add(egui::Button::new(n).fill(Color32::from_black_alpha(90)).selected(lab.scena == s)).clicked() && lab.scena != s {
                     lab.cambia_scena(s);
                     if s == Scena::Fotone { cam.yaw = 0.42; cam.pitch = 0.28; }
@@ -100,7 +100,11 @@ pub fn draw_hud(mut ctx: EguiContexts, mut lab: ResMut<Lab>, mut cam: ResMut<Cam
             }
             ui.separator();
             let bt = cam.bersaglio;
-            if lab.scena != Scena::Fotone {
+            if lab.scena == Scena::Elettrone {
+                for (p, n) in [(crate::elscena::Particella::Elettrone, "elettrone"), (crate::elscena::Particella::Muone, "muone (massa × 206,77)")] {
+                    if ui.add(egui::Button::new(n).fill(Color32::from_black_alpha(90)).selected(lab.el_part == p)).clicked() { lab.el_part = p; }
+                }
+            } else if lab.scena != Scena::Fotone {
                 if ui.add(egui::Button::new("1 intero").fill(Color32::from_black_alpha(90)).selected(bt == Bersaglio::Atomo)).clicked() { vai(lab, &mut cam, Bersaglio::Atomo); }
                 if ui.add(egui::Button::new("2 nucleo").fill(Color32::from_black_alpha(90)).selected(bt == Bersaglio::Nucleo)).clicked() { vai(lab, &mut cam, Bersaglio::Nucleo); }
                 if ui.add(egui::Button::new("3 elettrone").fill(Color32::from_black_alpha(90)).selected(bt == Bersaglio::Elettrone)).clicked() { vai(lab, &mut cam, Bersaglio::Elettrone); }
@@ -152,8 +156,24 @@ pub fn draw_hud(mut ctx: EguiContexts, mut lab: ResMut<Lab>, mut cam: ResMut<Cam
             Scena::Fotone => pannello_fotone(ctx, lab),
             Scena::Atomo => pannello_atomo(ctx, lab, &mut cam),
             Scena::Orbitali => pannello_orbitali(ctx, lab),
+            Scena::Elettrone => pannello_elettrone(ctx, lab),
         }
     }
+}
+
+fn pannello_elettrone(ctx: &egui::Context, lab: &mut Lab) {
+    let mut open = true;
+    egui::Window::new("Un elettrone libero a bagliori (regola zig-zag)").open(&mut open).default_pos([12.0, 80.0]).default_width(440.0).show(ctx, |ui| {
+        ui.label(RichText::new("Un pacchetto dell'elettrone fermo nel vuoto, con la stessa regola di tutto il resto: ogni pallina corre a c \
+            e il flip di massa la gira da destra a sinistra. Ogni bagliore è un surfista che cavalca la corrente dell'onda (v = j/ρ): \
+            nessuna scia, nessuna forma disegnata.").color(GOLD));
+        ui.label(RichText::new("Il pacchetto mescola energie positive e negative, quindi TREMA (Zitterbewegung, Schrödinger 1930): il suo \
+            centro gira su un cerchio di ~ħ/2mc a ~2mc²/ħ. Mai visto sull'elettrone vero (troppo piccolo e veloce: 10⁻¹³ m, 10²¹ giri al \
+            secondo). Il muone: stessa scena con la massa 206,77 volte più grande (un ingresso): tutto 207 volte più piccolo e più veloce.").small());
+        ui.add(egui::Slider::new(&mut lab.ritmo_el, 1.0..=60.0).logarithmic(true).text("tick al secondo"));
+        if ui.button("ricomincia").clicked() { lab.spara = true; }
+    });
+    if !open { lab.panel_open = false; }
 }
 
 fn vai(lab: &mut Lab, cam: &mut Cam, b: Bersaglio) {
@@ -168,6 +188,7 @@ fn clic_scena(lab: &Lab) -> Option<(usize, Option<[f64; 3]>)> {
         Scena::Fotone => lab.fot.as_ref().map(|z| { let o = &z.lock().unwrap().out; (o.n_clic, o.ultimo_clic) }),
         Scena::Atomo => lab.zz.as_ref().map(|z| { let o = &z.lock().unwrap().out; (o.n_clic, o.ultimo_clic) }),
         Scena::Orbitali => lab.orb.as_ref().map(|z| { let o = &z.lock().unwrap().out; (o.n_clic, o.ultimo_clic) }),
+        Scena::Elettrone => None,
     }
 }
 
@@ -183,7 +204,7 @@ fn pannello_misura(ui: &mut egui::Ui, lab: &mut Lab) {
     let etichetta = match lab.scena {
         Scena::Fotone => "dopo la misura: il fotone è assorbito (ne parte un altro)",
         Scena::Atomo => "dopo la misura: collassa (un pacchetto stretto nel punto del clic)",
-        Scena::Orbitali => "dopo la misura: collassa (non disponibile qui: usa la scena atomo)",
+        Scena::Orbitali | Scena::Elettrone => "dopo la misura: collassa (non disponibile qui: usa la scena atomo)",
     };
     ui.add_enabled(lab.scena != Scena::Orbitali, egui::Checkbox::new(&mut lab.opz.collassa, etichetta));
     if !lab.opz.collassa || lab.scena == Scena::Orbitali {
@@ -246,6 +267,20 @@ fn stato_scena(lab: &Lab) -> (String, String) {
                 _ => ("Orbitali: la regola radiale sta ascoltando i livelli...".into(), String::new()),
             }
         }
+        Scena::Elettrone => {
+            let o = lab.el.as_ref().map(|z| z.lock().unwrap().out.clone());
+            match o {
+                Some(o) if o.pronto => {
+                    let m = o.particella.massa();
+                    let c = o.centro_palline;
+                    (format!("UN {} LIBERO a bagliori · regola zig-zag · tremito atteso a ~2mc²/ħ = {:.3e} rad/s, raggio ~ħ/2mc = {}",
+                             o.particella.nome().to_uppercase(), 2.0 * m / zz::T_UNIT_S, fmt_len(0.5 * zz::LAMBDA_C_M / m)),
+                     format!("tick {} · t = {} · centro dei bagliori ({:+.3}, {:+.3}, {:+.3}) ħ/mc · {:.0} ms per tick",
+                             o.ticks, fmt_t(o.t * zz::T_UNIT_S / m), c[0], c[1], c[2], o.ms_tick))
+                }
+                _ => ("L'elettrone sta partendo...".into(), String::new()),
+            }
+        }
     }
 }
 
@@ -273,6 +308,12 @@ fn barra_tempo(ctx: &egui::Context, lab: &mut Lab) {
                         ui.add(egui::Slider::new(&mut lab.ritmo_orb, 1.0..=60.0).logarithmic(true).show_value(false)).on_hover_text("passi al secondo");
                         let t = lab.orb.as_ref().map(|z| z.lock().unwrap().out.t).unwrap_or(0.0);
                         ui.label(RichText::new(format!("t = {}", fmt_t(t * zz::T_UNIT_S))).monospace().color(CYAN));
+                    }
+                    Scena::Elettrone => {
+                        ui.add(egui::Slider::new(&mut lab.ritmo_el, 1.0..=60.0).logarithmic(true).show_value(false)).on_hover_text("tick al secondo");
+                        let ticks = lab.el.as_ref().map(|z| z.lock().unwrap().out.ticks).unwrap_or(0);
+                        ui.label(RichText::new(format!("t = {}", fmt_t(ticks as f64 * spt))).monospace().color(CYAN));
+                        if ui.button("ricomincia").clicked() { lab.spara = true; }
                     }
                     Scena::Atomo => {
                         if ui.button("⏭").on_hover_text("più veloce").clicked() { lab.ritmo = if lab.ritmo < 60.0 { 60.0 } else { 25.0 }; }

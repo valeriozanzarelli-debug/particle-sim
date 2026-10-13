@@ -1,0 +1,22 @@
+{
+  "studio": "bagliori",
+  "prereg": "lab/out/gl_prereg.json (commit 051f1c7)",
+  "emendamenti": "lab/out/gl_amend.json",
+  "fotone": {
+    "S1": {"esito": "PASS", "omega_circ+": 0.02414, "omega_circ-": -0.02414, "unita": "rad/tick", "file": "gl_vortice.json"},
+    "S2": {"esito": "PASS", "omega_lineare": 0.00001, "rapporto_su_circolare": 0.0004, "soglia": 0.15},
+    "S3": {"esito": "PASS", "omega_atteso": 0.02653, "rapporto": 0.910, "finestra": [0.6, 1.4]},
+    "I1": {"esito": "PASS", "frazione_saturi": 0.0, "soglia": 0.05, "file": "gl_i123_cpu.json"},
+    "I2": {"esito": "PASS", "nucleo_su_corona": 2.91, "soglia": 2.0},
+    "I3": {"esito": "PASS (dopo l'emendamento 2; prima 0.213 FAIL)", "saturazione": 0.359, "soglia": 0.35},
+    "I5": {"esito": "PASS", "cammino": "gpu (llvmpipe)", "I1": 0.0, "I3": 0.359, "I2": 2.91, "scarto_I2_su_cpu": 0.0, "file": "gl_i5_gpu.json"}
+  },
+  "elettrone_prima_passata": {
+    "nota": "fatto prima del cambio di priorita'; la scena e le clip sono il prossimo passo (docs/BAGLIORI.md)",
+    "E1": {"esito": "PASS", "omega_x": 2.0811, "omega_z": 2.0788, "rif": 2.071, "lettore": "spinore interpolato (pre-registrato)"},
+    "E2": {"esito": "PASS", "A_x": 0.4235, "A_z": 0.4270, "rif": [0.433, 0.438]},
+    "E3": {"esito": "FAIL", "scarto_max": 0.2849, "soglia": 0.06},
+    "dopo_emendamento_1_corrente_esatta": {"omega_x": 2.0655, "omega_z": 2.0649, "A_x": 0.4217, "A_z": 0.4273, "E1": "PASS", "E2": "PASS", "E3": "FAIL", "scarto_max": 0.1195},
+    "onda_rust_contro_python": {"A_x": 0.4334, "A_z": 0.4377, "omega_x": 2.0712, "omega_z": 2.0701, "python": [0.433, 0.438, 2.071]}
+  }
+}
