@@ -36,6 +36,7 @@ DT = 8.0           # time between frames, lambda_C/c
 R0 = 40.0          # sphere where the atom's light balls are born (lambda_C)
 T_ON = 240.0       # from here on the pulse has left the sphere R0 (flux through R0 measured, see json)
 RES_FRAMES = (60, 201)
+FLUSSO = os.environ.get("VL_FLUSSO", "continuita")   # amendment 1 (lab/out/vl_amend1.json); "corrente" = first version
 
 
 def kgrid(n, h):
@@ -144,21 +145,26 @@ def elettrone(d, info):
         rm = 0.5 * (rho_s[k].astype(np.float64) + rho_s[k + 1])
         drdt = (rho_s[k + 1].astype(np.float64) - rho_s[k]) / DT
         jf = [_faces(jm[a], a) for a in range(3)]
+        if FLUSSO == "continuita":   # amendment 1: the cell-centred j is not a lattice flux; keep only continuity
+            jfx = jf
+            jf = [np.zeros_like(x) for x in jf]
         rf = [np.maximum(_faces(rm, a), 1e-7 * rm.max()) for a in range(3)]
         for a in range(3):   # no flux through the box boundary
             sl = [slice(None)] * 3; sl[a] = 0; rf[a][tuple(sl)] = 0; sl[a] = -1; rf[a][tuple(sl)] = 0
         divj = _div(jf)
+        divj_exp = _div(jfx) if FLUSSO == "continuita" else divj
         if k in (10, 25, 60, 150):
-            miss.append({"intervallo": k, "sum_abs_div_j": float(np.abs(divj).sum()), "sum_abs_drho_dt": float(np.abs(drdt).sum()),
-                         "corr(drho/dt, -div j)": float(np.corrcoef(drdt.ravel(), -divj.ravel())[0, 1])})
+            miss.append({"intervallo": k, "sum_abs_div_j": float(np.abs(divj_exp).sum()), "sum_abs_drho_dt": float(np.abs(drdt).sum()),
+                         "corr(drho/dt, -div j)": float(np.corrcoef(drdt.ravel(), -divj_exp.ravel())[0, 1])})
         f = divj + drdt
         chi, it, res = _cg(rf, f, chi)
         g = _grad_faces(chi)
         F = [jf[a] - rf[a] * g[a] for a in range(3)]
         its.append(it); resid.append(res)
-        num = sum(((rf[a] * g[a]) ** 2).sum() for a in range(3))
-        den = sum((jf[a] ** 2).sum() for a in range(3))
-        corr_share.append(float(np.sqrt(num / den)))
+        if FLUSSO != "continuita":
+            num = sum(((rf[a] * g[a]) ** 2).sum() for a in range(3))
+            den = sum((jf[a] ** 2).sum() for a in range(3))
+            corr_share.append(float(np.sqrt(num / den)))
         Fx[k], Fy[k], Fz[k] = F
         if k == 100:
             cont = _div(F) + drdt
@@ -180,7 +186,8 @@ def elettrone(d, info):
     info["elettrone"] = {
         "sigma_celle": SIG, "sigma_lambdaC": SIG * A,
         "continuita_corrente_esportata (facce, smussata, media dell'intervallo)": miss,
-        "correzione_rho_grad_chi_su_j_mediana": float(np.median(corr_share)),
+        "flusso": FLUSSO,
+        "correzione_rho_grad_chi_su_j_mediana": float(np.median(corr_share)) if corr_share else None,
         "cg_iterazioni_max": int(max(its)), "cg_residuo_max": float(max(resid)),
         "fotogramma100": rot,
         "scacchiera_periodo4_rel_grezza": valley_amp(d.rho(100)), "scacchiera_periodo4_rel_smussata": valley_amp(rho_s[100]),

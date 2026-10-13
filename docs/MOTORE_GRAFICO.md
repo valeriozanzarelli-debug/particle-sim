@@ -22,10 +22,16 @@ di Valerio (Intel UHD) attraverso il ponte. Niente elica: solo palline di energi
 
 | preset | celle per λ | scatola | palline di energia | scia |
 |---|---|---|---|---|
-| bassa | 8 | 96³ | 20 000 | 2 |
-| media | 12 | 128³ | 60 000 | 3 |
-| alta | 24 | 192³ | 250 000 | 3 |
+| bassa | 12 | 96³ | 20 000 | 4 |
+| media | 16 | 128³ | 60 000 | 4 |
+| (medio-alta) | 20 | 160³ | 120 000 | 4 |
+| alta | 24 | 192³ | 250 000 | 4 |
 | ultra | 32 | 384³ | 1 000 000 | 4 |
+
+*Aggiornato dopo lo studio: il preset più basso usa 12 celle per λ (pavimento della luce di `MOTORE_OTTIMIZZATO.md`,
+esame EL: a 8 celle la diffrazione cambia del −21 %, la dinamica non si sfoca soltanto). La scia ha 4 campioni a ogni
+preset, λ/3 l'uno dall'altro (regola di Valerio: i preset cambiano risoluzione e numeri, mai i fenomeni). Da
+`MOTORE_GRAFICO_GPU.md`: alta e ultra girano con la regola, le palline e le misure sulla GPU.*
 
 * **Scie vere**: la coda di ogni pallina è la pallina stessa 2, 4, 6, 8 tick prima (il percorso curvo vero), non una
   retta lungo la velocità.

@@ -1,8 +1,8 @@
 {
+ "fonte": "/mnt/project-files/ripresa/dati/atomo_accoppiato",
+ "commit_dati": "addffd7 (al 13/10, 1s esatto)",
  "impronta_esportazione": "12322e1817",
  "manifest_mtime_utc": "13/10/2026 01:46",
- "fonte": "/mnt/project-files/ripresa/dati/atomo_accoppiato",
- "commit_dati": "addffd7",
  "elettrone": {
   "sigma_celle": 2.0,
   "sigma_lambdaC": 1.0,
@@ -32,14 +32,15 @@
     "corr(drho/dt, -div j)": 0.31211269627648225
    }
   ],
-  "correzione_rho_grad_chi_su_j_mediana": 0.8430220572787108,
-  "cg_iterazioni_max": 187,
-  "cg_residuo_max": 9.982264823918016e-08,
+  "flusso": "continuita",
+  "correzione_rho_grad_chi_su_j_mediana": null,
+  "cg_iterazioni_max": 192,
+  "cg_residuo_max": 9.998279534736628e-08,
   "fotogramma100": {
-   "quota_azimutale": 0.8127921970814582,
-   "quota_azimutale_con_segno": 0.8029726097052986,
-   "velocita_media_pesata_c": 0.05058336332334927,
-   "continuita_residuo_rel": 0.00039130816041593394
+   "quota_azimutale": 0.02386795052457357,
+   "quota_azimutale_con_segno": 7.801337233479468e-08,
+   "velocita_media_pesata_c": 0.016628603025724754,
+   "continuita_residuo_rel": 0.000391308160415935
   },
   "scacchiera_periodo4_rel_grezza": 1.6533599455834085,
   "scacchiera_periodo4_rel_smussata": 8.54861456123974e-05,

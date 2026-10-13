@@ -1,0 +1,14 @@
+{
+ "studio": "motore_grafico_gpu",
+ "esame": "G4_cloud_headless",
+ "macchina": "cloud, 4 core, Vulkan software llvmpipe (LLVM 20.1.2) sotto Xvfb 1600x900",
+ "corse": {
+  "alta_gpu": {"comando": "atomo --qualita alta --foto ... --frames 90 --tick 24 --ritmo 60 --pannello", "uscita": 0, "secondi": 356, "log": "fotone: regola sulla gpu (192^3, 250000 palline)", "foto": "docs/fig/motore_gpu_alta_cloud.png (ridotta a 800x450)"},
+  "alta_cpu": {"comando": "atomo --qualita alta --regola cpu ... (stessi argomenti)", "uscita": 0, "secondi": 321, "log": "fotone: regola sulla cpu (192^3, 250000 palline)"},
+  "bassa_cpu": {"comando": "atomo --qualita bassa ... (stessi argomenti)", "uscita": 0, "secondi": 122, "log": "fotone: regola sulla cpu (96^3, 20000 palline)"}
+ },
+ "psnr_alta_gpu_contro_cpu_tick24_dB": 104.5,
+ "scarto_massimo_livelli_su_255": 1,
+ "esito": "passa",
+ "nota": "la foto ad alta con le palline disegnate dal buffer della GPU e' uguale a quella del cammino CPU (un solo livello di colore di scarto su qualche pixel). Tempi: llvmpipe, non dicono niente di una GPU vera."
+}

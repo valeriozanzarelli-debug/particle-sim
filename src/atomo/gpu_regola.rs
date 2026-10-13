@@ -3,7 +3,8 @@
 //! La stessa regola zig-zag di `Fotone3D::tick` (fotone3d.rs), scritta in WGSL
 //! (assets/atomo/regola_luce.wgsl): per ogni asse (x,y,z nei tick pari, z,y,x nei dispari) una dispatch che
 //! divide F sugli autovettori di S_j e sposta la parte +1 avanti di una cella, la −1 indietro, la 0 ferma.
-//! Due buffer di storage a ping-pong (3 vec2<f32> per cella), nessuna copia verso la CPU durante i tick.
+//! Due terne di buffer di storage a ping-pong (una per componente, vec2<f32> per cella), nessuna copia verso la CPU
+//! durante i tick. Collegata alla scena del fotone da gpu_fotone.rs (palline e misure sulla GPU).
 //!
 //! Funziona in due modi, con lo stesso codice:
 //! • dentro Bevy: `GpuRegola::nel_motore(&render_device, &render_queue, n)` (il device di Bevy);
@@ -56,22 +57,41 @@ impl GpuHeadless {
 }
 
 /// Il campo F di un fotone sulla GPU e la regola che lo fa avanzare.
+///
+/// Il campo è diviso in tre buffer, uno per componente (n³ × 8 byte ciascuno), e ce ne sono due terne a
+/// ping-pong: a 192³ un buffer pesa 56 MB (dentro i 128 MB minimi di WebGPU per un binding), a 384³ 453 MB.
 pub struct GpuRegola {
     pub n: usize,
     /// tick fatti (decide l'ordine degli assi, come `Fotone3D::ticks`)
     pub ticks: u64,
     pipeline: wgpu::ComputePipeline,
-    campo: [wgpu::Buffer; 2],
-    /// bind group [asse][verso: 0 = +1, 1 = −1][sorgente: buffer 0 o 1]
+    campo: [[wgpu::Buffer; 3]; 2],
+    /// bind group [asse][verso: 0 = +1, 1 = −1][sorgente: terna 0 o 1]
     gruppi: Vec<wgpu::BindGroup>,
-    /// quale dei due buffer contiene il campo attuale
+    /// quale delle due terne contiene il campo attuale
     attuale: usize,
     staging: wgpu::Buffer,
 }
 
 impl GpuRegola {
-    /// Byte di un buffer di campo per lato n.
-    pub fn byte_campo(n: usize) -> u64 { (n * n * n * 3 * 8) as u64 }
+    /// Byte di un buffer di campo (una componente) per lato n.
+    pub fn byte_componente(n: usize) -> u64 { (n * n * n * 8) as u64 }
+    /// Byte di tutto il campo (tre componenti) per lato n.
+    pub fn byte_campo(n: usize) -> u64 { 3 * Self::byte_componente(n) }
+
+    /// Il device regge un buffer di componente a questo n? (limiti di wgpu)
+    pub fn entra(device: &wgpu::Device, n: usize) -> Result<(), String> {
+        let lim = device.limits();
+        let b = Self::byte_componente(n);
+        if b > lim.max_storage_buffer_binding_size as u64 || b > lim.max_buffer_size {
+            return Err(format!("una componente del campo a {n}³ pesa {} MB, il device ne regge {} MB per binding / {} MB per buffer",
+                               b >> 20, lim.max_storage_buffer_binding_size >> 20, lim.max_buffer_size >> 20));
+        }
+        if lim.max_storage_buffers_per_shader_stage < 8 {
+            return Err(format!("servono 8 buffer di storage per shader, il device ne ha {}", lim.max_storage_buffers_per_shader_stage));
+        }
+        Ok(())
+    }
 
     /// Crea pipeline e buffer (campo a zero) sul device dato.
     pub fn nuovo(device: &wgpu::Device, n: usize) -> Self {
@@ -84,13 +104,11 @@ impl GpuRegola {
             ty: wgpu::BindingType::Buffer { ty, has_dynamic_offset: false, min_binding_size: None },
             count: None,
         };
+        let ro = wgpu::BufferBindingType::Storage { read_only: true };
+        let rw = wgpu::BufferBindingType::Storage { read_only: false };
         let bgl = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
             label: Some("regola_luce_bgl"),
-            entries: &[
-                voce(0, wgpu::BufferBindingType::Uniform),
-                voce(1, wgpu::BufferBindingType::Storage { read_only: true }),
-                voce(2, wgpu::BufferBindingType::Storage { read_only: false }),
-            ],
+            entries: &[voce(0, wgpu::BufferBindingType::Uniform), voce(1, ro), voce(2, ro), voce(3, ro), voce(4, rw), voce(5, rw), voce(6, rw)],
         });
         let layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
             label: Some("regola_luce_layout"), bind_group_layouts: &[&bgl], push_constant_ranges: &[],
@@ -100,20 +118,17 @@ impl GpuRegola {
             compilation_options: wgpu::PipelineCompilationOptions::default(), cache: None,
         });
         use wgpu::BufferUsages as U;
-        let size = Self::byte_campo(n);
-        // VERTEX: il disegno a istanze (R2) potrà leggere il campo direttamente da qui
+        let size = Self::byte_componente(n);
         let mk = |label| device.create_buffer(&wgpu::BufferDescriptor {
-            label: Some(label), size, usage: U::STORAGE | U::COPY_DST | U::COPY_SRC | U::VERTEX,
-            mapped_at_creation: false,
+            label: Some(label), size, usage: U::STORAGE | U::COPY_DST | U::COPY_SRC, mapped_at_creation: false,
         });
-        let campo = [mk("campo_0"), mk("campo_1")];
+        let campo = [[mk("campo_0x"), mk("campo_0y"), mk("campo_0z")], [mk("campo_1x"), mk("campo_1y"), mk("campo_1z")]];
         let staging = device.create_buffer(&wgpu::BufferDescriptor {
             label: Some("campo_staging"), size, usage: U::MAP_READ | U::COPY_DST, mapped_at_creation: false,
         });
         let mut gruppi = Vec::with_capacity(12);
         for ax in 0..3u32 {
-            for (iv, verso) in [1i32, -1].into_iter().enumerate() {
-                let _ = iv;
+            for verso in [1i32, -1] {
                 let mut dati = [0u8; 16];
                 dati[0..4].copy_from_slice(&(n as u32).to_le_bytes());
                 dati[4..8].copy_from_slice(&ax.to_le_bytes());
@@ -124,13 +139,18 @@ impl GpuRegola {
                 ub.slice(..).get_mapped_range_mut().copy_from_slice(&dati);
                 ub.unmap();
                 for s in 0..2 {
+                    let (a, b) = (&campo[s], &campo[1 - s]);
                     gruppi.push(device.create_bind_group(&wgpu::BindGroupDescriptor {
                         label: Some("regola_luce_bg"),
                         layout: &bgl,
                         entries: &[
                             wgpu::BindGroupEntry { binding: 0, resource: ub.as_entire_binding() },
-                            wgpu::BindGroupEntry { binding: 1, resource: campo[s].as_entire_binding() },
-                            wgpu::BindGroupEntry { binding: 2, resource: campo[1 - s].as_entire_binding() },
+                            wgpu::BindGroupEntry { binding: 1, resource: a[0].as_entire_binding() },
+                            wgpu::BindGroupEntry { binding: 2, resource: a[1].as_entire_binding() },
+                            wgpu::BindGroupEntry { binding: 3, resource: a[2].as_entire_binding() },
+                            wgpu::BindGroupEntry { binding: 4, resource: b[0].as_entire_binding() },
+                            wgpu::BindGroupEntry { binding: 5, resource: b[1].as_entire_binding() },
+                            wgpu::BindGroupEntry { binding: 6, resource: b[2].as_entire_binding() },
                         ],
                     }));
                 }
@@ -144,13 +164,15 @@ impl GpuRegola {
         Self::nuovo(device.wgpu_device(), n)
     }
 
-    /// Carica il campo (es. dopo `Fotone3D::lancia`) e azzera il contatore dei tick.
+    /// Carica il campo (es. dopo `Fotone3D::lancia`) e imposta il contatore dei tick.
     pub fn carica(&mut self, queue: &wgpu::Queue, f: &[[Cf; 3]], ticks: u64) {
         assert_eq!(f.len(), self.n * self.n * self.n);
-        let mut b = Vec::with_capacity(f.len() * 24);
-        for p in f { for c in p { b.extend_from_slice(&c.re.to_le_bytes()); b.extend_from_slice(&c.im.to_le_bytes()); } }
         self.attuale = 0;
-        queue.write_buffer(&self.campo[0], 0, &b);
+        for c in 0..3 {
+            let mut b = Vec::with_capacity(f.len() * 8);
+            for p in f { b.extend_from_slice(&p[c].re.to_le_bytes()); b.extend_from_slice(&p[c].im.to_le_bytes()); }
+            queue.write_buffer(&self.campo[0][c], 0, &b);
+        }
         self.ticks = ticks;
     }
 
@@ -197,30 +219,37 @@ impl GpuRegola {
         queue.submit(Some(enc.finish()));
     }
 
-    /// Il buffer che contiene il campo attuale (3 vec2<f32> per cella, cella = (i n + j) n + k): da legare
-    /// al disegno senza passare per la CPU. Cambia a ogni asse: rileggerlo dopo ogni `registra_tick`.
-    pub fn campo_attuale(&self) -> &wgpu::Buffer { &self.campo[self.attuale] }
+    /// Quale terna contiene il campo attuale (0 o 1): cambia a ogni asse.
+    pub fn attuale(&self) -> usize { self.attuale }
 
-    /// Rilegge il campo sulla CPU (bloccante: aspetta la GPU). Lento: serve per test e misure.
+    /// Le due terne di buffer (x, y, z; un vec2<f32> per cella, cella = (i n + j) n + k): da legare ad altri
+    /// shader senza passare per la CPU. Quella attuale è `terne()[attuale()]`.
+    pub fn terne(&self) -> &[[wgpu::Buffer; 3]; 2] { &self.campo }
+
+    /// La terna che contiene il campo attuale.
+    pub fn campo_attuale(&self) -> &[wgpu::Buffer; 3] { &self.campo[self.attuale] }
+
+    /// Rilegge il campo sulla CPU (bloccante: aspetta la GPU). Lento: serve per test, misure e viste di diagnosi.
     pub fn leggi(&self, device: &wgpu::Device, queue: &wgpu::Queue) -> Vec<[Cf; 3]> {
-        let size = Self::byte_campo(self.n);
-        let mut enc = device.create_command_encoder(&wgpu::CommandEncoderDescriptor { label: Some("leggi_campo") });
-        enc.copy_buffer_to_buffer(&self.campo[self.attuale], 0, &self.staging, 0, size);
-        queue.submit(Some(enc.finish()));
-        let slice = self.staging.slice(..);
-        let (tx, rx) = std::sync::mpsc::channel();
-        slice.map_async(wgpu::MapMode::Read, move |r| { let _ = tx.send(r); });
-        device.poll(wgpu::Maintain::Wait);
-        rx.recv().expect("map_async").expect("mappatura del buffer");
-        let out = {
-            let dati = slice.get_mapped_range();
-            let fl = |o: usize| f32::from_le_bytes([dati[o], dati[o + 1], dati[o + 2], dati[o + 3]]);
-            (0..self.n * self.n * self.n).map(|c| {
-                let o = c * 24;
-                [Cf::new(fl(o), fl(o + 4)), Cf::new(fl(o + 8), fl(o + 12)), Cf::new(fl(o + 16), fl(o + 20))]
-            }).collect()
-        };
-        self.staging.unmap();
+        let size = Self::byte_componente(self.n);
+        let nc = self.n * self.n * self.n;
+        let mut out = vec![[Cf::ZERO; 3]; nc];
+        for c in 0..3 {
+            let mut enc = device.create_command_encoder(&wgpu::CommandEncoderDescriptor { label: Some("leggi_campo") });
+            enc.copy_buffer_to_buffer(&self.campo[self.attuale][c], 0, &self.staging, 0, size);
+            queue.submit(Some(enc.finish()));
+            let slice = self.staging.slice(..);
+            let (tx, rx) = std::sync::mpsc::channel();
+            slice.map_async(wgpu::MapMode::Read, move |r| { let _ = tx.send(r); });
+            device.poll(wgpu::Maintain::Wait);
+            rx.recv().expect("map_async").expect("mappatura del buffer");
+            {
+                let dati = slice.get_mapped_range();
+                let fl: &[f32] = bytemuck::cast_slice(&dati);
+                for (q, p) in out.iter_mut().enumerate() { p[c] = Cf::new(fl[2 * q], fl[2 * q + 1]); }
+            }
+            self.staging.unmap();
+        }
         out
     }
 }

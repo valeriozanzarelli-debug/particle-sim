@@ -26,6 +26,8 @@ mod istanze;
 mod fotscena;
 #[allow(dead_code)]
 mod gpu_regola;
+#[allow(dead_code)]
+mod gpu_fotone;
 mod misura;
 mod orbitali;
 mod render;
@@ -40,6 +42,8 @@ mod zz;
 mod zzscena;
 #[cfg(test)]
 mod tests;
+#[cfg(test)]
+mod gpu_esami;
 #[cfg(test)]
 mod test_battimento;
 
@@ -263,6 +267,8 @@ fn main() {
     let mut par = fotscena::Parametri::default();
     if let Some(v) = arg("--qual").and_then(|v| v.parse().ok()) { par.qual = v; }
     if let Some(q) = arg("--qualita").and_then(|v| fotscena::preset(&v)) { par.qual = q; }
+    // where the light rule runs: gpu (default for alta/ultra) or cpu (default for bassa/media)
+    if let Some(r) = arg("--regola") { gpu_fotone::REGOLA.store(if r == "gpu" { 1 } else if r == "cpu" { 2 } else { 0 }, std::sync::atomic::Ordering::Relaxed); }
     if let Some(v) = arg("--w0").and_then(|v| v.parse().ok()) { par.w0_lambda = v; }
     if let Some(v) = arg("--dir").and_then(|v| v.parse().ok()) { par.dir = v; }
     if let Some(p) = arg("--polar") {
@@ -326,7 +332,7 @@ fn main() {
         .insert_resource(auto)
         .insert_resource(cam)
         .init_resource::<PointerOverHud>()
-        .add_systems(Startup, (setup_scene, render_zz::setup))
+        .add_systems(Startup, (setup_scene, render_zz::setup, gpu_fotone::prendi_dispositivo))
         .add_systems(Update, (
             ui::draw_hud,
             hud_pointer.after(ui::draw_hud),

@@ -66,6 +66,11 @@ pub fn impacca(items: &[Ball], allunga: &[[f32; 3]]) -> Vec<Istanza> {
     }).collect()
 }
 
+/// Instances already on the GPU (written by a compute shader, e.g. the photon's energy balls in gpu_fotone.rs):
+/// drawn straight from this buffer, no CPU round trip.
+#[derive(Clone)]
+pub struct IstanzeGpu { pub buffer: Buffer, pub n: u32 }
+
 /// A layer of instanced balls. `alfa` = alpha blending (else additive glow). The parameters of the old
 /// BallMaterial: size, gain, soft, core.
 #[derive(Component, Clone)]
@@ -78,10 +83,12 @@ pub struct StratoIstanze {
     pub core: f32,
     /// translation of the layer (world), applied in the shader so the data need not change when the camera follows
     pub offset: [f32; 3],
+    /// when set, the instances come from this GPU buffer instead of `dati`
+    pub gpu: Option<IstanzeGpu>,
 }
 
 impl Default for StratoIstanze {
-    fn default() -> Self { StratoIstanze { dati: Arc::new(vec![]), alfa: false, size: 0.1, gain: 1.0, soft: 3.0, core: 0.3, offset: [0.0; 3] } }
+    fn default() -> Self { StratoIstanze { dati: Arc::new(vec![]), alfa: false, size: 0.1, gain: 1.0, soft: 3.0, core: 0.3, offset: [0.0; 3], gpu: None } }
 }
 
 impl ExtractComponent for StratoIstanze {
@@ -174,7 +181,7 @@ fn prepara_buffer(
     for (entity, main, s) in &q {
         // the instance buffer is rebuilt only when the data change (same Arc = same balls)
         let chiave = Arc::as_ptr(&s.dati) as usize;
-        let (buffer, n) = match cache.get(main) {
+        let (buffer, n) = if let Some(g) = s.gpu.as_ref().filter(|g| g.n > 0) { (g.buffer.clone(), g.n) } else { match cache.get(main) {
             Some((k, b, n)) if *k == chiave => (b.clone(), *n),
             _ => {
                 let vuoto = [Istanza { pos_size: [0.0, -1.0e9, 0.0, 0.0], ..default() }];
@@ -187,7 +194,7 @@ fn prepara_buffer(
                 cache.insert(*main, (chiave, b.clone(), dati.len() as u32));
                 (b, dati.len() as u32)
             }
-        };
+        } };
         let p = Parametri { size: s.size, gain: s.gain, soft: s.soft, core: s.core, offset: [s.offset[0], s.offset[1], s.offset[2], 0.0] };
         let ub = device.create_buffer_with_data(&BufferInitDescriptor {
             label: Some("parametri palline"),
