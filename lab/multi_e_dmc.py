@@ -220,7 +220,7 @@ if __name__ == "__main__":
     bu = 1.0
     ne = 1 if kind == 0 else 2
     NT = int(os.environ.get("DMC_NW", "4000"))                 # 4000 = pre-registrato; altro solo per la diagnosi del bias di popolazione
-    key = f"{state}_{mode}_tau{tau:g}" + ("" if NT == 4000 else f"_NW{NT}")
+    key = f"{state}_{mode}_tau{tau:g}" + ("" if NT == 4000 else f"_NW{NT}") + os.environ.get("DMC_TAG", "")   # TAG: corse diagnostiche post hoc
     ck = os.path.join(OUT, f"multi_e_dmc_{key}.npz")
     hbin = 0.01 if state == "He_u0" else 0.0
     nbins = 200

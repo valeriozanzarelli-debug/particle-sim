@@ -86,7 +86,7 @@ if he:
                                                     sigma_diff=float(np.hypot(v["sigma"], b["sigma"]))) for k, v in pb.items()})
     put("He_DMC_report_only", "RIPORTATO (non pre-registrato come esame: D1 e E1 vanno con l'ECG)", **rep)
 # He 2^3S con il nodo esatto per simmetria (solo riportato: D2 e M2 sono fermi per G1 e G5)
-h3 = {k: v for k, v in Q.items() if k.startswith("He3S_dmc") and v.get("done")}
+h3 = {k: v for k, v in Q.items() if k.startswith("He3S_dmc") and v.get("done") and "_long" not in k}
 if len(h3) >= 3:
     from scipy.stats import chi2 as chi2d
     t, e, s_ = map(np.array, zip(*sorted((v["tau"], v["E"], v["sigma"]) for v in h3.values())))
@@ -103,6 +103,21 @@ if len(h3) >= 3:
         chi2_p_linear=p_lin, E_tau0_thetaA=float(c[0]), sigma_tau0=float(np.sqrt(cov[0, 0])), E_theta0=float(E0),
         sigma_theta0=sE0, target=-2.175229378, diff_mEh=float((E0 + 2.175229378) * 1e3),
         D7="PASS" if E0 >= -2.175229378 - 3 * sE0 else "FAIL")
+# barre d'errore post hoc (autocorrelazione integrata): stessa estrapolazione, solo sigma diverse (riportato, dichiarato)
+EP = Q.get("err_posthoc", {})
+for pre, tgt, nm in (("He_dmc", -2.903724377, "He_DMC_report_only"), ("He3S_dmc", -2.175229378, "He3S_DMC_report_only")):
+    ks = [k for k in EP if k.startswith(pre + "_tau") and "_long" not in k]
+    if len(ks) >= 3 and nm in R:
+        t = np.array([EP[k]["tau"] for k in ks]); e = np.array([Q[k]["E"] for k in ks]); s_ = np.array([EP[k]["sigma_autocorr"] for k in ks])
+        Wm = np.diag(1 / s_ ** 2); A = np.stack([np.ones_like(t), t], 1)
+        cov = np.linalg.inv(A.T @ Wm @ A); c = cov @ A.T @ Wm @ e
+        m0, mA = K["R3"]["m0"], K["R3"]["m_kin_theta_A_used"]
+        E0 = c[0] * m0 / mA; sE0 = float(np.hypot(np.sqrt(cov[0, 0]) * m0 / mA, abs(c[0]) * K["R3"]["sigma_seeds"]))
+        rec = dict(E_theta0=float(E0), sigma_theta0=sE0, z=float((E0 - tgt) / sE0))
+        if pre == "He_dmc":
+            mu = NUC_MASS[2] / (NUC_MASS[2] + 1)
+            rec.update(IE_eV=float(((-2.0 * m0) - E0) * mu * EH_EV), sigma_IE_eV=float(sE0 * mu * EH_EV))
+        R[nm]["posthoc_sigma_autocorr"] = rec
 if "D6" in Q:
     d6 = Q["D6"]
     put("D6", "PASS" if d6["PASS"] else "FAIL", c=d6["c_extrapolated"], sigma_c=d6["sigma_c"], target=d6["target"],

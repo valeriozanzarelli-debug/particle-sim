@@ -1,8 +1,9 @@
 # Molti elettroni: elio (e oltre) dalla regola zig-zag agglomerata
 
 **Stato: M0 (la regola e i controlli) fatto quasi tutto; M1 (elio) a metà: la parte "esatta" ECG è FERMA per un gate
-fallito (G1); la parte a camminatori (DMC) è fatta: elio −2,903757 ± 0,000071 Eh contro −2,903724 (0,46 σ), prima
-ionizzazione 24,5884 ± 0,0019 eV contro 24,5874 (0,5 σ), solo riportati.** Brief: `docs/MOLTI_ELETTRONI_PIANO.md`.
+fallito (G1); la parte a camminatori (DMC) è fatta: elio −2,903762 ± 0,000082 Eh contro −2,903724 (0,46 σ), prima
+ionizzazione 24,5885 ± 0,0022 eV contro 24,5874 (0,5 σ); elio 2³S −2,175328 ± 0,000072 contro −2,175229 (1,4 σ);
+tutti solo riportati.** Brief: `docs/MOLTI_ELETTRONI_PIANO.md`.
 Pre-registrazione: `lab/out/multi_e_prereg.json` (committata in `9b1e4d0` **prima di ogni corsa**).
 Giudizio automatico: `python lab/multi_e_summary.py` → `lab/out/multi_e_results.json`. Figura: `lab/out/multi_e_figure.png`.
 
@@ -35,13 +36,14 @@ controllo esatto, non il metodo**. Non è "la vecchia DMC con un nome nuovo", ma
 | R4b | camminatori sul reticolo = iterazione deterministica allo stesso β | β = 2·10⁻⁴: −129,0181 ± 0,0037 contro −129,0211 (0,8 σ); β = 10⁻⁴: −128,8525 ± 0,0058 contro −128,8545 (0,35 σ); σ relativo 2,9 e 4,5·10⁻⁵ | **PASS** |
 | L1c | livello 1 ri-imparato con l'osservabile Z = 10, budget 3·10⁻⁵ | **nessun candidato Pauli passa**: la macchina sceglie il livello a 4 componenti B = 2 (cioè quasi la regola fine) | rischio 4 del brief **avverato** (§2.4) |
 | G1 | macchina ECG su sistemi non-esame | H 5,5·10⁻⁹ PASS; Li/Be non interagenti 3·10⁻¹¹ / 8·10⁻¹³ PASS; **Hooke 2,7·10⁻⁸ (soglia 10⁻⁸) FAIL**; **Monte Carlo 1,34·10⁻⁴ (soglia 10⁻⁴) FAIL** | **FAIL** → produzione ECG FERMA (§3) |
-| G3 | campo medio (test d'implementazione con valori HF della letteratura) | He 5,6·10⁻⁹, H⁻ 6,6·10⁻⁸, Li 2,3·10⁻¹⁰, Be 5,9·10⁻⁹ (soglia 2·10⁻⁵); partenze casuali ≤ 1,2·10⁻¹²; Ne: in corso | **PASS** per He, H⁻, Li, Be |
+| G3 | campo medio (test d'implementazione con valori HF della letteratura) | He 5,6·10⁻⁹, H⁻ 6,6·10⁻⁸, Li 2,3·10⁻¹⁰, Be 5,9·10⁻⁹, Ne 2,9·10⁻⁹ (soglia 2·10⁻⁵); partenze casuali ≤ 1,2·10⁻¹² | **PASS** |
 | G5 | rapporto 2s/1s monotono (nodo esatto r₁ = r₂ per He 2³S) | non monotono in 778 punti, **tutti a r < 4,2·10⁻⁷ a₀, salti ≤ 1,4·10⁻¹⁵** | **FAIL** come scritto; causa: arrotondamento (§2.7) |
 | G4 | cucitura della banda oltre la zona | non valutabile senza le basi ECG | — |
 | M1–M3, R5, R6, E1, E2, D1, D2 | elio con l'ECG | **fermi** per G1 (e D2 anche per G5) | — |
-| He DMC | elio 1¹S con i camminatori (solo riportato: M1/E1 erano sulla strada ECG) | **−2,903757 ± 0,000071 Eh** contro −2,903724 (−0,033 mEh, 0,46 σ); ionizzazione **24,5884 ± 0,0019 eV** contro 24,587389 (+1,0 meV) | riportato |
+| He DMC | elio 1¹S con i camminatori (solo riportato: M1/E1 erano sulla strada ECG) | **−2,903757 ± 0,000071 Eh** (barra pre-registrata; con la barra controllata −2,903762 ± 0,000082) contro −2,903724 (0,46 σ); ionizzazione **24,5884 ± 0,0019 eV** (controllata: 24,5885 ± 0,0022) contro 24,587389 (+1,0 meV) | riportato |
+| He 2³S DMC | nodo esatto r₁ = r₂ (solo riportato: D2/M2 fermi per G1 e G5) | **−2,175328 ± 0,000072 Eh** contro −2,175229 (−0,10 mEh, 1,4 σ); corsa lunga di controllo a τ = 0,01: −0,6 σ | riportato |
 | D7 | sanità variazionale della DMC | E ≥ E_esatta − 3σ | **PASS** |
-| D6 | cuspide di Kato dai camminatori (guida senza cuspide) | c = 87 ± 62 contro m = 1,0004 ± 0,10 | **FAIL** — quattro cause trovate (§4.1, tre sono errori miei nella pre-registrazione); post hoc il misto dà la cuspide giusta: 0,51 ± 0,05 contro 0,50 |
+| D6 | cuspide di Kato dai camminatori (guida senza cuspide) | c = 87 ± 62 contro m = 1,0004 ± 0,10 | **FAIL** — quattro cause trovate (§4.3, tre sono errori miei nella pre-registrazione); post hoc il misto dà la cuspide giusta: 0,51 ± 0,05 contro 0,50 |
 
 ---
 
@@ -155,7 +157,7 @@ da 10⁻⁹/Z a 60 a₀, derivata seconda al 4° ordine, integrali col trapezio.
   vincoli di ortogonalità vanno messi esattamente (sistema "bordato"), altrimenti l'energia non scende in modo monotono.
 - Gli errori vanno come h² esatto (ordine misurato **p = 2,00** per tutti: è lo spigolo di r_</r_> nel trapezio), quindi
   Richardson: He −2,8616799839 (5,6·10⁻⁹), H⁻ −0,4879297323 (6,6·10⁻⁸), Li −7,4327269017 (2,3·10⁻¹⁰), Be −14,5730231137
-  (5,9·10⁻⁹). **PASS** (soglia 2·10⁻⁵). Ne: corsa a 6000 punti sospesa per dare i core all'elio.
+  (5,9·10⁻⁹), Ne −128,5470977 (2,9·10⁻⁹, ripresa a 6000 punti dopo l'elio). **PASS** (soglia 2·10⁻⁵).
 - 5 partenze casuali a banda limitata + la partenza dall'idrogenoide: stesso punto fisso entro 4·10⁻¹³ (He),
   3·10⁻¹³ (He 2³S), 7·10⁻¹³ (Li), 1,2·10⁻¹² (H⁻). Nessun orbitale "da tabella" nascosto.
 - H⁻ nel campo medio: −0,48793 > −0,5: **non legato** (come atteso): lo lega solo la correlazione.
@@ -202,14 +204,14 @@ Regola pre-registrata: retta in τ, la parabola solo se la retta è rifiutata (p
 
 | voce | quanto | come lo sappiamo |
 |---|---|---|
-| statistica + estrapolazione in τ | ± 0,071 | blocchi, fit pesato a 3 punti |
+| statistica + estrapolazione in τ | ± 0,071 (pre-registrata); **± 0,082** controllata | blocchi; autocorrelazione (vedi sotto); fit pesato a 3 punti |
 | m_kin(0) dai semi | ± 0,008 | \|E\| × 2,6·10⁻⁶ (R3) |
 | m_kin(0) sistematico dell'agglomeratore (+1,4·10⁻⁵) | −0,040 (se la massa vera è 1) | R3 §2.3: E/m₀ = −2,903717, scarto da −2,903724 di +0,007 |
 | bias di popolazione (4000 camminatori) | −0,004 ± 0,007 | **diagnosi post hoc**: 250 camminatori a τ = 0,02 danno −0,059 ± 0,115 mEh rispetto a 4000; il bias va come 1/N, quindi /16 |
 | guida (b = 1 fisso, orbitale HF) | 0 sul valore | niente nodi: la guida entra solo nel rumore e nella pendenza in τ (che si estrapola) |
 | **DEBT-9 / DEBT-4**: nucleo gaussiano = solo k²/2m | ≈ −0,28 **non incluso** | vedi sotto |
 | DEBT-1, DEBT-3 (Coulomb istantaneo, nucleo fermo e puntiforme) | 0 rispetto al bersaglio | il bersaglio −2,903724 ha gli stessi debiti: è lo stesso problema |
-| **totale (barra)** | **± 0,072** | la statistica domina |
+| **totale (barra)** | **± 0,072** (pre-registrata) / **± 0,082** (controllata) | la statistica domina |
 
 **Il pezzo grosso che non c'è (DEBT-9 = DEBT-4).** I camminatori del continuo saltano con una gaussiana, cioè usano solo
 la parte k²/2m della banda. La banda imparata ha anche una parte non quadratica (il suo pezzo di relatività, §2.4: in
@@ -220,7 +222,34 @@ ma dice una cosa importante: **i camminatori sul reticolo imparato (D0b) darebbe
 quella differenza non sarebbe "la relatività vera" (manca Darwin, e il k⁴ è anisotropo). Per questo DEBT-4 resta il
 debito più importante per andare sotto 0,1 mEh.
 
-### 4.1 D6 — la cuspide di Kato vista dalle palline (FAIL come scritto; causa trovata)
+**Le barre d'errore, controllate (diagnosi post hoc, `lab/multi_e_dmc_err.py`).** La regola pre-registrata ("il più
+grande fra 32/16/8 blocchi") usa poche medie, quindi la stima di σ è rumorosa (±13–25 %); e le corse si fermano appena
+σ ≤ 6·10⁻⁵, cioè **di preferenza quando la stima è uscita bassa** (un bias di arresto: l'ho visto solo guardando i dati).
+Ricalcolando σ dall'autocorrelazione integrata (τ_int ≈ 0,4 a.u., finestra 5 a.u.) e con 64–256 blocchi da ≥ 2 a.u.,
+le σ vere sono **1,10 / 1,41 / 1,14 volte** quelle pre-registrate (τ = 0,02 / 0,01 / 0,005). Rifacendo la stessa
+estrapolazione con queste σ: **E = −2,903762 ± 0,000082 Eh (−0,46 σ), ionizzazione 24,5885 ± 0,0022 eV**. Il numero
+non cambia, la barra cresce del 15 %: nel riassunto in testa uso questa barra più larga come quella onesta.
+
+### 4.2 Elio 2³S con il nodo esatto (solo riportato)
+Stato di tripletto: due elettroni con lo stesso spin, guida = determinante 1s·2s del campo medio × e^{u}, con
+c = m_kin/4 (Kato per spin paralleli). Il nodo del determinante di due orbitali s è dove 2s/1s(r₁) = 2s/1s(r₂), cioè
+**r₁ = r₂** se il rapporto è monotono — ed è anche il nodo esatto per simmetria. (G5 è FAIL come scritto, ma solo per
+salti di 10⁻¹⁵ sotto r = 4·10⁻⁷ a₀, §2.7: per questo D2 resta fermo e questa corsa è solo riportata.)
+
+| τ | E (massa del livello) |
+|---|---|
+| 0,02 | −2,176056 ± 0,000059 |
+| 0,01 | −2,176104 ± 0,000059 |
+| 0,005 | −2,176108 ± 0,000058 |
+
+Retta (p = 0,86): **θ → 0: −2,175328 ± 0,000072 Eh contro −2,175229378: −0,099 mEh (−1,4 σ)**, dentro la tolleranza
+che M2 avrebbe (0,22 mEh). D7 PASS. **Cercando la causa del −1,4 σ**: le corse del tripletto erano corte (42–66 a.u.,
+la guida è buona e σ scende in fretta) e l'elettrone 2s è lento, quindi ho controllato se le barre fossero troppo
+strette: una corsa lunga di controllo a τ = 0,01 (800 a.u., stessa catena) dà −2,1760767 ± 0,0000220 contro l'esatto
+alla stessa massa −2,1760631: **−0,014 mEh, −0,6 σ**, con τ_int = 0,84 a.u. e σ da autocorrelazione uguale a quella
+dei blocchi. Il punto corto a τ = 0,01 era 0,04 mEh basso per caso; le barre sono giuste. Nessun errore di nodo visibile.
+
+### 4.3 D6 — la cuspide di Kato vista dalle palline (FAIL come scritto; causa trovata)
 Prova: guida **senza** cuspide (u = 0), si misura come la densità di coppia h(r₁₂) sale da r₁₂ = 0. Kato dice
 h ∝ 1 + m r₁₂. Pre-registrato: τ = 0,01, stimatore estrapolato 2 I_mix − I_VMC, fit h₀(1 + c r + d r²) su r < 0,25 a₀,
 PASS se c = m ± 0,10. Lunghezza decisa prima: 400 a.u. per la DMC e per la VMC.
@@ -311,7 +340,7 @@ ma è una diagnosi post hoc, non un PASS. (Correzione di bias presa da un'altra 
    devono restare da una sola parte della diagonale, che è il nodo; per il litio si può fare lo stesso con la coppia di
    spin uguali e vedere *quanto* il nodo vero si scosta dalla diagonale.
 
-8. **La cuspide è un cono nello spazio di coppia (D6).** Il buco di §4.1 nasce perché il peso e^{−τ/r₁₂} tratta il
+8. **La cuspide è un cono nello spazio di coppia (D6).** Il buco di §4.3 nasce perché il peso e^{−τ/r₁₂} tratta il
    Coulomb come costante su un salto lungo √(2Dτ). Geometricamente due elettroni vicini vivono in un cono attorno a
    r₁₂ = 0, e lì il propagatore esatto di *due* palline (problema a due corpi di Coulomb, risolvibile una volta per
    tutte con la regola stessa) sostituisce il peso primitivo ("pair product"). **Prova**: rifare D6 a τ = 0,01 con il
@@ -344,11 +373,14 @@ ma è una diagnosi post hoc, non un PASS. (Correzione di bias presa da un'altra 
 - G3: aggiunta la griglia a 1500 punti per misurare l'ordine (il brief diceva 3000 e 6000).
 - Diagnosi post hoc di G1, R4a e G5: corse dopo i FAIL, non rigiudicano niente.
 - Tabelle F(s): la prima versione interpolava ε(k) linearmente (errore 5 % a s = 0,01); ora si interpola il rapporto
-  ε/(k²/2) e sotto k = 1 a.u. si usa la serie della curvatura. Nessun esame era stato corso con le tabelle vecchie.
+  ε/(k²/2) e sotto k = 1 a.u. si usa la serie della curvatura. Nessun esame era stato corso con le tabelle vecchie; le tabelle sono state rigenerate con la correzione (k⁴ medio a k = 10: livello esistente 40 %, ri-imparato 99,7 %, miglior Pauli rifiutato 96 %).
 - Il controllo della popolazione dei camminatori del reticolo: prima versione con un controllo integrale (oscilla) e
   un vettore di pesi di taglia fissa (si rompeva); corretta prima della corsa buona.
 - D6: la lunghezza delle corse (400 a.u. DMC e VMC) e il salvataggio degli istogrammi per pezzi da 2 a.u. (per gli
   errori jackknife) decisi prima di guardare l'istogramma. Corse a τ = 0,0025 e 0,000625 e fit pesato: diagnosi post hoc.
+- Barre d'errore della DMC: ricalcolate post hoc con l'autocorrelazione (§4); corsa lunga di controllo del 2³S
+  (variabile `DMC_TAG`, chiave `_long`, non entra nell'estrapolazione).
+- He 2³S DMC: corso con la configurazione pre-registrata della DMC dell'elio, solo come riportato (D2 è fermo).
 - Bias di popolazione: corsa post hoc con 250 camminatori (variabile `DMC_NW`, il valore pre-registrato resta 4000).
 - Il motore DMC: riscritto senza allocazioni e in parallelo (2 thread) prima delle corse di produzione dell'elio
   (prova: idrogeno con guida sbagliata −0,50027 ± 0,00036 contro −0,500192).
@@ -374,4 +406,5 @@ ma è una diagnosi post hoc, non un PASS. (Correzione di bias presa da un'altra 
     python lab/multi_e_dmc.py He_u0 0.01 vmc 400 1e-9 ; python lab/multi_e_dmc.py He_u0 0.01 dmc 400 1e-9 ; python lab/multi_e_d6.py
     DMC_NW=250 python lab/multi_e_dmc.py He 0.02 dmc 10000 1e-4        (diagnosi del bias di popolazione)
     python lab/multi_e_dmc.py He_u0 0.0025 dmc 400 1e-9 ; ... 0.000625 ; python lab/multi_e_d6_diag.py 0.01 0.0025 0.000625 ; python lab/multi_e_d6_model.py
+    python lab/multi_e_dmc.py He3S 0.02 dmc 6000 6e-5   (poi 0.01, 0.005) ; python lab/multi_e_dmc_err.py
     python lab/multi_e_summary.py ; python lab/multi_e_figure.py
