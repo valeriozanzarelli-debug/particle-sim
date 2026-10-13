@@ -69,6 +69,11 @@ agglomerata fuori oggi sbaglia 100–1000 volte più dell'effetto: progetto, non
 
 **Fase 7 (§17):** esame cieco a Z = 3 e 5: spostamenti α⁴ di 1s e 2s entro lo 0,07 % (+0,073 / +0,029 % e +0,050 / +0,020 %),
 PASS. Il 3s della fase 6 era la **scatola** (45 a₀ troppo stretta): a 90 a₀ va a +0,055 %. Esiti fase 7: 3 PASS, 0 FAIL.
+**Fase 8 (§18):** il progetto §16.2 (zoom + colla del cuspide + livello Taylor-fissato di AGGLOMERATO_COMPLETO, spostamento
+come differenza Z = 1 / Z = 2 alla stessa geometria in a₀/Z). Il **livello imparato** è buono quanto la banda esatta: il
+suo errore (3,6·10⁻⁴, 27 volte lo spostamento) si cancella fra i due Z entro il 4,7 % dello spostamento (H2 PASS). La
+**colla no**: a R_f = 0,44 a₀/Z (≈ 30 λ_C) l'1s esce +94 % (H1 FAIL), e anche con la catena fino a 3–8 a₀/Z resta −10 %
+(H3, H4 FAIL). Esiti fase 8: 1 PASS, 3 FAIL.
 
 **Esiti pre-registrati (fase 1):** 11 PASS, 3 FAIL (L1, L2, L3: la legge regge, ma due soglie strette cadono a Z = 20 e Z = 92
 per motivi che spiego sotto). Dettaglio nella §6.
@@ -1095,7 +1100,7 @@ regola grossa non può ancora stare fuori: sbaglia la parte lontana di più di q
 * **Cosa serve alla regola grossa per stare fuori**: un errore ≤ 10⁻⁷ sul livello 1s a Z = 1, oppure un errore **non
   relativistico noto** che si può togliere. La strada naturale è la stessa della fase 3 di AGGLOMERATO_COMPLETO (Taylor
   fissato), che porta il k⁴ della regola fine al 99,9 %. Il resto è l'errore ad alto k. Proposta: incollare la catena
-  dello zoom (fino a ~30 λ_C, dove sta il Darwin) alla regola grossa con la colla del cuspide (§12.4). Poi misurare lo
+  dello zoom (fino a ~30 λ_C, dove sta il Darwin [corretto in §18: vero solo nella lingua FW]) alla regola grossa con la colla del cuspide (§12.4). Poi misurare lo
   spostamento come **differenza** fra due Z alla stessa geometria in unità di a₀/Z, dove l'errore non relativistico
   della regola grossa si cancella al primo ordine. Non fatto: serve una versione radiale (onda s) del livello di
   AGGLOMERATO_COMPLETO, i cui file sono di un altro agente (solo lettura).
@@ -1162,3 +1167,127 @@ Lo zoom e il numero di celle non c'entrano. Il quarto punto θ migliora un poco 
 ### 17.2 Come rieseguire
 
     python lab/nucleo1s_f7_prereg.py; timeout 590 python lab/nucleo1s_f7_run.py   # rilanciare finché "all done"
+
+---
+
+## 18. Fase 8: la regola grossa fuori, lo spostamento α⁴ come differenza fra due Z
+
+File: `lab/nucleo1s_f8_core.py` (il livello Taylor-fissato ridotto all'onda s, la colla, la formula dei due Z),
+`lab/nucleo1s_f8_prereg.py` → `lab/out/nucleo1s_f8_prereg.json` (**commit c60697f, prima delle corse**),
+`lab/nucleo1s_f8_run.py` → `lab/out/nucleo1s_f8_results.json`, `lab/out/nucleo1s_f8_judged.json`,
+`lab/nucleo1s_f8_posthoc.py` → `lab/out/nucleo1s_f8_posthoc.json` (dopo, dichiarato), `lab/nucleo1s_f8_figure.py`.
+
+![figura fase 8](../lab/out/nucleo1s_f8_figure.png)
+
+### 18.0 In breve
+
+**Come è fatto.** Vicino al nucleo, fino a R_f = (J0 + ½) celle grosse, c'è la regola zig-zag sulla catena dello zoom
+(12 livelli, celle fino a 2⁻¹² di 0,033 λ_C), che risolve il cuspide e quindi il Darwin. Fuori c'è il **livello
+Taylor-fissato** di AGGLOMERATO_COMPLETO (`aggfull_relearnT.pkl`, solo letto): lo stencil imparato, mediato su 120
+direzioni, diventa un operatore radiale per l'onda s (come §12.4). Colla: quella del cuspide di §12.4, invariata.
+Scatola 90 a₀/Z. Il trucco per lo spostamento: **due Z alla stessa geometria in a₀/Z**, cioè Z = 1 col livello
+B = 512 (celle a₀/8) e Z = 2 col livello B = 256 (celle a₀/16 = (a₀/2)/8). L'energia di legame è
+B(Z) = Z²·ε + Z⁴·δ: l'errore non relativistico della regola grossa (ε, la stessa geometria) si cancella e
+δ = (B(2)/4 − B(1))/3. Lo stesso conto sui livelli di Dirac dà il riferimento (solo esame). Controllo: lo stesso ibrido
+con la banda esatta √(1+k²) − 1 al posto di quella imparata.
+
+**Il solutore**: è una soluzione lineare densa (720 celle grosse), non LOBPCG e nessuna proiezione su un settore. Il
+problema della parità sbagliata di AGGLOMERATO_COMPLETO §13 (`Atom(..., clean=True)`) qui non può nascere: la riduzione
+all'onda s tiene solo la parte isotropa dello stencil.
+
+**Esami pre-registrati** (errore dello spostamento α⁴ rispetto a Dirac):
+
+| R_f [a₀/Z] (J0) | 1s imparato | 1s esatto | 2s imparato | 2s esatto | 3s imparato |
+|---|---|---|---|---|---|
+| 0,44 (3) | **+94,0 %** | +96,1 % | +30,4 % | +31,2 % | +24,0 % |
+| 0,56 (4) | +76,8 % | +81,5 % | +24,7 % | +26,8 % | +19,5 % |
+| 0,69 (5) | +35,6 % | +39,9 % | +10,7 % | +12,7 % | +8,2 % |
+| 0,81 (6) | +20,3 % | +19,9 % | +6,8 % | +6,6 % | +5,2 % |
+| 1,06 (8) | −14,1 % | −14,6 % | −2,8 % | −3,0 % | −2,2 % |
+| 1,56 (12) | −28,7 % | −28,8 % | −4,3 % | −4,3 % | −3,1 % |
+| 2,06 (16) | −21,6 % | −21,6 % | −2,4 % | −2,4 % | −1,8 % |
+| 3,06 (24) | **−12,4 %** | −12,4 % | **−4,7 %** | −4,7 % | −4,3 % |
+
+* **H1 FAIL** (il progetto come chiesto, R_f = 0,44 a₀/Z, cioè 30 λ_C a Z = 2 e 60 λ_C a Z = 1, entro 5 %): +94 % / +30 %.
+  L'avevo previsto dalle corse di sviluppo del controllo (dichiarate nella pre-registrazione).
+* **H2 PASS** (imparato contro esatto, stesso J0, entro 5 % dello spostamento): differenza massima 4,7 % (1s, J0 = 4),
+  sotto l'1 % da J0 = 6 in su. **Questo è il risultato buono**: il livello imparato sbaglia il livello 1s di 3,6·10⁻⁴
+  (Z = 1) e 4,0·10⁻⁴ (Z = 2), cioè 27 volte lo spostamento, ma l'errore è quasi tutto "non relativistico" e sparisce nella
+  differenza fra due Z. Nel suo pezzo relativistico (k⁴ = 1,0003 e 0,9998 di Dirac per B = 256 e 512) è giusto.
+* **H3 FAIL** (il controllo deve migliorare allungando la catena e a 3 a₀/Z stare entro 10 % / 20 %): non è monotono
+  (passa per zero vicino a 1 a₀/Z, poi −29 %) e a 3,06 a₀/Z l'1s è −12,4 %.
+* **H4 FAIL** (lo stesso col livello imparato): −12,4 % / −4,7 %.
+
+**Dopo (dichiarato, non giudicato)**: allungando ancora la catena (R_f = 4,1 / 6,1 / 8,1 a₀/Z) il controllo si ferma a
+**−10,5 % (1s)** e −7…−5 % (2s). Quindi l'errore **non** viene dalla parte di atomo lasciata alla regola grossa (a 8 a₀/Z ce
+n'è e⁻¹⁶): viene dalla **colla stessa**. **Esiti fase 8: 1 PASS, 3 FAIL.** Costo: 0,5–1,5 s per stato.
+
+### 18.1 Cosa vuol dire (come a un ventenne)
+
+Volevamo mettere la regola grossa (celle di 8–17 λ_C, 4000 volte più grandi di quelle fini) lontano dal nucleo e la
+regola fine solo vicino, e misurare lo stesso la correzione relativistica, che è 1 parte su 75 000 dell'energia.
+Due notizie. Quella buona: **la regola grossa imparata dall'agglomeratore non è il problema**. Sbaglia l'energia di 4
+parti su 10 000, ma sbaglia "nello stesso modo" per l'idrogeno e per l'elio⁺ disegnati alla stessa scala, e quando fai la
+differenza il suo errore va via; resta la relatività, giusta quanto quella della formula esatta. Quella cattiva: **il
+punto di attacco fra le due regole perde la relatività**. Le due regole parlano di due "oggetti" un po' diversi: la
+regola fine porta la componente grande dell'onda di Dirac, la regola grossa porta un'onda a una componente con energia
+√(1+p²) e potenziale −Zα/r. A livello di 10⁻⁴ (fase 2: +0,039 %) la differenza non si vede; a livello di 10⁻⁵, dove vive
+lo spostamento, sì. E il Darwin, che pensavamo "stesse al nucleo, entro 30 λ_C", in realtà sta al nucleo solo nella
+lingua di Foldy–Wouthuysen; nella lingua della componente grande (quella della regola fine) è spalmato su tutto l'atomo
+(per l'1s con densità ∝ e^{−2Zr/a₀}). La regola grossa, che è una banda libera più un potenziale scritto a mano, non ha
+nessun accoppiamento che faccia il Darwin: per questo con R_f piccolo lo spostamento esce quasi doppio.
+
+### 18.2 Cosa ho provato in sviluppo (dichiarato, solo sul controllo)
+
+* Correzione del cuspide con l'operatore continuo della banda di Dirac invece del cinetico non relativistico (calcolato con
+  una trasformata di Filon e due asintoti tolti a mano, verificato contro −p⁴/8 lontano dal nucleo): peggio (−264 % a J0 = 3).
+* "Fantasmi" nella forma di Foldy–Wouthuysen u = G (1 + (E − V)/4m): peggio a J0 piccolo (+237 %), uguale a J0 grande
+  (−10,5 % a J0 = 24 e 48), +1,9 % per caso a J0 = 12.
+* Nessuna delle due cura il plateau del −10 %. Lettura (da verificare): l'energia è decisa da **una riga** dell'equazione
+  grossa (l'ultima cella fantasma), e il nucleo di quella riga è lungo (coda 1/n²): tocca anche le celle vicine al nucleo,
+  dove la componente grande di Dirac non è il cuspide non relativistico che la correzione del cuspide toglie. Un errore
+  relativo (Zα)² in quella riga basta a spostare δ del 10 %.
+
+### 18.3 Debiti e parametri
+
+* **Parametri nuovi: 0.** Nessun fit. Il livello imparato è dell'agente aggfull (solo letto).
+* Debiti che restano (vecchi): il potenziale grosso −Zα/r al centro della cella (debito 9 di CONTESTO_CLOUD); la legge di
+  Kato per l'ampiezza del cuspide (è l'equazione stessa a r → 0); la funzione del cuspide u_c = r e^{−λr} (ogni λ va bene).
+* **Debito nuovo, scoperto qui**: la regola grossa non ha **accoppiamento fra campo e moto** (niente Darwin, niente
+  termine V′·∂ della componente grande). Finché il livello grosso è "banda libera + potenziale a mano", nessuna colla
+  locale può portargli lo spostamento α⁴ giusto degli stati s: va imparato bloccando la regola fine **con il campo acceso**
+  (è lo stesso buco del F3 degli s di AGGLOMERATO_COMPLETO, visto da un'altra parte).
+* Il "Darwin entro ~30 λ_C" scritto in §16.0/§16.2 è sbagliato nella lingua della regola fine: corretto qui.
+
+### 18.4 Cosa resta
+
+1. **Imparare l'accoppiamento col campo** nel livello grosso (blocca con V acceso; due Z alla stessa geometria in a₀/Z come
+   esame interno, Dirac solo come esame finale). È lavoro dell'agglomeratore, non di questo studio.
+2. **Una colla "integrale"** invece di una riga sola: imporre la continuità di corrente (o un quoziente di Rayleigh sulla
+   zona di sovrapposizione) invece dell'equazione dell'ultima cella fantasma; prova semplice, non fatta (budget).
+3. Fino ad allora la strada che funziona per gli spostamenti α⁴ è quella della fase 7: catena dello zoom su tutto l'atomo
+   (0,07 % a Z = 3 e 5).
+
+### 18.5 Idee geometriche e visive (fase 8)
+
+* Disegnare il Darwin **in due lingue**: nella lingua FW è un puntino sul nucleo; nella lingua della componente grande
+  è un alone largo quanto l'atomo. Le palline della regola fine "vedono" l'alone: un'animazione in cui la densità di
+  energia relativistica si sposta dal puntino all'alone cambiando lingua spiega perché la colla a 30 λ_C non basta.
+* La figura di §18 mostra bene la cosa: le croci (imparato) stanno sopra i pallini (esatto) dappertutto, la regola grossa
+  è a posto; è la curva intera che non va a zero.
+
+### 18.6 Dove l'intuizione di Valerio può aiutare (fase 8)
+
+1. **Le palline grosse sentono il campo?** Nella regola fine il campo entra in ogni rotazione; nella regola grossa entra
+   solo come "−Zα/r" aggiunto alla fine. Ti viene in mente un modo "a palline" per cui una pallina grossa, che è un
+   mucchio di palline fini, debba accorgersi della **pendenza** del campo (non solo del suo valore)? È esattamente quello
+   che manca (il Darwin è "pendenza del campo × movimento").
+2. **Una riga o tutta la frontiera?** Oggi la regola fine e la grossa si parlano in un punto solo. Ti sembra più naturale
+   (per le palline) un passaggio di consegne lungo tutta una zona, dove le due regole convivono e si "mediano"?
+
+### 18.7 Come rieseguire
+
+    python lab/nucleo1s_f8_prereg.py
+    timeout 590 python lab/nucleo1s_f8_run.py        # rilanciare finché "all done"
+    timeout 590 python lab/nucleo1s_f8_posthoc.py    # dopo, dichiarato
+    python lab/nucleo1s_f8_figure.py
