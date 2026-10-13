@@ -64,5 +64,11 @@
    "nell_ibrido": "dove c'e' il blocco fine la coda di Born non si usa: il blocco risolve il nucleo (dichiarato). Il motore Rust ha i bordi ritorti (IDRO_TORSIONE) ma non il campo di Galerkin: Born nel Rust resta un debito."
   }
  },
- "economia": "max 3 thread, corse in coda seriale, ogni script <= 10 min; nessuna corsa oltre quelle elencate senza emendamento dichiarato"
+ "economia": "max 3 thread, corse in coda seriale, ogni script <= 10 min; nessuna corsa oltre quelle elencate senza emendamento dichiarato",
+ "emendamento_1": {
+  "scritto": "2026-10-13, dopo C, M, G e V per i blocchi 3, 5, 7, 9; prima di V blocco 11 e di R",
+  "motivo": "la corsa V del blocco 11 (144 passi + partenza veff:32:2) non sta nei 10 minuti per script (4.5-6 s/passo su macchina condivisa): uccisa dal timeout al passo ~50, nessun risultato.",
+  "cambio": "esame_ibrido salva e riprende lo stato intero (IDRO_CKPT=<file>, IDRO_TEMPO=540 s): stessa dinamica bit per bit (prova: blocco 3, N=64, 48 passi, corsa intera e a 7 pezzi danno le stesse energie e stazionarieta' a tutte le cifre stampate). Le corse V blocco 11 e R si fanno a pezzi; configurazioni e soglie invariate.",
+  "nessun_altro_cambio": "criteri di C, V, R, M, G invariati"
+ }
 }
