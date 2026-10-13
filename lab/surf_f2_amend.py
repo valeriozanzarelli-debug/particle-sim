@@ -1,0 +1,26 @@
+"""surf_f2_amend.py -> lab/out/surf_f2_amend.json : PHASE 2 changes declared AFTER lab/out/surf_f2_prereg.json
+(no threshold changed)."""
+import json
+import os
+
+OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "out")
+A = dict(
+    date="2026-10-13",
+    changes=[
+        dict(id="B1", when="after part-1 production", what="POST-HOC diagnostic surf_f2_posthoc.py: same states as part 1, "
+             "surfers moved on b x b blocks with the exact block flux (block side 0.5 and 1.0 in physical units); the start "
+             "is block(rho)^2 (the |psi|^4 start at block resolution), not rho^2 sampled on fine cells. Only to ask whether "
+             "the extra mixing is made at the scale of one cell. Not an exam."),
+        dict(id="B2", when="after part-2 production", what="S3 'own frame' spin: the analysis script printed the lab spin per "
+             "valley only. Own-frame value computed from it with V_v^dag Sigma_z V_v = -Sigma_z for the three valleys "
+             "v != 0 (V = sigma_x or sigma_y on each 2-spinor; the L<->R swap commutes with Sigma_z). No new measurement."),
+        dict(id="B3", when="after part-2 production", what="POST-HOC surf_f2_overlap.py: overlaps of the old E5 state "
+             "(listened at 0.89945) with the exact Ritz levels, and Sigma_z of the reconstruction. Not an exam."),
+        dict(id="B4", when="after part-2 production", what="S4: the smeared-nucleus listening locked on 0.9094 and gave a "
+             "state with only 57 % in the k = 0 valley; it is reported as measured (FAIL). The diagnostic did not isolate one "
+             "valley, so S4 says nothing either way about the cause; the cause is answered by B3."),
+    ],
+)
+with open(os.path.join(OUT, "surf_f2_amend.json"), "w") as f:
+    json.dump(A, f, indent=1)
+print("written lab/out/surf_f2_amend.json")
