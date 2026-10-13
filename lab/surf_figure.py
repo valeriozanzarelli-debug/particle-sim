@@ -55,7 +55,7 @@ ok("E5 flow2 neq H ratio", a1["H_ratio"]["neq_flow2"], a1["H_ratio"]["neq_flow2"
 v = a1["vphi"]["flow2"]
 ok("E5 flow2 v_phi/(Za sin)", v["vphi_over_Za_sin"], th["flow2_vphi_over_Za_sin"][0] <= v["vphi_over_Za_sin"] <= th["flow2_vphi_over_Za_sin"][1])
 ok("E5 flow2 v_r rms/Za", v["vr_rms_over_Za"], v["vr_rms_over_Za"] <= th["flow2_vr_rms_over_Za_max"])
-ok("E8 radial flow neq H ratio", beat["neq_H_ratio"]["neq_flow"], beat["neq_H_ratio"]["neq_flow"] >= 0.999)
+ok("E8 radial flow neq H ratio", beat["neq_H_ratio"]["flow"], beat["neq_H_ratio"]["flow"] >= 0.999)
 ok("E9 orbitals proiettato z", orb["max_abs_z_flow"], orb["max_abs_z_flow"] <= 4.0)
 R["E9 old orbital reader (report)"] = dict(value=[orb["max_abs_z_old"], orb["max_abs_z_old_rebirth"]])
 npass = sum(1 for r in R.values() if r.get("PASS") is True)
@@ -88,14 +88,14 @@ ax[0, 1].set_aspect("equal"); ax[0, 1].legend(fontsize=8)
 ax[0, 1].set_title("1s 3-D: tre surfisti per regola (vista dall'alto, 600 tick)\nBohm-Dirac: cerchi attorno all'asse dello spin")
 ax[0, 1].set_xlabel("x (λ_C)"); ax[0, 1].set_ylabel("y (λ_C)")
 # (c) fake mixing: H-bar of a |psi|^4 start, relative
-tb = np.linspace(0, 20, len(beat["neq_H"]["neq_flow"]))
+tb = np.linspace(0, 20, len(beat["neq_H"]["flow"]))
 for k in ("flow", "bellflux", "bell", "ballistic"):
-    h = np.array(beat["neq_H"]["neq_" + k]); ax[0, 2].plot(tb, h / h[0], "-", color=COL[k], label="radiale: " + NAME[k])
+    h = np.array(beat["neq_H"][k]); ax[0, 2].plot(tb, h / h[0], "-", color=COL[k], label="radiale: " + NAME[k])
 t1 = np.array(a1["rec"]["t"])
-for k in ("flow2", "bellflux", "ballistic", "cdfasse"):
-    h = np.array(a1["H_neq"]["neq_" + k]); ax[0, 2].plot(t1 / 50, h / h[0], "--", color=COL[k], label="1s 3-D: " + NAME[k])
+for k in ("flow2", "flow", "bellflux", "ballistic", "cdfasse"):
+    h = np.array(a1["H_neq"]["neq_" + k]); ax[0, 2].plot(np.concatenate([[0], t1]) / 50, h / h[0], "--", color=COL[k], label="1s 3-D: " + NAME[k])
 ax[0, 2].set_ylim(0, 1.1)
-ax[0, 2].set_title("Mescolamento finto: partenza da |ψ|⁴ in stati dove Bohm NON mescola\n(H̄ relativo; 1 = nessun mescolamento)")
+ax[0, 2].set_title("Mescolamento finto: partenza da |ψ|⁴\n(stati dove Bohm non mescola; 1 = niente)")
 ax[0, 2].set_xlabel("periodi di battimento (radiale) / tick/50 (1s 3-D)"); ax[0, 2].legend(fontsize=7)
 # (d) randomness per surfer per tick
 ks = ["flow2", "flow", "cdfasse", "bellflux", "bell", "ballistic"]

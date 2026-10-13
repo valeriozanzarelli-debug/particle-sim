@@ -286,6 +286,33 @@ def part_excited(a, cfgname):
     save(key, rec)
 
 
+def part_centre(a):
+    """nucleus on a site (centre of a cell), amendment nucleo1s_3d_amend1.json: all 4 colours, bare rule"""
+    AM = json.load(open(os.path.join(OUT, "nucleo1s_3d_amend1.json")))["centre"]
+    key = f"centre_{a}"
+    out = load().get(key, {})
+    n = int(round(PRE["config"]["scan"]["box"] / a / 2)) * 2
+    nt = int(round(AM["nt_T"] / a))
+    cube = (3 * np.log(2 + np.sqrt(3)) - np.pi / 2) / a
+
+    def Vf(rr):
+        return np.where(rr < 1e-9 * a, -Za * cube, -Za / np.maximum(rr, 1e-9 * a))
+    for q in ((0, 0, 0), (1, 0, 0), (0, 1, 0), (0, 0, 1)):
+        if str(q) in out:
+            continue
+        col = Colour3D(n, a, Za, Vfun=Vf, q=q, origin=(a / 2, a / 2, a / 2))
+        C = listen_ck(col, start_1s(col, a), nt, f"centre_{a}_{q[0]}{q[1]}{q[2]}")
+        if C is None:
+            save(key, out); return
+        L = lines(C[0], a, 0.80, 0.95)
+        strong = [x for x in L if x["weight"] >= 0.05]
+        out[str(q)] = dict(lines=L, quartet=quartet([x for x in L if x["weight"] >= 0.03]),
+                           split=float(max(x["omega"] for x in strong) - min(x["omega"] for x in strong)) if strong else None,
+                           r_min=float(min(col.rE.min(), col.rO.min())))
+        log(key, q, out[str(q)]["split"], [(round(x["omega"], 6), round(x["weight"], 3)) for x in L])
+        save(key, out)
+
+
 def part_glue():
     from nucleo1s_glue import glue_scan
     out = glue_scan(PRE["config"]["glue"], log)
@@ -302,6 +329,8 @@ if __name__ == "__main__":
         part_scan(float(sys.argv[2]), sys.argv[3])
     elif p == "excited":
         part_excited(float(sys.argv[2]), sys.argv[3])
+    elif p == "centre":
+        part_centre(float(sys.argv[2]))
     elif p == "glue":
         part_glue()
     log("done", p)
