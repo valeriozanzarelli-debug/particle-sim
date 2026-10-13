@@ -1,0 +1,103 @@
+{
+ "study": "VUOTO_POLARIZZA phase 2 (prefix vuoto_f2_)",
+ "date": "2026-10-13",
+ "rule": "lab/zz_core.py frozen; nothing in the rule is changed. Exploration B' (breathing coin) is a variant, NOT the rule.",
+ "engines": "lab/vuoto_f2_core.py (self-energy loop, g-2, Bethe log, breathing bands); lab/vuoto_core.py (chi_3d got a mu argument, default 0 = unchanged)",
+ "development_seen_before_this_file (declared)": [
+  "Continuum check of the dm formulas (old-fashioned/Feynman form, Coulomb gauge, the same smooth cutoff w(k)): slopes per ln 2 between theta = 0.1 ... 0.00625 give Coulomb 0.31834 (1/pi = 0.31831), transverse 0.15915 (1/2pi = 0.159155): total 3 alpha/2pi. Lattice, coarse grid, theta = 0.05 -> 0.025: Coulomb 0.3177, transverse 0.1582.",
+  "g-2 continuum check: vertex + Ward-consistent charge vertex alone gives 0.664 alpha/2pi; the Coulomb-gauge external legs (on-shell Sigma mixing with negative states, after the mass counterterm) add +1.0; the 3-momentum cutoff breaks Lorentz invariance of the dressed electron (its limiting speed is renormalized: dv = 0.0526 alpha in the continuum with this cutoff), and the velocity counterterm fixed by E^2 - p^2 = m^2 (NOT by g-2) brings the total to 1.0002 alpha/2pi after lam -> 0 and theta -> 0 (table theta 0.1..0.0125 x lam/m 1e-3..1e-4). Ward identity Lambda(p,p) = dSigma/dp checked to all digits.",
+  "g-2 lattice, coarse grid, lam = 1e-3 m: dv is ANISOTROPIC on the lattice (dv_x ~ 0.000, dv_y ~ 0.046, dv_z ~ 0.073 alpha at theta 0.05); with per-axis counterterms F2 averaged over 6 (Q axis, current axis) pairs = 0.873 (theta 0.1), 0.939 (0.05) alpha/2pi, orientation spread 0.081, 0.063.",
+  "Bethe log (development, Z = 20 dense walk only; NO hydrogen Bethe-log number computed): the positive-energy projector works (negative weight left 6.5e-18) and the resolvent reproduces the dense spectral D to 1e-8; but the unprojected dipole source picks a tiny doubler content whose dE^3 weight dominates (D 77x the sum rule). Its exams are therefore pre-registered separately (vuoto_f2_prereg_L.json).",
+  "Breathing coin bands: the 4 massive valleys keep mass theta EXACTLY (k = 0 and (pi/2, pi/2, 0) perms), the 4 cones get mass mu (0.1 for mu = 0.1); physical-species dispersion: v^2 = cos^2 mu (isotropic): the electron's limiting speed drops to cos mu while light is untouched.",
+  "Breathing coin, physical-species response at theta = 0.05 (development, not graded): ratio Pi_R(mu)/Pi_R(0), xyz mean, q = 1 m / 3 m: mu = 0.1: 1.0021 / 1.0052; mu = 0.2: 0.9959 / 1.0078; mu = 0.3: 0.9814 / 1.0078. Not a clean mu^2 law; the naive 'speed cos mu' prediction pitR(q cos mu)/cos mu (0.9959 / 0.9988 at mu = 0.1) is WRONG (even in sign): the breathing coin changes more than the speed of the physical species.",
+  "H with the projector on the electron: phase 1 post-hoc values at theta_atom 0.05, 0.025 were seen (1S -211.65, -213.13; 2S -26.46, -26.64 MHz). theta_atom = 0.0125 not computed before this file."
+ ],
+ "verified_reference_values (source checked 13/10, arXiv:2211.05411 supplementary, CODATA-2018 contributions, kHz)": {
+  "one-loop self-energy 1S": 8383339.47,
+  "one-loop self-energy 2S": 1071281.0,
+  "vacuum polarization 1S": -215167.77,
+  "vacuum polarization 2S": -26897.0,
+  "nuclear size leading 1S": 1107.15,
+  "nuclear size leading 2S": 138.39,
+  "Lamb shift 1S (Eides et al.)": 8172847,
+  "Lamb shift 2S (Eides et al.)": 1045009.1,
+  "NOT verified on a source (from memory, kept as approximate)": "2P1/2 self-energy ~ -12.8 MHz, 2S-2P Lamb ~1057.8 MHz, anomalous-moment part ~ +68 MHz; Bethe logs 2.984128556 (1S), 2.811769893 (2S) are the standard values (Drake & Swainson 1990) quoted from memory"
+ },
+ "exams": {
+  "S1 (formula check, continuum, NOT a test of the rule)": {
+   "what": "dm/m = A + B ln(1/m) + C m fitted on theta = 0.05..0.003125 (5 points), continuum Dirac, same w(k)",
+   "pass": "B_C/(alpha/pi), B_T/(alpha/2pi), B_tot/(3 alpha/2pi) all within 0.5 %"
+  },
+  "S2 (lattice: electron walk x light walk)": {
+   "what": "the same fit on the lattice loop (Floquet bands of the rule, light-walk photons and polarizations, vertex dH_eff/dk at the link midpoint), theta = 0.05..0.003125",
+   "pass": "S2a: B_C/(alpha/pi) within 2 %; S2b: B_T/(alpha/2pi) within 3 %; S2c: B_tot/(3 alpha/2pi) within 2 %",
+   "note": "the log coefficient is set at m << k << 1/a where lattice ~ continuum: a VALIDATION, not a discovery; the constant A depends on the species projector (cutoff) and is not graded"
+  },
+  "G0 (formula check, continuum)": {
+   "what": "F2 = Lambda_M(vertex + legs + velocity counterterm) - Lambda_E, Breit frame, Q = 1e-2 lam, lam/m in {1e-3, 3e-4} -> linear extrapolation lam -> 0, theta in {0.05, 0.025, 0.0125} -> fit a + b th + c th^2",
+   "pass": "|F2/(alpha/2pi) - 1| <= 0.5 %"
+  },
+  "G1 (lattice g - 2)": {
+   "what": "the same on the lattice, averaged over the 6 (Q axis, current axis) pairs, per-axis velocity counterterms; extrapolations as G0",
+   "pass": "|F2/(alpha/2pi) - 1| <= 3 %"
+  },
+  "G2": {
+   "what": "lattice F2 at theta = 0.0125 (lam -> 0), 6-pair mean",
+   "pass": "within 6 % of alpha/2pi"
+  },
+  "G3": {
+   "what": "orientation spread (max - min over the 6 pairs) shrinks",
+   "pass": "spread(0.0125) <= 0.5 spread(0.05)"
+  },
+  "G4 (finding, no threshold)": "anisotropic velocity renormalization dv_j of the dressed electron on the lattice (reported at each theta; it is a property of the rule's loop, a new debt)",
+  "L (Bethe log)": "pre-registered SEPARATELY in lab/out/vuoto_f2_prereg_L.json, committed before its production run (the dense check of the method was still running when this file was committed)",
+  "B-principle": "mu = sqrt(theta): the regulator mass M = mu/a is the geometric mean of the electron mass m = theta/a and the lattice cutoff 1/a. It balances the two errors of the breathing coin, both O(theta): the regulator's own Uehling term (m/M)^2 = theta and the distortion of the physical species O(mu^2) = O(theta) (e.g. its speed cos mu: 1 - v ~ theta/2). Chosen before any phase-2 production number.",
+  "B5": {
+   "what": "whole sea (no projector) Pi(0) per massive species, theta = 0.025, 0.0125, mu = sqrt(theta), xyz-average",
+   "pass": "within 3 % of (1/6 pi^2) ln(mu/theta)"
+  },
+  "B6": {
+   "what": "whole sea Pi_R(q) vs Pauli-Villars-regulated Uehling pitR(q; m) - pitR(q; M = mu), q = 1, 3 m",
+   "pass": "within 2 % at both theta"
+  },
+  "B7": {
+   "what": "physical-species Pi_R(q) with the breathing coin over the same without it (same theta), q = 1, 3 m",
+   "pass": "|ratio - 1| <= 1 % at q = 1 and 3 m, at both theta (from the development range above: at mu = 0.158 and 0.112 the distortion should be ~0.5 %)"
+  },
+  "B8": {
+   "what": "bands: the 4 massive valleys keep mass theta, the 4 cones get mass mu (|Omega|/2 at the special points)",
+   "pass": "within 1e-9"
+  },
+  "B9 (statement, no threshold)": "what changes for the other studies (document section 13)",
+  "H1": {
+   "what": "1S Uehling shift, electron density projected on the physical species, theta_atom = 0.0125",
+   "pass": "within 1 % of -215.10 MHz (Schroedinger density + analytic Uehling, phase-1 reference)"
+  },
+  "H2": {
+   "what": "2S, the same",
+   "pass": "within 1 % of -26.887 MHz"
+  },
+  "H3": {
+   "what": "3-point extrapolation E0 + c th + d th^2 (theta_atom 0.05, 0.025, 0.0125) for 1S and 2S",
+   "pass": "both within 0.5 %"
+  },
+  "H4": {
+   "what": "VP contribution to the 1S-2S frequency, dE(2S) - dE(1S), from the H3 extrapolations",
+   "pass": "within 1 % of +188.21 MHz (= -26.887 + 215.10)"
+  }
+ },
+ "knobs (counted)": {
+  "inherited": "species projector w (K1 = 0.6, K2 = 1.05) = also the UV cutoff of the loop; vacuum theta_vac = 0.0125",
+  "new, fixed by physics conditions (not fitted to the exams)": [
+   "mass counterterm dm (rest energy of the dressed electron)",
+   "velocity counterterms dv_x, dv_y, dv_z (dressed E^2 - p^2 = m^2 along each axis)",
+   "photon mass lam (IR regulator, extrapolated to 0)"
+  ],
+  "declared choices": [
+   "vertex = dH_eff/dk at the link midpoint (Peierls), H_eff = i log W / 2",
+   "photon polarization projector from the light walk eigenvectors, symmetrized with its conjugate",
+   "Coulomb kernel 4 pi alpha/k^2 (input, as in phase 1)",
+   "breathing: mu = sqrt(theta) (principle above)"
+  ]
+ }
+}
