@@ -495,6 +495,24 @@ fn esame_risonanza(b: usize, n: usize, dir: &str, passi: usize, _m: usize, fot: 
         let (a, bq) = (c10 * C::expi(-e1r * t), c20 * C::expi(-e2r * t));
         s1.par_iter().zip(p2.par_iter()).map(|(x, y)| a * *x + bq * *y).collect()
     };
+    // for the far view: the three 2p states found by the solver are mixed (the triplet is degenerate to 3e-5), so the
+    // p state along z is rebuilt as Σ_i d_i* p_i / |d| with d_i = ⟨1s|z|p_i⟩, each p_i keeping its own rule energy
+    let px = carica_stato(&format!("{dir}/2px_B{b}_N{n}.c32"));
+    let py = carica_stato(&format!("{dir}/2py_B{b}_N{n}.c32"));
+    let ps = [&p2, &px, &py];
+    let es: Vec<f64> = ps.iter().map(|q| lv.energia_regola(q).0).collect();
+    let dz: Vec<C> = ps.iter().map(|q| s1.par_iter().zip(q.par_iter()).zip(zc.par_iter()).map(|((a, c), z)| a.conj() * *c * *z).reduce(|| C::ZERO, |x, y| x + y)).collect();
+    let dn = dz.iter().map(|d| d.norm2()).sum::<f64>().sqrt();
+    println!("2p triplet: E = {:.6} {:.6} {:.6} eV, <1s|z|p_i> = {:.4} {:.4} {:.4} a0 -> |d| = {:.5} a0 (exact 128√2/243 = 0.74494)",
+             es[0] * ev(), es[1] * ev(), es[2] * ev(), dz[0].abs(), dz[1].abs(), dz[2].abs(), dn);
+    let cz: Vec<C> = dz.iter().map(|d| d.conj().scale(1.0 / dn)).collect();
+    let r2 = 0.5f64.sqrt();
+    let cartolina_z = |t: f64| -> Vec<C> {
+        let a = C::expi(-e1r * t).scale(r2);
+        let w: Vec<C> = (0..3).map(|i| cz[i] * C::expi(-es[i] * t).scale(r2)).collect();
+        (0..s1.len()).into_par_iter().map(|q| a * s1[q] + w[0] * p2[q] + w[1] * px[q] + w[2] * py[q]).collect()
+    };
+    if passi > 0 {
     let mut f = psi.clone();
     let (mut c1, mut c2) = (vec![dot(&s1, &f)], vec![dot(&p2, &f)]);
     let mut ds = vec![dip(&f)];
@@ -519,15 +537,16 @@ fn esame_risonanza(b: usize, n: usize, dir: &str, passi: usize, _m: usize, fot: 
     println!("RISULTATO E4: Lyman-alpha of the rule {:.4} nm (Dirac×mu centroid {:.4} nm); period {:.4} a.u. = {:.4e} s = {:.0} steps",
              lam_nm, 1239.84198 / dref, 2.0 * std::f64::consts::PI / (e2r - e1r) * ALPHA * ALPHA, 2.0 * std::f64::consts::PI / (e2r - e1r) * ALPHA * ALPHA * 2.4188843265857e-17 * (1.0 / mu()),
              2.0 * std::f64::consts::PI / (e2r - e1r) / lv.tau);
+    }
     if let Some(d) = esporta.as_ref() {
         let vk = lv.velocita_k();
         let mg = 96usize.min(n);
         let a0c = (a0() / lv.h).powi(3);
-        let per = 2.0 * std::f64::consts::PI / (e2r - e1r);
+        let per = 2.0 * std::f64::consts::PI / ((es[0] + es[1] + es[2]) / 3.0 - e1r);
         let mut dtxt = String::new();
         for q in 0..fot {
             let t = per * q as f64 / fot as f64;
-            let g = cartolina(t);
+            let g = cartolina_z(t);
             let r: Vec<f64> = ritaglio(&lv, &dens(&g), mg).iter().map(|x| x * a0c).collect();
             scrivi(&format!("{d}/rho_lontano.f16"), &r, 1.0, q > 0);
             let j = lv.corrente(&g, &vk);

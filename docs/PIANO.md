@@ -51,6 +51,7 @@ dove le impostazioni grafiche sono i livelli di agglomerato e il motore scala co
 | Motore grafico a palline (13/10): istanze da 32 byte, regola della luce sulla GPU (= CPU bit per bit), preset bassa/media/alta/ultra; Intel UHD a bassa 60 fps e 32 ms/tick | fatto; debiti: regola GPU non collegata, Ultra non provato, livelli di disegno solo fino a λ/6 | `MOTORE_GRAFICO.md` |
 | Atomo vivo zig-zag (ione a 1 elettrone Nd⁵⁹⁺, risonanza 1s→2p dalla regola); orbitali n ≤ 4 sulla mesh a cipolla dello zoom (13/10): tutti entro 0,36 % di Dirac (1s +0,05 %, prima +39,9 %) | fatto; l'atomo 3-D dal vivo resta con celle cubiche da 0,5 (1s +40 %, debito 12 di `NUCLEO_1S.md`) | `ATOMO.md`, `NUCLEO_1S.md` |
 | Atomo vivo su un colore del cubo (13/10): il cubo = 4 reticoli indipendenti; un colore è esatto come algoritmo (4·10⁻¹⁵), regola ×4,09, passo con luce ×1,99 | fatto come opzione, **spento di default**: un colore da solo è anisotropo (E2 FAIL, dipolo 0,44 %); proposta due colori + rotazione di 180° (×2) | `SOTTORETICOLO.md` |
+| Idrogeno vero a scala di Bohr (13/10): regola imparata a0/16 lontano + zig-zag a0/512 sul protone, 3-D, nel tempo, Rust su CPU (3,8 s/passo); 1s −0,066 %, 2p +0,039 %, 2s −0,138 %, Lyman-α 122,15 nm (−0,48 %), 8/8 esami PASS | fatto (validazione); debiti: ibrido non convergente nel blocco (5·10⁻⁴), colla non a flusso conservativo (10⁻⁷/passo), n = 2 solo a a0/8 | `IDROGENO_BOHR.md` |
 | Vuoto di coppie (Schwinger 0,3%, Sauter 0,5%, scatola stretta) | fatto | `IDEE_RIPRESE.md`, `COPPIE_IN_SCATOLA.md` |
 | Molecole dalla regola DMC: H, He, H₂ (vibrazione ora −0,2%) | fatto, storico | `MOLECOLE.md`, `H2_VIBRAZIONE.md` |
 | Relatività da un fluido di palline (Lorentz 1,5%) | fatto | `FLUIDO_IN_NEGATIVO.md` |
@@ -82,9 +83,10 @@ Quattro studi erano in corso quando è stato scritto questo file. Se uno risulta
 ## 5. Prossimi passi, in ordine
 
 1. Chiudere i quattro cantieri sopra.
-2. Portare nel Laboratorio Atomo l'idrogeno **vero** a scala di Bohr usando la regola
-   agglomerata (`agglomerato_zz.json`) e il reticolo sparso (`reticolo_spec.json`), con zoom
-   fino al tremolio di Dirac vicino al nucleo.
+2. ~~Portare nel Laboratorio Atomo l'idrogeno **vero** a scala di Bohr~~ **motore fatto 13/10**
+   (`IDROGENO_BOHR.md`, `src/atomo/idrogeno.rs`, dati per il video in `ripresa/dati/idrogeno_bohr/`).
+   Resta: colla a flusso conservativo (reflux), blocco fine più largo fino a convergenza, 2p a a0/16
+   su griglia composita, collegamento alla grafica del Laboratorio.
 3. **Elio e litio esatti** sulla zig-zag (o sulla regola agglomerata), poi imparare da loro la
    regola effettiva a molti elettroni. Esame: energie di ionizzazione e righe.
 4. Atomi uno a uno, numero atomico per numero atomico. Dopo: legami, H₂, acqua.
