@@ -12,10 +12,22 @@
   ],
   "esami": {
     "R1_reflux": {
-      "R1a": {"corsa": "IDRO_REFLUX=1 IDRO_ORD=9 attraversa 64 3 0 3 0 16 (pacchetto fermo, blocco 3^3)", "soglia": "|ΔQ| per passo <= 1e-11 (su un periodo di Lyman-alfa, 36 900 passi a0/16: <= 4e-7 << 1e-4)"},
-      "R1b": {"corsa": "IDRO_REFLUX=1 IDRO_ORD=9 esame_ibrido 256 256 3 24", "soglia": "deriva di carica <= 1e-11 per passo; E1 <= 0.10 %; E3 come fase 1"},
-      "R1c": {"corsa": "IDRO_REFLUX=1 IDRO_ORD=9 attraversa 64 3 0.5 3 -20 80", "soglia": "fedeltà >= 0.99, riflesso <= 1e-2, |ΔQ| <= 1e-9 sull'intera corsa"},
-      "R1d": {"corsa": "IDRO_REFLUX=1 IDRO_ORD=9 IDRO_POT=gauss esame_ibrido 256 128 3 16", "soglia": "|E_ibrido/E_grosso − 1| <= 1e-4"}
+      "R1a": {
+        "corsa": "IDRO_REFLUX=1 IDRO_ORD=9 attraversa 64 3 0 3 0 16 (pacchetto fermo, blocco 3^3)",
+        "soglia": "|ΔQ| per passo <= 1e-11 (su un periodo di Lyman-alfa, 36 900 passi a0/16: <= 4e-7 << 1e-4)"
+      },
+      "R1b": {
+        "corsa": "IDRO_REFLUX=1 IDRO_ORD=9 esame_ibrido 256 256 3 24",
+        "soglia": "deriva di carica <= 1e-11 per passo; E1 <= 0.10 %; E3 come fase 1"
+      },
+      "R1c": {
+        "corsa": "IDRO_REFLUX=1 IDRO_ORD=9 attraversa 64 3 0.5 3 -20 80",
+        "soglia": "fedeltà >= 0.99, riflesso <= 1e-2, |ΔQ| <= 1e-9 sull'intera corsa"
+      },
+      "R1d": {
+        "corsa": "IDRO_REFLUX=1 IDRO_ORD=9 IDRO_POT=gauss esame_ibrido 256 128 3 16",
+        "soglia": "|E_ibrido/E_grosso − 1| <= 1e-4"
+      }
     },
     "R2_convergenza_nel_blocco": {
       "corse": "IDRO_REFLUX=1 IDRO_ORD=9 IDRO_B=16 esame_ibrido 256 256 {3,5,7,9} 24 (celle fini a0/256); più R1b (a0/512, blocco 3) per la risoluzione",
@@ -23,10 +35,27 @@
       "attesa_onesta": "in fase 1 i passi fra blocchi erano 3e-4 e 2.3e-4: un FAIL è possibile"
     },
     "R3_regola_simmetrica": {
-      "R3a": {"corsa": "IDRO_ASSET=assets/atomo/agglomerato_zz_simm_v1.json spettro 512 288 0", "soglia": "parità |P| >= 1 − 1e-8 per 1s, 2p×3, 2s; tripletto 2p aperto <= 1e-7; 2s e 2p entro 0.25 % di Dirac × mu"},
-      "R3b": {"corsa": "regola simmetrica + reflux + blocco migliore di R2 (a0/256), esame_ibrido 256 256 ni 24 con export", "soglia": "E1 <= 0.10 %; corrente spuria max|j| <= 1e-6 alpha c/a0^3 (fase 1: 6.5e-3)"},
-      "R3c": {"corsa": "esame_risonanza 512 288 con gli stati di R3a", "soglia": "coerenza <= 1e-4; contro Dirac × mu <= 0.6 %"}
+      "R3a": {
+        "corsa": "IDRO_ASSET=assets/atomo/agglomerato_zz_simm_v1.json spettro 512 288 0",
+        "soglia": "parità |P| >= 1 − 1e-8 per 1s, 2p×3, 2s; tripletto 2p aperto <= 1e-7; 2s e 2p entro 0.25 % di Dirac × mu"
+      },
+      "R3b": {
+        "corsa": "regola simmetrica + reflux + blocco migliore di R2 (a0/256), esame_ibrido 256 256 ni 24 con export",
+        "soglia": "E1 <= 0.10 %; corrente spuria max|j| <= 1e-6 alpha c/a0^3 (fase 1: 6.5e-3)"
+      },
+      "R3c": {
+        "corsa": "esame_risonanza 512 288 con gli stati di R3a",
+        "soglia": "coerenza <= 1e-4; contro Dirac × mu <= 0.6 %"
+      }
     }
   },
-  "manopole": "nessuna nuova: reflux e simmetrizzazione senza parametri; a0/256 e grandezze del blocco sono scelte di configurazione (dichiarate)"
+  "manopole": "nessuna nuova: reflux e simmetrizzazione senza parametri; a0/256 e grandezze del blocco sono scelte di configurazione (dichiarate)",
+  "emendamento_1": {
+    "scritto": "dopo R2 (blocchi 3/5/7/9 a 24 passi: -0.0604, -0.0297, -0.0160, -0.0368 %): R2 è FAIL come registrato (|E5-E3| = 3.1e-4). La serie non è monotona e la stazionarietà peggiora con il blocco (1.5e-3): sospetto che la lettura dell'energia dalla fase su 16 passi sia limitata dalla contaminazione dello stato iniziale (autostato grosso, non dell'ibrido).",
+    "R2bis": {
+      "corse": "IDRO_REFLUX=1 IDRO_ORD=9 IDRO_B=16 esame_ibrido 256 256 {3,5,7,9} 72, energia dalla finestra [36,72] (stampate anche [8,72], [24,72], [48,72])",
+      "criterio": "lo stesso: |E5-E3| e |E7-E5| < 1e-4 relativo; in più stabilità della lettura |E[24,72] - E[48,72]| < 1e-4 per ogni blocco (se no, la lettura non basta e lo si dichiara)",
+      "nota": "diagnostica dichiarata dopo il FAIL; il FAIL di R2 resta"
+    }
+  }
 }

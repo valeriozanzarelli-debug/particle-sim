@@ -440,6 +440,12 @@ fn esame_ibrido(bl: usize, n: usize, ni: usize, passi: usize, esporta: Option<St
     let q1 = norm2(&at.psi);
     let h1 = h_media(&lv, &at.psi);
     let from = 8.min(passi / 2);
+    if passi >= 48 {
+        for f0 in [8usize, passi / 3, passi / 2, 2 * passi / 3] {
+            let e = energia_da_fase(&cs, f0, at.lv.phi0, at.lv.tau);
+            println!("RISULTATO finestra [{f0},{passi}]: E_hybrid {:.6} eV ({:+.4} %)", e * ev(), 100.0 * (e * ev() / e1 - 1.0));
+        }
+    }
     let eh = energia_da_fase(&cs, from, at.lv.phi0, at.lv.tau);
     let ec = energia_da_fase(&cc, from, lv.phi0, lv.tau);
     let rho1 = dens(&at.psi);
