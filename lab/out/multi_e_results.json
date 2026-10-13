@@ -402,5 +402,76 @@
   "fraction_of_mass_velocity": 0.3982961074716497,
   "fraction_of_exact_dirac_kinetic": 0.40931947449336936,
   "relearn_band_delta_mEh": -0.695969181422118
+ },
+ "R3v3": {
+  "verdict": "PASS",
+  "m0": 1.0000000010921748,
+  "sigma": 4.799909720010111e-10,
+  "within_1e9": false
+ },
+ "L1c_v3": {
+  "verdict": "FAIL (alto k, dichiarato; 1 seme su 3)",
+  "energy_rel": {
+   "1": 4.131680089716639e-05,
+   "2": 1.8357081786895128e-05,
+   "3": 7.897152344793987e-05
+  }
+ },
+ "G0v3": {
+  "verdict": "PASS",
+  "odd_rel": {
+   "T_kh0.01": 0.0,
+   "T_kh1": 0.0,
+   "T_imag_over_real": 0.0,
+   "M_kh0.01": 0.0,
+   "M_kh1": 0.0,
+   "M_imag_over_real": 0.0
+  }
+ },
+ "R2v3": {
+  "verdict": "PASS",
+  "max_neg_M": 4.4535466052472996e-14,
+  "D_curv": 0.4998134347921243,
+  "D_real": 0.4998134347595359,
+  "kurtosis": 0.0159750628761968,
+  "wrong_taps_M": 0,
+  "T_level_max_neg": 0.15649310760021132,
+  "T_wrong_taps": 304
+ },
+ "M1v3": {
+  "verdict": "PASS",
+  "E_theta0": -2.9037212729353374,
+  "error_bar": 7.944306358421953e-05,
+  "diff_mEh": 0.003104064662640127
+ },
+ "E1v3": {
+  "verdict": "PASS",
+  "IE_eV": 24.588138398139918,
+  "diff_meV": 0.7493981399164795,
+  "error_bar_eV": 0.0021614656248258126
+ },
+ "Q1v3": {
+  "verdict": "PASS",
+  "T": {
+   "m_band": 1.000373269957433,
+   "delta_band_first_order_mEh": -0.6997289588919209,
+   "delta_dirac_first_order_mEh": -0.696690150215229,
+   "band_over_dirac": 1.0043617793013913,
+   "delta_band_variational_same_basis_mEh": -0.7089784718092851,
+   "non_dirac_part_mEh": -0.0030388086766919287
+  },
+  "M": {
+   "m_band": 1.0003732696940275,
+   "delta_band_first_order_mEh": -0.7079842460386843,
+   "delta_dirac_first_order_mEh": -0.6966901449731999,
+   "band_over_dirac": 1.0162110819953092,
+   "delta_band_variational_same_basis_mEh": -0.7335479858805449,
+   "non_dirac_part_mEh": -0.011294101065484341
+  },
+  "old_level": {
+   "delta_band_mEh": -0.2851605094065235,
+   "delta_dirac_mEh": -0.6966697828376667,
+   "non_dirac_part_mEh": 0.4115092734311432
+  }
  }
 }
