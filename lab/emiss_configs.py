@@ -80,6 +80,8 @@ def radial_atom(Z, a, rmax):
 
 
 def radial_cfg(name, Z, a, rmax, T_periods, cells_per_lambda=20, K=1.0, **kw):
+    if os.environ.get("EMISS_CFG") not in (None, name):
+        return dict(name=name, lazy=True)
     at, ce, cg, oe, og = radial_atom(Z, a, rmax)
     w = oe - og
     lam = 2 * np.pi / w
@@ -99,3 +101,55 @@ def radial_cfg(name, Z, a, rmax, T_periods, cells_per_lambda=20, K=1.0, **kw):
 add(radial_cfg("dev_rad60", 60, 0.05, 40.0, 25))
 add(radial_cfg("dev_rad60_c30", 60, 0.05, 40.0, 25, cells_per_lambda=30))
 add(radial_cfg("dev_rad60_c40", 60, 0.05, 40.0, 25, cells_per_lambda=40))
+
+# =============================================================== PRODUCTION (pre-registration v3, lab/out/emiss_prereg.json)
+import json as _json
+_L48 = None
+
+
+def lev48():
+    global _L48
+    if _L48 is None:
+        _L48 = _json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "out", "emiss_levels_48.json")))
+    return _L48
+
+
+def _e1(name, pol):
+    L = lev48()
+    wd = L["2p1/2+"]["omega"] - L["1s+"]["omega"]
+    tau = 2 * np.pi / wd
+    c = base(name, "sc", 48, 10000.0, K=1.0,
+             psi0_factory=lambda at: level(48, "1s+").copy(),
+             excited=lambda at: [], ground=lambda at: level(48, "1s+"),
+             drive=dict(eE0=0.004, omega=wd, tau=tau, t0=4 * tau, pol=pol))
+    return c
+
+
+def _sup(at):
+    p = (level(48, "1s+") + level(48, "2p3/2+3")) / np.sqrt(2)
+    return p / np.sqrt(np.sum(np.abs(p)**2))
+
+
+if os.path.exists(os.path.join(os.path.dirname(os.path.abspath(__file__)), "out", "emiss_levels_48.json")):
+    add(_e1("P_E1pi", "z"))
+    add(_e1("P_E1sig", "sigma-"))
+    for nm, K in (("P_R1_48", 1.0), ("P_K10", 10.0)):
+        add(base(nm, "qe", 48, 3000.0, K=K, centered=True, transverse=True,
+                 psi0_factory=lambda at: level(48, "2p3/2+3").copy(),
+                 excited=lambda at: [level(48, "2p3/2+3")], ground=lambda at: level(48, "1s+"),
+                 channels=lambda at: [level(48, "1s+")]))
+    add(base("P_S1sc", "sc", 48, 3000.0, K=1.0, centered=True, transverse=True,
+             psi0_factory=lambda at: level(48, "2p3/2+3").copy(),
+             excited=lambda at: [level(48, "2p3/2+3")], ground=lambda at: level(48, "1s+")))
+    add(base("P_SC10", "sc", 48, 3000.0, K=10.0, centered=True, transverse=True,
+             psi0_factory=_sup,
+             excited=lambda at: [level(48, "2p3/2+3")], ground=lambda at: level(48, "1s+")))
+add(base("P_R0", "light", None, 1200.0, I0=1.0, omega=2 * np.pi / 80.0, ramp=100.0))
+if os.path.exists(os.path.join(CK, "level_96_2p3_2+3.npy")) and os.path.exists(os.path.join(CK, "level_96_1s+.npy")):
+    add(base("P_R1_96", "qe", 96, 3000.0, K=1.0, centered=True, transverse=True,
+             psi0_factory=lambda at: level(96, "2p3/2+3").copy(),
+             excited=lambda at: [level(96, "2p3/2+3")], ground=lambda at: level(96, "1s+"),
+             channels=lambda at: [level(96, "1s+")]))
+add(radial_cfg("P_N1", 60, 0.025, 40.0, 25, cells_per_lambda=30))
+add(radial_cfg("P_H1a", 1, 0.5, 4000.0, 12, cells_per_lambda=30))
+add(radial_cfg("P_H1b", 1, 0.25, 4000.0, 12, cells_per_lambda=30))
