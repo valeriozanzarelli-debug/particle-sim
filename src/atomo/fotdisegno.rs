@@ -28,8 +28,12 @@ use crate::rng::{hash01, Rng};
 /// default number of energy balls (the quality presets choose their own: fotscena::PALLINE_QUAL)
 pub const N_TRACCIANTI: usize = 32_000;
 pub const N_SURF: usize = 6;
-/// past positions kept per energy ball (one every 2 ticks): the tail shows the real curved path (the swirl)
+/// past positions kept per energy ball: the tail shows the real curved path (the swirl seen from behind)
 pub const SCIA_MAX: usize = 4;
+
+/// Ticks between two tail samples: λ/3, so the 4 samples span the same PHYSICAL time (4/3 λ/c) at every preset
+/// (Valerio's rule: presets change resolution and counts, never what is seen; docs/MOTORE_GRAFICO_OIT.md).
+pub fn passo_scia(lambda_celle: f64) -> u64 { (lambda_celle / 3.0).round().max(1.0) as u64 }
 pub const L_SCIA: usize = 48;
 
 /// Which layers are drawn.
@@ -133,6 +137,8 @@ pub struct Traccianti {
     pub scia: Vec<[[f32; 3]; SCIA_MAX]>,
     /// how many of them are drawn (quality preset)
     pub scia_n: usize,
+    /// ticks between two tail samples (passo_scia(λ)); set by `palline` from the launch, read by `avanza`
+    pub passo_scia: std::sync::atomic::AtomicU64,
     passi: u64,
     pub eta: Vec<u16>,
     pub vita: Vec<u16>,
@@ -143,7 +149,7 @@ pub struct Traccianti {
 
 impl Traccianti {
     pub fn new(f: &Fotone3D, seme: u64, quante: usize) -> Self {
-        let mut t = Traccianti { pos: vec![], vel: vec![], scia: vec![], scia_n: 2, passi: 0, eta: vec![], vita: vec![], surf: vec![], rng: Rng::new(seme) };
+        let mut t = Traccianti { pos: vec![], vel: vec![], scia: vec![], scia_n: 2, passo_scia: std::sync::atomic::AtomicU64::new(2), passi: 0, eta: vec![], vita: vec![], surf: vec![], rng: Rng::new(seme) };
         let nuovi = semina(f, quante.max(N_SURF), &mut t.rng);
         for p in nuovi {
             t.pos.push(p);
@@ -162,9 +168,10 @@ impl Traccianti {
     /// completely (u < 1e-4 of the peak: the integration error of the far tail) is put back where the light is.
     pub fn avanza(&mut self, f: &Fotone3D, verso: f32, centro: [f64; 3]) {
         let imax = f.f.par_iter().map(|p| p[0].norm2() + p[1].norm2() + p[2].norm2()).reduce(|| 0.0, f32::max).max(1e-30);
-        // the tail: every 2 ticks forward the history shifts; going back in time it is cleared
+        // the tail: every passo_scia ticks forward the history shifts; going back in time it is cleared
         self.passi += 1;
-        if verso > 0.0 && self.passi % 2 == 0 {
+        let passo = self.passo_scia.load(std::sync::atomic::Ordering::Relaxed).max(1);
+        if verso > 0.0 && self.passi % passo == 0 {
             self.scia.par_iter_mut().zip(self.pos.par_iter()).for_each(|(s, p)| { s.rotate_right(1); s[0] = *p; });
         } else if verso < 0.0 {
             self.scia.par_iter_mut().zip(self.pos.par_iter()).for_each(|(s, p)| { *s = [*p; SCIA_MAX]; });
@@ -265,7 +272,9 @@ pub fn palline(f: &Fotone3D, l: &Lancio, centro: [f64; 3], tr: &Traccianti, e_pr
     if vista.traccianti {
         // stretch: up to 0.35 λ along E at the peak of the field (scene units = cells)
         let l_max = (0.35 * lam) as f32;
-        let ns = tr.scia_n.min(SCIA_MAX);
+        tr.passo_scia.store(passo_scia(lam), std::sync::atomic::Ordering::Relaxed);
+        // the same tail at every preset (Valerio's rule): SCIA_MAX samples, λ/3 apart
+        let ns = SCIA_MAX;
         let parti: Vec<Vec<(Ball, [f32; 3])>> = tr.pos.par_iter().zip(tr.scia.par_iter()).zip(tr.eta.par_iter()).map(|((p, sc), eta)| {
             let q = campo_in(f, *p);
             let e = [q[0].re, q[1].re, q[2].re];
@@ -283,10 +292,13 @@ pub fn palline(f: &Fotone3D, l: &Lancio, centro: [f64; 3], tr: &Traccianti, e_pr
             } else { [0.0; 3] };
             let sp = |x: &[f32; 3]| schermo([x[0] as f64, x[1] as f64, x[2] as f64]).to_array();
             let mut v = Vec::with_capacity(1 + ns);
-            // the tail first (drawn behind the head): the same ball where it was 2, 4, 6, 8 ticks ago
+            // the tail first (drawn behind the head): the same ball where it was λ/3, 2λ/3, … ago, each stretched
+            // half-way towards the next newer sample (the OIT shader shows the stretch only along the axis)
             for j in (0..ns).rev() {
                 let w = 0.5 * (1.0 - j as f32 / ns as f32);
-                v.push(((sp(&sc[j]), 0.85 - 0.08 * j as f32, [c[0], c[1], c[2], w * a]), [0.0; 3]));
+                let nuovo = if j == 0 { *p } else { sc[j - 1] };
+                let g = sp(&[0.5 * (nuovo[0] - sc[j][0]), 0.5 * (nuovo[1] - sc[j][1]), 0.5 * (nuovo[2] - sc[j][2])]);
+                v.push(((sp(&sc[j]), 0.85 - 0.08 * j as f32, [c[0], c[1], c[2], w * a]), g));
             }
             v.push(((sp(p), 1.0, c), st));
             v

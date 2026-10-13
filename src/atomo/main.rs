@@ -23,6 +23,7 @@ mod cplx;
 mod fotdisegno;
 mod fotone3d;
 mod istanze;
+mod oit_palline;
 mod fotscena;
 #[allow(dead_code)]
 mod gpu_regola;
@@ -326,7 +327,8 @@ fn main() {
         .add_plugins(EguiPlugin)
         .add_plugins(render::BallsPlugin)
         .add_plugins(istanze::IstanzePlugin)
-        .insert_resource(render_zz::ModoDisegno { istanze: !args.iter().any(|a| a == "--mesh") })
+        .add_plugins(oit_palline::OitPlugin)
+        .insert_resource(render_zz::ModoDisegno { istanze: !args.iter().any(|a| a == "--mesh"), oit: !args.iter().any(|a| a == "--senza-oit") })
         .insert_resource(ClearColor(Color::srgb(0.008, 0.01, 0.02)))
         .insert_resource(lab)
         .insert_resource(auto)

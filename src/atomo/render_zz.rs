@@ -11,6 +11,7 @@ use std::sync::Arc;
 
 use crate::camera::Cam;
 use crate::istanze::{impacca, quadrato, StratoIstanze};
+use crate::oit_palline::{vortice_disegnato, OitPalline};
 use crate::render::{quads, quads_s, schermo, BallMaterial, BallParams};
 use crate::{Lab, Scena};
 
@@ -23,7 +24,11 @@ pub enum ZzStratoI { Palline, Onde }
 
 /// Drawing path: GPU instances (default) or the old rebuilt meshes (`--mesh`, kept for the comparison R2).
 #[derive(Resource, Clone, Copy)]
-pub struct ModoDisegno { pub istanze: bool }
+pub struct ModoDisegno {
+    pub istanze: bool,
+    /// the photon's energy balls with weighted blended OIT (oit_palline.rs); `--senza-oit` = the old alpha blending
+    pub oit: bool,
+}
 
 #[derive(Resource)]
 pub struct ZzVisuals { mats: [Handle<BallMaterial>; 3], versione: u64, scena: Option<Scena>, nodo_fatto: bool }
@@ -70,6 +75,8 @@ pub fn aggiorna(
     mut q: Query<(&ZzStrato, &mut Mesh3d, &mut Transform)>,
     mut qi: Query<(&ZzStratoI, &mut StratoIstanze)>,
     modo: Res<ModoDisegno>,
+    mut oit: ResMut<OitPalline>,
+    q_cam: Query<&GlobalTransform, With<Camera3d>>,
 ) {
     let lab = &mut *lab;
     // GPU path of the photon (gpu_fotone.rs): the energy balls are already instances on the GPU
@@ -121,7 +128,8 @@ pub fn aggiorna(
                 tr.translation = schermo([-focus[0], -focus[1], -focus[2]]);
                 if let Some((_, it, st)) = &items {
                     let old = m3.0.id();
-                    m3.0 = if modo.istanze { meshes.add(quads(&[])) } else { meshes.add(quads_s(it, st)) };
+                    let st0: Vec<[f32; 3]> = it.iter().zip(st.iter()).map(|(b, v)| if b.1 < 0.95 { [0.0; 3] } else { *v }).collect();
+                    m3.0 = if modo.istanze { meshes.add(quads(&[])) } else { meshes.add(quads_s(it, &st0)) };
                     meshes.remove(old);
                 }
             }
@@ -149,11 +157,59 @@ pub fn aggiorna(
     }
     if modo.istanze {
         let off = schermo([-focus[0], -focus[1], -focus[2]]).to_array();
+        let con_oit = modo.oit && scena == Scena::Fotone;
         for (s, mut si) in qi.iter_mut() {
             si.offset = off;
-            si.gpu = if *s == ZzStratoI::Onde { onde_gpu.clone() } else { None };
+            si.gpu = if *s == ZzStratoI::Onde && !con_oit { onde_gpu.clone() } else { None };
             if let Some((it, onde, st)) = &items {
-                si.dati = Arc::new(match s { ZzStratoI::Palline => impacca(it, &[]), ZzStratoI::Onde => impacca(onde, st) });
+                // without OIT the tails are drawn round, as before (their stretch is read only by the OIT shader)
+                let st_vecchio = || -> Vec<[f32; 3]> { onde.iter().zip(st.iter()).map(|(b, v)| if b.1 < 0.95 { [0.0; 3] } else { *v }).collect() };
+                let dati = Arc::new(match s {
+                    ZzStratoI::Palline => impacca(it, &[]),
+                    ZzStratoI::Onde => if con_oit { impacca(onde, st) } else { impacca(onde, &st_vecchio()) },
+                });
+                // with OIT the energy balls go to the OIT layer, the instanced alpha layer stays empty
+                if *s == ZzStratoI::Onde && con_oit { oit.dati = dati; si.dati = Arc::new(vec![]); } else { si.dati = dati; }
+            }
+        }
+        oit.attivo = con_oit;
+        if con_oit {
+            // the aesthetic knobs can be tried without rebuilding (OIT_PROFONDITA, OIT_ESPOSIZIONE, OIT_CODA_LATO, OIT_GUADAGNO)
+            let env = |k: &str, d: f32| std::env::var(k).ok().and_then(|v| v.parse::<f32>().ok()).unwrap_or(d);
+            oit.profondita = env("OIT_PROFONDITA", crate::oit_palline::DEF_PROFONDITA);
+            oit.esposizione = env("OIT_ESPOSIZIONE", crate::oit_palline::DEF_ESPOSIZIONE);
+            oit.coda_lato = env("OIT_CODA_LATO", crate::oit_palline::DEF_CODA_LATO);
+            oit.guadagno = env("OIT_GUADAGNO", crate::oit_palline::DEF_GUADAGNO);
+            oit.gpu = onde_gpu.clone();
+            oit.offset = off;
+            if let Some(o) = lab.fot.as_ref().map(|c| c.lock().unwrap().out.clone()) {
+                let par = o.par;
+                let lam = par.cpl() as f32;
+                let d = crate::fotone3d::norma(crate::fotscena::DIREZIONI[par.dir % crate::fotscena::DIREZIONI.len()].1);
+                oit.asse = schermo(d).normalize_or_zero().to_array();
+                oit.centro = (schermo(o.centro) + Vec3::from(off)).to_array();
+                oit.lambda = lam;
+                oit.w0 = (par.w0_lambda as f32) * lam;
+                // energy ∝ |F|²: the length of the pulse in energy is σ/√2
+                oit.sigma = (crate::fotscena::SIGMA_LAMBDA as f32) * lam / std::f32::consts::SQRT_2;
+                let teste = crate::fotscena::PALLINE_QUAL[par.qual.min(crate::fotscena::PALLINE_QUAL.len() - 1)].max(crate::fotdisegno::N_SURF) as f32;
+                let n_ist = oit.gpu.as_ref().map(|g| g.n as usize).unwrap_or(oit.dati.len()) as f32;
+                oit.teste = teste;
+                oit.ns = (n_ist / teste - 1.0).round().max(0.0);
+                // exam V2 (docs/MOTORE_GRAFICO_OIT.md): with OIT_VORTICE=file.json, the swirl as drawn at the frozen tick
+                let fermo = crate::fotscena::TICK_FERMO.load(std::sync::atomic::Ordering::Relaxed);
+                if let (Ok(path), Some(gt)) = (std::env::var("OIT_VORTICE"), q_cam.iter().next()) {
+                    if fermo > 0 && o.ticks == fermo && !oit.dati.is_empty() && oit.gpu.is_none() {
+                        let m = gt.compute_matrix();
+                        let (right, up, fwd, eye) = (m.x_axis.truncate().normalize(), m.y_axis.truncate().normalize(), -m.z_axis.truncate().normalize(), m.w_axis.truncate());
+                        let ns = oit.ns as usize;
+                        let (c, l3, n) = vortice_disegnato(&oit.dati, ns, &oit, eye, fwd, right, up);
+                        let ll = Vec3::from(oit.asse).dot(fwd);
+                        let j = format!("{{\"tick\": {}, \"polar\": \"{:?}\", \"qual\": {}, \"ns\": {}, \"teste\": {}, \"C_rad\": {:.6}, \"L_asse_3d\": {:.6e}, \"asse_dot_sguardo\": {:.4}, \"regola\": \"{}\"}}\n",
+                            o.ticks, par.polar, par.qual, ns, n, c, l3, ll, o.regola);
+                        let _ = std::fs::write(&path, j);
+                    }
+                }
             }
         }
     }
@@ -175,6 +231,7 @@ pub fn aggiorna(
     if let Some(m) = mats.get_mut(&vis.mats[1]) { m.params = BallParams { size: ((0.004 * r_cam).min(0.06 * fm)) as f32, gain: 1.3 * g_nodo, soft: 3.0, core: 0.4, blend: 0.0 }; }
     // wave balls: a little smaller than the glowing layers, as in the photon laboratory
     if let Some(m) = mats.get_mut(&vis.mats[2]) { m.params = BallParams { size: (0.8 * s_main * lab.grandezza as f64) as f32, gain: lab.luce.min(1.5), soft: 2.0, core: 0.0, blend: 1.0 }; }
+    if let Some(m) = mats.get(&vis.mats[2]) { oit.size = m.params.size; oit.gain = m.params.gain; oit.soft = m.params.soft; }
     if modo.istanze {
         for (s, mut si) in qi.iter_mut() {
             let k = match s { ZzStratoI::Palline => 0, ZzStratoI::Onde => 2 };

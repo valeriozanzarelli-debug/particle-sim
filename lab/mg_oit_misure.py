@@ -4,6 +4,7 @@ mg_oit (docs/MOTORE_GRAFICO_OIT.md, pre-registration lab/out/mg_oit_prereg.json)
 usage: python3 mg_oit_misure.py v1 img.png [img2.png ...]
        python3 mg_oit_misure.py v3 nuovo.png vecchio.png
 Pixel lit: max(R,G,B) >= 40; saturated: max >= 250 or min >= 215 (washed-out white). Fraction over lit pixels.
+V1b (amendment 2): washed-out = HSV saturation < 0.25 and value >= 0.45, fraction over lit pixels.
 """
 import sys, json
 import numpy as np
@@ -20,11 +21,15 @@ def v1(p):
     acceso = mx >= 40
     sat = (mx >= 250) | (mn >= 215)
     n = int(acceso.sum())
+    sv = (mx - mn) / np.maximum(mx, 1e-6)
+    slav = acceso & (sv < 0.25) & (mx >= 0.45 * 255)
     lum = (0.2126 * a[..., 0] + 0.7152 * a[..., 1] + 0.0722 * a[..., 2])
     return {'file': p, 'accesi': n, 'saturi': int((sat & acceso).sum()),
             'frazione_satura': float((sat & acceso).sum() / max(n, 1)),
             'frazione_max250': float(((mx >= 250) & acceso).sum() / max(n, 1)),
             'frazione_bianco215': float(((mn >= 215) & acceso).sum() / max(n, 1)),
+            'V1b_frazione_slavata': float(slav.sum() / max(n, 1)),
+            'sat_hsv_mediana': float(np.median(sv[acceso])) if n else 0.0,
             'contrasto_lum_accesi': float(lum[acceso].std()) if n else 0.0,
             'lum_media_accesi': float(lum[acceso].mean()) if n else 0.0}
 
