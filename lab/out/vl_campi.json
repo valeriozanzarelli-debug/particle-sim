@@ -4,36 +4,41 @@
  "elettrone": {
   "sigma_celle": 2.0,
   "sigma_lambdaC": 1.0,
-  "continuita_corrente_esportata": [
+  "continuita_corrente_esportata (facce, smussata, media dell'intervallo)": [
    {
-    "frame": 10,
-    "sum_abs_div_j": 0.30784279516359264,
-    "sum_abs_drho_dt": 0.0330352857708931,
-    "corr(drho/dt, -div j)": -0.6642578041078506
+    "intervallo": 10,
+    "sum_abs_div_j": 0.298401614639195,
+    "sum_abs_drho_dt": 0.03303528866077454,
+    "corr(drho/dt, -div j)": -0.656778753618721
    },
    {
-    "frame": 25,
-    "sum_abs_div_j": 0.2956538648664214,
-    "sum_abs_drho_dt": 0.057505980134010315,
-    "corr(drho/dt, -div j)": -0.1778949744116237
+    "intervallo": 25,
+    "sum_abs_div_j": 0.28998687823551217,
+    "sum_abs_drho_dt": 0.05750598160332565,
+    "corr(drho/dt, -div j)": -0.16906536165962976
    },
    {
-    "frame": 60,
-    "sum_abs_div_j": 0.29754463060592024,
-    "sum_abs_drho_dt": 0.05536070466041565,
-    "corr(drho/dt, -div j)": -0.1563264613689487
+    "intervallo": 60,
+    "sum_abs_div_j": 0.28983982967946287,
+    "sum_abs_drho_dt": 0.055360702316893384,
+    "corr(drho/dt, -div j)": -0.13387581239105084
    },
    {
-    "frame": 150,
-    "sum_abs_div_j": 0.3052911984752982,
-    "sum_abs_drho_dt": 0.05810415372252464,
-    "corr(drho/dt, -div j)": 0.31347429439294594
+    "intervallo": 150,
+    "sum_abs_div_j": 0.30495562175017565,
+    "sum_abs_drho_dt": 0.05810415432050675,
+    "corr(drho/dt, -div j)": 0.31211269627648225
    }
   ],
-  "peso_parte_gradiente_della_j_esportata_mediana": 0.7346939954149809,
-  "jrot_quota_azimutale_fotogramma100": 0.5902760739176146,
-  "jrot_quota_azimutale_con_segno": 0.4432799718548632,
-  "velocita_media_pesata_rho_fotogramma100_c": 0.09212321043014526,
+  "correzione_rho_grad_chi_su_j_mediana": 0.8430220572787108,
+  "cg_iterazioni_max": 187,
+  "cg_residuo_max": 9.982264823918016e-08,
+  "fotogramma100": {
+   "quota_azimutale": 0.8127921970814582,
+   "quota_azimutale_con_segno": 0.8029726097052986,
+   "velocita_media_pesata_c": 0.05058336332334927,
+   "continuita_residuo_rel": 0.00039130816041593394
+  },
   "scacchiera_periodo4_rel_grezza": 1.6533599455834085,
   "scacchiera_periodo4_rel_smussata": 8.54861456123974e-05,
   "attenuazione_scacchiera": 5.1704497765749705e-05
