@@ -165,11 +165,11 @@ quelli dell'esame).
    altrettanto fermo.
 4. **2p**: ascoltato come prima (finestra corta); anche lì è probabile un multipletto di valli (righe del dipolo
    0,0810 / 0,0698 / 0,1108): non toccato qui, vedi `docs/EMISSIONE.md`.
-5. **La scena atomo senza accoppiamento** (`Atomo::new()`, stato radiale) batte ancora: non toccata (file della
-   scena di un altro thread). Basta `imposta(uno_s_esatto(...).0.v)`.
-6. **Esportazione**: i dati in `/mnt/project-files/ripresa/dati/atomo_accoppiato/` sono del vecchio 1s (con il
-   battimento). Si rigenerano con lo stesso comando (§3.6 di ATOMO.md); la preparazione costa ~2 volte di più
-   (~60 s su 2 thread).
+5. **La scena atomo senza accoppiamento**: chiuso il 14/10. `zzscena` riparte dall'1s esatto appena
+   l'esperimento accoppiato è pronto (prima, per ~60 s, mostra ancora lo stato radiale che batte). Controllo come B1
+   (test `battimento_scena_libera`, stessa soglia 10⁻³): max p_exc **0** su 3 200 tick.
+6. **Esportazione**: rigenerata il 14/10 con l'1s esatto (`manifest.json` → `stato_1s`); p_exc picco **0,120 a
+   t = 220**, poi 0,097 (t = 450) → 0,064 (t = 1590). La preparazione costa ~2 volte di più (~60 s su 2 thread).
 7. Costo di memoria della preparazione: 25 onde da 7 MB (~175 MB).
 
 **Parametri.** Fisici nuovi: 0. Impostazioni: 5 (sopra). Esami: 4 PASS (B1 debole), 0 FAIL.

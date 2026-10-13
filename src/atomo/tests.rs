@@ -530,6 +530,7 @@ fn accoppiato_esporta() {
   "tick_atomo": {a}, "tick_luce": {bl}, "tick_atomo_per_tick_luce": {sub},
   "tick_per_fotogramma": {ogni}, "dt_fotogramma": {dtf}, "fotogrammi": {fotogrammi}, "tick_totali": {ticks},
   "t_sparo": {t_sparo}, "omega_21": {w21}, "omega_1s": {o1}, "omega_2p": {o2}, "periodo_luce": {per},
+  "stato_1s": "1s ESATTO della regola 3-D (Atomo::uno_s_esatto, diagonalizzazione del filtro, docs/BATTIMENTO_1S.md): un livello del multipletto 1s del reticolo cubico (4 valli mescolate dal nucleo), fermo senza luce a 1e-16. Rigenerato il 14/10/2026; i dati del 13/10 usavano l'1s ascoltato (miscuglio di 3 livelli: p_exc batteva 0.2-0.88 con periodo 476 anche senza luce)",
   "e_eff": {ee}, "K_ACC": {k}, "E0_ACC": {e0}, "alpha": {al}, "Z": {z},
   "griglia_atomo": {{"n": {n}, "passo": {a}, "coordinate": "x_i = (i - {n}/2 + 0.5) * {a} lambda_C, i = 0..{n}-1 (stesse per y, z); centro = nucleo = origine"}},
   "griglia_luce_originale": {{"n": {nl}, "passo": {bl}, "coordinate": "x_i = (i - {nl}/2) * {bl} lambda_C; la cella {h} e' l'origine (nucleo); spugna assorbente {sp} celle ai bordi"}},
@@ -550,7 +551,8 @@ fn accoppiato_esporta() {
     "semi-classico: la luce e' un campo classico (camminatori di spin 1), l'atomo quantistico; niente fotone quantizzato",
     "emissione solo da sovrapposizione (1s + 2p, dipolo oscillante): uno stato eccitato puro non decadrebbe (manca l'emissione spontanea vera)",
     "forma di dipolo e E mediato su una gaussiana sigma = 2 celle di luce intorno all'atomo (riduce la potenza irradiata di W^2)",
-    "ione Z = 60 invece dell'idrogeno (la cella deve essere << raggio di Bohr)"
+    "ione Z = 60 invece dell'idrogeno (la cella deve essere << raggio di Bohr)",
+    "l'1s del reticolo cubico e' un multipletto di 4 livelli (0.8404, 0.8863, 0.8993, 0.8996): lo stato usato (0.89960) e' un ibrido delle 4 valli del cammino, con una trama di densita' di periodo 4 celle (2 lambda_C): smussare su ~2 lambda_C per le palline, dichiarandolo"
   ],
   "comando": "ESPORTA_DIR=<dir> TICKS={ticks} OGNI={ogni} cargo test --bin atomo accoppiato_esporta -- --ignored --nocapture"
 }}

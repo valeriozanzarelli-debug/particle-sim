@@ -384,3 +384,21 @@ fn battimento_esame() {
     csv("esame_d.csv", "t,z", &rows);
     eprintln!("done ({:?})", t0.elapsed());
 }
+
+/// B1-type check for the scene WITHOUT coupling (zzscena): the atom `Atomo::new()` restarted from the clean 1s of
+/// `Esperimento::new(600)` (as the scene does when the experiment is ready), no light, 3200 ticks: max p_exc on the
+/// ticks the scene shows it (every 4) < 1e-3 (threshold of B1, lab/out/battimento_prereg.json).
+#[test]
+#[ignore]
+fn battimento_scena_libera() {
+    let x = crate::accoppiato::Esperimento::new(600);
+    let mut at = Atomo::new();
+    at.imposta(x.phi1s.clone());
+    let mut pmax: f64 = 0.0;
+    for _ in 0..3200 {
+        if at.ticks % 4 == 0 { pmax = pmax.max(1.0 - at.p_fondamentale()); }
+        at.avanti();
+    }
+    eprintln!("scene without coupling, clean 1s ω {:.5}: max p_exc {pmax:.2e} over 3200 ticks", x.omega1s);
+    assert!(pmax < 1e-3);
+}

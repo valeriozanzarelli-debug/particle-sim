@@ -288,13 +288,16 @@ rigenerano in ~2 minuti:
 Lettore e figura di controllo: `python3 lab/atomo_export_leggi.py <dir> --figura [--npz]` →
 `lab/out/atomo_export_controllo.png`.
 
-Che cosa si vede (corsa del 13 ottobre 2026): il campo dell'impulso sta sull'atomo per t ≈ 0–150 λ_C/c, p_exc sale
+Che cosa si vedeva (corsa del 13 ottobre 2026, vecchio 1s): il campo dell'impulso sta sull'atomo per t ≈ 0–150 λ_C/c, p_exc sale
 da 0 a **0,88 a t ≈ 256**, poi oscilla tra ~0,2 e ~0,88 con periodo ~470 λ_C/c. Attenzione: **non è uno scambio di energia con la luce**.
 **Risolto (`docs/BATTIMENTO_1S.md`)**: lo stesso "1s" senza nessuna luce fa la stessa curva (massimo 0,889;
 differenza con la corsa accoppiata ≤ 0,080). È il battimento fra i livelli esatti 0,8994 e 0,8862 del multipletto
 1s del reticolo cubico (0,0132 → periodo 476); l'eccitazione vera era solo ~5 % (2p3/2). Con l'1s esatto (ora il
-default di `Esperimento::new`) p_exc dopo l'impulso sta fra 0,097 e 0,064 e scende piano (luce rimandata). **I dati
-esportati il 13 ottobre sono del vecchio 1s: vanno rigenerati.** Dopo t ≈ 450 l'impulso è uscito dalla scatola (energia nella
+default di `Esperimento::new`) p_exc dopo l'impulso sta fra 0,097 e 0,064 e scende piano (luce rimandata). **Rigenerati il 14 ottobre**
+con l'1s esatto (ω₁ₛ = 0,89960, ω₂₁ = 0,07519; `manifest.json` lo dice in `stato_1s`): ora p_exc sale a
+**0,120 a t = 220** e poi scende piano (0,097 a t = 450, 0,079 a 800, 0,064 a 1590): l'atomo si svuota mandando
+luce, niente più battimento. Il prezzo: la densità dell'1s esatto ha la trama a scacchiera di periodo 4 celle
+(le 4 valli, BATTIMENTO_1S §2.4) ben visibile in `controllo.png`: per le palline va smussata su ~2 λ_C, dichiarandolo. Dopo t ≈ 450 l'impulso è uscito dalla scatola (energia nella
 scatola < 10⁻³ di quella iniziale) e resta solo la luce del dipolo dell'atomo: anelli a sin²θ intorno a z, ampiezza
 ~10⁻⁵ mc²/λ_C. Due avvertenze per chi disegna: (1) p(2p½, m = ½) resta < 0,01: l'eccitazione va quasi tutta nel
 2p3/2 (vedi la diagnosi di E1v2 sopra), quindi "p_exc" è la popolazione da usare; (2) ρ di una singola fetta di
