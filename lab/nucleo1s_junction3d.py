@@ -35,7 +35,7 @@ def shift_T(psi, ax):
     return np.roll(apply(PP[i], psi), 1, axis=ax) + np.roll(apply(PM[i], psi), -1, axis=ax)
 
 
-def run(a=0.25, k=(0.4, 0.0, 0.0), sig=12.0, Ny=1, Nz=1, m=1.0, thj=None, steps=None, nside=30):
+def run(a=0.25, k=(0.4, 0.0, 0.0), sig=12.0, Ny=1, Nz=1, m=1.0, thj=None, steps=None, nside=30, ck=None, budget=1e9):
     thj = m * a / 2 if thj is None else thj
     kx, ky, kz = k
     Cc, Cf = coin(m * a), coin(m * a / 2)
@@ -63,13 +63,25 @@ def run(a=0.25, k=(0.4, 0.0, 0.0), sig=12.0, Ny=1, Nz=1, m=1.0, thj=None, steps=
     steps = steps or int((-x0 + 8 * sig) / vg / (a / 2))
     norms = []
     lost = 0.0
+    t_start = 0
+    tw = time.time()
+    if ck and os.path.exists(ck):      # resume a checkpoint (.npz, not committed)
+        z = np.load(ck)
+        psi_c, psi_f, inj = z["psi_c"], z["psi_f"], [z["inj0"], z["inj1"]]
+        coll = [z[f"coll{i}"] for i in range(int(z["ncoll"]))]
+        t_start, lost, norms = int(z["t"]), float(z["lost"]), list(z["norms"])
 
     def block(f):          # (2Ny, 2Nz, 4) -> (Ny, Nz, 2, 2, 4): the 4 fine cells under each coarse cell
         return f.reshape(Ny, 2, Nz, 2, 4).transpose(0, 2, 1, 3, 4)
 
     def unblock(g):
         return g.transpose(0, 2, 1, 3, 4).reshape(2 * Ny, 2 * Nz, 4)
-    for t in range(steps):
+    for t in range(t_start, steps):
+        if ck and t % 2 == 0 and time.time() - tw > budget:
+            np.savez(ck, psi_c=psi_c, psi_f=psi_f, inj0=inj[0], inj1=inj[1], ncoll=len(coll), t=t, lost=lost,
+                     norms=np.array(norms), **{f"coll{i}": c for i, c in enumerate(coll)})
+            print(f"checkpoint at step {t}/{steps}", flush=True)
+            return None
         if t % 2 == 0:     # coarse tick
             psi_c = apply(Cc, psi_c)
             Pp, Pm = apply(PP[0], psi_c), apply(PM[0], psi_c)
@@ -100,6 +112,8 @@ def run(a=0.25, k=(0.4, 0.0, 0.0), sig=12.0, Ny=1, Nz=1, m=1.0, thj=None, steps=
             buf = sum(np.sum(np.abs(c)**2) for c in coll) + (np.sum(np.abs(inj[1])**2) if t % 2 == 0 else 0)
             norms.append(float(np.sum(np.abs(psi_c)**2) + np.sum(np.abs(psi_f)**2) + buf + lost))
     R = float(np.sum(np.abs(psi_c)**2))
+    if ck and os.path.exists(ck):
+        os.remove(ck)
     return dict(a=a, k=list(k), thj=thj, R=R, lost_edges=float(lost), norm_drift=float(max(abs(np.array(norms) - 1))), steps=steps,
                 Ny=Ny, Nz=Nz, sig=sig)
 
@@ -118,7 +132,10 @@ if __name__ == "__main__":
             continue
         if time.time() - T0 > 60:
             print("time budget: run again"); break
-        r = run(a=c["a"], k=tuple(c["k"]), Ny=c["Ny"], Nz=c["Nz"], thj=c.get("thj"), sig=c["sig"])
+        ck = os.path.join(OUT, "nucleo1s_junction3d_ck_" + "_".join(str(v) for v in [c["a"]] + c["k"] + [c["Ny"], c["sig"]]) + ".npz")
+        r = run(a=c["a"], k=tuple(c["k"]), Ny=c["Ny"], Nz=c["Nz"], thj=c.get("thj"), sig=c["sig"], ck=ck, budget=480)
+        if r is None:
+            break
         r["R_conservative"] = r["R"] + r["lost_edges"]
         r["case"] = c; res.append(r); print(r, flush=True)
         json.dump(res, open(outp, "w"), indent=1)

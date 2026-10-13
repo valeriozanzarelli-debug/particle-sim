@@ -56,6 +56,12 @@ della regola. Debito #20 chiuso per Z = 60; il resto dell'errore è il bulk dell
 raccordo grosso/fine della cipolla: unitario, riflessione 0,8 % (a = 0,5) → 0,05 % (a = 0,25) con la sola moneta di massa
 m·a/2. Esiti fase 4: 4 PASS, 0 FAIL.
 
+**Fase 5 (§15):** s0 si può **ricavare** per Z alto. La prima cella radiale senza scala che annulla il miscuglio r^{±γ}
+(idea da `docs/ZSTAR.md`) dà s0 = 0,596 a Z = 60 e 0,564 a Z = 80 (imparati 0,555 e 0,579). Usato in 3-D senza imparare
+niente chiude le valli su 4 reticoli/Z mai visti e porta l'1s a −0,66 / −0,54 % a Z = 60 (a = 0,3 / 0,2). Non funziona a
+Z = 20 e 40. La media sulla cella non funziona (0,95). Raccordo 3-D 9×9: unitario esatto, ma riflette troppo
+(0,13 % normale, 2,5–3,9 % obliquo). Esiti fase 5: 2 PASS, 7 FAIL.
+
 **Esiti pre-registrati (fase 1):** 11 PASS, 3 FAIL (L1, L2, L3: la legge regge, ma due soglie strette cadono a Z = 20 e Z = 92
 per motivi che spiego sotto). Dettaglio nella §6.
 
@@ -901,3 +907,121 @@ a = 0,25 ↔ 0,125 (riflessione 0,05 %), lontano dal nucleo.
     for a in 0.4 0.24 0.2; do timeout 590 python lab/nucleo1s_3d_run.py scan $a transferP; done
     timeout 590 python lab/nucleo1s_3d_run.py excited 0.4 transfer
     python lab/nucleo1s_f4_judge.py; python lab/nucleo1s_junction1d.py; python lab/nucleo1s_f4_figure.py
+
+---
+
+## 15. Fase 5: si può ricavare s0 invece di impararlo? E il raccordo 9×9 in 3-D
+
+File: `lab/nucleo1s_f5_prereg.py` → `lab/out/nucleo1s_f5_prereg.json` (**commit 89e99f2, previsioni congelate prima di
+imparare a Z = 20, 40, 80**). Emendamento 1, `nucleo1s_f5_amend1.json` (commit 1d8467f): ascolto nudo più lungo a Z = 20 e
+due casi del raccordo con pacchetto più stretto. Emendamento 2, `nucleo1s_f5_amend2.json` (commit ee05ae6): la previsione
+P_C, scritta **dopo** aver visto gli s0 imparati e **prima** di calcolarla, con un esame cieco su reticoli e Z nuovi.
+Codice: `lab/nucleo1s_f5_geo.py` (P_A, P_B), `lab/nucleo1s_f5_pc.py` (P_C), `lab/nucleo1s_f5_run.py`,
+`lab/nucleo1s_junction3d.py`, `lab/nucleo1s_f5_judge.py` → `lab/out/nucleo1s_f5_judged.json`, figura
+`lab/nucleo1s_f5_figure.py` → `lab/out/nucleo1s_f5_figure.png`.
+
+![figura fase 5](../lab/out/nucleo1s_f5_figure.png)
+
+### 15.0 In breve
+
+**s0 imparato** (stesso criterio interno delle fasi 3–4, a = 0,5): Z = 20: 0,64 (poco determinato: a Z = 20 le valli sono
+già quasi chiuse); Z = 40: 0,618; Z = 60: 0,555; Z = 80: 0,579 (valli **non** chiuse in 40 prove, std 0,0014).
+Tutti fra 0,55 e 0,64. s1 invece va a spasso (1,04 / 1,10 / 1,00 / 1,16): i due numeri stanno su una "valle" lunga e s1 è
+quello mal determinato.
+
+| previsione (nessun numero imparato) | Z = 20 | 40 | 60 | 80 | esito |
+|---|---|---|---|---|---|
+| P_A media di −Zα/r sulla cella del colore (ottaedro troncato) | 0,951 | 0,951 | 0,951 | 0,951 | **FAIL** (già visto a Z = 60) |
+| P_B1 prima cella radiale che rende giusto l'1s, cella 0,5 | nessuna | 1,574 | 1,128 | 0,966 | **S1 FAIL** |
+| P_B2 come P_B1, primo sito a √3/2·a | 1,424 | 0,854 | 0,755 | 0,764 | riportata |
+| **P_C1** la stessa condizione nel limite **senza scala** (a = 0,01) | nessuna | 0,761 | **0,596** | **0,564** | S5 FAIL (Z = 20, 40), S6 **PASS** |
+| P_C2 come P_C1, siti a (i + √3/2)a | nessuna | 0,936 | 0,741 | 0,669 | riportata |
+| s0 imparato (a = 0,5) | 0,641 | 0,618 | 0,555 | 0,579 | |
+
+* **P_A (media geometrica sulla cella) non funziona per s0** (0,95 contro ~0,57). Per s1 dà 1,0009: torna a Z = 60
+  (1,0035) ma non agli altri Z (1,04 / 1,10 / 1,16: **S2 FAIL**), perché s1 è mal determinato.
+* **P_B (prima cella a passo grosso) non funziona.** A a = 0,5 i termini O(a) della prima cella cambiano tutto: radici
+  multiple o nessuna radice. **S1, S3, S4 FAIL** (a Z = 60 con P_B1: +5,95 % a a = 0,4).
+* **P_C1 funziona per Z alto e chiude le valli dove non è mai stato provato (S6 PASS).** L'idea viene da
+  `docs/ZSTAR.md` (thread Problemi aperti): vicino al nucleo la regola non ha scala, e la prima cella decide quanto
+  r^{+γ} e quanto r^{−γ} entra nella soluzione (il miscuglio β, che dà l'errore β·a^{2γ}). P_C1 è il fattore sul Coulomb
+  del primo sito radiale che **annulla quel miscuglio** quando le celle sono piccole (a = 0,01: restano solo le prime
+  celle senza scala). Usato **così com'è** in 3-D (s0 = P_C1, s1 = 1, nessun apprendimento) su reticoli e Z mai usati:
+
+  | Z, a | split delle valli (mc²) | errore 1s vs Dirac |
+  |---|---|---|
+  | 60, 0,3 | 0,00057 | **−0,66 %** |
+  | 60, 0,2 | 0,00016 | **−0,54 %** |
+  | 40, 0,3 | 0,00085 | +5,6 % (errore della regola nuda lontano dal nucleo; U nudo +5,0 %) |
+  | 80, 0,3 | 0,0011 | −4,9 % (U nudo −5,1 %) |
+
+  Le valli si chiudono **in tutti e quattro** i casi (soglia 0,002), e a Z = 60 l'1s è entro l'1 %: **S6 PASS**. Il numero
+  P_C1(60) = 0,596 è vicino a quello che si ottiene portando a a → 0 la retta della fase 4 (0,605). Anche questo confronto
+  è fatto **dopo** e non è contato.
+* **Dove non funziona**: a Z = 20 la condizione non ha radice in (0, 1] (il miscuglio è piccolo e il nucleo dovrebbe
+  tirare **di più**, oppure non serve niente). A Z = 40 P_C1 = 0,76 contro 0,62 imparato, e non è ancora stabile in a
+  (0,73 a a = 0,02, 0,76 a a = 0,01). S5 (P_C1 entro 0,05 dall'imparato a tutti gli Z) è **FAIL**: passa a Z = 60 (0,04) e
+  Z = 80 (0,015), cade a Z = 20 e 40.
+* **Il √3/2 di ZSTAR** (siti radiali a (i + √3/2)a, P_C2) dà numeri **più alti** (0,74 a Z = 60) e peggiori. Il raggio dei
+  primi vicini non è la leva giusta per s0. Detto onestamente: la leva è la **prima cella radiale a (i + ½)a**, che è la
+  stessa forma del colore 3-D vista "di lato", ma non lo so dimostrare.
+* **Raccordo 9×9 in 3-D (punto 2, priorità bassa)**: unitario esatto (**J1 PASS**, 5·10⁻¹³). Riflessione a incidenza
+  normale, a = 0,25 ↔ 0,125: 4,4 % a k = 0,2 (pacchetto troppo largo in k, vedi emendamento 1), 0,13 % a k = 0,4, 0,09 % a
+  k = 0,8 (**J2 FAIL**, soglia 0,1 %). A incidenza obliqua (k_y = 0,785) riflette il 3,9 % e il 2,5 % (**J3 FAIL**, soglia
+  0,3 %): il modo "liscio" uniforme sulle 4 facce fini non segue un'onda che varia lungo la faccia.
+* **Esiti fase 5**: S6, J1 **PASS**; S1, S2, S3, S4, S5, J2, J3 **FAIL** (2 PASS, 7 FAIL). Più l'osservazione dopo
+  (non contata) che un solo numero s0 = 1/√3 = 0,577 per tutti gli Z chiude le valli a Z = 40 e quasi a Z = 60
+  (split 0,0014), non a Z = 80 (0,0086).
+
+### 15.1 Cosa vuol dire (come a un ventenne)
+
+Il nucleo puntiforme messo fra le celle "tira" troppo sulle due palline più vicine. Abbiamo cercato di capire **di
+quanto** senza farlo imparare. La media del potenziale sulla cella (l'idea più semplice) dice "quasi niente da
+correggere" (0,95), ma il numero vero è ~0,57: non è un problema di **media**, è un problema di **onda**. Vicino a una
+carica puntiforme l'elettrone ha una forma a punta (r^{γ−1}) che nessuna cella contiene. La prima cella decide quanta
+parte "buona" (r^{+γ}) e quanta "cattiva" (r^{−γ}) c'è nell'onda. Il fattore giusto è quello che rende nulla la parte
+cattiva, e si calcola sulla catena radiale delle prime celle, dove il passo a sparisce. Così s0 diventa un numero **della
+regola**, non un parametro: a Z = 60 e 80 coincide con quello imparato entro 0,04 e 0,015, e usato in 3-D chiude le valli
+su reticoli mai visti. A Z basso (20, 40) la parte cattiva è piccola e la condizione non individua bene il numero.
+
+### 15.2 Debiti e parametri della fase 5
+
+* **s0 per Z ≥ 60 è derivato** (P_C1): 0 parametri imparati per s0 a Z = 60–80; s1 = 1 (nessun numero). È **mezzo
+  debito chiuso**: la regola "la prima cella radiale annulla il miscuglio" è una scelta motivata, e il passaggio
+  radiale → 3-D (stesso numero sui 2 siti del colore) è un'ipotesi controllata solo dagli esami S6.
+* **Per Z ≤ 40 s0 resta imparato** (o non serve: a Z = 20 le valli sono quasi chiuse da sole).
+* Scelte dichiarate: la regola della radice (la più grande ≤ 1), a = 0,01 come "limite senza scala", la finestra di
+  ascolto [1 − 2B, 1 − B/2] attorno al Dirac (solo dove ascoltare).
+* Emendamenti: 2, entrambi dichiarati prima dei numeri che riguardano; nessuna soglia cambiata.
+* **Trovato per strada**: il livello U della regola nuda **non** sta entro l'1 % da Dirac a tutti gli Z (a a = 0,5:
+  Z = 20: +16 %, Z = 40: +9 %, Z = 60: −0,4 %, Z = 80: +0,6 %). A Z basso a a = 0,5 domina l'errore della regola lontano
+  dal nucleo (massa cinetica, ~θ²/3), non il contatto. Il "−0,4 %" del Laboratorio a Z = 60 è in parte una
+  compensazione fortunata.
+* Raccordo 3-D: per la cipolla serve un modo liscio che segua la fase dell'onda lungo la faccia, non uniforme (proposta:
+  interpolazione lineare sulle 4 facce fini, un raccordo del secondo ordine anche in trasversale). Non fatto.
+
+### 15.3 Idee geometriche e visive (fase 5)
+
+1. **La punta che il reticolo non vede.** A schermo: un profilo radiale della densità dell'1s con le palline delle prime
+   celle; con il nucleo nudo le due palline vicine "pesano" troppo (picco), con s0 derivato il picco si abbassa e la
+   curva segue la punta r^{γ−1} del continuo. Costo nullo: è la densità della regola.
+2. **Le facce che riflettono.** Nel raccordo 3-D, a incidenza obliqua, si vede un'onda riflessa con la trama a
+   scacchiera delle 4 facce fini: è il modo ruvido che torna indietro. Utile come diagnostica visiva del raccordo.
+
+### 15.4 Dove l'intuizione di Valerio può aiutare (fase 5)
+
+1. **Il nucleo che "tira meno".** La correzione vera dice che le due palline vicine devono sentire ~57–60 % del Coulomb.
+   Se il nucleo avesse il suo raggio vero (1 fm ≪ λ_C) la punta sarebbe la stessa: l'effetto è del reticolo. Ti torna
+   l'immagine "la prima cella deve scegliere l'onda buona, non fare la media"?
+2. **Z basso.** A Z = 20 il nucleo dovrebbe tirare **di più** o niente. È coerente con un mondo in cui per atomi leggeri
+   il problema è la massa della pallina (lontano dal nucleo), non il nucleo. Ti aspettavi questo?
+
+### 15.5 Come rieseguire (fase 5)
+
+    python lab/nucleo1s_f5_prereg.py; python lab/nucleo1s_f5_amend.py; python lab/nucleo1s_f5_amend2.py
+    for Z in 20 40 80; do timeout 590 python lab/nucleo1s_f5_run.py bare $Z 0.5; done   # Z = 20: T = 2000 (emendamento 1)
+    timeout 590 python lab/nucleo1s_f5_run.py learn <Z>                                  # rilanciare finché "learned"
+    for a in 0.4 0.24 0.2; do timeout 590 python lab/nucleo1s_f5_run.py use 60 $a PB1; done
+    python lab/nucleo1s_f5_pc.py; timeout 590 python lab/nucleo1s_f5_run.py pc <Z> <a>  # (60,0.3) (60,0.2) (40,0.3) (80,0.3)
+    timeout 590 python lab/nucleo1s_junction3d.py                                         # rilanciare (checkpoint)
+    python lab/nucleo1s_f5_judge.py; python lab/nucleo1s_f5_figure.py
