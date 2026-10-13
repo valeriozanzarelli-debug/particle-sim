@@ -1,0 +1,13 @@
+{
+  "id": "2026-10-13_mg_gpu_alta",
+  "azione": "foto",
+  "ok": true,
+  "inizio": "2026-10-13T04:13:03Z",
+  "fine": "2026-10-13T04:22:01Z",
+  "durata_s": 537.4,
+  "git": "7901945da989b3839dfa30a96fb554365beff72d",
+  "macchina": "LAPTOP-01UIII6L",
+  "exit": 0,
+  "secondi": 444.5,
+  "comando": "--scena fotone --qualita alta --frames 900 --pannello --foto C:\\Users\\valer\\Desktop\\Programma di simulazione\\ponte_lab\\ponte\\risultati\\2026-10-13_mg_gpu_alta\\foto.png"
+}
