@@ -1,0 +1,458 @@
+{
+ "study": "zstar",
+ "doc": "docs/ZSTAR.md",
+ "rule": "lab/zz_core.py RadialWalk (frozen) with point nucleus; variants only at the origin (refl0, offset s of the sites r_i = (i + s) a), kappa, order of steps, Trotter split of the coin, refl1",
+ "inputs": "m_e, alpha, Z (point nucleus). No nuclear radius (the remedy S1/S0.866 uses a geometric choice of the first site = DEBT if adopted)",
+ "free_parameters": 0,
+ "formula": "zeta* = root of the Wronskian D(zeta) = det[s_reg, s_sub] of the scale-free (a-free, m = 0, lambda = 1) lattice recursion; Z_cr(a) from matching lattice (A0, B0) with continuum Dirac at E = -1 (lab/zstar_core.py)",
+ "predictions": {
+  "base": {
+   "kappa": -1,
+   "s": 0.5,
+   "refl0": [
+    -1.0,
+    0.0
+   ],
+   "desc": "frozen rule: 1s1/2, sites (i+1/2)a, reflection chi- -> -chi+ at r = 0",
+   "zeta_roots": [
+    0.9585907229766178
+   ],
+   "Z_roots": [
+    131.3614374354631
+   ],
+   "D_imag_rel": 2.1002068081096784e-06,
+   "two_gamma_at_roots": [
+    0.569574668759646
+   ],
+   "Zcr_matching": {
+    "0.003": 132.90848595087374,
+    "0.001": 132.12538745571274,
+    "0.0003": 131.7243684435637,
+    "0.0001": 131.5490360361026,
+    "1e-06": 131.37438409076617,
+    "1e-09": 131.36168213110534
+   }
+  },
+  "R+1": {
+   "kappa": -1,
+   "s": 0.5,
+   "refl0": [
+    1.0,
+    0.0
+   ],
+   "desc": "reflection sign +1",
+   "zeta_roots": [
+    0.9187212107485434
+   ],
+   "Z_roots": [
+    125.89787899430928
+   ],
+   "D_imag_rel": 2.7710981254951224e-06,
+   "two_gamma_at_roots": [
+    0.7898134891750849
+   ],
+   "Zcr_matching": {
+    "0.003": 127.03292232490698,
+    "0.001": 126.36448169775585,
+    "0.0003": 126.07494506370139,
+    "0.0001": 125.97151482074892,
+    "1e-06": 125.89983947694851,
+    "1e-09": 125.89791150092854
+   }
+  },
+  "R+i": {
+   "kappa": -1,
+   "s": 0.5,
+   "refl0": [
+    0.0,
+    1.0
+   ],
+   "desc": "reflection phase +i",
+   "zeta_roots": [
+    0.6941377411907304
+   ],
+   "Z_roots": [
+    95.12185886577159
+   ],
+   "D_imag_rel": 3.5750643242353422e-06,
+   "two_gamma_at_roots": [
+    1.4396844046590636
+   ],
+   "Zcr_matching": {
+    "0.003": 100.10686912196053,
+    "0.001": 96.79542579620285,
+    "0.0003": 95.46990368891666,
+    "0.0001": 95.19548891973508,
+    "1e-06": 95.12196809268677,
+    "1e-09": 95.12188220387011
+   }
+  },
+  "R-i": {
+   "kappa": -1,
+   "s": 0.5,
+   "refl0": [
+    -0.0,
+    -1.0
+   ],
+   "desc": "reflection phase -i",
+   "zeta_roots": [
+    0.9424579727015553
+   ],
+   "Z_roots": [
+    129.15066988355213
+   ],
+   "D_imag_rel": 2.26124857578555e-06,
+   "two_gamma_at_roots": [
+    0.6686492942979136
+   ],
+   "Zcr_matching": {
+    "0.003": 130.47617408617893,
+    "0.001": 129.7536367201151,
+    "0.0003": 129.41011675750212,
+    "0.0001": 129.27254999796114,
+    "1e-06": 129.15607756428554,
+    "1e-09": 129.15074727764215
+   }
+  },
+  "S0.25": {
+   "kappa": -1,
+   "s": 0.25,
+   "refl0": [
+    -1.0,
+    0.0
+   ],
+   "desc": "sites (i+1/4)a: wall at -a/4 (nucleus inside the first cell)",
+   "zeta_roots": [
+    0.7566965085548693
+   ],
+   "Z_roots": [
+    103.69466205296087
+   ],
+   "D_imag_rel": 3.0284128760183842e-06,
+   "two_gamma_at_roots": [
+    1.307532628947929
+   ],
+   "Zcr_matching": {
+    "0.003": 104.51897493681363,
+    "0.001": 103.90003979238791,
+    "0.0003": 103.73760397611193,
+    "0.0001": 103.70487034789132,
+    "1e-06": 103.69470366806752,
+    "1e-09": 103.69462664776582
+   }
+  },
+  "S0.75": {
+   "kappa": -1,
+   "s": 0.75,
+   "refl0": [
+    -1.0,
+    0.0
+   ],
+   "desc": "sites (i+3/4)a",
+   "zeta_roots": [],
+   "Z_roots": [],
+   "D_imag_rel": 2.259744494331958e-06,
+   "two_gamma_at_roots": [],
+   "Zcr_matching": {
+    "0.003": 148.93325557690582,
+    "0.001": 145.97800856938886,
+    "0.0003": 143.85938974417493,
+    "0.0001": 142.52840582828648,
+    "1e-06": 139.73896475848497,
+    "1e-09": 138.3366457298586
+   }
+  },
+  "S0.866": {
+   "kappa": -1,
+   "s": 0.8660254037844386,
+   "refl0": [
+    -1.0,
+    0.0
+   ],
+   "desc": "first site at a sqrt(3)/2 = distance of the 3-D rule's first shell (nucleus at cube centre)",
+   "zeta_roots": [],
+   "Z_roots": [],
+   "D_imag_rel": 2.1784069877635733e-06,
+   "two_gamma_at_roots": [],
+   "Zcr_matching": {
+    "0.003": 153.241034467593,
+    "0.001": 149.1132378088856,
+    "0.0003": 146.1334941648799,
+    "0.0001": 144.26290378411443,
+    "1e-06": 140.40853948917726,
+    "1e-09": 138.57015764898043
+   }
+  },
+  "S1": {
+   "kappa": -1,
+   "s": 1.0,
+   "refl0": [
+    -1.0,
+    0.0
+   ],
+   "desc": "sites (i+1)a: nucleus on the mirror cell (3-D analogue: nucleus on a lattice site)",
+   "zeta_roots": [],
+   "Z_roots": [],
+   "D_imag_rel": 2.0803083149297712e-06,
+   "two_gamma_at_roots": [],
+   "Zcr_matching": {
+    "0.003": 156.7992843279371,
+    "0.001": 151.53375499675246,
+    "0.0003": 147.77987227556085,
+    "0.0001": 145.45654776117013,
+    "1e-06": 140.80456844574533,
+    "1e-09": 138.69264083142414
+   }
+  },
+  "K+1": {
+   "kappa": 1,
+   "s": 0.5,
+   "refl0": [
+    -1.0,
+    0.0
+   ],
+   "desc": "p1/2 (kappa = +1)",
+   "zeta_roots": [
+    0.9187212107485434
+   ],
+   "Z_roots": [
+    125.89787899430928
+   ],
+   "D_imag_rel": 2.7710982616138727e-06,
+   "two_gamma_at_roots": [
+    0.7898134891750849
+   ],
+   "Zcr_matching": {
+    "0.003": 128.52234050549342,
+    "0.001": 126.99050685246814,
+    "0.0003": 126.31163247273844,
+    "0.0001": 126.06904772528742,
+    "1e-06": 125.90233450473902,
+    "1e-09": 125.89791150092854
+   }
+  },
+  "K-2": {
+   "kappa": -2,
+   "s": 0.5,
+   "refl0": [
+    -1.0,
+    0.0
+   ],
+   "desc": "p3/2 (kappa = -2)",
+   "zeta_roots": [
+    1.5034058760781843
+   ],
+   "Z_roots": [
+    206.02072625667293
+   ],
+   "D_imag_rel": 4.963807602848054e-06,
+   "two_gamma_at_roots": [
+    2.6380074084608536
+   ]
+  },
+  "K+2": {
+   "kappa": 2,
+   "s": 0.5,
+   "refl0": [
+    -1.0,
+    0.0
+   ],
+   "desc": "d3/2 (kappa = +2)",
+   "zeta_roots": [
+    0.30687657112052635
+   ],
+   "Z_roots": [
+    42.053137518880156
+   ],
+   "D_imag_rel": 4.690681318797915e-06,
+   "two_gamma_at_roots": [
+    3.952632930135207
+   ]
+  },
+  "K+1R+1": {
+   "kappa": 1,
+   "s": 0.5,
+   "refl0": [
+    1.0,
+    0.0
+   ],
+   "desc": "p1/2 with refl0 = +1 (duality check: must equal base)",
+   "zeta_roots": [
+    0.9585907229766178
+   ],
+   "Z_roots": [
+    131.3614374354631
+   ],
+   "D_imag_rel": 2.1002068146524574e-06,
+   "two_gamma_at_roots": [
+    0.569574668759646
+   ],
+   "Zcr_matching": {
+    "0.003": 134.41196701537032,
+    "0.001": 132.83170714113817,
+    "0.0003": 132.0441856421667,
+    "0.0001": 131.70883122505,
+    "1e-06": 131.38481784334473,
+    "1e-09": 131.36190895181355
+   }
+  }
+ },
+ "s_scan_kappa-1": {
+  "0.200": [
+   0.6252060140665952,
+   0.9837693411088879
+  ],
+  "0.250": [
+   0.7566965085547828
+  ],
+  "0.300": [
+   0.8202989904104143
+  ],
+  "0.350": [
+   0.8625063605820427
+  ],
+  "0.400": [
+   0.8981448971057794
+  ],
+  "0.450": [
+   0.930277690243714
+  ],
+  "0.500": [
+   0.9585907229765869
+  ],
+  "0.550": [
+   0.9814404352674213
+  ],
+  "0.600": [
+   0.9962741876045257
+  ],
+  "0.650": [],
+  "0.700": [],
+  "0.750": [],
+  "0.800": [],
+  "0.850": [],
+  "0.900": [],
+  "0.950": [],
+  "1.000": [],
+  "1.050": [],
+  "1.100": [],
+  "1.150": [],
+  "1.200": []
+ },
+ "eta_scan_kappa-1_s0.5": {
+  "0.0000": [
+   0.9187212107486331
+  ],
+  "0.0833": [
+   0.9100755656056403
+  ],
+  "0.1667": [
+   0.8971045512716147
+  ],
+  "0.2500": [
+   0.8759630611275672
+  ],
+  "0.3333": [
+   0.8395110896910066
+  ],
+  "0.4167": [
+   0.7792529011459313
+  ],
+  "0.5000": [
+   0.6941377411905831
+  ],
+  "0.5833": [
+   0.591838009550608,
+   0.990048083054539
+  ],
+  "0.6667": [
+   0.47996731321889896,
+   0.9798738435150792
+  ],
+  "0.7500": [
+   0.3629694405165618,
+   0.9723712349599661
+  ],
+  "0.8333": [
+   0.2431837775181892,
+   0.9667219331389141
+  ],
+  "0.9167": [
+   0.12191617473788419,
+   0.9622675759281625
+  ],
+  "1.0000": [
+   0.9585907229765869
+  ],
+  "1.0833": [
+   0.9554259089921074
+  ],
+  "1.1667": [
+   0.9525962043206704
+  ],
+  "1.2500": [
+   0.9499757283929793
+  ],
+  "1.3333": [
+   0.9474672768158611
+  ],
+  "1.4167": [
+   0.944987872130771
+  ],
+  "1.5000": [
+   0.9424579727015359
+  ],
+  "1.5833": [
+   0.9397914768032158
+  ],
+  "1.6667": [
+   0.936883915288958
+  ],
+  "1.7500": [
+   0.9335953629648507
+  ],
+  "1.8333": [
+   0.9297219835537359
+  ],
+  "1.9167": [
+   0.9249438095990851
+  ]
+ },
+ "s_c_kappa-1": 0.6180648803710938,
+ "graphene_analogue_j": {
+  "-0.5": {
+   "zeta_roots": [],
+   "ratio_to_continuum": []
+  },
+  "0.5": {
+   "zeta_roots": [],
+   "ratio_to_continuum": []
+  }
+ },
+ "configs": {
+  "a": [
+   0.003,
+   0.001,
+   0.0003,
+   0.0001
+  ],
+  "rmax": 40.0,
+  "tracking": "supercrit_run_c1.track_to_critical (DZMAX 0.5), start Z0 = 120 (or Z*_pred - 20 when lower; K-2 from 180)",
+  "K+2": "contact state: for a in A_RUN[1:] scan Z in [40, 44], gap eigenstates near omega = 0, the one with > 50 % weight in r < 50 a; Z_x(a) where its omega = 0"
+ },
+ "exams": {
+  "F1": "formula vs walk, retrospective (seen): base |Z_walk(a) - Z_match(a)| <= 0.01 at a = 3e-5 (C1 data); recorded, not blind",
+  "F2": "blind: every variant with a root (R+1, R+i, R-i, S0.25, K+1, K+1R+1): |Z_walk(1e-4) - Z_match(1e-4)| <= 0.05 and |Z_walk(1e-3) - Z_match(1e-3)| <= 0.2",
+  "F3": "blind: walk-only extrapolation Z_walk(a) = Z_inf + c1 a^(2 gamma*) + c2 a on the 3 finest a: |Z_inf - Z*_formula| <= 0.1 for R+1, S0.25, K+1",
+  "F4": "duality Z*(kappa, refl0) = Z*(-kappa, -refl0) (scale-free part only; mass and the continuum differ at finite a): walk-only Z_inf (as F3) of K+1R+1 equal to base within 0.1, and of K+1 equal to R+1 within 0.1; at finite a each one must match its OWN Z_match (F2 thresholds)",
+  "U1": "universality test: Z* is universal for the rule iff max-min over {base, R+1, R+i, R-i, S0.25} < 1. PREDICTION: NOT universal (spread ~36): Z* is a boundary artifact",
+  "R1": "remedy: S1 and S0.866 have no root for kappa = +-1: Z_walk(a) >= 137.036 at every a in A_RUN and decreasing as a decreases; |Z_walk(1e-4) - Z_match(1e-4)| <= 0.2",
+  "K2": "p3/2 (K-2): the lowest kappa = -2 level dives at Z_walk(a) -> Z*_formula = 206.02: |Z_walk(1e-4) - 206.02| <= 0.3 (2 gamma* = 2.6 > 1: approach dominated by O(a))",
+  "K3": "d3/2 (K+2): a contact state crosses omega = 0 at Z_x(a) -> 42.05: |Z_x(1e-4) - 42.05| <= 0.1",
+  "O1": "order S M vs M S: identical quasi-energies (|delta omega| < 1e-10) at base, a = 1e-3, Z = 132",
+  "O2": "coin split (e^-iVa e^-i kappa/r sx a e^-i m sz a): |Z_walk(1e-4) - Z_walk(base, 1e-4)| <= 0.05 (differs only at O(a))",
+  "O3": "refl1 = +1 instead of -1: |delta Z_cr(1e-3)| <= 1e-3",
+  "G1": "graphene analogue (j = +-1/2): reported, not an exam: zeta*/j for the radial rule"
+ },
+ "time": "2026-10-13 04:16"
+}
