@@ -165,6 +165,13 @@ gaussiana lunga (S_T = 1500) dallo stato radiale: tolgono 0,886 e 0,840 ma **non
 (residuo 1·10⁻⁴, stima ~90/10). Lo stesso per i 2p (residui 0,8–3·10⁻⁴): sono pezzi di multipletto. Questo tocca E1v3c,
 E1v3s, R1_48, S1, K10, SC10. Le prove radiali (N1, H1) non hanno valli e non sono toccate.
 
+**Un colore solo? No (avviso di `docs/SOTTORETICOLO.md`, master 178743d, non presente nel mio ramo).** In questo studio
+dipoli, correnti, posizioni e accoppiamento alla luce sono sempre somme su **tutto** il reticolo 48³ (tutti e 4 i
+colori/sottoreticoli: `Dirac3D.position`, `dip_matrix`, `add_rphi` in `lab/emiss_core.py`). Non c'è nessuna scorciatoia a
+un colore. L'unica restrizione è sul tempo: proiezioni e ascolto solo sui tick **pari** (la regola si ripete ogni due tick).
+L'anisotropia dei dipoli 48³ di §1.4 (|x| 0,53 ≠ |y| 0,72) quindi **non** viene da un colore solo: viene dai livelli,
+che sono pezzi di multipletto di valle.
+
 **Il decadimento del Laboratorio dopo la cura (0,097 → 0,064, t = 450 → 1600).** Se è una logistica
 (semiclassico: dp/dt = −A p (1−p)) il ritmo è **A = 3,9·10⁻⁴**. Con K = 10 (K² = 100), media gaussiana σ = 2 celle
 (W² = 0,672) e ω = 0,0792, la regola prevede A = (4/3) α ω³ |D|² K² W² = **6,5·10⁻⁴ × |D|²**: con il dipolo dei livelli
