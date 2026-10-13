@@ -1,0 +1,5 @@
+{
+ "A1": {"when": "dopo la prima corsa di r1 (E2), prima di r2",
+        "what": "il cercatore di nodi (senzadoppi_core.weyl_nodes) con soli punti di partenza casuali aveva perso 1 nodo su 32 a energia pi per F0 e PA (3,875 per copia invece di 4). Aggiunti come punti di partenza tutti i punti della griglia (pi/4) Z^3. Nessuna soglia cambiata; la prima corsa di E2 e' stata buttata e rifatta.",
+        "effect": "F0 e PA: 4 + 4 nodi per copia, come previsto"}
+}

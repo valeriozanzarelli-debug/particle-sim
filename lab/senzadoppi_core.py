@@ -181,8 +181,11 @@ def weyl_nodes(rule, n_starts=600, seed=0):
     sols = []
     for sgn in (+1, -1):
         tgt = np.array([sgn, 0, 0, 0.0])
-        for _ in range(n_starts):
-            r = least_squares(lambda k: _coef(WR(k)) - tgt, rng.uniform(-PI, PI, 3), xtol=1e-14, ftol=1e-14,
+        g = PI / 4 * np.arange(-4, 4)
+        seeds = [np.array(x) + 1e-3 * rng.normal(size=3) for x in itertools.product(g, g, g)]
+        seeds += [rng.uniform(-PI, PI, 3) for _ in range(n_starts)]
+        for x0 in seeds:
+            r = least_squares(lambda k: _coef(WR(k)) - tgt, x0, xtol=1e-14, ftol=1e-14,
                               gtol=1e-14)
             if np.linalg.norm(r.fun) < 1e-8:
                 k = (r.x + PI) % (2 * PI) - PI
