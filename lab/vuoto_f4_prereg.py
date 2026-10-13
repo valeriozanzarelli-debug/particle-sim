@@ -1,0 +1,56 @@
+"""writes lab/out/vuoto_f4_prereg.json (phase 4 pre-registration, committed BEFORE the production runs)"""
+import json, os
+P = {
+ "study": "VUOTO_POLARIZZA phase 4", "date": "2026-10-13",
+ "engine": "lab/vuoto_f4_core.py: Feynman form in the discrete time of the rule (period = list of operations; "
+           "electron Feynman propagators with equal-time sea density; light walk as photon; Peierls vertex at every hop; "
+           "A_ext A_gamma contact; Coulomb 4 pi alpha/q^2 after every coin with its sea-response vertex; overlap "
+           "diagrams where the external vertex shares a period with a loop vertex). No effective Hamiltonian, no slice.",
+ "development_checks_done_before_this_file": {
+   "Feynman self-energy = phase-3 engine (real part, all 4 states, R, theta 0.05)": "identical to 1e-12; the equal-time "
+       "sea term adds only a state-independent imaginary constant",
+   "Ward identity at Q=0 (V/F1 = 1 + dSigma/dmu), R axes z and y, transverse+Coulomb": "agreement 1e-10 (C axis x: 4e-8, FD)",
+   "g-2 independent of the start of the period (ROT 0 vs 3)": "1e-10",
+   "g-2 angular grid (64,12,16) vs (64,24,32)": "8e-7 alpha/2pi",
+   "g-2 Q_ext/kmin = 1e-1 .. 1e-3": "1e-8",
+   "light: angular grid (64,24,32) vs (64,32,64)": "<1e-5 alpha; radial 64 -> 96: 1e-3 alpha",
+   "full Brillouin zone of R": "the Floquet gap at quasi-energy pi CLOSES at k=(pi/2,pi/2,pi/2) (1e-14, all theta): "
+       "the full-zone sea is not gapped there, sums converge only ~1/M^2; full-zone light is therefore NOT an exam "
+       "(exploratory only). The light is dressed by the sea of the physical species (occupation n(k)=w(k), declared)."},
+ "definitions": {
+   "a": "one-loop, LINEARIZED: a = (r - 1) + dm/m - dv_j - dv_q, r = tr(T^dag V)/tr(T^dag T) - delta mu_P/mu_P "
+        "(Breit frame p = -Q/2 e_q, p' = +Q/2 e_q, Q = 1e-2 kmin, current along j != q); products of O(alpha) terms "
+        "are two-loop and are not kept (they carry large logs: 0.1 alpha/2pi at theta 0.05)",
+   "dv_j, dm": "dressed limiting speed and mass of the electron (phase-3 definitions, same engine)",
+   "delta c_gamma": "from omega^2 = mu^2 + c^2 q^2 at q = 0.05 m and 0.1 m (photon mass mu^2 of the species cut "
+                    "SUBTRACTED, declared debt); per dressed polarization (eigenvectors of the 2x2 Hermitian part)",
+   "key number": "Delta_iso = <dv_e> - <dc_gamma> (averages over x, y, z), units of alpha, same cut, same theta"},
+ "configs": {"g2": {"cases": ["R K12=(0.6,1.05)", "R K12/3=(0.2,0.35)", "C K12/3"], "theta": [0.05, 0.025, 0.0125, 0.00625],
+                    "kmin_fac": [1e-3, 3e-4], "pairs (q axis, j axis)": [[2, 0], [2, 1], [0, 1], [0, 2], [1, 0], [1, 2]],
+                    "grid": [64, 12, 16]},
+             "light": {"cases": "same three", "theta": [0.05, 0.025, 0.0125, 0.00625], "directions": ["x", "y", "z", "(1,1,1)"],
+                       "grid": [64, 24, 32], "q/m": [0.05, 0.1], "weights": "occupation n(k)=w(k), pair weights by filled state",
+                       "systematics (R K12 theta 0.05)": ["grid (96,32,48)", "q/m = (0.1, 0.2)", "phase-1 symmetric pair weight"]}},
+ "extrapolations": "a -> 0: straight line in theta through the 4 points (as phase 3); kmin -> 0: straight line in kmin",
+ "exams": {
+   "G1 Ward": "rerun at production grid, R axes x,y and C axis x: |V/F1 - (1 + dSigma/dmu)| <= 1e-6",
+   "G2 g-2 mean": "mean of the 6 pairs, a->0 and kmin->0: PASS if |mean/(alpha/2pi) - 1| <= 0.03, per case",
+   "G3 spread": "max - min over the 6 pairs at a->0: 'survives' if >= 0.01 alpha/2pi, 'vanishes' if < 0.01; "
+                "the power of theta of the spread is reported (fit over the 4 theta)",
+   "G4 C isotropy": "C: spread <= 1e-6 alpha/2pi at every theta (symmetry)",
+   "G5 checks": "|Im r| and structure residual <= 1e-8 for every run",
+   "L1 symmetry": "R: |dc_x - dc_z| <= 0.002 alpha (both polarizations); C: max - min over x,y,z,(111) <= 0.002 alpha",
+   "L2 systematics": "grid, q choice and weight scheme change dc_gamma by <= 0.005 alpha",
+   "L3 birefringence (coordinator input)": "difference of the two dressed polarizations per direction. Symmetry "
+        "prediction for R (D4h with axis y): ZERO along y (the 4-fold rotation about y maps one polarization into the "
+        "other), ALLOWED along x and z. 'seen' if |difference| >= 0.002 alpha at a->0. C: none expected",
+   "L4 unitarity": "anti-Hermitian residue of delta Omega_gamma / Omega <= 0.01 alpha",
+   "K key number": "Delta_iso per case at a->0: 'physical difference' if |Delta_iso| >= 0.01 alpha; also reported: "
+        "anisotropy of electron and light (y minus mean of x,z) and their difference"},
+ "knobs": "0 fitted; cut K12 and K12/3 are the declared species cut of phases 1-3 (varied, not tuned)",
+ "declared_choices": ["sea occupation n(k) = w(k) for the light (equal-time sea-sea term weight (n(k)+n(k+q))/2)",
+                      "photon mass of the cut subtracted by the two-q slope",
+                      "a linearized at one loop", "Coulomb kernel 4 pi alpha/q^2 after each coin (input, as before)"]}
+os.makedirs(os.path.join(os.path.dirname(os.path.abspath(__file__)), "out"), exist_ok=True)
+json.dump(P, open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "out", "vuoto_f4_prereg.json"), "w"), indent=1)
+print("written")
