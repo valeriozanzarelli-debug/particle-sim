@@ -67,6 +67,7 @@ controllo esatto, non il metodo**. Non è "la vecchia DMC con un nome nuovo", ma
 | He DMC | elio 1¹S con i camminatori (solo riportato: M1/E1 erano sulla strada ECG) | **−2,903757 ± 0,000071 Eh** (barra pre-registrata; con la barra controllata −2,903762 ± 0,000082) contro −2,903724 (0,46 σ); ionizzazione **24,5884 ± 0,0019 eV** (controllata: 24,5885 ± 0,0022) contro 24,587389 (+1,0 meV) | riportato |
 | He 2³S DMC | nodo esatto r₁ = r₂ (solo riportato: D2/M2 fermi per G1 e G5) | **−2,175328 ± 0,000072 Eh** contro −2,175229 (−0,10 mEh, 1,4 σ); corsa lunga di controllo a τ = 0,01: −0,6 σ | riportato |
 | D7 | sanità variazionale della DMC | E ≥ E_esatta − 3σ | **PASS** |
+| D6' | cuspide del misto (v2, stimatore a rapporto, semi nuovi) | c(τ → 0) = 0,446 ± 0,037 contro 0,500 ± 0,05; σ > 0,03 | **INCONCLUSIVO** → corse allungate (in corsa) |
 | D6 | cuspide di Kato dai camminatori (guida senza cuspide) | c = 87 ± 62 contro m = 1,0004 ± 0,10 | **FAIL** — quattro cause trovate (§4.3, tre sono errori miei nella pre-registrazione); post hoc il misto dà la cuspide giusta: 0,51 ± 0,05 contro 0,50 |
 
 ---
@@ -392,6 +393,24 @@ cioè m/2 = 0,5002. Fit pesato: **1,17 ± 0,10** (τ = 0,01, buco), **0,50 ± 0,
 (τ = 0,000625). Togliendo il bias del modello misurato al punto 4 (+0,12) l'ultimo diventa **0,51 ± 0,05 contro 0,50**.
 Le palline costruiscono da sole la cuspide di Kato che nella guida non c'è: questo è il senso fisico di D6, e c'è —
 ma è una diagnosi post hoc, non un PASS. (Correzione di bias presa da un'altra funzione: è una stima, non una misura.)
+
+### 4.4 D6' — la cuspide del misto (pre-registrazione v2)
+Stimatore scelto prima dei dati: rapporto g(r) = I_mix/I_VMC (la forma del campo medio si cancella), fit pesato
+quadratico su r < 0,25 a₀; semi nuovi; τ = 0,0025 / 0,00125 / 0,000625 con 4000 / 3000 / 2000 a.u.; VMC 8000 a.u.
+
+| τ | c del misto (rapporto) | secondario (cubico su h_mix) |
+|---|---|---|
+| 0,0025 | 0,596 ± 0,027 | 1,07 ± 0,07 |
+| 0,00125 | 0,515 ± 0,030 | 0,69 ± 0,06 |
+| 0,000625 | 0,488 ± 0,032 | 0,55 ± 0,06 |
+
+Retta in τ (p = 0,80): **c(τ → 0) = 0,446 ± 0,037 contro m/2 = 0,500**. La regola scritta prima chiede σ ≤ 0,03 per dare
+un verdetto: **INCONCLUSIVO**. Come pre-registrato si allungano le corse dai checkpoint (al doppio), mai la tolleranza:
+*(in corsa)*. Note oneste: (i) il buco a τ finito si vede ancora come pendenza (c scende al calare di τ); (ii) il punto
+più piccolo da solo sta già sulla cuspide (0,49 ± 0,03); (iii) il secondario cubico è più rumoroso e più sensibile al
+buco, come previsto; (iv) un pezzo da 2 a.u. in più è stato aggiunto per errore a τ = 0,0025 e 0,00125 da un processo
+rilanciato a corsa finita: escluso dalla lettura, e il checkpoint della VMC v2 è stato rifatto da zero dopo che tre
+processi gemelli l'avevano scritto insieme (prima di ogni analisi).
 
 ## 5. Validazione e scoperta
 

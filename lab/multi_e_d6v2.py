@@ -16,9 +16,13 @@ mom = lambda n: 3 * (hi ** (n + 3) - lo ** (n + 3)) / ((n + 3) * (hi ** 3 - lo *
 w = np.sqrt(vol)
 
 
-def blocks(name):
+def blocks(name, nmax):
+    """solo i primi nmax pezzi da 2 a.u. = la lunghezza pre-registrata (un pezzo in piu' e' stato aggiunto per errore a
+    tau = 0.0025 e 0.00125 da un processo rilanciato a corsa gia' finita: escluso, dichiarato)"""
     z = np.load(os.path.join(OUT, f"multi_e_dmc_{name}.npz"), allow_pickle=True)
-    HB = np.array(z["HB"]); return HB[:, :nb], HB[:, -1]
+    HB = np.array(z["HB"])[:nmax]
+    assert len(HB) == nmax, (name, len(HB))
+    return HB[:, :nb], HB[:, -1]
 
 
 def fit(y, deg):
@@ -49,14 +53,15 @@ def jack(f, Hm, Wm, Hv=None, Wv=None):
 
 res = load_json("multi_e_dmc.json")
 m = res["He_u0_dmc_tau0.01"]["m_kin"]
-Hv, Wv = blocks("He_u0_vmc_tau0.01_v2")
+Hv, Wv = blocks("He_u0_vmc_tau0.01_v2", 4000)
+LEN = {0.0025: 4000, 0.00125: 3000, 0.000625: 2000}
 pts = []
 rec = {}
 for tau in (0.0025, 0.00125, 0.000625):
     nm = f"He_u0_dmc_tau{tau:g}_v2"
     if not os.path.exists(os.path.join(OUT, f"multi_e_dmc_{nm}.npz")):
         continue
-    Hm, Wm = blocks(nm)
+    Hm, Wm = blocks(nm, LEN[tau] // 2)
     cr = c_ratio(Hm, Wm, Hv, Wv); sr = jack(c_ratio, Hm, Wm, Hv, Wv)
     cc = c_cubic(Hm, Wm); sc = jack(c_cubic, Hm, Wm)
     rec[f"tau{tau:g}"] = dict(tau=tau, prod_au=float(len(Wm) * 2.0), c_ratio=float(cr), sigma_ratio=sr, c_cubic=float(cc), sigma_cubic=sc)

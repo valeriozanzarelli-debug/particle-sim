@@ -205,6 +205,11 @@ if V3.get("he"):
     put("E1v3", "PASS" if h["E1v3"]["PASS"] else "FAIL", **{k: v for k, v in h["E1v3"].items() if k != "PASS"})
     q = h["Q1v3"]
     put("Q1v3", "PASS" if q["PASS"] else "FAIL", T=q["T"], M=q["M"], old_level=q["old_level"])
+d6v2 = Q.get("D6_v2")
+if d6v2 and "ratio" in d6v2:
+    put("D6'", d6v2["verdict"], c0=d6v2["ratio"]["c0"], sigma_c0=d6v2["ratio"]["sigma_c0"], target=d6v2["target"],
+        points={k: dict(c=v["c_ratio"], s=v["sigma_ratio"], prod_au=v["prod_au"]) for k, v in d6v2["points"].items()},
+        secondary_cubic=d6v2["cubic"])
 save_json("multi_e_results.json", R)
 for k, v in R.items():
     print(f"{k:22s} {v['verdict']}")
