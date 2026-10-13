@@ -87,8 +87,9 @@ Quattro studi erano in corso quando è stato scritto questo file. Se uno risulta
 1. Chiudere i quattro cantieri sopra.
 2. ~~Portare nel Laboratorio Atomo l'idrogeno **vero** a scala di Bohr~~ **motore fatto 13/10**
    (`IDROGENO_BOHR.md`, `src/atomo/idrogeno.rs`, dati per il video in `ripresa/dati/idrogeno_bohr/`).
-   Resta: colla a flusso conservativo (reflux), blocco fine più largo fino a convergenza, 2p a a0/16
-   su griglia composita, collegamento alla grafica del Laboratorio.
+   Fase 2 (13/10): reflux PASS (carica 10⁻¹⁶/passo), parità esatta con la regola T (AGGLOMERATO_COMPLETO §11),
+   convergenza nel blocco FAIL (picco al blocco 7; blocchi 9–13: 1s −0,043 ± 0,004 %). Resta: picco del blocco 7,
+   partenza dall'autostato dell'ibrido, regola della fase 4 (massa esatta), 2p a a0/16, grafica del Laboratorio.
 3. **Elio e litio esatti** sulla zig-zag (o sulla regola agglomerata), poi imparare da loro la
    regola effettiva a molti elettroni. Esame: energie di ionizzazione e righe.
 4. Atomi uno a uno, numero atomico per numero atomico. Dopo: legami, H₂, acqua.

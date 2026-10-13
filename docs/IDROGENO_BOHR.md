@@ -241,9 +241,11 @@ Su un periodo di Lyman-alfa (36 900 passi) la deriva di carica arriverebbe a ~3�
      - la zig-zag nel blocco ne muove un'altra;
      - nessuno le pareggia.
    - È lo stesso problema che negli adattivi si risolve con il "reflux".
-2. **La regola grossa e la zig-zag non hanno la stessa dispersione a k grandi.** G(k)/(k²/2) della regola imparata cala come 1 − 0,0134 k² (k per cella). È 4 volte la correzione relativistica (−0,0034 k²). La zig-zag invece ha quella giusta.
-   - Vicino al nucleo, dove il k locale è grande, i due livelli non dicono la stessa cosa.
-   - Questo è un **errore della regola imparata**, non della colla. Va passato al thread dell'agglomeratore.
+2. **La regola grossa e la zig-zag non hanno la stessa dispersione a k grandi.** *(Corretto in fase 2, §11.)* In fase 1 avevo scritto "4 volte la correzione relativistica": era sbagliato. Gran parte di quell'effetto era la **parte dispari** della regola, perché G(k) lungo +x non è uguale a G(−k). Tolta la parte dispari, resta un errore vero solo ad alto k:
+   - regola vecchia simmetrizzata: −5·10⁻³ a k = 0,8 per cella lungo l'asse;
+   - regola T: −3,8·10⁻³.
+
+   È l'errore ad alto k ancora aperto in `AGGLOMERATO_COMPLETO.md`.
 3. **Il blocco fine non è convergente in grandezza** (Coulomb: −0,097, −0,066, −0,043 % per blocchi 1, 3, 5).
    - Il blocco fine corregge davvero la fisica vicino al nucleo: la forma vicino al protone torna entro 1,5·10⁻⁴ dalla media esatta, contro il 2·10⁻³ del solo grosso.
    - Però la parte di errore che la regola grossa fa vicino al nucleo è sparsa su ≥ 5 celle (la regola è larga ±4 celle).
@@ -372,3 +374,116 @@ python3 lab/idro_bohr_figura.py
 ```
 
 Controlli interni: `$B testfine` (R∘P = I esatto, cammino contro matrice di Bloch 1·10⁻¹⁵), `$B fft`, `$B massa` (massa efficace del cammino contro θ cot θ).
+
+
+---
+
+## 11. Fase 2: togliere le imprecisioni (13/10)
+
+**Pre-registrazione:** `lab/out/idrogeno_bohr_fase2_prereg.json`.
+- Primo commit 714b17f.
+- Emendamenti 1–3 in 2111160, fe4487d, f37da41, tutti committati prima delle loro corse.
+
+**Numeri:** `lab/out/idrogeno_bohr_risultati.json` → `fase2`. **Figura:** `lab/out/idrogeno_bohr_fase2_figure.png`.
+
+### 11.1 Colla che pareggia i flussi ("reflux"): PASS
+
+**L'idea.** C'è una sola porta fra le due stanze, e la si conta da una parte sola.
+- La carica che entra nella zona fine o ne esce è quella mossa dalla regola grossa.
+- La zig-zag dentro decide solo **dove** sta: la cuspide, il tremolio.
+- In pratica, a ogni passo le celle coperte ricevono in totale Q(prima) − Q(celle scoperte, dopo), e il blocco fine è riscalato dello stesso fattore reale.
+- Nessun parametro.
+
+| esame | soglia | misura |
+|---|---|---|
+| R1a pacchetto fermo, deriva per passo | ≤ 10⁻¹¹ | **4·10⁻¹⁶** (fase 1: 2,5·10⁻⁶) |
+| R1b 1s ibrido, deriva per passo | ≤ 10⁻¹¹ | **1,9·10⁻¹⁶**; E1 −0,0666 % |
+| R1c pacchetto che attraversa | fedeltà ≥ 0,99, riflesso ≤ 10⁻² | 1,00000000, 2,9·10⁻¹⁰, ΔQ 5·10⁻¹⁵ |
+| R1d pozzo liscio | ≤ 10⁻⁴ | 6,5·10⁻⁵ |
+
+**Conseguenza.** Su un periodo di Lyman-alfa (36 900 passi) la deriva di carica è ~10⁻¹¹, cioè ≪ 10⁻⁴. Il debito "colla non conservativa" è **chiuso**.
+
+**Limite.** Il reflux non tocca la fase. Un pacchetto fermo accumula comunque −2·10⁻⁶ rad in 8 passi, perché regola grossa e cammino non hanno la stessa dispersione ad alto k.
+
+### 11.2 Convergenza nella grandezza del blocco: FAIL (come registrato)
+
+Celle fini a0/256, reflux, scatola ±8 a0. L'1s contro Dirac × μ (%):
+
+| blocco | 3 | 5 | 7 | 9 | 11 | 13 |
+|---|---|---|---|---|---|---|
+| regola vecchia (72 passi) | −0,0614 | −0,0280 | −0,0158 | −0,0381 | | |
+| regola T (48 passi) | −0,0675 | −0,0489 | −0,0212 | −0,0380 | −0,0469 | −0,0409 |
+
+- **Il criterio pre-registrato è mancato** (|E5−E3| e |E7−E5| < 10⁻⁴):
+  - regola vecchia: 3,3·10⁻⁴ e 1,2·10⁻⁴;
+  - regola T: 1,9·10⁻⁴ e 2,8·10⁻⁴.
+- **Il blocco 7 è un picco**, con tutte e due le regole. Dal blocco 9 in poi i valori stanno fra −0,047 e −0,038 %. Fra 11 e 13 la differenza è 6·10⁻⁵, e il criterio "a blocco grande" dell'emendamento 3 passa, ma di poco.
+- **La stima onesta dell'1s ibrido** è **−0,043 ± 0,004 %**. È il valore stabile per blocchi da 9 a 13, non un fit.
+- **La lettura dell'energia non è il problema.** Su 72 passi le finestre [8,72], [24,72], [36,72] e [48,72] concordano entro 10⁻⁵.
+- **Che cosa non capisco ancora.**
+  - Il picco al blocco 7 non dipende dalla regola, quindi viene dalla geometria della colla: per esempio l'alone che cade sul bordo dello stencil della regola, largo ±4 celle. Non l'ho dimostrato.
+  - Il valore a blocco grande (−0,04 %) è ancora lontano da +0,037 %, il limite atteso con la sola massa del cammino di base.
+  - Il solo grosso cambia di 4,5·10⁻⁴ fra scatola ±6 e ±8 a0, quindi la scatola o la regola ad alto k (§11.3) pesano ancora a questo livello.
+
+### 11.3 Regola con parità esatta
+
+- **Il mio tentativo** (simmetrizzazione O_h, `assets/atomo/agglomerato_zz_simm_v1.json`, `lab/idro_simm_regola.py`) è venuto (R3a):
+  - parità 1 − |P| ≤ 3·10⁻¹⁴;
+  - tripletto 2p aperto 4·10⁻¹³.
+
+  Su richiesta del coordinatore è stato **superato** dalla regola dell'agglomeratore completo.
+- **Regola T** (emendamento 2):
+  - È il metodo di `AGGLOMERATO_COMPLETO.md` §11 (learner "T": massa e k⁴ fissati al cammino fine, parità esatta) applicato ai livelli dell'idrogeno, a0/16 e a0/8, imparati direttamente dal cammino fine.
+  - Script `lab/idro_regola_T.py`, nuovo file `assets/atomo/agglomerato_zz_T_v1.json`.
+  - `agglomerato_zz.json` non è stato toccato.
+
+| R4a (a0/8, ±18 a0) | soglia | regola vecchia | regola T |
+|---|---|---|---|
+| 1 − \|P\| (mescolamento s–p), peggiore | ≤ 10⁻⁸ | 6,4·10⁻³ (2s) | **2,2·10⁻⁹** PASS |
+| tripletto 2p aperto | ≤ 10⁻⁷ | 3,3·10⁻⁵ | **6,3·10⁻⁸** PASS |
+| 2p | ≤ 0,06 % | +0,039 % | **+0,034 %** PASS |
+| 2s | ≤ 0,25 % | −0,138 % | **−0,163 %** PASS |
+| 1s a a0/8 | (riportato) | −0,351 % | −0,385 % |
+| 1s, solo grosso a0/16 | (riportato) | −0,080 % | −0,075 % |
+
+**Una correzione al messaggio del coordinatore.** La regola T ha la massa uguale a quella del **cammino fine** (1,000373), non a quella di Dirac. Il learner fissa la massa al "maestro".
+- Il +0,037 % della fase 1 è proprio la massa del cammino fine a θ = a0/4096 (θ²/3), e **resta**.
+- Si vede nel 2p, che sta a +0,034 %.
+- Per toglierlo serve un cammino di base più fine, oppure la regola della fase 4 dell'agglomeratore, con massa esatta a 10⁻¹³. Quella non l'ho adottata, per non rifare corse già finite: la propongo come prossimo emendamento.
+
+**R4c** (regola T):
+- E4: ω = 10,14535 eV = **122,21 nm**. È −0,52 % da Dirac × μ (soglia 0,6 %, PASS); la coerenza con gli autovalori è 2,4·10⁻⁸.
+- Dipolo ⟨1s|z|2p⟩ = 0,7495 a0 (esatto 0,7449).
+- E1 con blocco 7: −0,0216 % (PASS ≤ 0,10 %). Il blocco 7 era stato scelto come "migliore" prima di vedere 11 e 13: è il picco, e il valore onesto è quello di §11.2.
+- **Corrente spuria** ≤ 10⁻⁶: **FAIL**, misurata 1,7·10⁻³ (fase 1: 6,5·10⁻³).
+  - La regola ora è pari e reale, quindi la corrente non viene più da lì.
+  - Viene dal transitorio dell'ibrido: lo stato iniziale è l'autostato grosso, non quello dell'ibrido, e nei primi passi "respira".
+  - L'avevo attribuita tutta alla regola: era sbagliato. Dichiarato.
+
+**Errore ad alto k della regola imparata** (−3,8·10⁻³ a k = 0,8 per cella lungo l'asse): **FAIL dichiarato**, finché `AGGLOMERATO_COMPLETO` non lo chiude.
+
+### 11.4 Dati per il video (fase 2)
+
+`/mnt/project-files/ripresa/dati/idrogeno_bohr/fase2/` (250 MB). Le voci sono in `manifest.json` → `fase2`.
+- Vista lontana con la regola T: 24 fotogrammi su un periodo.
+- Zoom: blocco 7³ a a0/256, 112³ celle, 16 tick.
+
+### 11.5 Conto
+
+**Esami**
+- R1 4/4 PASS.
+- R2, R2bis, R4b FAIL.
+- Emendamento 3 PASS di poco.
+- R3a PASS (superato).
+- R4a 4/4 PASS.
+- R4c: E1 e E4 PASS, corrente spuria FAIL.
+- Alto k FAIL dichiarato.
+
+**Manopole fittate: 0.** I file nuovi:
+- `agglomerato_zz_simm_v1.json` e `agglomerato_zz_T_v1.json` (asset versionati);
+- `lab/idro_simm_regola.py`, `lab/idro_regola_T.py`.
+
+**Prossimo**
+1. Capire il picco al blocco 7: un alone di 2 celle al posto di 1, e lo stesso con la regola larga w = 2.
+2. Partire dall'autostato dell'ibrido invece che da quello grosso, per togliere il transitorio e la corrente.
+3. Adottare la regola della fase 4 dell'agglomeratore, con massa esatta: deve far sparire il +0,034 % del 2p.

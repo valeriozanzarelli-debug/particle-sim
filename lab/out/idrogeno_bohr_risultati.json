@@ -2,7 +2,7 @@
   "nota": "numeri delle corse di produzione P1-P6 (pre-registrazione lab/out/idrogeno_bohr_prereg.json) e, dove scritto, di sviluppo; percentuali contro Dirac × massa ridotta",
   "energie_pct": {
     "1s grosso a0/16": -0.0801,
-    "1s ibrido blocco 1": -0.0970,
+    "1s ibrido blocco 1": -0.097,
     "1s ibrido blocco 3 (E1)": -0.0656,
     "1s ibrido blocco 5": -0.0428,
     "1s grosso a0/8": -0.3506,
@@ -12,14 +12,92 @@
   },
   "massa_rinormalizzata_pct": 0.0373,
   "scatola": {
-    "1s, grosso a0/16": [[4, 1.7052], [6, -0.0351], [8, -0.0801]],
-    "2p_z, grosso a0/8": [[8, 13.278], [18, 0.0421]],
-    "2s, grosso a0/8": [[12, 1.0009], [18, -0.1384]]
+    "1s, grosso a0/16": [
+      [
+        4,
+        1.7052
+      ],
+      [
+        6,
+        -0.0351
+      ],
+      [
+        8,
+        -0.0801
+      ]
+    ],
+    "2p_z, grosso a0/8": [
+      [
+        8,
+        13.278
+      ],
+      [
+        18,
+        0.0421
+      ]
+    ],
+    "2s, grosso a0/8": [
+      [
+        12,
+        1.0009
+      ],
+      [
+        18,
+        -0.1384
+      ]
+    ]
   },
   "blocco": {
-    "Coulomb, ±8 a0 (produzione)": [[0, 0.0], [1, -1.6903e-4], [3, 1.4557e-4], [5, 3.7369e-4]],
-    "pozzo liscio (produzione + blocco 5 di sviluppo)": [[0, 0.0], [1, -5.4717e-6], [3, -6.7058e-5], [5, -2.3310e-4]],
-    "Coulomb, cammino a massa nuda (sviluppo, ±4 a0)": [[0, 0.0], [1, -2.5078e-4], [3, 1.14e-3]]
+    "Coulomb, ±8 a0 (produzione)": [
+      [
+        0,
+        0.0
+      ],
+      [
+        1,
+        -0.00016903
+      ],
+      [
+        3,
+        0.00014557
+      ],
+      [
+        5,
+        0.00037369
+      ]
+    ],
+    "pozzo liscio (produzione + blocco 5 di sviluppo)": [
+      [
+        0,
+        0.0
+      ],
+      [
+        1,
+        -5.4717e-06
+      ],
+      [
+        3,
+        -6.7058e-05
+      ],
+      [
+        5,
+        -0.0002331
+      ]
+    ],
+    "Coulomb, cammino a massa nuda (sviluppo, ±4 a0)": [
+      [
+        0,
+        0.0
+      ],
+      [
+        1,
+        -0.00025078
+      ],
+      [
+        3,
+        0.00114
+      ]
+    ]
   },
   "costo_s_per_passo": {
     "grosso a0/16 N=256": 0.72,
@@ -28,20 +106,189 @@
     "ibrido blocco 5": 8.06,
     "grosso a0/8 N=288": 1.5
   },
-  "export": {"lato_lontano": 96, "fotogrammi_lontano": 24, "mezzo_lato_lontano_a0": 6.0, "lato_fine": 96, "mezzo_lato_fine_a0": 0.09375},
+  "export": {
+    "lato_lontano": 96,
+    "fotogrammi_lontano": 24,
+    "mezzo_lato_lontano_a0": 6.0,
+    "lato_fine": 96,
+    "mezzo_lato_fine_a0": 0.09375
+  },
   "esami": {
-    "E1": {"valore_pct": -0.0656, "soglia": 0.10, "esito": "PASS"},
-    "E2": {"2s_pct": -0.1384, "2p_pct": 0.0387, "tripletto": 3.34e-5, "soglie": [0.25, 0.25, 1e-4], "esito": "PASS"},
-    "E3": {"grosso": 4.495e-4, "fine": 9.052e-4, "soglie": [1e-3, 1e-2], "esito": "PASS"},
-    "E4": {"coerenza": 2.51e-8, "contro_Dirac_pct": -0.4814, "soglie": [1e-4, 0.6], "esito": "PASS"},
-    "E5": {"s_per_passo_blocco3": 3.81, "soglia": 10, "esito": "PASS (2 thread)"},
-    "E6": {"liscio_blocco3": -6.7058e-5, "soglia": 1e-4, "esito": "PASS", "dispersione_blocchi_1_3_5": 5.43e-4},
-    "E7": {"fedelta_k05": 0.99999998, "riflesso_k05": 4.9e-10, "fedelta_k025": 1.00000005, "riflesso_k025": 2.5e-9, "esito": "PASS"},
-    "E8": {"carica_per_passo": 7.84e-8, "H_seconda_meta": -7.68e-8, "carica_pacchetto": [-2.27e-8, 6.24e-8], "soglie": [3e-7, 1e-5, 1e-4], "esito": "PASS"}
+    "E1": {
+      "valore_pct": -0.0656,
+      "soglia": 0.1,
+      "esito": "PASS"
+    },
+    "E2": {
+      "2s_pct": -0.1384,
+      "2p_pct": 0.0387,
+      "tripletto": 3.34e-05,
+      "soglie": [
+        0.25,
+        0.25,
+        0.0001
+      ],
+      "esito": "PASS"
+    },
+    "E3": {
+      "grosso": 0.0004495,
+      "fine": 0.0009052,
+      "soglie": [
+        0.001,
+        0.01
+      ],
+      "esito": "PASS"
+    },
+    "E4": {
+      "coerenza": 2.51e-08,
+      "contro_Dirac_pct": -0.4814,
+      "soglie": [
+        0.0001,
+        0.6
+      ],
+      "esito": "PASS"
+    },
+    "E5": {
+      "s_per_passo_blocco3": 3.81,
+      "soglia": 10,
+      "esito": "PASS (2 thread)"
+    },
+    "E6": {
+      "liscio_blocco3": -6.7058e-05,
+      "soglia": 0.0001,
+      "esito": "PASS",
+      "dispersione_blocchi_1_3_5": 0.000543
+    },
+    "E7": {
+      "fedelta_k05": 0.99999998,
+      "riflesso_k05": 4.9e-10,
+      "fedelta_k025": 1.00000005,
+      "riflesso_k025": 2.5e-09,
+      "esito": "PASS"
+    },
+    "E8": {
+      "carica_per_passo": 7.84e-08,
+      "H_seconda_meta": -7.68e-08,
+      "carica_pacchetto": [
+        -2.27e-08,
+        6.24e-08
+      ],
+      "soglie": [
+        3e-07,
+        1e-05,
+        0.0001
+      ],
+      "esito": "PASS"
+    }
   },
   "riferimenti_extra": {
-    "densita_al_nucleo_blocco_fine": 0.3176, "esatto_1_su_pi": 0.3183,
-    "dipolo_1s_2p_a0": 0.74888, "dipolo_esatto": 0.74494,
-    "pozzo_liscio_esatto_eV": -42.641613, "pozzo_liscio_grosso_eV": -42.613276, "pozzo_liscio_ibrido3_eV": -42.610418
+    "densita_al_nucleo_blocco_fine": 0.3176,
+    "esatto_1_su_pi": 0.3183,
+    "dipolo_1s_2p_a0": 0.74888,
+    "dipolo_esatto": 0.74494,
+    "pozzo_liscio_esatto_eV": -42.641613,
+    "pozzo_liscio_grosso_eV": -42.613276,
+    "pozzo_liscio_ibrido3_eV": -42.610418
+  },
+  "fase2": {
+    "R1_reflux": {
+      "pacchetto_fermo_per_passo": 4.3e-16,
+      "ibrido_1s_per_passo": 1.85e-16,
+      "attraversa": {
+        "fedelta": 1.0,
+        "riflesso": 2.9e-10,
+        "dQ": 5.1e-15
+      },
+      "pozzo_liscio": -6.46e-05,
+      "E1_pct": -0.0666,
+      "esito": "PASS"
+    },
+    "blocco_regola_vecchia_72passi": [
+      [
+        3,
+        -0.0614
+      ],
+      [
+        5,
+        -0.028
+      ],
+      [
+        7,
+        -0.0158
+      ],
+      [
+        9,
+        -0.0381
+      ]
+    ],
+    "blocco_regola_T_48passi": [
+      [
+        3,
+        -0.0675
+      ],
+      [
+        5,
+        -0.0489
+      ],
+      [
+        7,
+        -0.0212
+      ],
+      [
+        9,
+        -0.038
+      ],
+      [
+        11,
+        -0.0469
+      ],
+      [
+        13,
+        -0.0409
+      ]
+    ],
+    "grosso_solo_pct": {
+      "vecchia": -0.0801,
+      "T": -0.0751
+    },
+    "R2": "FAIL",
+    "R2bis": "FAIL",
+    "R4b": "FAIL",
+    "emendamento3_13_vs_11": 6e-05,
+    "R3a_simm": {
+      "parita_1meno": 2.7e-14,
+      "tripletto": 4.2e-13,
+      "2p_pct": 0.0387,
+      "2s_pct": -0.1391,
+      "1s_a0_8_pct": -0.352
+    },
+    "R4a_T": {
+      "parita_1meno_max": 2.2e-09,
+      "tripletto": 6.3e-08,
+      "2p_pct": 0.0338,
+      "2s_pct": -0.1628,
+      "1s_a0_8_pct": -0.3851,
+      "regola_vecchia_parita_1meno": {
+        "1s": 4.8e-07,
+        "2pz": 0.00054,
+        "2px": 0.0057,
+        "2py": 0.00023,
+        "2s": 0.0064
+      }
+    },
+    "R4c": {
+      "E4_coerenza": 2.39e-08,
+      "E4_pct": -0.5248,
+      "lambda_nm": 122.208,
+      "dipolo": 0.74951,
+      "E1_blocco7_pct": -0.0216,
+      "corrente_spuria": 0.001694,
+      "costo_blocco7_a0_256": 1.94
+    },
+    "dispersione_regola_su_cammino_k0785_asse": {
+      "vecchia": -0.0168,
+      "simm": -0.0051,
+      "T": -0.0038
+    }
   }
 }
