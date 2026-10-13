@@ -385,11 +385,30 @@ fn pannello_fotone(ctx: &egui::Context, lab: &mut Lab) {
                 ui.label(RichText::new(format!("al fuoco w0 = {:.2} λ", w0 / lam)).color(GREY));
                 ui.label("");
                 ui.end_row();
+                // the same observables at every preset (CPU and GPU path): spin from the balls, energy flow
+                ui.label("spin letto dalle palline");
+                match o.spin_palline {
+                    Some(s) if o.ticks >= 2 => {
+                        ui.label(format!("{:+.3} ħ", s));
+                        ui.label(RichText::new(format!("atteso {:+.0}", o.par.polar.elicita())).color(GREY));
+                        ui.label(if (s - o.par.polar.elicita()).abs() < 0.1 { RichText::new("ok").color(GREEN) } else { RichText::new("no").color(RED) });
+                    }
+                    _ => { ui.label("…"); ui.label(""); ui.label(""); }
+                }
+                ui.end_row();
+                ui.label("flusso di energia (Σ E×B)");
+                let pn = (o.poynting[0].powi(2) + o.poynting[1].powi(2) + o.poynting[2].powi(2)).sqrt();
+                let d = crate::fotone3d::norma(crate::fotscena::DIREZIONI[o.par.dir % crate::fotscena::DIREZIONI.len()].1);
+                let cos = if pn > 0.0 { (o.poynting[0] * d[0] + o.poynting[1] * d[1] + o.poynting[2] * d[2]) / pn } else { 0.0 };
+                ui.label(format!("cos con il volo {:.4}", cos));
+                ui.label(RichText::new(format!("energia {:.4e}", o.energia)).color(GREY));
+                ui.label(if cos > 0.99 { RichText::new("ok").color(GREEN) } else { RichText::new("no").color(RED) });
+                ui.end_row();
             });
             ui.label(RichText::new("La velocità è quella del centro dell'energia |F|²: un impulso stretto contiene onde un po' oblique, \
                 quindi lungo l'asse va appena meno di c (anche nelle onde continue: il confronto giusto è con la colonna grigia). \
                 Lungo un asse del reticolo la regola porta la luce a c esatto; in diagonale il reticolo la rallenta (debito).").small().color(GREY));
-            ui.label(RichText::new(format!("costo: {:.0} ms per tick · {} palline · {:.0} fps", o.ms_tick, lab.palline_disegnate, lab.fps)).small().color(GREY));
+            ui.label(RichText::new(format!("costo: {:.0} ms per tick · {} palline · {:.0} fps · regola sulla {}", o.ms_tick, lab.palline_disegnate, lab.fps, o.regola)).small().color(GREY));
         }
         ui.separator();
         ui.label(RichText::new("STRATI (tutti dallo stesso campo F = E + icB delle palline)").strong().color(GOLD));
@@ -420,7 +439,7 @@ fn pannello_fotone(ctx: &egui::Context, lab: &mut Lab) {
         pannello_misura(ui, lab);
         ui.label(RichText::new("DEBITI: l'ampiezza è quella di un'onda classica normalizzata (la regola è lineare: un fotone e un \
             impulso forte hanno la stessa forma; il \"clic\" di un solo fotone non c'è ancora). Il reticolo cubico rallenta un po' \
-            l'apertura di lato del fascio (fattore ka/tan ka: −21 % con 8 celle per λ, −6 % con 16, −2 % con 24) e rallenta la luce \
+            l'apertura di lato del fascio (fattore ka/tan ka: −21 % con 8 celle per λ, per questo il preset più basso ne usa 12; −6 % con 16, −2 % con 24) e rallenta la luce \
             obliqua (0,88 c in diagonale con 8 celle per λ). Lungo un asse va a c esatto.").small());
     });
     if !open { lab.panel_open = false; }

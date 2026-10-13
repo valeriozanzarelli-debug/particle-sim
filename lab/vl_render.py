@@ -352,14 +352,14 @@ def pannello_info(draw, x0, y0, w, h, iv, dzs):
     draw.text((cx + cw - 52 * s, cy2 + ch2 + 3 * s), "t = 1600", fill=(120, 120, 140), font=font(11))
     # captions
     lines = [
-        ("elettrone: 120 000 palline messe una volta sola dove |ψ|² è grande, mosse dalla corrente", (205, 208, 230)),
+        ("elettrone: 120 000 palline messe una volta sola dove |ψ|² è grande, mosse dal flusso di |ψ|²", (205, 208, 230)),
         ("oro = qui la densità cresce rispetto all'1s, blu = cala (pieno a circa ±25 % di cambio locale)", (255, 205, 120)),
         ("smussato su ~2 λ_C: tolta la trama a scacchiera del reticolo (4 valli)", (170, 175, 200)),
         ("luce: palline di energia (E²+B²)/2, colore = direzione di E; vista tagliata (fetta 0 < y < 72 λ_C)", (205, 208, 230)),
         ("luce dell'atomo (da t = 240): ogni pallina vale 1/1000 → energia ×1000", (255, 160, 200)),
         ("accoppiamento ×10 (K = 10) per vedere lo svuotamento; λ_C = 3,9·10⁻¹³ m", (170, 175, 200)),
-        ("giro attorno a z (~0,12 di Dirac): lettura smussata della corrente, NON validata;", (170, 175, 200)),
-        ("la rotazione vera dell'1s esatto tra le 4 copie del reticolo è in verifica: debito aperto", (170, 175, 200)),
+        ("in un livello puro questo reticolo non porta corrente: le palline stanno ferme", (170, 175, 200)),
+        ("(debito aperto: le copie del reticolo, da provare); si muovono solo per la luce", (170, 175, 200)),
         (f"dati: esportazione {IMPRONTA[0]} del {IMPRONTA[1]} UTC · {ETICHETTA.lower()}", (120, 125, 150)),
     ]
     y = 128 + 78 + 10 + 62 + 24

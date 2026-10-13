@@ -1,29 +1,29 @@
 {
+ "fotogrammi_valutati": 201,
  "impronta_esportazione": "12322e1817",
  "manifest_mtime_utc": "13/10/2026 01:46",
- "fotogrammi_valutati": 201,
  "E1": {
-  "corr_min": 0.9995435942531259,
-  "corr_min_fotogramma": 114,
+  "corr_min": 0.9995951316586733,
+  "corr_min_fotogramma": 21,
   "TV0": 0.022281294204847264,
-  "TV_max": 0.028363526652268628,
-  "TV_max_fotogramma": 43,
+  "TV_max": 0.028522491923721027,
+  "TV_max_fotogramma": 18,
   "PASS": true
  },
  "E2": {
-  "pearson": 0.9999904039881423,
-  "rms_lambdaC": 0.015406055510538311,
-  "ampiezza_max_palline": 1.171599597921536,
+  "pearson": 0.9999966498656618,
+  "rms_lambdaC": 0.01509079108000674,
+  "ampiezza_max_palline": 1.1693104288571325,
   "ampiezza_max_manifest": 1.165855,
   "PASS": true
  },
  "E3a": {
-  "max_diff_palline_vs_reticolo": 0.01661231896167048,
+  "max_diff_palline_vs_reticolo": 0.01344965350619809,
   "PASS": true
  },
  "E3b": {
-  "max_diff_palline_vs_manifest": 0.07095600038328592,
-  "media_diff": 0.04565900221960026,
+  "max_diff_palline_vs_manifest": 0.06779868146560722,
+  "media_diff": 0.04999218006265937,
   "PASS": false
  },
  "E6": {
@@ -48,8 +48,20 @@
   "iv": 1121,
   "nv": 1121,
   "t": 1600.0,
-  "secondi": 391.4208369255066,
-  "clipped": 329,
-  "outside": 738
+  "secondi": 256.97658920288086,
+  "clipped": 311,
+  "outside": 0
+ },
+ "luce_corsa": {
+  "kind": "luce",
+  "iv": 1121,
+  "nv": 1121,
+  "t": 1600.0,
+  "secondi": 314.13609862327576,
+  "alive": 28050,
+  "atom_balls": 28050,
+  "born": 251271,
+  "dead": 373221,
+  "q_a": 0.000125176846435076
  }
 }

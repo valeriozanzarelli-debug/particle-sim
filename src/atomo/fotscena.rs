@@ -17,15 +17,18 @@ use std::time::{Duration, Instant};
 
 use crate::fotone3d::{base_trasversa, norma, punto, Cf, Fotone3D, Lancio, Misura, Polar};
 use crate::fotdisegno::{self, Traccianti};
+use crate::gpu_fotone::{self, FotoneGpu};
 use crate::misura::{Opzioni, Rivelatore};
 use crate::render::Ball;
 use crate::rng::Rng;
 
 /// Quality: (cells per wavelength, cells per side of the box). The box is 8–12 λ wide.
 pub const QUALITA: [(f64, usize, &str); 5] = [
-    (8.0, 96, "bassa: 8 celle per λ, 96³"),
-    (12.0, 128, "media: 12 celle per λ, 128³"),
-    (16.0, 144, "medio-alta: 16 celle per λ, 144³"),
+    // floor at 12 cells per λ: below it diffraction changes (ka/tan ka, −21 % at 8), the dynamics would
+    // not just blur (docs/MOTORE_OTTIMIZZATO.md, exam EL). Low presets keep the floor and shrink the box.
+    (12.0, 96, "bassa: 12 celle per λ, 96³ (scatola 8 λ)"),
+    (16.0, 128, "media: 16 celle per λ, 128³ (scatola 8 λ)"),
+    (20.0, 160, "medio-alta: 20 celle per λ, 160³"),
     (24.0, 192, "alta: 24 celle per λ, 192³"),
     (32.0, 384, "ultra: 32 celle per λ, 384³ (per una GPU da 16 GB; qui lentissima)"),
 ];
@@ -108,6 +111,15 @@ pub struct Uscita {
     pub w: f64,
     pub theta: Option<f64>,
     pub ms_tick: f64,
+    /// total energy Σ|F|², total Poynting flux Σ E × B and the spin read from the energy balls (ħ per photon):
+    /// measured on both paths (CPU and GPU), so every preset shows the same phenomena
+    pub energia: f64,
+    pub poynting: [f64; 3],
+    pub spin_palline: Option<f64>,
+    /// where the rule runs ("gpu" or "cpu", with the reason when the GPU was refused)
+    pub regola: String,
+    /// GPU path: the energy balls as instances already on the GPU (drawn without a CPU round trip)
+    pub onde_gpu: Option<crate::istanze::IstanzeGpu>,
     pub pronto: bool,
     pub n_clic: usize,
     pub ultimo_clic: Option<[f64; 3]>,
@@ -139,11 +151,16 @@ struct Mondo {
     v_continuo: f64,
     /// the balls that ride the field (drawing only)
     tr: Traccianti,
+    /// alta/ultra: field, balls and measurements on the GPU (gpu_fotone.rs); None = CPU path
+    gpu: Option<FotoneGpu>,
+    regola: String,
+    poynting: [f64; 3],
+    spin: Option<f64>,
 }
 
 impl Mondo {
     /// A new flight; the launched field is kept in `cache` (building it costs 0.3–3 s, the next photon is the same).
-    fn new(par: Parametri, lanci: u64, cache: &mut Option<(Lancio, Vec<[Cf; 3]>)>) -> Self {
+    fn new(par: Parametri, lanci: u64, cache: &mut Option<(Lancio, Vec<[Cf; 3]>)>, riuso: Option<FotoneGpu>) -> Self {
         let n = par.n();
         let mut f = Fotone3D::new(n);
         let l = par.lancio();
@@ -155,11 +172,30 @@ impl Mondo {
         let v_continuo = Fotone3D::velocita_continuo(&l, n);
         let mut tr = Traccianti::new(&f, 1000 + lanci, PALLINE_QUAL[par.qual.min(PALLINE_QUAL.len() - 1)]);
         tr.scia_n = SCIA_QUAL[par.qual.min(SCIA_QUAL.len() - 1)];
-        Mondo { f, par, l, storia: vec![m0], e_prima: None, elicita: None, lanci, v_continuo, tr }
+        let (gpu, regola) = if gpu_fotone::vuole_gpu(par.qual) {
+            match FotoneGpu::prova(&f, &tr, &l, riuso) {
+                Ok(g) => (Some(g), "gpu".to_string()),
+                Err(e) => { eprintln!("fotone: regola sulla CPU, la GPU non va: {e}"); (None, format!("cpu (gpu: {e})")) }
+            }
+        } else { (None, "cpu".to_string()) };
+        if lanci == 1 { eprintln!("fotone: regola sulla {} ({}³, {} palline)", regola, n, tr.pos.len()); }
+        let poynting = gpu_fotone::poynting_cpu(&f);
+        Mondo { f, par, l, storia: vec![m0], e_prima: None, elicita: None, lanci, v_continuo, tr, gpu, regola, poynting, spin: None }
     }
 
     /// Advance (or go back) one tick and measure.
     fn passo(&mut self, avanti: bool) {
+        if let Some(g) = &mut self.gpu {
+            let t = if avanti { self.f.ticks + 1 } else { self.f.ticks.saturating_sub(1) };
+            let r = g.passo(&mut self.f, &mut self.tr, avanti, atteso(&self.l, t), &self.l);
+            self.storia.truncate(self.f.ticks as usize);
+            self.storia.push(r.misura);
+            self.e_prima = None;
+            if let Some(h) = r.elicita { self.elicita = Some(h); }
+            self.poynting = r.poynting;
+            self.spin = Some(r.spin);
+            return;
+        }
         let e = if avanti { Some(self.f.campo_e()) } else { None };
         if avanti { self.f.tick(); } else { self.f.indietro(); }
         let t = self.f.ticks as usize;
@@ -169,6 +205,11 @@ impl Mondo {
         self.e_prima = e.map(|e| (self.f.ticks, e));
         if let Some((_, e)) = &self.e_prima { self.elicita = Some(self.f.elicita(e, self.l.dir, self.l.lambda)); }
         self.tr.avanza(&self.f, if avanti { 1.0 } else { -1.0 }, atteso(&self.l, self.f.ticks));
+        // the same measurements as the GPU path (gpu_fotone.rs): Poynting flux and spin from the balls
+        self.poynting = gpu_fotone::poynting_cpu(&self.f);
+        let rif = atteso(&self.l, self.f.ticks);
+        let (lr, vs) = gpu_fotone::somme_palline_cpu(&self.tr.pos, &self.tr.vel, rif);
+        self.spin = Some(gpu_fotone::spin_da_somme(lr, vs, rif, m.centro, self.l.dir, self.l.lambda, self.tr.pos.len()));
     }
 
     /// Speed of the centre of energy along the flight: straight-line fit over the last (up to) 16 ticks.
@@ -245,12 +286,13 @@ pub fn avvia(par: Parametri) -> Arc<Mutex<Condiviso>> {
     let c = Arc::new(Mutex::new(Condiviso {
         comando: Comando::Avanti, ritmo: 30.0, lancia: None, vista: Vista::default(), opz: Opzioni::default(), misura: false, azzera: false, fine: false,
         out: Uscita { palline: Arc::new(vec![]), onde: Arc::new(vec![]), allunga: Arc::new(vec![]), versione: 0, ticks: 0, lanci: 0, par, centro: [0.0; 3], v: None, v_continuo: 1.0,
-                      elicita: None, w: 0.0, theta: None, ms_tick: 0.0, pronto: false, n_clic: 0, ultimo_clic: None },
+                      elicita: None, w: 0.0, theta: None, ms_tick: 0.0, energia: 0.0, poynting: [0.0; 3], spin_palline: None,
+                      regola: String::new(), onde_gpu: None, pronto: false, n_clic: 0, ultimo_clic: None },
     }));
     let cc = c.clone();
     std::thread::spawn(move || {
         let mut cache = None;
-        let mut m = Mondo::new(par, 1, &mut cache);
+        let mut m = Mondo::new(par, 1, &mut cache, None);
         let mut versione = 0u64;
         let mut ms = 0.0;
         let mut vista_prima = Vista::default();
@@ -275,17 +317,18 @@ pub fn avvia(par: Parametri) -> Arc<Mutex<Condiviso>> {
             if azzera { riv.azzera(); }
             if misura {
                 // a detector click: one point drawn with the energy density |F|² of the photon
+                if let Some(g) = &mut m.gpu { g.campo_cpu(&mut m.f); }
                 let p = fotdisegno::semina(&m.f, 1, &mut rng)[0];
                 riv.registra([p[0] as f64, p[1] as f64, p[2] as f64]);
                 cambiato = true;
                 // collapse: a photon detected is absorbed; the next one leaves
-                if opz.collassa { let l = m.lanci + 1; m = Mondo::new(m.par, l, &mut cache); }
+                if opz.collassa { let l = m.lanci + 1; m = Mondo::new(m.par, l, &mut cache, m.gpu.take()); }
             }
-            if let Some(p) = lancia { let l = m.lanci + 1; m = Mondo::new(p, l, &mut cache); cambiato = true; }
+            if let Some(p) = lancia { let l = m.lanci + 1; m = Mondo::new(p, l, &mut cache, m.gpu.take()); cambiato = true; }
             match cmd {
                 Comando::Avanti => {
                     // the photon has crossed the box: the next one (same parameters)
-                    if m.f.ticks as f64 >= 2.0 * m.l.t_fuoco { let l = m.lanci + 1; m = Mondo::new(m.par, l, &mut cache); }
+                    if m.f.ticks as f64 >= 2.0 * m.l.t_fuoco { let l = m.lanci + 1; m = Mondo::new(m.par, l, &mut cache, m.gpu.take()); }
                     else { m.passo(true); }
                     cambiato = true;
                 }
@@ -294,7 +337,10 @@ pub fn avvia(par: Parametri) -> Arc<Mutex<Condiviso>> {
             }
             if cambiato || versione == 0 {
                 let ep = m.e_prima.as_ref().filter(|(t, _)| *t == m.f.ticks).map(|(_, e)| e.as_slice());
-                let (mut p, onde, allunga) = fotdisegno::palline(&m.f, &m.l, atteso(&m.l, m.f.ticks), &m.tr, ep, vista, opz.surfisti);
+                let (mut p, onde, allunga, onde_gpu) = match &mut m.gpu {
+                    Some(g) => { let c = atteso(&m.l, m.f.ticks); g.palline(&mut m.f, &m.l, c, &m.tr, vista, opz.surfisti) }
+                    None => { let (a, b, c) = fotdisegno::palline(&m.f, &m.l, atteso(&m.l, m.f.ticks), &m.tr, ep, vista, opz.surfisti); (a, b, c, None) }
+                };
                 riv.disegna(&mut p, 0.6 * m.l.lambda, opz.mostra_clic);
                 versione += 1;
                 let tick_ms = t0.elapsed().as_secs_f64() * 1e3;
@@ -303,7 +349,8 @@ pub fn avvia(par: Parametri) -> Arc<Mutex<Condiviso>> {
                 let out = Uscita {
                     palline: Arc::new(p), onde: Arc::new(onde), allunga: Arc::new(allunga), versione, ticks: m.f.ticks, lanci: m.lanci, par: m.par, centro: ult.centro,
                     v: m.velocita(), v_continuo: m.v_continuo, elicita: m.elicita, w: m.larghezza(&ult), theta: theta_da(&m.storia, m.l.dir),
-                    ms_tick: ms, pronto: true, n_clic: riv.clic.len(), ultimo_clic: riv.ultimo(),
+                    ms_tick: ms, energia: ult.energia, poynting: m.poynting, spin_palline: m.spin, regola: m.regola.clone(), onde_gpu,
+                    pronto: true, n_clic: riv.clic.len(), ultimo_clic: riv.ultimo(),
                 };
                 cc.lock().unwrap().out = out;
             }

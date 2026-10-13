@@ -72,6 +72,8 @@ pub fn aggiorna(
     modo: Res<ModoDisegno>,
 ) {
     let lab = &mut *lab;
+    // GPU path of the photon (gpu_fotone.rs): the energy balls are already instances on the GPU
+    let onde_gpu = if lab.scena == Scena::Fotone { lab.fot.as_ref().and_then(|c| c.lock().unwrap().out.onde_gpu.clone()) } else { None };
     let r_cam = cam.r();
     let focus = cam.focus;
     let scena = lab.scena;
@@ -112,7 +114,7 @@ pub fn aggiorna(
                     let old = m3.0.id();
                     m3.0 = meshes.add(quads(if modo.istanze { &[] } else { it }));
                     meshes.remove(old);
-                    lab.palline_disegnate = it.len() + onde.len();
+                    lab.palline_disegnate = it.len() + onde.len() + onde_gpu.as_ref().map_or(0, |g| g.n as usize);
                 }
             }
             ZzStrato::Onde => {
@@ -149,6 +151,7 @@ pub fn aggiorna(
         let off = schermo([-focus[0], -focus[1], -focus[2]]).to_array();
         for (s, mut si) in qi.iter_mut() {
             si.offset = off;
+            si.gpu = if *s == ZzStratoI::Onde { onde_gpu.clone() } else { None };
             if let Some((it, onde, st)) = &items {
                 si.dati = Arc::new(match s { ZzStratoI::Palline => impacca(it, &[]), ZzStratoI::Onde => impacca(onde, st) });
             }
