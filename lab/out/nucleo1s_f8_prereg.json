@@ -1,0 +1,76 @@
+{
+ "study": "NUCLEO_1S phase 8",
+ "date": "2026-10-13",
+ "config": {
+  "pair": [
+   {
+    "Z": 1,
+    "B": 512
+   },
+   {
+    "Z": 2,
+    "B": 256
+   }
+  ],
+  "rmax_a0_over_Z": 90,
+  "J0": [
+   3,
+   4,
+   5,
+   6,
+   8,
+   12,
+   16,
+   24
+  ],
+  "states": [
+   1,
+   2,
+   3
+  ],
+  "bands": [
+   "learned",
+   "exact"
+  ],
+  "zoom_levels": 12,
+  "n_per_level": 16,
+  "ndir": 120,
+  "glue": "cusp (section 12.4), NR tau, ghosts = G",
+  "vpot": "point"
+ },
+ "dev": {
+  "exact_J0_3": [
+   0.96,
+   0.31,
+   0.21
+  ],
+  "exact_J0_5": [
+   0.4,
+   0.13,
+   0.1
+  ]
+ },
+ "exams": {
+  "H1": {
+   "what": "the project as asked: learned level, J0 = 3 (R_f = 3.5 cells = 0.44 a0/Z, 30 lambda_C at Z = 2): 1s and 2s alpha^4 shifts within 5 % of Dirac's (predicted FAIL from the control)",
+   "tol": 0.05,
+   "J0": 3
+  },
+  "H2": {
+   "what": "the learned level vs the exact band, same J0: |delta_L - delta_X| / delta_Dirac <= 5 % for 1s and 2s at every J0 of the list (the agglomerated stencil's own error does cancel between the two Z)",
+   "tol": 0.05
+  },
+  "H3": {
+   "what": "control (exact band): |error| of 1s and 2s does not grow with J0 (wiggle <= 0.01 allowed) and at J0 = 24 (R_f = 3.06 a0/Z) |error 1s| <= 0.10, |error 2s| <= 0.20",
+   "tol1": 0.1,
+   "tol2": 0.2,
+   "wiggle": 0.01
+  },
+  "H4": {
+   "what": "learned level at J0 = 24: |error 1s| <= 0.10 and |error 2s| <= 0.20",
+   "tol1": 0.1,
+   "tol2": 0.2
+  },
+  "report": "3s errors, absolute level errors, inner and outer cell counts, time (not judged)"
+ }
+}
