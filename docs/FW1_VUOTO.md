@@ -248,7 +248,7 @@ FW1 rompe T (coppie di Kramers spaccate 5·10⁻²). Che cosa si vede nel vuoto?
 | E6a controllo | congelata + proiettore: densità indotta da un A statico (q ⊥ A) | **0** (< 10⁻¹⁵) | **PASS** |
 | E6b Chern–Simons (CFJ, b·B, CPT-dispari) | parte di V–A **lineare** in q | ≤ 2·10⁻⁷ L per q a; va come q³ (non q), e cala come θ²: **nessun termine lineare** | **PASS** (zero) |
 | E6b' "chirale magnetico" (b₀) | parte antisimmetrica di K_jk lineare in q | ≤ 2·10⁻⁸ L, a θ = 0,0125 ≤ 3·10⁻¹⁰ | **PASS** (zero) |
-| E6c magneto-elettrico E·κ·B (P- e T-dispari, CPT-pari) | parte di V–A in q² | **visto**: \|κ\| fino a 4,5·10⁻⁴ L (θ = 0,05), 2,2·10⁻⁴ (0,025), **1,1·10⁻⁴ (0,0125)**: dimezza col reticolo → **O(m a)**, sparisce nel continuo | visto, innocuo per a → 0 |
+| E6c magneto-elettrico E·κ·B (P- e T-dispari, CPT-pari) | parte di V–A in q² | **visto**: \|κ\| fino a 5,2·10⁻⁴ L (θ = 0,05), 2,6·10⁻⁴ (0,025), **1,3·10⁻⁴ (0,0125)**: dimezza col reticolo → **O(m a)**, sparisce nel continuo | visto, innocuo per a → 0 |
 | E6d risposta scalare dispari | Im χ / Re χ | ≤ 1·10⁻⁹ | **PASS** |
 
 In parole: la T rotta di FW1 **non** produce un termine di Chern–Simons (la combinazione CPT resta, come per la massa
