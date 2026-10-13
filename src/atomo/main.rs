@@ -42,6 +42,8 @@ mod zzscena;
 mod tests;
 #[cfg(test)]
 mod test_battimento;
+#[cfg(test)]
+mod test_sottoreticolo;
 
 use camera::{Bersaglio, Cam, PointerOverHud};
 use fotone3d::Polar;

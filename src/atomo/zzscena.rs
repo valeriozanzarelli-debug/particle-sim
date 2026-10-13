@@ -99,7 +99,8 @@ struct Mondo {
 fn atomo(m: &Mondo) -> &Atomo { match &m.esp { Some(e) => &e.at, None => &m.at } }
 
 fn nuovo_mondo() -> Mondo {
-    let at = Atomo::new();
+    // one colour of the cube by default (docs/SOTTORETICOLO.md); ATOMO_RETICOLO=pieno for the whole cube
+    let at = Atomo::new_in(zz::colore_lab());
     let mut rng = Rng::new(2026);
     let surf = at.nascite(N_SURF, &mut rng);
     let scie = surf.iter().take(N_SCIA).map(|p| vec![*p]).collect();
@@ -263,7 +264,7 @@ pub fn avvia() -> Arc<Mutex<Condiviso>> {
         let mut riv = Rivelatore::default();
         // the coupled experiment is prepared in the background (listening to the levels of the 3-D rule, ~30 s)
         let (tx, rx) = std::sync::mpsc::channel();
-        std::thread::spawn(move || { let _ = tx.send(Esperimento::new(600)); });
+        std::thread::spawn(move || { let _ = tx.send(Esperimento::nuovo(600, zz::colore_lab())); });
         let mut riserva: Option<Esperimento> = None;
         // the clean 1s (an exact level of the 3-D rule, docs/BATTIMENTO_1S.md), taken from the coupled experiment when
         // it is ready: the atom without coupling restarts from it too (the radial start beats with period ~476)

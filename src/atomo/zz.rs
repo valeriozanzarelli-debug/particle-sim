@@ -44,6 +44,62 @@ fn nb(s: usize, j: usize, d: isize, n: usize) -> usize {
     }
 }
 
+/// ONE SUBLATTICE ("colore", docs/SOTTORETICOLO.md, docs/NUCLEO_1S.md §12.1). In one tick every amplitude moves one
+/// cell along x, one along y and one along z, so (i+j) mod 2 and (j+k) mod 2 never change: the cube is 4 lattices
+/// that never exchange anything (not even through the nucleus, the field or the mass flip, which are on-site).
+/// `Some([cx, cy])` keeps only the sites with (i+j)%2 = cx and (j+k)%2 = cy: N³/4 sites, a BCC lattice of side 2a.
+/// Storage between ticks: index s = (i·H + j/2)·H + k/2 (H = N/2); the parities of j and k follow from i and the
+/// label. Inside a tick (after the x or y shift) the amplitude sits on another colour: the label flips
+/// (x: cx; y: cx and cy; z: cy) and after x, y, z (or z, y, x) it is back.
+pub type Colore = Option<[u8; 2]>;
+pub const H: usize = N / 2;
+/// The colour of the Laboratorio (default after the exam of docs/SOTTORETICOLO.md): i ≡ j ≡ k (mod 2). It sees the
+/// nucleus along the (1,1,1) diagonal: its nearest sites are (23,23,23) and (24,24,24).
+pub const COLORE_LAB: [u8; 2] = [0, 0];
+/// Whether the Laboratorio runs one colour (true, default if the exam passed) or the whole cube. The environment
+/// variable ATOMO_RETICOLO=pieno forces the whole cube (for checking).
+pub const SOTTORETICOLO: bool = false;
+pub fn colore_lab() -> Colore {
+    if !SOTTORETICOLO || std::env::var("ATOMO_RETICOLO").map(|v| v == "pieno").unwrap_or(false) { None } else { Some(COLORE_LAB) }
+}
+pub fn n_siti(col: Colore) -> usize { if col.is_some() { N * N * N / 4 } else { N * N * N } }
+#[inline]
+pub fn colore_di(c: [usize; 3]) -> [u8; 2] { [((c[0] + c[1]) & 1) as u8, ((c[1] + c[2]) & 1) as u8] }
+#[inline]
+fn decodifica(s: usize, lab: [u8; 2]) -> [usize; 3] {
+    let i = s / (H * H);
+    let j = 2 * ((s / H) % H) + ((i + lab[0] as usize) & 1);
+    let k = 2 * (s % H) + ((j + lab[1] as usize) & 1);
+    [i, j, k]
+}
+#[inline]
+fn codifica(c: [usize; 3]) -> usize { (c[0] * H + c[1] / 2) * H + c[2] / 2 }
+/// Cell indices (i, j, k) of storage site `s` between ticks.
+#[inline]
+pub fn sito(s: usize, col: Colore) -> [usize; 3] {
+    match col { Some(l) => decodifica(s, l), None => [s / (N * N), (s / N) % N, s % N] }
+}
+/// Storage index of cell (i, j, k), if it belongs to the layout.
+#[inline]
+pub fn indice(c: [usize; 3], col: Colore) -> Option<usize> {
+    match col {
+        Some(l) => if colore_di(c) == l { Some(codifica(c)) } else { None },
+        None => Some((c[0] * N + c[1]) * N + c[2]),
+    }
+}
+#[inline]
+fn gira(l: [u8; 2], j: usize) -> [u8; 2] { match j { 0 => [l[0] ^ 1, l[1]], 1 => [l[0] ^ 1, l[1] ^ 1], _ => [l[0], l[1] ^ 1] } }
+/// A whole-cube wave restricted to one colour (compact storage), not renormalised.
+pub fn estrai_colore(full: &[[C; 4]], col: [u8; 2]) -> Vec<[C; 4]> {
+    (0..N * N * N / 4).map(|s| full[indice(decodifica(s, col), None).unwrap()]).collect()
+}
+/// A one-colour wave put back on the whole cube (zero on the other colours).
+pub fn espandi_colore(v: &[[C; 4]], col: [u8; 2]) -> Vec<[C; 4]> {
+    let mut out = vec![[C::ZERO; 4]; N * N * N];
+    for (s, p) in v.iter().enumerate() { out[indice(decodifica(s, col), None).unwrap()] = *p; }
+    out
+}
+
 /// The photon's drive: a pulse E(t) = E₀ e^{−((t−t₀)/σ)²} cos(ω (t − t₀)) along z (units mc²/(e λ_C)).
 #[derive(Clone, Copy, Debug)]
 pub struct Impulso { pub e0: f64, pub omega: f64, pub t0: f64, pub sigma: f64 }
@@ -70,6 +126,10 @@ pub struct Atomo {
     pub campo_est: [f64; 3],
     /// the 1s state the atom started in (for the population of the ground state)
     pub psi0: Vec<[C; 4]>,
+    /// None: the whole cube; Some(colour): one sublattice only (docs/SOTTORETICOLO.md)
+    pub colore: Colore,
+    /// the colour the amplitude sits on right now (changes inside a tick)
+    lab: [u8; 2],
 }
 
 pub fn x_of(i: usize) -> f64 { (i as f64 - N as f64 / 2.0 + 0.5) * A }
@@ -78,17 +138,23 @@ impl Atomo {
     /// The atom in its ground state: the 1s (m = +½) wave of the radial form of the same rule (same a,
     /// same Zα), put on the cubic lattice.
     pub fn new() -> Self { Self::con_stato(-1, 1) }
+    /// The same on one colour (`None`: the whole cube).
+    pub fn new_in(col: Colore) -> Self { Self::con_stato_in(-1, 1, col) }
 
     /// The atom started in level (κ, n) of the radial rule (κ = −1: s½; κ = +1: p½), m = +½.
-    pub fn con_stato(kappa: i32, nn: u32) -> Self {
-        let n = N;
+    pub fn con_stato(kappa: i32, nn: u32) -> Self { Self::con_stato_in(kappa, nn, None) }
+
+    /// The same, on one colour (the radial wave restricted to its sites and renormalised) or on the whole cube.
+    pub fn con_stato_in(kappa: i32, nn: u32, col: Colore) -> Self {
+        let ns = n_siti(col);
         let za = z_alpha();
         let lv = livello(kappa, nn);
-        let mut psi = vec![[C::ZERO; 4]; n * n * n];
-        let mut vc = vec![0.0; n * n * n];
-        let mut zs = vec![0.0; n * n * n];
+        let mut psi = vec![[C::ZERO; 4]; ns];
+        let mut vc = vec![0.0; ns];
+        let mut zs = vec![0.0; ns];
         psi.par_iter_mut().zip(vc.par_iter_mut()).zip(zs.par_iter_mut()).enumerate().for_each(|(s, ((p, v), z))| {
-            let x = [x_of(s / (n * n)), x_of((s / n) % n), x_of(s % n)];
+            let c = sito(s, col);
+            let x = [x_of(c[0]), x_of(c[1]), x_of(c[2])];
             let r = (x[0] * x[0] + x[1] * x[1] + x[2] * x[2]).sqrt();
             *v = -za / r;
             *z = x[2];
@@ -100,7 +166,7 @@ impl Atomo {
         psi.par_iter_mut().for_each(|p| for c in p.iter_mut() { *c = c.scale(k); });
         let psi0 = psi.clone();
         let pc = vc.iter().map(|v| C::expi(-v * A)).collect();
-        Atomo { tmp: vec![[C::ZERO; 4]; n * n * n], psi, pc, zs, ticks: 0, impulsi: vec![], campo_est: [0.0; 3], psi0 }
+        Atomo { tmp: vec![[C::ZERO; 4]; ns], psi, pc, zs, ticks: 0, impulsi: vec![], campo_est: [0.0; 3], psi0, colore: col, lab: col.unwrap_or([0, 0]) }
     }
 
     pub fn t(&self) -> f64 { self.ticks as f64 * A }
@@ -116,17 +182,33 @@ impl Atomo {
             t[3] = d[0].conj() * p[2] + d[1].conj() * p[3];
         });
         let tmp = &self.tmp;
-        self.psi.par_iter_mut().enumerate().for_each(|(s, p)| {
-            // forward (verso = +1): L u₊ moves −1, L u₋ +1, R u₊ +1, R u₋ −1; backward: the opposite
-            let lp = tmp[nb(s, j, verso, n)][0];
-            let lm = tmp[nb(s, j, -verso, n)][1];
-            let rp = tmp[nb(s, j, -verso, n)][2];
-            let rm = tmp[nb(s, j, verso, n)][3];
+        let mossa = |p: &mut [C; 4], lp: C, lm: C, rp: C, rm: C| {
             p[0] = u[0] * lp + d[0] * lm;
             p[1] = u[1] * lp + d[1] * lm;
             p[2] = u[0] * rp + d[0] * rm;
             p[3] = u[1] * rp + d[1] * rm;
-        });
+        };
+        match self.colore {
+            None => self.psi.par_iter_mut().enumerate().for_each(|(s, p)| {
+                // forward (verso = +1): L u₊ moves −1, L u₋ +1, R u₊ +1, R u₋ −1; backward: the opposite
+                let lp = tmp[nb(s, j, verso, n)][0];
+                let lm = tmp[nb(s, j, -verso, n)][1];
+                let rp = tmp[nb(s, j, -verso, n)][2];
+                let rm = tmp[nb(s, j, verso, n)][3];
+                mossa(p, lp, lm, rp, rm);
+            }),
+            Some(_) => {
+                // one colour: the target sites carry the flipped label, the sources (one cell away along j) the old one
+                let nuova = gira(self.lab, j);
+                self.psi.par_iter_mut().enumerate().for_each(|(s, p)| {
+                    let c = decodifica(s, nuova);
+                    let src = |dd: isize| { let mut q = c; q[j] = wrap(q[j], dd, n); codifica(q) };
+                    let (a, b) = (src(verso), src(-verso));
+                    mossa(p, tmp[a][0], tmp[b][1], tmp[b][2], tmp[a][3]);
+                });
+                self.lab = nuova;
+            }
+        }
     }
 
     fn ruota(&mut self, t: f64, verso: f64) {
@@ -141,9 +223,12 @@ impl Atomo {
         let trasverso = ce[0] != 0.0 || ce[1] != 0.0;
         let pc = &self.pc;
         let mi = C::new(0.0, -verso * st);
+        let col = self.colore;
+        debug_assert!(col.map(|c| c == self.lab).unwrap_or(true));
         self.psi.par_iter_mut().enumerate().for_each(|(s, p)| {
             let c0 = if verso > 0.0 { pc[s] } else { pc[s].conj() };
-            let ph = if trasverso { c0 * pz[s % N] * px[s / (N * N)] * py[(s / N) % N] } else { c0 * pz[s % N] };
+            let q = sito(s, col);
+            let ph = if trasverso { c0 * pz[q[2]] * px[q[0]] * py[q[1]] } else { c0 * pz[q[2]] };
             for q in 0..2 {
                 let (l, r) = (p[q], p[2 + q]);
                 if verso > 0.0 {
@@ -185,14 +270,23 @@ impl Atomo {
         let (i0, j0, k0) = (fx.floor() as usize % n, fy.floor() as usize % n, fz.floor() as usize % n);
         let (tx, ty, tz) = (fx - fx.floor(), fy - fy.floor(), fz - fz.floor());
         let mut out = [C::ZERO; 4];
+        let mut wtot = 0.0;
+        let mut usati = 0;
+        let mut media = [C::ZERO; 4];
         for (di, wx) in [(0usize, 1.0 - tx), (1, tx)] {
             for (dj, wy) in [(0usize, 1.0 - ty), (1, ty)] {
                 for (dk, wz) in [(0usize, 1.0 - tz), (1, tz)] {
-                    let s = (((i0 + di) % n) * n + (j0 + dj) % n) * n + (k0 + dk) % n;
+                    // one colour: only 2 of the 8 corners (opposite ones) are sites; their weights are renormalised
+                    let Some(s) = indice([(i0 + di) % n, (j0 + dj) % n, (k0 + dk) % n], self.colore) else { continue };
                     let w = wx * wy * wz;
-                    for q in 0..4 { out[q] += self.psi[s][q] * w; }
+                    wtot += w;
+                    usati += 1;
+                    for q in 0..4 { out[q] += self.psi[s][q] * w; media[q] += self.psi[s][q]; }
                 }
             }
+        }
+        if self.colore.is_some() {
+            if wtot > 1e-9 { for c in out.iter_mut() { *c = c.scale(1.0 / wtot); } } else { for (o, m) in out.iter_mut().zip(media) { *o = m.scale(1.0 / usati as f64); } }
         }
         out
     }
@@ -207,8 +301,10 @@ impl Atomo {
         let sig = 2.0 * A;
         let lato = n as f64 * A;
         let wrap = |d: f64| d - lato * (d / lato).round();
+        let col = self.colore;
         self.psi.par_iter_mut().enumerate().for_each(|(s, q)| {
-            let x = [x_of(s / (n * n)), x_of((s / n) % n), x_of(s % n)];
+            let i = sito(s, col);
+            let x = [x_of(i[0]), x_of(i[1]), x_of(i[2])];
             let d2: f64 = (0..3).map(|c| wrap(x[c] - p[c]).powi(2)).sum();
             let g = (-d2 / (2.0 * sig * sig)).exp();
             for c in 0..4 { q[c] = chi[c].scale(g); }
@@ -277,6 +373,7 @@ impl Atomo {
 
     /// Replace the wave (e.g. by the listened 1s); the start state follows.
     pub fn imposta(&mut self, psi: Vec<[C; 4]>) {
+        assert_eq!(psi.len(), self.psi.len(), "wave and atom on different lattices (whole cube / one colour)");
         self.psi = psi;
         self.psi0 = self.psi.clone();
         self.ticks = 0;
@@ -284,10 +381,11 @@ impl Atomo {
 
     /// ⟨r⟩ (λ_C): the position of the electron, all three components.
     pub fn posizione(&self) -> [f64; 3] {
-        let n = N;
+        let col = self.colore;
         self.psi.par_iter().enumerate().map(|(s, p)| {
             let w: f64 = p.iter().map(|c| c.norm2()).sum();
-            [w * x_of(s / (n * n)), w * x_of((s / n) % n), w * x_of(s % n)]
+            let c = sito(s, col);
+            [w * x_of(c[0]), w * x_of(c[1]), w * x_of(c[2])]
         }).reduce(|| [0.0; 3], |a, b| [a[0] + b[0], a[1] + b[1], a[2] + b[2]])
     }
 
@@ -313,10 +411,22 @@ impl Atomo {
         let mut s = 0.0;
         for x in &w { s += x; cdf.push(s); }
         let n = N;
+        let col = self.colore;
         (0..k).map(|_| {
             let u = rng.uni() * s;
             let i = cdf.partition_point(|&c| c < u).min(w.len() - 1);
-            [x_of(i / (n * n)) + A * (rng.uni() - 0.5), x_of((i / n) % n) + A * (rng.uni() - 0.5), x_of(i % n) + A * (rng.uni() - 0.5)]
+            match col {
+                None => [x_of(i / (n * n)) + A * (rng.uni() - 0.5), x_of((i / n) % n) + A * (rng.uni() - 0.5), x_of(i % n) + A * (rng.uni() - 0.5)],
+                Some(_) => {
+                    // one colour: a site stands for 4 cells, its Wigner–Seitz cell of the BCC lattice
+                    // (|δx|, |δy|, |δz| ≤ a and |δx| + |δy| + |δz| ≤ 3a/2), sampled uniformly by rejection
+                    let c = sito(i, col);
+                    loop {
+                        let d = [A * (2.0 * rng.uni() - 1.0), A * (2.0 * rng.uni() - 1.0), A * (2.0 * rng.uni() - 1.0)];
+                        if d[0].abs() + d[1].abs() + d[2].abs() <= 1.5 * A { break [x_of(c[0]) + d[0], x_of(c[1]) + d[1], x_of(c[2]) + d[2]]; }
+                    }
+                }
+            }
         }).collect()
     }
 
@@ -519,11 +629,11 @@ fn ritz(start: &Atomo, lo: f64, hi: f64, dw: f64, ticks: usize) -> Vec<Livello3D
 
 
 /// Weight of a wave inside r < `r` (λ_C) from the nucleus.
-pub fn peso_interno(v: &[[C; 4]], r: f64) -> f64 {
-    let n = N;
+pub fn peso_interno(v: &[[C; 4]], r: f64, col: Colore) -> f64 {
     let (mut w1, mut tot) = (0.0, 0.0);
     for (s, p) in v.iter().enumerate() {
-        let x = [x_of(s / (n * n)), x_of((s / n) % n), x_of(s % n)];
+        let c = sito(s, col);
+        let x = [x_of(c[0]), x_of(c[1]), x_of(c[2])];
         let w: f64 = p.iter().map(|c| c.norm2()).sum();
         tot += w;
         if x[0] * x[0] + x[1] * x[1] + x[2] * x[2] < r * r { w1 += w; }
@@ -544,7 +654,7 @@ impl Atomo {
         let lv = self.livelli_esatti(0.82, 0.94, 0.005, ticks);
         let mut sel: Vec<Livello3D> = lv.into_iter().filter(|l| l.resid < 1e-6 && sovrapp(&l.v, &self.psi).norm2() > 0.01).collect();
         sel.sort_by(|a, b| a.omega.total_cmp(&b.omega));
-        let k = (0..sel.len()).min_by(|&i, &j| peso_interno(&sel[i].v, 1.0).total_cmp(&peso_interno(&sel[j].v, 1.0))).expect("no exact level near the 1s");
+        let k = (0..sel.len()).min_by(|&i, &j| peso_interno(&sel[i].v, 1.0, self.colore).total_cmp(&peso_interno(&sel[j].v, 1.0, self.colore))).expect("no exact level near the 1s");
         let s = sel.remove(k);
         (s, sel)
     }

@@ -1,0 +1,26 @@
+{
+ "study": "SOTTORETICOLO: the Laboratorio's live 3-D zig-zag atom on ONE colour (sublattice) of the cube",
+ "date": "2026-10-13",
+ "rule": "src/atomo/zz.rs Atomo, UNCHANGED physics; new storage option colore = Some([cx, cy]): only sites with (i+j)%2 = cx, (j+k)%2 = cy (N^3/4 = 27648 of 110592), label flipped inside the tick (x: cx; y: cx, cy; z: cy)",
+ "inputs": "none new (m_e, alpha, Z = 60 as before)",
+ "lab_colour": [0, 0],
+ "development_seen_before_this_file": {
+  "fast_test_sottoreticolo_equivalente": "radial 1s on one colour, 24 ticks with pulse and transverse field, all 4 colours: |dpsi|^2 = 0 exactly, off-colour weight 0, back-in-time exact; whole cube = sum of 4 colours evolved separately to 9e-31",
+  "colour_weights": "radial 1s and radial 2p1/2 (Atomo::new / con_stato(1,2)): 0.25 on each of the 4 colours (all populated). Clean 1s (uno_s_esatto, whole cube): 0.249986 / 0.249986 / 0.250014 / 0.250014",
+  "omega_1s": "uno_s_esatto whole cube 0.89960359 (35.9 s) = one colour 0.89960359 (11.2 s); each colour's share of the whole-cube 1s: omega 0.8996035891, |lambda| = 1 to 1e-12",
+  "colour_pairs": "prescribed z pulse (e0 0.010, omega_21, sigma 30), 800 ticks, each colour's share of the whole-cube 1s renormalised: colours {00,01} identical (1e-15), {10,11} identical; between pairs dipole differs by 3.8e-11 but p_exc by 1.07e-3 (absolute)",
+  "timing": "Atomo::avanti at RAYON_NUM_THREADS=2 (loaded 4-core cloud): whole 10.84 ms, one colour 2.63 ms (x4.12). Light box tick 90.6 ms = 11.3 ms per atom tick (unchanged by this option): expected coupled step x1.7 only"
+ },
+ "exams": {
+  "E1_exact": "Coupled experiment (light box + atom, Esperimento::passo, pulse spara(omega_21, E0_ACC = 0.004) at tick 0), started from the SAME one-colour clean 1s, run (a) on one colour, (b) on the whole cube with that wave embedded (zero on the other colours). 3200 atom ticks (400 light ticks). PASS if every series agrees to <= 1e-12 relative (max |a-b| / max |b|): p_exc (per light tick), p2p (per light tick), dipole <z> (per tick), <r> x,y (per light tick), probe E_z (per light tick), light energy box+sponge (per light tick); and norm at the end |1 - norm| agrees to 1e-12; and omega_1s by the two-tick Rayleigh quotient agrees to 1e-12; and the whole-cube run keeps weight <= 1e-30 off the colour.",
+  "E2_lab": "The Laboratorio as it was (Esperimento::nuovo(600, None), whole cube) against the one-colour Laboratorio (Esperimento::nuovo(600, Some([0,0]))), each prepared on its own and each with spara(its own omega_21, E0_ACC) at tick 0, 3200 ticks. PASS if |d omega_1s| <= 1e-8, |d omega_21| / omega_21 <= 1e-5, dipole, probe E_z and light energy series agree to <= 1e-6 relative (max |a-b| / max |b|), and p_exc agrees to <= 5e-3 ABSOLUTE (the whole-cube 1s mixes two colour pairs whose overlaps with the start differ by ~1e-3 in development: declared, the only expected difference).",
+  "D1_density": "Site-level <r> and <r^2> of the clean 1s, one colour vs whole cube: relative difference <= 5e-3.",
+  "D2_balls": "Born balls (nascite, 400000): one colour jitters inside the Wigner-Seitz cell of its BCC lattice (|dx|,|dy|,|dz| <= a, |dx|+|dy|+|dz| <= 3a/2, <d^2> = 19/32 a^2), whole cube inside the cell (<d^2> = a^2/4). PASS if for both layouts <r^2>_balls - <d^2>_kernel equals the site-level <r^2> within 5 standard errors, and <r>_balls(one colour) / <r>_balls(whole) - 1 <= 1 %.",
+  "S1_rule": "Atomo::avanti, RAYON_NUM_THREADS = 2, interleaved blocks (5 x 20 ticks each): speed-up >= 3.",
+  "S2_coupled": "Esperimento::passo (atom + light box every 8 ticks), timed over the E1 runs: speed-up >= 1.5 (expected ~1.7: the light box is not touched).",
+  "S3_prepare": "Esperimento::nuovo(600, .) wall time: speed-up >= 2.5.",
+  "M1_memory": "Atom state memory (psi, tmp, psi0, Coulomb phases, z, phi1s, phi2p) ratio whole / one colour = 4 (exact by construction; reported in MB, also the filter-diagonalisation buffers)."
+ },
+ "default": "colore_lab() = Some([0,0]) in the Laboratorio only if E1, D1, S1 PASS (E2's p_exc difference is declared, not a blocker if within threshold); ATOMO_RETICOLO=pieno forces the whole cube",
+ "command": "RAYON_NUM_THREADS=2 SOTTO_DIR=lab/out cargo test --bin atomo sottoreticolo_esame -- --ignored --nocapture --test-threads 1"
+}

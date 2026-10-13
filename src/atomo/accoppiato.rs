@@ -184,15 +184,19 @@ pub struct Esperimento {
 impl Esperimento {
     /// Prepare: the start atom, then its clean 1s found by filter diagonalisation over 2 × `ascolto` ticks
     /// (docs/BATTIMENTO_1S.md), the 2p½ listened, the light box empty.
-    pub fn new(ascolto: usize) -> Self {
-        let mut at = crate::zz::Atomo::new();
+    pub fn new(ascolto: usize) -> Self { Self::nuovo(ascolto, None) }
+
+    /// The same on one colour of the cube (`Some`, docs/SOTTORETICOLO.md: 4 times less work, the colours never
+    /// exchange amplitude) or on the whole cube (`None`).
+    pub fn nuovo(ascolto: usize, col: crate::zz::Colore) -> Self {
+        let mut at = crate::zz::Atomo::new_in(col);
         // the 1s of the 3-D rule: one EXACT level of the 1s multiplet (the 4 valleys of the cubic walk mixed by the
         // nucleus), the one least touched by the first cells. Before (ascolta 0.885–0.915, short window, every
         // tick) the "1s" was a mixture of three levels and p_exc beat with period ~476 even without light.
         let (s1, _) = at.uno_s_esatto(2 * ascolto);
         let (phi, om) = (s1.v, s1.omega);
         // the 2p½: the radial 2p½ put on the lattice is already (almost) one level; listened briefly
-        let a2 = crate::zz::Atomo::con_stato(1, 2);
+        let a2 = crate::zz::Atomo::con_stato_in(1, 2, col);
         let (phi2, om2) = a2.ascolta(0.96, 0.99, ascolto / 3);
         at.imposta(phi.clone());
         Esperimento { at, luce: LuceAtomo::new(), phi1s: phi, omega1s: om, phi2p: phi2, omega2p: om2, serie_p: vec![], serie_d: vec![], serie_j: vec![],
