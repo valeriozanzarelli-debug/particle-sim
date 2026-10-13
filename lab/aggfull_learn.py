@@ -22,8 +22,8 @@ import agg_zz_core as azc
 
 DEV = os.environ.get("AGGFULL_DEV") == "1"
 PRE = json.load(open(os.path.join(ac.OUT, "aggfull_prereg.json"))) if not DEV else None
-EPS_ABS = PRE["learn"]["eps_abs"] if PRE else 1e-4
-EPS_REL = PRE["learn"]["eps_rel"] if PRE else 2e-2
+EPS_ABS = PRE["engine"]["coupling_check"]["eps_abs"] if PRE else 1e-4
+EPS_REL = PRE["engine"]["coupling_check"]["eps_rel_kdep"] if PRE else 2e-2
 NPAIR = 3000
 TAG = "dev_aggfull_learn" if DEV else "aggfull_learn"
 t_start = time.time()

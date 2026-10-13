@@ -1,0 +1,18 @@
+{
+ "written": "2026-10-13T02:49:21",
+ "git_head": "3402bbcb880cbf7145ce78fe8134a7a8fe304962",
+ "why": "with the uniform weight 1e-3 of amendment 1 the re-learned B = 256 kinetic agrees with the fine walk on the 1s (a0/16) momenta (<T - k^2/2m> -7.44e-4 eV vs fine -7.65e-4, 3 %) and B = 512 on the 2s (-1.02e-4 vs -1.26e-4), but B = 512 on the 1s (a0/8) has the WRONG SIGN (+3.5e-3 eV vs fine -1.0e-3): the 1s at a0/8 lives up to the edge of the cell's zone, where 1e-3 of uniform weight still pulls the fit (aggfull_posthoc_kin.json).",
+ "rule": "the uniform weight of each level is chosen by the LEARNER against its teacher (the fine walk), never against Dirac: the largest of 1e-3, 3e-4, 1e-4, 3e-5 whose state-distributed <T - k^2/2m_kin> agrees with the fine walk within 5 % (same samples), with the usual check passing (packets, energy, bz_rel90, no negative motion energy).",
+ "dev_scan_B512": {
+  "1e-3": "+9.2e-4 eV vs fine -1.29e-3 (30000 samples): rejected",
+  "3e-4": "-1.316e-3 (2.3 %): chosen",
+  "1e-4": "-1.46e-3 (13 %)",
+  "3e-5": "-1.320e-3 (2.6 %)"
+ },
+ "choice": {
+  "B=256": 0.001,
+  "B=512": 0.0003
+ },
+ "exams": "unchanged: F3K, E1K, E2K, R2K of aggfull_amend.json with the same thresholds",
+ "knobs": "one more hyper-parameter (the uniform weight) per level, chosen by a fixed rule; counted in the document"
+}

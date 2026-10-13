@@ -11,7 +11,10 @@ import aggfull_atom as aa
 DEV = aa.DEV
 OUT = ac.OUT
 PFX = "dev_" if DEV else ""
-JS = os.path.join(OUT, PFX + "aggfull_atom.json")
+# amendment runs (aggfull_amend.json, aggfull_amend2.json): jobs whose name has "K" in second place use the re-learned
+# kinetic (aggfull_relearn.pkl); they write to their own file aggfull_atomK.json
+KMODE = len(sys.argv) > 1 and all(len(a) > 1 and a[1] == "K" for a in sys.argv[1:])
+JS = os.path.join(OUT, PFX + ("aggfull_atomK.json" if KMODE else "aggfull_atom.json"))
 res = json.load(open(JS)) if os.path.exists(JS) else {}
 TH = ac.TH_A
 ALPHA = ac.zz.ALPHA
@@ -38,10 +41,17 @@ if DEV:      # development: same jobs on small grids (pipeline test only)
     DN = int(os.environ.get("AGGFULL_DEVN", "96"))
     JOBS = {k: (v[0], min(v[1], DN)) + v[2:] for k, v in JOBS.items()}
 PERT = {"q16_1s": "e16_1s", "q8_1s": "e8_1s", "q8_2s": "e8_2s", "q8_2p": "e8_2p"}
+for _j in ("e16_1s", "p16_1s", "e8_1s", "e8_2s", "e8_2p", "p8_1s", "p8_2s", "p8_2p"):
+    _v = JOBS[_j]
+    JOBS[_j[0] + "K" + _j[1:]] = _v[:4] + ((_v[4][0] + "K" + _v[4][1:]) if _v[4] else None,) + _v[5:]
+for _q, _s in list(PERT.items()):
+    PERT[_q[0] + "K" + _q[1:]] = _s[0] + "K" + _s[1:]
 MOVE = {"m8_1s": (512, 128)}
 
 
 def level(B):
+    if KMODE:
+        return [l for l in pickle.load(open(os.path.join(OUT, "aggfull_relearn.pkl"), "rb")) if l["B"] == B][0]
     return [l for l in ac.load_chain_A() if l["B"] == B][0]
 
 
@@ -123,18 +133,20 @@ def run_job(job):
             print(f"{job}: needs {dep} first", flush=True)
             return
         Y = np.load(vecfile(dep))[:, None]
-    x0 = np.load(vecfile(job)) if os.path.exists(vecfile(job)) else aa.guess(f.x, kind)
+    warm = vecfile(job.replace("K", "", 1)) if KMODE else None      # K jobs start from the converged original vector
+    x0 = (np.load(vecfile(job)) if os.path.exists(vecfile(job)) else
+          np.load(warm) if warm and os.path.exists(warm) else aa.guess(f.x, kind))
     budget = 560 - (time.time() - t0)
     it_total = res.get(job, {}).get("iterations", 0)
     conv = False
-    while time.time() - t0 < budget - 60:
-        v, lres, it = aa.solve(at, x0, Y=Y, maxiter=15)
+    while time.time() - t0 < budget - 150:
+        v, lres, it = aa.solve(at, x0, Y=Y, maxiter=5)
         x0 = v
         it_total += it
         E, r = at.energy(v)
         np.save(vecfile(job), v)
         print(f"  {job}: it {it_total}: E = {E * ac.MC2:.8f} eV, residual {r:.2e} ({time.time() - t0:.0f} s)", flush=True)
-        if r < 2e-9:
+        if r < 2e-8:      # (was 2e-9; float32 field: residual floor ~1e-8, energy error ~r^2/gap < 1e-12 eV)
             conv = True
             break
     n = 1 if kind == "1s" else 2
