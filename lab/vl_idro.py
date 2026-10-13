@@ -442,6 +442,8 @@ class Rend:
             ps = LO["periodo_s"]
             slow = 1.0 / (24.0 / VPP * ps)
             ex = int(np.floor(np.log10(slow)))
+            if slow / 10 ** ex >= 9.5:
+                ex += 1
             sup = str(ex).translate(str.maketrans("0123456789", "⁰¹²³⁴⁵⁶⁷⁸⁹"))
             lines = [(f"1s + 2p_z insieme: la nuvola oscilla su e giù · un periodo di Lyman-α = {ps * 1e15:.2f} fs (riga a 122 nm)", (255, 214, 140)),
                      (f"t = {t / T:.2f} periodi   ·   <z> = {zt:+.2f} a0 (dal calcolo)   ·   rallentato {slow / 10 ** ex:.0f}·10{sup} volte", (230, 232, 245)),
