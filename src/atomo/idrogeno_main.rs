@@ -41,6 +41,30 @@ fn main() {
         "esame_ibrido" => esame_ibrido(args[2].parse().unwrap(), args[3].parse().unwrap(), args[4].parse().unwrap(), args[5].parse().unwrap(), args.get(6).cloned()),
         "esame_risonanza" => esame_risonanza(args[2].parse().unwrap(), args[3].parse().unwrap(), &args[4], args[5].parse().unwrap(),
                                              args[6].parse().unwrap(), args[7].parse().unwrap(), args.get(8).cloned()),
+        "dispersione" => {
+            // learned coarse G(k) against the fine walk (b ticks per coarse step, derived angle) and against relativity
+            let reg = carica_regola(&asset(), "chain_A_3d", 256);
+            let n = 64; let lv = Livello::con_nucleo(&reg, n, 0.0, 0.0);
+            for b in [32usize, 16] {
+                let a = lv.h / b as f64; let ang = angolo_fine(&lv, a);
+                let w = |kc: [f64; 3]| { let m = bloch_due_tick([kc[0] / b as f64, kc[1] / b as f64, kc[2] / b as f64], ang);
+                    let tr = m[0][0] + m[1][1] + m[2][2] + m[3][3]; (tr.re / 4.0).acos() };
+                for (mm, dir) in [(2usize, 0usize), (4, 0), (8, 0), (16, 0), (4, 3), (8, 3)] {
+                    let k = 2.0 * std::f64::consts::PI * mm as f64 / n as f64;
+                    let (kv, s) = if dir == 0 { ([k, 0.0, 0.0], lv.idx(mm, 0, 0)) } else { ([k, k, k], lv.idx(mm, mm, mm)) };
+                    let k2 = kv[0] * kv[0] + kv[1] * kv[1] + kv[2] * kv[2];
+                    let gw = b as f64 / 2.0 * (w(kv) - w([0.0; 3]));
+                    let kp2 = k2 / (lv.h * lv.h);
+                    let rel = lv.tau * ((1.0 + kp2).sqrt() - 1.0);
+                    println!("b={b} k_cell={:.3} {}: G_rule/rel {:.6}  walk/rel {:.6}  rule/walk-1 {:+.3e}", k2.sqrt(), if dir == 0 { "asse" } else { "diag" },
+                             lv.gk[s] / rel, gw / rel, lv.gk[s] / gw - 1.0);
+                }
+            }
+        }
+        "parita" => { let (b, n): (usize, usize) = (args[2].parse().unwrap(), args[3].parse().unwrap());
+                      let reg = carica_regola(&asset(), "chain_A_3d", b); let lv = Livello::con_nucleo(&reg, n, 1.0, 0.0);
+                      for st in ["1s", "2pz", "2px", "2py", "2s"] { let v = carica_stato(&format!("{}/{st}_B{b}_N{n}.c32", args[4]));
+                          println!("RISULTATO parita {st}: 1 - |P| = {:.3e}", 1.0 - parita(&lv, &v).abs()); } }
         "spettro" => esame_spettro(args[2].parse().unwrap(), args[3].parse().unwrap(), args[4].parse().unwrap(), args.get(5).cloned()),
         _ => eprintln!("commands: fft | livello B N 1s|2s|2p"),
     }

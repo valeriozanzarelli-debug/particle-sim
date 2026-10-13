@@ -36,7 +36,9 @@ DT = 8.0           # time between frames, lambda_C/c
 R0 = 40.0          # sphere where the atom's light balls are born (lambda_C)
 T_ON = 240.0       # from here on the pulse has left the sphere R0 (flux through R0 measured, see json)
 RES_FRAMES = (60, 201)
-FLUSSO = os.environ.get("VL_FLUSSO", "continuita")   # amendment 1 (lab/out/vl_amend1.json); "corrente" = first version
+FLUSSO = os.environ.get("VL_FLUSSO", "auto")   # amendment 1 (lab/out/vl_amend1.json): "continuita" | "corrente" | "auto"
+# auto: use the exported current (minimally corrected) only if it is already almost a flux, i.e. the correction
+# needed to obey continuity is <= 25 % of it on test intervals; otherwise continuity only (no fake rotation)
 
 
 def kgrid(n, h):
@@ -139,6 +141,24 @@ def elettrone(d, info):
     Fy = np.zeros((nf - 1, n, n + 1, n), np.float32)
     Fz = np.zeros((nf - 1, n, n, n + 1), np.float32)
     chi = np.zeros((n, n, n))
+    global FLUSSO
+    if FLUSSO == "auto":
+        test = []
+        for k in (1, nf // 2):
+            jm = 0.5 * (js[k].astype(np.float64) + js[k + 1])
+            rm = 0.5 * (rho_s[k].astype(np.float64) + rho_s[k + 1])
+            drdt = (rho_s[k + 1].astype(np.float64) - rho_s[k]) / DT
+            jf = [_faces(jm[a], a) for a in range(3)]
+            rf = [np.maximum(_faces(rm, a), 1e-7 * rm.max()) for a in range(3)]
+            for a in range(3):
+                sl = [slice(None)] * 3; sl[a] = 0; rf[a][tuple(sl)] = 0; sl[a] = -1; rf[a][tuple(sl)] = 0
+            c_, _, _ = _cg(rf, _div(jf) + drdt, np.zeros((n, n, n)))
+            g = _grad_faces(c_)
+            test.append(float(np.sqrt(sum(((rf[a] * g[a]) ** 2).sum() for a in range(3)) / max(sum((jf[a] ** 2).sum() for a in range(3)), 1e-300))))
+        FLUSSO = "corrente" if max(test) <= 0.25 else "continuita"
+        info["scelta_flusso_auto"] = {"correzione_relativa_sui_test": test, "scelta": FLUSSO}
+    with open(os.path.join(SCR, "flusso.txt"), "w") as fh:
+        fh.write(FLUSSO)
     miss, corr_share, its, resid = [], [], [], []
     for k in range(nf - 1):
         jm = 0.5 * (js[k].astype(np.float64) + js[k + 1])

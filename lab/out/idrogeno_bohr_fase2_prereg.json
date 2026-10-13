@@ -57,5 +57,31 @@
       "criterio": "lo stesso: |E5-E3| e |E7-E5| < 1e-4 relativo; in più stabilità della lettura |E[24,72] - E[48,72]| < 1e-4 per ogni blocco (se no, la lettura non basta e lo si dichiara)",
       "nota": "diagnostica dichiarata dopo il FAIL; il FAIL di R2 resta"
     }
+  },
+  "risultati_prima_dell_emendamento_2": {
+    "R1": "PASS (pacchetto fermo 4e-16/passo; ibrido 1s 1.9e-16/passo, E1 -0.0666 %; attraversa fedeltà 1.00000000, riflesso 2.9e-10, ΔQ 5e-15; pozzo liscio -6.5e-5)",
+    "R2": "FAIL (24 passi: -0.0604/-0.0297/-0.0160/-0.0368 %)",
+    "R2bis": "FAIL (72 passi, lettura stabile a 1e-5: -0.0614/-0.0280/-0.0158/-0.0381 % per blocchi 3/5/7/9; non monotona)",
+    "R3a": "regola simmetrica O_h: parità esatta, tripletto 4e-13, 2p +0.0387 %, 2s -0.139 %, 1s(a0/8) -0.352 % — superata dall'emendamento 2 su richiesta del coordinatore"
+  },
+  "emendamento_2": {
+    "scritto": "prima delle corse R4; su richiesta del coordinatore: si abbandona la simmetrizzazione fatta in casa e si adotta il learner T di docs/AGGLOMERATO_COMPLETO.md §11 (lab/aggfull_l1.py: Taylor di massa e k^4 fissati al cammino fine in 13 direzioni, parità esatta), applicato ai livelli dell'idrogeno (B = 256 e 512, direttamente dal cammino fine, w = 4, seme 1): lab/idro_regola_T.py → assets/atomo/agglomerato_zz_T_v1.json (nuovo, versionato). Sviluppo (prima del commit): massa assoluta 1.000373 = quella del cammino fine (θ²/3 a θ = a0/4096: il +0.037 % NON sparisce, il learner fissa la massa al maestro, non a Dirac); k^4 entro 6e-4 del fine; banda contro fine a k = 0.8/cella lungo l'asse -3.8e-3 (B=256): è l'errore ad alto k ancora aperto in AGGLOMERATO_COMPLETO (FAIL dichiarato là), resta FAIL dichiarato qui.",
+    "R4a": {
+      "corsa": "IDRO_ASSET=assets/atomo/agglomerato_zz_T_v1.json spettro 512 288 0",
+      "soglie": "1 - |P| <= 1e-8 per 1s, 2p×3, 2s (controllo s-p); tripletto 2p <= 1e-7; 2p entro 0.06 % di Dirac × mu (atteso ≈ +0.037 %, la massa del cammino fine); 2s entro 0.25 %; 1s a a0/8 riportato"
+    },
+    "R4b": {
+      "corse": "IDRO_ASSET=T IDRO_REFLUX=1 IDRO_ORD=9 IDRO_B=16 esame_ibrido 256 256 {3,5,7,9} 48, energia dalla finestra [24,48]",
+      "criterio": "|E5-E3| e |E7-E5| < 1e-4 relativo (come R2); 1s grosso solo a0/16 riportato"
+    },
+    "R4c": {
+      "corsa": "esame_ibrido col blocco migliore di R4b + export zoom; esame_risonanza 512 288 con gli stati R4a + export lontano",
+      "soglie": "E1 <= 0.10 %; corrente spuria max|j| <= 1e-6 alpha c/a0^3; E4 coerenza <= 1e-4 e contro Dirac × mu <= 0.6 %"
+    },
+    "debito_aperto": "errore ad alto k della regola imparata (k ~ 0.8/cella, ~4e-3): FAIL dichiarato finché AGGLOMERATO_COMPLETO non lo chiude"
+  },
+  "emendamento_3": {
+    "scritto": "dopo R4b (regola T: blocchi 3/5/7/9 → -0.0675/-0.0489/-0.0212/-0.0380 %, FAIL; lo stesso salto a 9 della regola vecchia, quindi non viene dalla regola). Diagnostica dichiarata: blocchi 11 e 13 (a0/256, regola T, reflux, 48 passi, finestra [24,48]).",
+    "criterio": "descrittivo; in più 'convergenza a blocco grande' PASS se |E13-E11|/|E| < 1e-4. Il FAIL di R4b resta."
   }
 }

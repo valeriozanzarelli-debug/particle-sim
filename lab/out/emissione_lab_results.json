@@ -366,6 +366,178 @@
    "t_picco": 224.0,
    "p_exc_fine": 0.01416,
    "secondi": 512
+  },
+  "imparato_d_centrato+trasverso": {
+   "accoppiamento": "centrato+trasverso",
+   "omega": 0.079364,
+   "d32": [
+    0.0,
+    0.0,
+    0.97808
+   ],
+   "W2": 0.66824,
+   "finestre": [
+    {
+     "t1": 200,
+     "t2": 800,
+     "A_misurato": 0.0002373076,
+     "A_larmor": 0.0002651686,
+     "rapporto": 0.89493,
+     "dE_luce": 0.003088663,
+     "dE_atomo": 0.002835281,
+     "luce_su_atomo": 1.08937
+    },
+    {
+     "t1": 800,
+     "t2": 1400,
+     "A_misurato": 0.0001693423,
+     "A_larmor": 0.0002325791,
+     "rapporto": 0.72811,
+     "dE_luce": 0.002683151,
+     "dE_atomo": 0.00200908,
+     "luce_su_atomo": 1.33551
+    },
+    {
+     "t1": 1400,
+     "t2": 2000,
+     "A_misurato": 0.0001181088,
+     "A_larmor": 0.0002146076,
+     "rapporto": 0.55035,
+     "dE_luce": 0.002410153,
+     "dE_atomo": 0.001373447,
+     "luce_su_atomo": 1.75482
+    }
+   ],
+   "rapporto_medio": 0.72446,
+   "intero": [
+    {
+     "t1": 200,
+     "t2": 2000,
+     "A_misurato": 0.0001724118,
+     "A_larmor": 0.0002317223,
+     "rapporto": 0.74405,
+     "dE_luce": 0.008181967,
+     "dE_atomo": 0.006217809,
+     "luce_su_atomo": 1.31589
+    }
+   ],
+   "p_fine": 0.407964,
+   "secondi": 142
+  },
+  "imparato_fermo_centrato+trasverso": {
+   "accoppiamento": "centrato+trasverso",
+   "p_exc_max": 0.02005,
+   "energia_luce": 6.891e-32
+  },
+  "imparato_scacchiera": {
+   "C4_1s_nudo": 0.90078,
+   "C4_1s_imparato": 0.0019958,
+   "C4_radiale": 0.020183,
+   "rapporto": 0.0022156,
+   "C4_2p32_nudo": 0.27802,
+   "C4_2p32_imparato": 0.15152,
+   "w1s_imparato": 0.899452,
+   "w32": 0.978816,
+   "w12": 0.976066,
+   "d32": 0.9566,
+   "d12": 0.6029
+  },
+  "imparato_riga_centrato+trasverso": {
+   "accoppiamento": "centrato+trasverso",
+   "w21_lab": 0.076614,
+   "atteso_32": 0.079364,
+   "atteso_12": 0.076614,
+   "primo": [
+    0.076457,
+    1.7019e-06
+   ],
+   "secondo": [
+    0.079057,
+    1.6642e-06
+   ],
+   "scarto_primo": -0.03662,
+   "scarto_secondo": 0.03188,
+   "rapporto_ampiezze": 1.0226,
+   "picchi": [
+    [
+     "0.07646",
+     "1.70e-6"
+    ],
+    [
+     "0.07906",
+     "1.66e-6"
+    ],
+    [
+     "0.08984",
+     "1.29e-7"
+    ],
+    [
+     "0.08799",
+     "1.06e-8"
+    ],
+    [
+     "0.08269",
+     "1.04e-8"
+    ],
+    [
+     "0.07280",
+     "9.60e-9"
+    ]
+   ],
+   "p_exc_max": 0.41463,
+   "t_picco": 8000.0,
+   "p_exc_fine": 0.41463,
+   "secondi": 633
+  },
+  "imparato_fermo_ritardato": {
+   "accoppiamento": "ritardato",
+   "p_exc_max": 0.02005,
+   "energia_luce": 6.848e-32
+  }
+ },
+ "verdetti_emendamento1": {
+  "NF1": {
+   "misurato": 0.02005,
+   "soglia": "<1e-3",
+   "esito": "FAIL",
+   "nota": "luce emessa 7e-32: e' il battito dello split residuo, non luce (previsto nell'emendamento)"
+  },
+  "NL1": {
+   "misurato": 0.076457,
+   "atteso": 0.079364,
+   "esito": "FAIL",
+   "nota": "la riga piu' forte e' la 2p1/2 (0.076457, -0.20 % dal suo livello)"
+  },
+  "NL2": {
+   "misurato": 0.079057,
+   "atteso": 0.076614,
+   "esito": "FAIL",
+   "nota": "la seconda e' la 2p3/2 (0.079057, -0.39 %)"
+  },
+  "NL3": {
+   "misurato": 1.0226,
+   "esito": "info"
+  },
+  "ND1": {
+   "misurato": 0.72446,
+   "finestre": [
+    0.89493,
+    0.72811,
+    0.55035
+   ],
+   "esito": "FAIL"
+  },
+  "NE1": {
+   "misurato": 1.31589,
+   "esito": "FAIL"
+  },
+  "NC": {
+   "misurato": 0.0022156,
+   "C4_nudo": 0.90078,
+   "C4_imparato": 0.0019958,
+   "C4_radiale": 0.020183,
+   "soglia": "<0.1",
+   "esito": "PASS"
   }
  }
 }

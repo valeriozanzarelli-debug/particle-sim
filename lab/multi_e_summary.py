@@ -187,6 +187,29 @@ if g1v2 and g1v2.get("PASS") and PR.get("nr"):
             fraction_of_mass_velocity=q["ratio_first_order"],
             fraction_of_exact_dirac_kinetic=dr.get("existing_A:he1S_Z2", {}).get("band_over_dirac"),
             relearn_band_delta_mEh=fu.get("relearn_A:he1S_Z2", {}).get("delta_first_order", 0) * 1e3)
+# ---------------------------------------------------------------- pre-registrazione v3 (livello 1 T/M di AGGLOMERATO_COMPLETO)
+V3 = load_json("multi_e_v3.json")
+if V3.get("checks"):
+    c3 = V3["checks"]
+    put("R3v3", "PASS" if c3["R3v3"]["PASS"] else "FAIL", m0=c3["R3v3"]["m0"], sigma=c3["R3v3"]["sigma"],
+        within_1e9=c3["R3v3"]["within_1e9"])
+    put("L1c_v3", "PASS" if c3["L1c_v3"]["PASS"] else "FAIL (alto k, dichiarato; 1 seme su 3)", energy_rel=c3["L1c_v3"]["energy_rel"])
+    put("G0v3", "PASS" if c3["G0v3"]["PASS"] else "FAIL", odd_rel=c3["G0v3"]["odd_rel"])
+    rm = c3["R2v3"]["levels"]["M"]
+    put("R2v3", "PASS" if c3["R2v3"]["PASS"] else "FAIL", max_neg_M=rm["max_neg"], D_curv=rm["D_curv"], D_real=rm["D_real_beta1e-3"],
+        kurtosis=rm["excess_kurtosis_beta1e-2"], wrong_taps_M=rm["wrong_sign_taps"],
+        T_level_max_neg=c3["R2v3"]["levels"]["T"]["max_neg"], T_wrong_taps=c3["R2v3"]["levels"]["T"]["wrong_sign_taps"])
+if V3.get("he"):
+    h = V3["he"]
+    put("M1v3", "PASS" if h["M1v3"]["PASS"] else "FAIL", **{k: v for k, v in h["M1v3"].items() if k != "PASS"})
+    put("E1v3", "PASS" if h["E1v3"]["PASS"] else "FAIL", **{k: v for k, v in h["E1v3"].items() if k != "PASS"})
+    q = h["Q1v3"]
+    put("Q1v3", "PASS" if q["PASS"] else "FAIL", T=q["T"], M=q["M"], old_level=q["old_level"])
+d6v2 = Q.get("D6_v2")
+if d6v2 and "ratio" in d6v2:
+    put("D6'", d6v2["verdict"], c0=d6v2["ratio"]["c0"], sigma_c0=d6v2["ratio"]["sigma_c0"], target=d6v2["target"],
+        points={k: dict(c=v["c_ratio"], s=v["sigma_ratio"], prod_au=v["prod_au"]) for k, v in d6v2["points"].items()},
+        secondary_cubic=d6v2["cubic"])
 save_json("multi_e_results.json", R)
 for k, v in R.items():
     print(f"{k:22s} {v['verdict']}")
