@@ -449,7 +449,12 @@ fn esame_ibrido(bl: usize, n: usize, ni: usize, passi: usize, esporta: Option<St
     // on top of the plain coarse step, V_c = -arg( Σ_{k>M/2} ψ_hyb,k+1(c) conj(S ψ_hyb,k (c)) ) / τ (an effective local
     // potential, diagonal); the new start = lowest state of the coarse generator + V (LOBPCG); repeat R times.
     // Only the initial state changes (the dynamics afterwards is the plain hybrid); M, R are declared run settings.
-    if let (Ok(spec), true) = (std::env::var("IDRO_PARTENZA"), at.fine.is_some()) {
+    // phase 4: IDRO_CKPT=<file> + IDRO_TEMPO=<s>: the run stops after IDRO_TEMPO seconds and saves its whole state;
+    // the next call with the same file resumes (skipping the start preparation). Bit-for-bit the same dynamics.
+    let ckpt = std::env::var("IDRO_CKPT").ok();
+    let ripresa = ckpt.as_ref().map(|p| std::path::Path::new(p).exists()).unwrap_or(false);
+    let tempo_max: f64 = std::env::var("IDRO_TEMPO").ok().and_then(|v| v.parse().ok()).unwrap_or(f64::INFINITY);
+    if let (Ok(spec), true, false) = (std::env::var("IDRO_PARTENZA"), at.fine.is_some(), ripresa) {
         let tp = Instant::now();
         let pp: Vec<usize> = spec.split(':').skip(1).map(|x| x.parse().unwrap()).collect();
         let (mm, rr) = (pp[0], pp[1]);
@@ -488,8 +493,8 @@ fn esame_ibrido(bl: usize, n: usize, ni: usize, passi: usize, esporta: Option<St
         at = Atomo::new(lvx, start, Some(fx), cal);
         at.covarianza = std::env::var("IDRO_COV").is_ok();
     }
-    let q0 = norm2(&at.psi);
-    let h0 = h_media(&lv, &at.psi);
+    let mut q0 = norm2(&at.psi);
+    let mut h0 = h_media(&lv, &at.psi);
     let mut cs = vec![dot(&v0, &at.psi)];
     let mut cc = vec![C::ONE];
     let mut co = v0.clone();
@@ -505,7 +510,28 @@ fn esame_ibrido(bl: usize, n: usize, ni: usize, passi: usize, esporta: Option<St
     let vk = lv.velocita_k();
     let m_g = 64usize.min(n);
     let a0c = (a0() / lv.h).powi(3);
-    for k in 1..=passi {
+    let cv = |v: &[C]| -> Vec<f64> { v.iter().flat_map(|z| [z.re, z.im]).collect() };
+    let vc = |v: &[f64]| -> Vec<C> { v.chunks(2).map(|z| C::new(z[0], z[1])).collect() };
+    let mut k0 = 0usize;
+    if ripresa {
+        let (sc, vv) = carica_ckpt(ckpt.as_ref().unwrap());
+        k0 = sc[0] as usize; at.passi = sc[1] as u64; at.ultimo_reflux = sc[3]; q0 = sc[4]; h0 = sc[5]; q_meta = sc[6]; h_meta = sc[7];
+        at.psi = vc(&vv[0]);
+        if let Some(f) = at.fine.as_mut() { f.tick = sc[2] as u64; for q in 0..4 { f.psi[q] = vc(&vv[1 + q]); } }
+        cs = vc(&vv[5]); cc = vc(&vv[6]); co = vc(&vv[7]); tempi = vv[8].clone(); rho_meta = vv[9].clone(); fine_meta = vv[10].clone();
+        println!("ripresa dal passo {k0} ({})", ckpt.as_ref().unwrap());
+    }
+    for k in (k0 + 1)..=passi {
+        if t0.elapsed().as_secs_f64() > tempo_max && ckpt.is_some() {
+            let f = at.fine.as_ref();
+            let mut vv = vec![cv(&at.psi)];
+            for q in 0..4 { vv.push(f.map(|f| cv(&f.psi[q])).unwrap_or_default()); }
+            vv.extend([cv(&cs), cv(&cc), cv(&co), tempi.clone(), rho_meta.clone(), fine_meta.clone()]);
+            salva_ckpt(ckpt.as_ref().unwrap(), &[(k - 1) as f64, at.passi as f64, f.map(|f| f.tick as f64).unwrap_or(0.0), at.ultimo_reflux,
+                        q0, h0, q_meta, h_meta], &vv);
+            println!("CHECKPOINT al passo {} -> {} ({:.0} s)", k - 1, ckpt.as_ref().unwrap(), t0.elapsed().as_secs_f64());
+            return;
+        }
         let t = Instant::now();
         let ultimo = k == passi && esporta.is_some() && at.fine.is_some();
         if ultimo {
@@ -914,4 +940,27 @@ fn impara_cucitura(n: usize, ni: usize, dmax: i64, nprobe: usize, out: &str) {
     println!("RISULTATO impara N={n} ni={ni} dmax={dmax}: E_ibrido(G+V+Δ) {:.6} eV ({:+.5} %) gen {:.6} resid {:.1e}; coarse {:.6} eV ({:+.5} %); ibrido/grosso-1 {:+.4e} [{:.0} s]",
              sh.e_regola * ev(), 100.0 * (sh.e_regola * ev() / e1 - 1.0), sh.e_gen * ev(), sh.resid_regola, s1.e_regola * ev(),
              100.0 * (s1.e_regola * ev() / e1 - 1.0), sh.e_regola / s1.e_regola - 1.0, t0.elapsed().as_secs_f64());
+}
+
+
+/// phase 4 checkpoint: scalars and f64 vectors, little-endian, length-prefixed
+fn salva_ckpt(path: &str, sc: &[f64], vv: &[Vec<f64>]) {
+    let mut b: Vec<u8> = vec![];
+    b.extend((sc.len() as u64).to_le_bytes());
+    for x in sc { b.extend(x.to_le_bytes()); }
+    b.extend((vv.len() as u64).to_le_bytes());
+    for v in vv { b.extend((v.len() as u64).to_le_bytes()); for x in v { b.extend(x.to_le_bytes()); } }
+    std::fs::write(path, b).unwrap();
+}
+
+fn carica_ckpt(path: &str) -> (Vec<f64>, Vec<Vec<f64>>) {
+    let b = std::fs::read(path).unwrap();
+    let mut i = 0usize;
+    let u = |i: &mut usize| -> u64 { let x = u64::from_le_bytes(b[*i..*i + 8].try_into().unwrap()); *i += 8; x };
+    let ns = u(&mut i) as usize;
+    let sc: Vec<f64> = (0..ns).map(|_| f64::from_bits(u(&mut i))).collect();
+    let nv = u(&mut i) as usize;
+    let mut vv = vec![];
+    for _ in 0..nv { let l = u(&mut i) as usize; vv.push((0..l).map(|_| f64::from_bits(u(&mut i))).collect()); }
+    (sc, vv)
 }
