@@ -55,8 +55,13 @@ File: motore `lab/locale_core.py`, candidati `lab/locale_cands.py`, pre-registra
    senza soppressione. Il protone vero non chiude il pavimento s di S4.
 8. **Fase 4 (§13):** nessun termine locale dà massa alle valli π senza toccare l'elettrone. La moneta che respira
    (θ ∓ μ, di VUOTO) gliela dà, ma l'elettrone va a **c·cos μ** (legge misurata a 2·10⁻⁵). Lo 0,3 % storico di Schwinger
-   regge, perché contava solo il buco k = 0. La coppia 0,8811/0,8822 è il doppietto di spin dell'1s, spaccato perché la
-   regola non è simmetrica per inversione del tempo e il nucleo sta fuori centro nella sua copia.
+   regge, perché contava solo il buco k = 0. La coppia 0,8811/0,8822 è il doppietto di spin dell'1s, spaccato perché
+   ~~la regola non è simmetrica per inversione del tempo~~ [corretto in §14: **il Wilson ritorto** rompe l'inversione
+   del tempo; la regola congelata la ha esatta] e il nucleo sta fuori centro nella sua copia.
+9. **Fase 5 (§14):** la luce che respira va a c·cos μ come l'elettrone, quindi le velocità limite tornano uguali nel
+   continuo. Sul reticolo resta un pezzo ∝ θ² (5·10⁻⁴ a θ = 0,1). Con le soglie scritte nessuna configurazione è
+   adottabile. La regola congelata ha l'inversione del tempo esatta (Kramers a 10⁻¹⁴); il Wilson ritorto la rompe, e lo
+   split di spin dell'1s che ne viene scende come θ².
 
 Tabellone: r1 **66 PASS / 1 FAIL**, r2 **33 PASS / 16 FAIL**, r3 **20 PASS / 12 FAIL**, emendamento 6/0.
 Molti FAIL sono **previsti nella pre-registrazione** (la regola congelata che fallisce gli esami dei doppioni); quelli
@@ -802,20 +807,24 @@ Modello ridotto della fase 3 (48³, Z = 60, θ = 0,5, Wilson ritorto h = 0,1, nu
 
 Le energie restano identiche (entro 10⁻⁵), i pesi seguono lo spin di partenza, e gli spin dei due livelli sono opposti
 (|⟨S⟩₁ − ⟨S⟩₂| = 0,91): **è il doppietto j = ½ dell'1s**, spaccato di 1,1·10⁻³ m lungo la direzione (0,32; 0,45; 0,84).
-Per il teorema di Kramers in un mondo simmetrico per inversione del tempo resterebbe degenere: qui no. Quindi la regola
+Per il teorema di Kramers in un mondo simmetrico per inversione del tempo resterebbe degenere: qui no. ~~Quindi la regola
 (ordine degli assi x, y, z poi z, y, x) **non** è simmetrica per inversione del tempo, e si comporta come un campo
-magnetico finto. Il campo si vede solo quando il nucleo sta **fuori centro nella sua copia**: sull'angolo di 8 celle il
+magnetico finto.~~ [Corretto in fase 5 (§14.3), dopo SURFISTI §12.8: la regola congelata **ha** un'inversione del tempo
+esatta (Θ² = −1, coppie di Kramers a 1·10⁻¹⁴, verificato anche qui). A rompere l'inversione del tempo è **il Wilson
+ritorto**: il suo generatore −iY è reale, quindi Θ lo manda in sé stesso invece che nel suo inverso. Il "campo magnetico
+finto" c'è, ma viene dal Wilson, non dall'ordine degli assi.] Il campo si vede solo quando il nucleo sta **fuori centro nella sua copia**: sull'angolo di 8 celle il
 nucleo è a (¼, ¼, ¼) della cella della copia (passo 2). Col nucleo su un sito della copia (caso "centro", fase 3) lo
 split è 1·10⁻⁵. Le bande libere non spaccano lo spin (≤ 4·10⁻⁸ a h = 0,1), quindi serve il nucleo: è un effetto
-"nucleo fuori centro × regola senza inversione del tempo". La direzione (più z che x) segue l'ordine degli assi. Non
-ho misurato come scala col passo: debito.
+"nucleo fuori centro × ~~regola senza inversione del tempo~~ Wilson ritorto (§14.3)". La direzione (più z che x) segue
+l'ordine degli assi. ~~Non ho misurato come scala col passo: debito.~~ [Misurato in §14.3: ∝ θ² circa.]
 
 ### 13.5 Debiti e parametri (fase 4)
 
 - Valli π senza massa: **ancora aperto**. La moneta che respira le chiude al prezzo v_e = c·cos μ (1 manopola μ più una
   violazione di Lorentz di μ²/2). Proposta per una fase 5: la stessa respirazione anche per la luce.
-- Nuovo: la regola non è simmetrica per inversione del tempo. Col nucleo fuori centro nella copia l'1s si spacca come in
-  un campo magnetico (1,1·10⁻³ m a θ = 0,5). La scala col passo non è misurata.
+- ~~Nuovo: la regola non è simmetrica per inversione del tempo.~~ [Corretto: è il Wilson ritorto a non esserlo, §14.3.]
+  Col nucleo fuori centro nella copia l'1s si spacca come in un campo magnetico (1,1·10⁻³ m a θ = 0,5). ~~La scala col
+  passo non è misurata.~~ [§14.3: ∝ θ² circa.]
 - Chiuso: lo 0,3 % storico di Schwinger è sul buco fisico k = 0, quindi regge.
 
 Come rifare la fase 4:
@@ -824,4 +833,120 @@ Come rifare la fase 4:
 OMP_NUM_THREADS=1 python lab/locale_f4_prereg.py          # (già committata, 4dcb577)
 OMP_NUM_THREADS=1 timeout 590 python lab/locale_f4_run.py # 27 s
 OMP_NUM_THREADS=1 timeout 590 python lab/locale_f4_pair.py   # 2 pezzi da ~5 min
+```
+
+---
+
+## 14. Fase 5: la luce che respira, l'inversione del tempo, la scala dello split dell'1s
+
+File:
+- pre-registrazione `lab/locale_f5_prereg.py` → `lab/out/locale_f5_prereg.json` (commit **5183ecf**);
+- emendamento dichiarato dopo l'avviso di SURFISTI `lab/locale_f5_amend_prereg.py` → `lab/out/locale_f5_amend_prereg.json`
+  (commit **bf9e31b**, prima della sua corsa);
+- corse:
+  - `lab/locale_f5_run.py` → `lab/out/locale_f5_run.json`
+  - `lab/locale_f5_helicity.py` → `lab/out/locale_f5_helicity.json`
+  - `lab/locale_f5_split.py` → `lab/out/locale_f5_split.json`
+  - `lab/locale_f5_kramers.py` → `lab/out/locale_f5_kramers.json`
+
+### 14.1 In breve (per Valerio)
+
+1. **La luce che respira funziona come previsto.** La velocità della luce diventa **c·cos μ**: 0,9553364 contro
+   cos 0,3 = 0,9553365. Così elettrone e luce tornano ad avere la stessa velocità limite. Come l'ho costruita: la luce
+   è la coppia F₊ = E + icB e F₋ = E − icB (come L e R per l'elettrone), con una moneta ±μ fra le due ai tick pari e
+   dispari. Due prezzi:
+   - (a) non si può fare con un campo E, B **reale**: una mescolanza continua e locale di F con F* non lascia reali
+     E e B (la matrice [[a, b], [b*, a*]] è unitaria solo se ab = 0). Quindi è la luce come **funzione d'onda del
+     fotone**, complessa, come nel Laboratorio;
+   - (b) lo stato è "vestito": un fotone di elicità + della regola congelata, messo nella regola che respira, porta al
+     massimo sin²μ nell'altra metà (0,010 / 0,089 / 0,234 per μ = 0,1 / 0,3 / 0,5). È limitato e non cresce col tempo
+     né cambia con k: è un cambio di base, non un'elicità che si gira davvero.
+2. **Verdetto pre-registrato: nessuna configurazione è adottabile.** A θ = 0,1 la respirazione aggiunge 4,8·10⁻⁴
+   (μ = 0,3) di differenza fra le velocità limite di elettrone e luce, oltre a quella del reticolo congelato. A
+   θ = 0,02 resta solo 1,9·10⁻⁵: la differenza scende come θ², quindi nel continuo sparisce. μ = 0,3 a θ = 0,02 passa
+   velocità, massa, Maxwell e carica, ma il gap π vale **esattamente** 0,300: la soglia ≥ 0,3 non passa per 2·10⁻¹⁶,
+   e lo dichiaro FAIL. μ = 0,5 apre bene le valli π (0,5), ma peggiora Maxwell (42,0 celle/λ contro la soglia 39,8) e
+   la velocità a θ = 0,02 (1,26·10⁻⁴).
+3. **Correzione dell'inversione del tempo (avviso di SURFISTI):** aveva ragione. La regola congelata ha l'inversione
+   del tempo esatta: coppie di Kramers a **1,0·10⁻¹⁴** con un potenziale a caso, anche con la moneta che respira
+   (9,7·10⁻¹⁵). A romperla è **il Wilson ritorto** (coppie spaccate di 2,8·10⁻²): il suo generatore −iY è reale, e
+   l'inversione del tempo lo manda in sé stesso invece che nell'inverso. Ho corretto la §13 barrando le frasi vecchie.
+4. **Wilson che rispetta l'inversione del tempo: non trovato.**
+   - Il Wilson "lungo la massa" (X, F2b della fase 1) la rispetta quasi (coppie a 1,1·10⁻⁵), ma cambia la massa
+     cinetica (+9 %).
+   - Il Wilson "a link di spin" (generatore Y⊗σ_j, pari sotto inversione del tempo sulla carta) nei numeri la rompe
+     (1,5·10⁻²), **non** alza le valli N (0,100) e cambia la massa cinetica (fino a +1,1 %). FAIL.
+5. **Lo split dell'1s (dovuto al Wilson) scende col passo come θ² circa:**
+
+   | θ | 0,7 | 0,5 | 0,35 | 0,25 |
+   |---|---|---|---|---|
+   | split / m | 1,67·10⁻³ | 1,08·10⁻³ | 4,8·10⁻⁴ | 2,4·10⁻⁴ |
+
+   Pendenze locali: 1,3 / 2,3 / 2,1; sugli ultimi tre punti 2,2.
+
+### 14.2 Tabellone della luce che respira (pre-registrato, E1–E6)
+
+| esame | μ = 0,3 | μ = 0,5 | soglia | esito |
+|---|---|---|---|---|
+| velocità della luce c_l / cos μ | 0,9553364 / 0,9553365 | 0,8775825 / 0,8775826 | — | la legge c·cos μ regge (5·10⁻⁸) |
+| E1 c_e/c_l − 1 a θ = 0,02 (congelata −6,7·10⁻⁵) | −8,6·10⁻⁵ | −1,26·10⁻⁴ | ≤ 10⁻⁴ | PASS / FAIL |
+| E1 cambio rispetto alla congelata a θ = 0,1 | −4,8·10⁻⁴ | −1,5·10⁻³ | ≤ 10⁻⁴ | FAIL / FAIL |
+| E2 gap delle valli π (con h_u = 0,1: tutti i doppioni) | 0,300 (0,300) | 0,500 (0,377) | ≥ 0,3 | FAIL alla lettera (uguale alla soglia) / PASS |
+| E3 E(0) esatta; massa cinetica rispetto alla velocità comune, θ = 0,1 | esatta; +9,7·10⁻⁴ | esatta; +3,0·10⁻³ | ≤ 10⁻⁴ | FAIL / FAIL (a θ = 0,02: 3,8·10⁻⁵ / 1,2·10⁻⁴) |
+| E4 Maxwell N₁% 3-D (congelata raddoppiata 36,2) | 38,5 | 42,0 | ≤ 39,8 | PASS / FAIL |
+| E4 massa del fotone ω(0) | 6·10⁻¹⁷ | 0 | ≤ 10⁻¹² | PASS |
+| E5 unitarietà, norma su 50 periodi (24³) | 3·10⁻¹⁵, 4·10⁻¹⁴ | 3·10⁻¹⁵, 3·10⁻¹⁴ | ≤ 10⁻¹² | PASS |
+| E6 elicità (informazione; misura resa concreta dopo, vedi 14.1) | fuga max 0,089 | 0,234 | — | vestito ≈ sin²μ |
+
+**Lettura.** La coppia che respira dà lo stesso c a elettrone e luce **nel limite del continuo**. Sul reticolo resta un
+pezzo in più ∝ θ² (5·10⁻⁴ a θ = 0,1). Le valli π prendono massa μ/a. La finestra utile è la stessa della fase 4: μ
+abbastanza grande da pesare (μ ≥ 0,3) ma con Maxwell e velocità ancora dentro le soglie. Questo succede solo a θ piccolo
+(≤ 0,02) e con μ ≈ 0,3, al limite.
+
+### 14.3 Inversione del tempo e lo split dell'1s (emendamento K1–K3 e T1)
+
+**K1 (Kramers con potenziale a caso, 6³, θ = 0,37), coppia più spaccata:**
+
+| regola | potenziale alla fine del periodo (test pre-registrato) | potenziale insieme alla moneta di massa (test corretto, dichiarato) |
+|---|---|---|
+| congelata F0 | 1,0·10⁻¹⁴ | 1,0·10⁻¹⁴ |
+| moneta che respira μ = 0,3 | 9,8·10⁻¹⁵ | 9,7·10⁻¹⁵ |
+| Wilson ritorto (Y) h = 0,1 | 5,5·10⁻² | **2,8·10⁻²** |
+| Wilson lungo la massa (X) h = 0,1 | 5,6·10⁻² | 1,1·10⁻⁵ |
+| Wilson a link di spin (Y⊗σ_j) h = 0,1 | 8,9·10⁻² | 1,5·10⁻² |
+| moneta che respira + Wilson ritorto | — | 0,79 |
+
+Perché ho corretto il test: con i link, un potenziale messo alla fine del periodo non commuta con il link e rompe da
+solo la simmetria palindroma. Messo insieme alla moneta di massa (con cui commuta) il confronto è giusto. Prima e dopo,
+il Wilson ritorto rompe l'inversione del tempo; la congelata no. **K1 PASS** (controllo e previsione confermati).
+
+**K2 Wilson a link di spin: FAIL.** Mezzo gap N 0,100 (non sale: questo generatore non fa da massa alle valli N),
+massa cinetica +1,1·10⁻² / +5,6·10⁻³ / +8,6·10⁻⁵ / +6,2·10⁻³ nelle 4 direzioni, e l'inversione del tempo resta rotta.
+**K3** quindi non si fa (era condizionato a K2).
+
+**T1 scala dello split** (modello ridotto, Wilson ritorto h = 0,1, Z = 60, nucleo sull'angolo): tabella in 14.1.
+- Il doppietto è sempre una coppia di livelli vicini con spin opposti (coseno −1,00).
+- Correzione dichiarata: a θ = 0,7 la regola di scelta scritta ("i due livelli di peso maggiore con spin opposti") ha
+  preso 0,8472 con 0,9528 (split 0,106). Il doppietto vero è 0,8472/0,8489, con spin esattamente opposti e split
+  1,67·10⁻³.
+- Pendenza 2,2 sugli ultimi tre θ: lo split **sparisce col passo come a²**. È un artefatto del Wilson ritorto,
+  coerente con SURFISTI. Nella regola congelata non c'è split di spin; c'è il multipletto delle valli (§12).
+
+### 14.4 Debiti e parametri (fase 5)
+
+- Valli π: la moneta che respira, insieme alla luce che respira, è coerente nel continuo, ma sul reticolo costa
+  ~5·10⁻⁴ (θ = 0,1) sulla velocità e peggiora Maxwell per μ ≥ 0,5. 1 manopola μ. **Non adottabile** con le soglie
+  scritte.
+- Il Wilson ritorto rompe l'inversione del tempo (split dell'1s ∝ θ²). Non ho trovato una versione che curi le valli N
+  senza toccare la massa cinetica e rispettando Θ: debito aperto.
+- La luce che respira chiede la luce come funzione d'onda complessa (non E, B reali). Lo dichiaro come debito, se si
+  volesse la luce classica.
+
+Come rifare la fase 5:
+
+```
+OMP_NUM_THREADS=1 timeout 590 python lab/locale_f5_run.py        # 25 s
+OMP_NUM_THREADS=1 python lab/locale_f5_helicity.py
+OMP_NUM_THREADS=1 timeout 590 python lab/locale_f5_kramers.py    # ~3 min
+OMP_NUM_THREADS=1 timeout 590 python lab/locale_f5_split.py      # rilanciare finché exit 0 (~8 pezzi, checkpoint nello scratchpad)
 ```
