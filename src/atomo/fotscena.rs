@@ -22,12 +22,21 @@ use crate::render::Ball;
 use crate::rng::Rng;
 
 /// Quality: (cells per wavelength, cells per side of the box). The box is 8–12 λ wide.
-pub const QUALITA: [(f64, usize, &str); 4] = [
-    (8.0, 96, "veloce: 8 celle per λ, 96³"),
+pub const QUALITA: [(f64, usize, &str); 5] = [
+    (8.0, 96, "bassa: 8 celle per λ, 96³"),
     (12.0, 128, "media: 12 celle per λ, 128³"),
-    (16.0, 144, "alta: 16 celle per λ, 144³"),
-    (24.0, 192, "massima: 24 celle per λ, 192³ (lenta)"),
+    (16.0, 144, "medio-alta: 16 celle per λ, 144³"),
+    (24.0, 192, "alta: 24 celle per λ, 192³"),
+    (32.0, 384, "ultra: 32 celle per λ, 384³ (per una GPU da 16 GB; qui lentissima)"),
 ];
+
+/// Energy balls drawn for each quality (docs/MOTORE_GRAFICO.md; each ball is drawn with a 2-ball tail).
+pub const PALLINE_QUAL: [usize; 5] = [20_000, 60_000, 120_000, 250_000, 1_000_000];
+
+/// The named presets (`--qualita`): index into QUALITA.
+pub fn preset(nome: &str) -> Option<usize> {
+    match nome { "bassa" => Some(0), "media" => Some(1), "alta" => Some(3), "ultra" => Some(4), _ => None }
+}
 
 /// Pulse length σ in wavelengths.
 pub const SIGMA_LAMBDA: f64 = 1.0;
@@ -142,7 +151,7 @@ impl Mondo {
         }
         let m0 = f.misura(atteso(&l, 0));
         let v_continuo = Fotone3D::velocita_continuo(&l, n);
-        let tr = Traccianti::new(&f, 1000 + lanci);
+        let tr = Traccianti::new(&f, 1000 + lanci, PALLINE_QUAL[par.qual.min(PALLINE_QUAL.len() - 1)]);
         Mondo { f, par, l, storia: vec![m0], e_prima: None, elicita: None, lanci, v_continuo, tr }
     }
 
@@ -226,6 +235,9 @@ fn risolvi3(mut a: [[f64; 3]; 3], mut r: [f64; 3]) -> Option<[f64; 3]> {
     Some(x)
 }
 
+/// For unattended photos: the photon stops at this tick (0 = never), so two runs show the same frame.
+pub static TICK_FERMO: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+
 pub fn avvia(par: Parametri) -> Arc<Mutex<Condiviso>> {
     let c = Arc::new(Mutex::new(Condiviso {
         comando: Comando::Avanti, ritmo: 30.0, lancia: None, vista: Vista::default(), opz: Opzioni::default(), misura: false, azzera: false, fine: false,
@@ -252,6 +264,8 @@ pub fn avvia(par: Parametri) -> Arc<Mutex<Condiviso>> {
                 s
             };
             if fine { break; }
+            let fermo = TICK_FERMO.load(std::sync::atomic::Ordering::Relaxed);
+            let cmd = if fermo > 0 && m.f.ticks >= fermo && cmd == Comando::Avanti { Comando::Pausa } else { cmd };
             let mut cambiato = vista != vista_prima || opz != opz_prima || riv.invecchia() || azzera;
             vista_prima = vista;
             opz_prima = opz;

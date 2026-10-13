@@ -199,7 +199,7 @@ fn bench_fotone() {
         let t = Instant::now(); for _ in 0..5 { f.tick(); } let tt = t.elapsed() / 5;
         let t = Instant::now(); for _ in 0..5 { f.misura([0.0; 3]); } let tm = t.elapsed() / 5;
         let e = f.campo_e();
-        let mut tr = crate::fotdisegno::Traccianti::new(&f, 1);
+        let mut tr = crate::fotdisegno::Traccianti::new(&f, 1, crate::fotdisegno::N_TRACCIANTI);
         let t = Instant::now(); for _ in 0..5 { tr.avanza(&f, 1.0, [0.0; 3]); } let tt2 = t.elapsed() / 5;
         let t = Instant::now(); let mut nb = 0; for _ in 0..5 { let (a, b, _) = crate::fotdisegno::palline(&f, &l, [0.0; 3], &tr, Some(&e), Default::default(), true); nb = a.len() + b.len(); } let tp = t.elapsed() / 5;
         eprintln!("qual {q} (n {}): lancia {tl:?}, tick {tt:?}, misura {tm:?}, tracers {tt2:?}, palline {tp:?} ({nb} palline)", par.n());

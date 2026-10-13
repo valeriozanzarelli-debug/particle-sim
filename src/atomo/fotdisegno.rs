@@ -25,6 +25,7 @@ use crate::fotone3d::{base_trasversa, punto, Cf, Fotone3D, Lancio, Polar};
 use crate::render::{phase_color, schermo, Ball};
 use crate::rng::{hash01, Rng};
 
+/// default number of energy balls (the quality presets choose their own: fotscena::PALLINE_QUAL)
 pub const N_TRACCIANTI: usize = 32_000;
 pub const N_SURF: usize = 6;
 pub const L_SCIA: usize = 48;
@@ -134,9 +135,9 @@ pub struct Traccianti {
 }
 
 impl Traccianti {
-    pub fn new(f: &Fotone3D, seme: u64) -> Self {
+    pub fn new(f: &Fotone3D, seme: u64, quante: usize) -> Self {
         let mut t = Traccianti { pos: vec![], vel: vec![], eta: vec![], vita: vec![], surf: vec![], rng: Rng::new(seme) };
-        let nuovi = semina(f, N_TRACCIANTI, &mut t.rng);
+        let nuovi = semina(f, quante.max(N_SURF), &mut t.rng);
         for p in nuovi {
             t.pos.push(p);
             t.vel.push([0.0; 3]);
@@ -241,9 +242,9 @@ pub fn palline(f: &Fotone3D, l: &Lancio, centro: [f64; 3], tr: &Traccianti, e_pr
     let emax = emax2.sqrt().max(1e-30);
     let lam = l.lambda;
     let h = (n / 2) as f32;
-    let mut out: Vec<Ball> = Vec::with_capacity(4 * N_TRACCIANTI + 40_000);
-    let mut onde: Vec<Ball> = Vec::with_capacity(3 * N_TRACCIANTI);
-    let mut allunga: Vec<[f32; 3]> = Vec::with_capacity(3 * N_TRACCIANTI);
+    let mut out: Vec<Ball> = Vec::with_capacity(40_000);
+    let mut onde: Vec<Ball> = Vec::with_capacity(3 * tr.pos.len());
+    let mut allunga: Vec<[f32; 3]> = Vec::with_capacity(3 * tr.pos.len());
     // ── tracers (wave balls) with their tails, and the surfers ──
     if vista.traccianti {
         // stretch: up to 0.35 λ along E at the peak of the field (scene units = cells)

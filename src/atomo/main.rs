@@ -260,6 +260,7 @@ fn main() {
     // the photon's parameters from the command line (for unattended pictures)
     let mut par = fotscena::Parametri::default();
     if let Some(v) = arg("--qual").and_then(|v| v.parse().ok()) { par.qual = v; }
+    if let Some(q) = arg("--qualita").and_then(|v| fotscena::preset(&v)) { par.qual = q; }
     if let Some(v) = arg("--w0").and_then(|v| v.parse().ok()) { par.w0_lambda = v; }
     if let Some(v) = arg("--dir").and_then(|v| v.parse().ok()) { par.dir = v; }
     if let Some(p) = arg("--polar") {
@@ -287,6 +288,7 @@ fn main() {
         auto.misure = arg("--misure").and_then(|v| v.parse().ok()).unwrap_or(0);
         lab.panel_open = args.iter().any(|a| a == "--pannello");
         if let Some(r) = arg("--ritmo").and_then(|v| v.parse().ok()) { lab.ritmo_fot = r; }
+        if let Some(t) = arg("--tick").and_then(|v| v.parse::<u64>().ok()) { fotscena::TICK_FERMO.store(t, std::sync::atomic::Ordering::Relaxed); }
     }
     if let Some(y) = arg("--yaw").and_then(|v| v.parse::<f32>().ok()) { auto.yaw = Some(y); }
     if let Some(p) = arg("--pitch").and_then(|v| v.parse::<f32>().ok()) { auto.pitch = Some(p); }

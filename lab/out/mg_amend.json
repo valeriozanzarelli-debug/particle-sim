@@ -1,0 +1,31 @@
+{
+ "emendamento": 1,
+ "data": "2026-10-13",
+ "motivo": "mg_amend.py - DECLARED amendment 1 to mg_prereg.json, written before any R4 measurement.\nThe presets reuse the quality steps already in fotscena.rs (the pre-registered photon tests of docs/ATOMO.md are tied\nto them): bassa = 8 cells/lambda 96^3, media = 12 / 128^3, alta = 24 / 192^3, ultra = 32 / 384^3 (new step).\nBalls: 20k / 60k / 250k / 1M (not 4M: the balls still move on the CPU; 4M needs the balls on the GPU, not done).\nThe rule runs on the CPU in every preset for now: the GPU rule passed R1 but is not wired into the scene yet (debt).\nR4 thresholds unchanged (bassa on the Intel UHD: >= 20 frames/s, <= 50 ms per tick).",
+ "preset": {
+  "bassa": {
+   "celle_per_lambda": 8,
+   "n": 96,
+   "palline": 20000,
+   "regola": "cpu"
+  },
+  "media": {
+   "celle_per_lambda": 12,
+   "n": 128,
+   "palline": 60000,
+   "regola": "cpu"
+  },
+  "alta": {
+   "celle_per_lambda": 24,
+   "n": 192,
+   "palline": 250000,
+   "regola": "cpu"
+  },
+  "ultra": {
+   "celle_per_lambda": 32,
+   "n": 384,
+   "palline": 1000000,
+   "regola": "cpu"
+  }
+ }
+}
