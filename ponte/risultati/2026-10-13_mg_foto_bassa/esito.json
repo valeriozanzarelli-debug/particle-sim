@@ -1,0 +1,13 @@
+{
+  "id": "2026-10-13_mg_foto_bassa",
+  "azione": "foto",
+  "ok": true,
+  "inizio": "2026-10-13T01:29:10Z",
+  "fine": "2026-10-13T01:29:44Z",
+  "durata_s": 33.9,
+  "git": "647a88839a2b20dd74f999d12ef48508229b1408",
+  "macchina": "LAPTOP-01UIII6L",
+  "exit": 0,
+  "secondi": 32.7,
+  "comando": "--scena fotone --qualita bassa --frames 900 --pannello --foto C:\\Users\\valer\\Desktop\\Programma di simulazione\\ponte_lab\\ponte\\risultati\\2026-10-13_mg_foto_bassa\\foto.png"
+}
