@@ -1,0 +1,57 @@
+"""multi_e_prereg_v4.py - EMENDAMENTO VERSIONATO v4 della pre-registrazione MOLTI ELETTRONI.
+Si passa dalla regola del par. 11 di docs/AGGLOMERATO_COMPLETO.md (fase 3, usata in v3) a quella della FASE 4 (par. 12,
+lab/aggfull_p4.py, commit 39bf988): livello 1 con k^2, k^4 e k^6 fissati alla regola fine + parita' (learner T, "T6",
+larghezza scelta da sola: la piu' piccola fra 4, 5, 6 che e' domata) per la banda; Markov + k^6 a w = 8 ("M6") per i
+camminatori. Scritto e committato PRIMA delle corse v4. v1, v2, v3 restano valide; nessun verdetto vecchio si rigiudica.
+Scrive lab/out/multi_e_prereg_v4.json.  Run: python lab/multi_e_prereg_v4.py"""
+import json, os, subprocess, datetime
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+OUT = os.path.join(HERE, "out")
+head = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=HERE).decode().strip()
+
+P = {
+ "meta": {
+   "study": "MOLTI_ELETTRONI", "version": 4, "amends": "v1, v2, v3 (multi_e_prereg*.json)",
+   "written": datetime.datetime.now().isoformat(timespec="seconds"), "git_head_before": head,
+   "decided_by": "sessione principale (coordinatore), default dichiarato: passare alla versione di fase 4 al posto del par. 11, "
+                 "pre-registrata prima delle corse, e tenere dichiarato il FAIL sui semi 3 e 4 (3,05 e 3,79e-5, ordine k^8+).",
+   "data_already_seen": "numeri di lab/out/aggfull_p4.json letti: T6 sceglie w = 5 su tutti i 6 semi, massa esatta a 1e-13, "
+                        "controllo Z = 10: 0,54 / 0,45 / 3,05 / 3,79 / 0,90 / 0,29 e-5; M6 fattibile solo a w = 8 (6e-11). "
+                        "Le nostre corse v4 sono RIPRODUZIONI con il nostro codice di controllo; lo diciamo.",
+   "pacing": "corse a pezzi <= 8 min con checkpoint (una sola corsa alla volta finche' girano le 2 DMC di D6')",
+ },
+ "rule": {
+   "learner": "aggfull_l1.samples / fit / band_of / taylor6 e agg_zz_core.kcheck, importati e non modificati; stessa ricetta di "
+              "aggfull_p4.py (c246 = taylor6 della regola fine della catena, 13 direzioni). Livelli salvati con i nostri nomi "
+              "lab/out/multi_e_v4_*.pkl (non committati), risultati lab/out/multi_e_v4.json",
+   "band_level_T6": "catena A, osservabile Z = 10, learner T con c2 c4 c6 fissati, w = la piu' piccola fra 4, 5, 6 che e' "
+                    "domata (packet <= 1e-3, bz_rel90 <= 0.2, neg_gen <= 0.01), seme 1",
+   "walker_level_M6": "catena A, osservabile Z = 2, learner M con c2 c4 c6 fissati, w = 8, seme 1",
+   "R3_levels": "T6 sulle catene A2, A, B, osservabile Z = 1, w = 5 fisso, seme 1 (la massa e' fissata: lo spread fra semi e' ~1e-13)",
+ },
+ "exams": {
+   "R3v4": "m_kin(theta -> 0) dal nostro mkin_of sui livelli T6 di A2/A/B, fit m0 + a th^2 + b th^4: |m0 - 1| <= 5e-5 (soglia v1); "
+           "riportato anche contro 1e-9",
+   "L1c_v4": "controllo Z = 10 a 3e-5 (energia e resto) del livello T6: 6 semi di aggfull_p4.json (letti, non rifatti: "
+             "dichiarato) + il nostro seme 1 rifatto, che deve riprodurre il loro entro 1e-7 assoluto. PASS solo se tutti e 6 "
+             "i semi stanno sotto 3e-5. ATTESO FAIL (4 su 6), dichiarato prima",
+   "G0v4": "parita' di T6 e M6: parte dispari / parte pari a k h = 0.01 e 1: < 1e-10",
+   "R2v4": "livello M6: peso negativo di K_beta < 1e-10 per beta in {1e-6, 5e-6, 1e-5, 2e-5, 5e-5, 1e-4, 1e-3, 1e-2} (griglie 64 "
+           "e 128), |sum K - 1| < 1e-9, D curvatura = D spazio reale a 2e-5, |curtosi in eccesso a beta = 1e-2| < 0.02, "
+           "0 salti col segno sbagliato. Riportato lo stesso per T6",
+   "use_for_He_if": "R3v4, G0v4, R2v4 PASS (L1c_v4 non blocca: FAIL ad alto k gia' noto, dichiarato)",
+ },
+ "He_with_v4": {
+   "M1v4": "stessa base ECG di v2 (he1S_Z2, K = 200), massa m0_v4: E = E_NR(m_A) x m0_v4 / m_A, tolleranza 0.29 mEh",
+   "E1v4": "come E1 v2 con m0_v4 (tolleranza 10 meV)",
+   "Q1v4": "Delta_band sull'elio al primo ordine sullo stato ECG NR con le bande T6 e M6 contro la cinetica di Dirac esatta "
+           "sullo stesso stato: |band/Dirac - 1| <= 0.01 (T6) e <= 0.02 (M6) (stesse soglie di v3). DEBT-4/9: la parte non "
+           "Dirac in mEh per livello vecchio, v3 T/M, v4 T6/M6",
+   "D_walkers": "nessuna nuova DMC in v4 (i camminatori restano gaussiani; il pezzo di banda si somma al primo ordine)",
+ },
+ "kept_declared": "FAIL ad alto k (semi 3 e 4 sopra 3e-5, ordine k^8+) finche' non e' curato; FAIL di L1c_v3 resta com'era",
+}
+with open(os.path.join(OUT, "multi_e_prereg_v4.json"), "w") as f:
+    json.dump(P, f, indent=1, ensure_ascii=False)
+print("scritto lab/out/multi_e_prereg_v4.json", P["meta"]["written"], head)
