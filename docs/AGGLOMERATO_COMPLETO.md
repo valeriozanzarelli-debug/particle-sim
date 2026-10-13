@@ -65,7 +65,7 @@ segni sbagliati del nucleo dei camminatori, pezzo k⁴ della banda, parità).
    limiti "a palline" verificati (salti ≥ 4,3 λ_C per il k⁶; nessuna regola positiva relativistica con celle > √3 λ_C);
    F3 dei 2p **chiuso con il cinetico T** (−0,7 % e −3,0 %), con un emendamento dichiarato sulla coda finta ad alto k.
 
-**Esami: 16 PASS / 3 FAIL** (fase 2 + emendamenti), **5 PASS / 1 FAIL** (fase 3), **3 PASS / 2 FAIL** (fase 4).
+**Esami: 16 PASS / 3 FAIL** (fase 2 + emendamenti), **5 PASS / 1 FAIL** (fase 3), **3 PASS / 2 FAIL** (fase 4), **3 PASS / 1 FAIL** (fase 5, §13: livello Z = 10 entro 3·10⁻⁵ su 6 semi su 6; la coda ad alto k era parità sbagliata lasciata dal solutore; F3 dei 2p chiuso senza filtri).
 
 ---
 
@@ -451,7 +451,49 @@ emendamento `lab/out/aggfull_p4_amend.json` (commit 307e674, dichiarato **prima*
 prima prova con κ ≤ 0,12 a a₀/16 dava c₆ sbagliato di un fattore 3, scartata e dichiarata); il filtro |κ| < 0,8
 dell'emendamento; il solutore che lascia la coda ad alto k (aperto).
 
-## 13. Come rieseguire
+
+## 13. Fase 5: k⁸ o stencil più largo, e il solutore che lasciava la coda
+
+Pre-registrazione `lab/aggfull_p5_prereg.py` → `lab/out/aggfull_p5_prereg.json` (**commit a70a372, prima delle corse**);
+codice `lab/aggfull_p5.py`, `lab/aggfull_drive5.sh`, `lab/aggfull_p5_analyze.py` → `lab/out/aggfull_p5_verdict.json`.
+Soglie vecchie invariate. **3 PASS / 1 FAIL.**
+
+| esame | cosa | risultato | esito |
+|---|---|---|---|
+| M2c | livello 1 Z = 10 con la regola vera dell'agglomeratore (w più piccolo che passa **tutto** il controllo, budget 3·10⁻⁵ compreso, w = 4…7), giudicato su un campione **indipendente** (10 000 punti), semi 1–6 | w scelto 5 / 5 / 6 / 7 / 5 / 5; energia 0,55 / 0,98 / 0,73 / 0,42 / **2,93** / 1,23·10⁻⁵ | **PASS** (6 su 6; il seme 5 è vicino alla soglia) |
+| C1 | solutore pulito: niente parte di parità sbagliata, niente coda ad alto k, residuo < 2·10⁻⁹ | spazzatura 0; peso a κ > 1,6: 1,1·10⁻⁹ (prima 1,9·10⁻⁶); residuo 6·10⁻¹¹ (prima fermo a 1,3·10⁻⁸) | **PASS** |
+| C2 | F3 dei 2p su **tutto il cubo** (senza il filtro della fase 4) col cinetico T, entro 5 % | T: **2p½ −0,32 %, 2p3/2 −1,19 %**; K: +1,1 / +6,1 %; originale ×3,5 / ×13 | **PASS** |
+| C3 | energie del 2p pulito uguali alle vecchie entro 10⁻⁶ | +3,8·10⁻⁶ | **FAIL** (previsione sbagliata: vedi sotto) |
+
+**Cosa è successo, semplice.**
+
+1. **k⁸: fissarlo peggiora, allargare aiuta.** Il k⁸ della regola fine è quello di Dirac (−5k⁸/128) entro 7·10⁻⁵, ma
+   imponendolo lo stencil non è più "domato" (energie negative in fondo al cubo) anche a w = 6: scartato in sviluppo. Va
+   meglio lasciare libero il k⁸ e dare più posti. La differenza vera con la fase 4 è la **regola di scelta**: in fase 4
+   sceglievo "il w più piccolo domato" e poi giudicavo l'energia; l'agglomeratore vero (`auto_level`) sceglie "il w più
+   piccolo che passa tutto il controllo". Con la sua regola i semi difficili prendono w = 6 e 7, e tutti e 6 passano anche
+   su un campione nuovo. Nota onesta: il controllo stesso è rumoroso a ~10⁻⁵ (il seme 5 scelto a 0,9·10⁻⁵ esce 2,9·10⁻⁵
+   sul campione indipendente).
+2. **La coda ad alto k non era fisica né float32: era la parità.** L'operatore del 2p conserva la parità (proiettato,
+   H = P H P), quindi la parte con la parità sbagliata ha energia 0, più alta del 2p (−3,4 eV) ma **non** penalizzata:
+   LOBPCG la lascia nel vettore. Era tutta lì: norma² 3,8·10⁻⁶ (8,8·10⁻⁵ a N = 192), tutta a κ > 1,6, e il residuo
+   "fermo" a 1,3·10⁻⁸ era esattamente |E|·|spazzatura|. Cura (fisica, non un filtro): penalità σ(1 − P) con σ = max T,
+   partenza e risultato proiettati. Ora il residuo scende a 6·10⁻¹¹ e la coda sparisce (1,1·10⁻⁹, quella vera del 2p).
+3. **F3 dei 2p chiuso davvero**: senza filtri, col cinetico T (Taylor fissato + parità) 2p½ −0,32 % e 2p3/2 −1,19 %;
+   il resto cinetico −2,63·10⁻⁵ eV contro −2,64·10⁻⁵ della massa-velocità esatta. Il cinetico K non basta per il 2p3/2
+   (+6,1 %).
+4. **C3 FAIL, per una svista mia**: la spazzatura non porta energia, ma sta nella norma, quindi il vecchio quoziente
+   di Rayleigh era diluito di 3,8·10⁻⁶ (esattamente la sua norma²). Le energie vere del 2p sono quindi 3,8·10⁻⁶ più
+   legate (−3,40226 eV invece di −3,40225): non cambia nessun esito di E2/E2K.
+5. **Gli stati s non hanno spazzatura** (norma 0): la loro coda ad alto k (1s 5,7·10⁻⁶, 2s 7·10⁻⁷) è il cuspide vero.
+   Quindi il resto di F3K per gli s **non** è il solutore: resta il limite del cuspide (lavoro di `nucleo1s_`/atomo
+   ibrido e di `agg2s_`).
+
+**Per gli altri thread:** il difetto del solutore (settore di parità non penalizzato in LOBPCG) vale per qualunque codice
+che proietti H su un settore senza penalizzare il resto: la patch è `aggfull_atom.Atom(..., clean=True)` (proposta, i
+loro file non sono toccati).
+
+## 14. Come rieseguire
 
 ```
 cd lab
@@ -463,6 +505,7 @@ python aggfull_relearn.py                # emendamenti 1-2
 python aggfull_posthoc_kin.py; python aggfull_geo_bz.py
 python aggfull_l1_prereg.py; python aggfull_l1.py run; python aggfull_l1_analyze.py   # fase 3
 python aggfull_p4_prereg.py; python aggfull_p4.py; python aggfull_relearnT.py; ./aggfull_drive4.sh; python aggfull_p4_f3.py; python aggfull_p4_analyze.py   # fase 4
+python aggfull_p5_prereg.py; python aggfull_p5.py; ./aggfull_drive5.sh; python aggfull_p5_analyze.py   # fase 5
 python aggfull_analyze.py; python aggfull_figure.py
 ```
 I campi di Galerkin (`aggfull_field_*.npz`, ~0,5 GB) e i vettori (`.npy`) non sono nel repo: si rifanno.

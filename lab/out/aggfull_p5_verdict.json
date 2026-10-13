@@ -1,0 +1,61 @@
+{
+ "C1": {
+  "e8_2p_c": {
+   "junk": 0.0,
+   "tail": 1.0815343864079107e-09,
+   "residual": 6.30647385653934e-11,
+   "E": -3.4022610388757646
+  },
+  "eK8_2p_c": {
+   "junk": 0.0,
+   "tail": 1.0840157458360008e-09,
+   "residual": 6.135049493886464e-11,
+   "E": -3.402160684819148
+  },
+  "eT8_2p_c": {
+   "junk": 0.0,
+   "tail": 1.0886187590616878e-09,
+   "residual": 1.375075003341975e-10,
+   "E": -3.4021600416887563
+  }
+ },
+ "C2": {
+  "orig": {
+   "R": -0.00016651539562050375,
+   "e12": 2.474018653624156,
+   "e32": 12.372850147207878
+  },
+  "K": {
+   "R": -2.713261100537188e-05,
+   "e12": 0.011438872204305728,
+   "e32": 0.06113709018554281
+  },
+  "T": {
+   "R": -2.6305509434391007e-05,
+   "e12": -0.003171637874705091,
+   "e32": -0.01192699842672329
+  }
+ },
+ "verdict": [
+  [
+   "M2c Z = 10 level (auto_level rule) passes 3e-5 on an independent check, seeds 1-6",
+   true,
+   "w = [5, 5, 6, 7, 5, 5]; independent energy 5.51e-06, 9.75e-06, 7.31e-06, 4.21e-06, 2.93e-05, 1.23e-05"
+  ],
+  [
+   "C1 clean solver: no wrong-parity junk, no high-k tail, residual < 2e-9",
+   true,
+   "e8_2p_c: junk 0.0e+00, tail 1.1e-09, residual 6.3e-11; eK8_2p_c: junk 0.0e+00, tail 1.1e-09, residual 6.1e-11; eT8_2p_c: junk 0.0e+00, tail 1.1e-09, residual 1.4e-10"
+  ],
+  [
+   "C2 F3 of the 2p on the whole cube with the T kinetic within 5 %",
+   true,
+   "orig: 2p1/2 +247.40 %, 2p3/2 +1237.29 % (R -1.6652e-04 eV); K: 2p1/2 +1.14 %, 2p3/2 +6.11 % (R -2.7133e-05 eV); T: 2p1/2 -0.32 %, 2p3/2 -1.19 % (R -2.6306e-05 eV); exact mass-velocity 2p -2.64e-5 eV"
+  ],
+  [
+   "C3 clean 2p energies equal the old within 1e-6",
+   false,
+   "e8_2p: +3.82e-06; eK8_2p: +3.82e-06 (the junk norm^2 3.8e-6 dilutes the old Rayleigh quotient by the same amount)"
+  ]
+ ]
+}
