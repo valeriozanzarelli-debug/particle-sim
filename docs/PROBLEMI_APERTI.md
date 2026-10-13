@@ -13,3 +13,14 @@ Parametri liberi della regola: 0 in tutti. Ramo: `claude/problemi-aperti-56mnej`
 | Reticolo vs Lorentz | `LIMITI_LORENTZ.md` | dispersione di ZIGZAG.md, formule chiuse a 1e-15 | niente termine lineare (lo uccide il tick palindromico), niente birifrangenza a tutti gli ordini; a ≤ 4,8e-31 m ≈ 3e4 l_P dai fotoni PeV di LHAASO | reticolo del Laboratorio escluso di ~17 ordini: il reticolo del calcolo non può essere quello fisico; rischio radiativo (Collins 2004) non calcolato |
 
 Figure: `lab/out/rifl_figura.png`, `tunnel_figura.png`, `supercrit_figura.png`, `assist_figura.png`, `lv_figure.png`.
+
+## Giri 2 e 3 (13/10/2026)
+
+| Studio | Documento | Validazione | Nuovo (piccolo, controllato) | Limite trovato |
+|---|---|---|---|---|
+| Protocollo per il tempo proprio nel tunnel | `TUNNEL_PROTOCOLLO.md` | lettura con ancella = previsione a 3e-6; Dirac continuo a 6,5e-4 | formule esatte del reticolo (pendenza 1/cos θ, rapporto tan(εa)/tan θ); cammino in fibra: ~1200 trasmessi per punto per 5σ | l'idea di orologio di massa non è nostra (Schach–Giese 2024); il rumore (≤ 0,003 rad/passo) conta più della statistica; 7 FAIL su 21 |
+| Causa del tuffo finto a Z* = 131,4 | `ZSTAR.md` | ritrova β(Z=60) = 0,10301 di nucleo1s_ | formula senza parametri Z* = 131,3614 (regola 131,3612); tuffi finti previsti e confermati anche per p3/2 (206,0) e d3/2 (42,05) | Z* è un artefatto della condizione al centro (varianti da 95 a 130); rimedio: celle a (i+1)a o (i+√3/2)a, poi Z_cr → 137 solo logaritmicamente; film Z=200 esportato in `lab/out/zstar_film.json` |
+| Tempi di arrivo spin 1/2 | `TEMPI_ARRIVO.md` | flusso = esatto; ABR di Jozani–Tumulka 0,965 vs 96 % | in 2-D il termine di spin nasce da solo (taglio 7,215 vs 7,223); la cella-rivelatore della regola = ABCD ideale di Tumulka (κ = 2mc/ħ) | nessun rivelatore lineare e simmetrico vede lo spin; τ_max di Das–Dürr −3,2 % (E1 FAIL); niente 3-D cilindrico per doppioni e sottoreticoli |
+| Dilatazione quantistica del tempo | `DILATAZIONE_QUANTISTICA.md` | Smith–Ahmadi entro 1,8 % (lento), continuo esatto 4e-4 | ritmo dell'orologio √(1−v²)·cos(ka); correzione nulla a p = mc/√2 | per particella libera la regola non può differire dalla letteratura; nessuna scoperta |
+| Violazione di Lorentz dai loop | `LORENTZ_LOOP.md` | quadro di Collins et al. 2004 | simmetria vera della regola = D4h con asse y (16/48), ordine a giro = T_h | con la fase 3 di Debiti: regola congelata esclusa come reticolo dell'universo per qualunque a (anisotropia 1e-4 vs 1e-21); ordine a giro escluso con riserva (gap +0,044 α vs luce nuda) |
+| Velocità protetta (problema di Collins) | `VELOCITA_PROTETTA.md` | ω = 2ω_W(k/2) di Bisio et al. | la luce della regola è esattamente una coppia di walker di Weyl a k/2 (1,3e-15); c vestita dell'elettrone indipendente dall'impulso | nessun meccanismo noto protegge c_e = c_γ nella regola; il fotone composto eredita c solo al livello delle autoenergie (gap ≤ 2,5e-4 α, ne serve 1e-18) |
