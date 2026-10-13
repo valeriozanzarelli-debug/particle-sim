@@ -1,0 +1,35 @@
+"""aggfull_p5_prereg.py - pre-registration of PHASE 5 of AGGLOMERATORE COMPLETO (written after the development runs below,
+BEFORE the production runs aggfull_p5.py and aggfull_drive5.sh). Old thresholds unchanged. Writes lab/out/aggfull_p5_prereg.json"""
+import json, os, subprocess, datetime
+OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "out")
+P = {
+ "written": datetime.datetime.now().isoformat(timespec="seconds"),
+ "git_head": subprocess.check_output(["git", "rev-parse", "HEAD"]).decode().strip(),
+ "asked": "(1) the k^8-and-beyond error keeping seeds 3 and 4 above 3e-5: pin k^8 or widen the stencil, exam M2 on all 6 "
+          "seeds; (2) the solver leaving the high-k tail (cause of N1 and of the rest of F3K)",
+ "development (declared)": [
+   "k^8 read off the fine walk: c8 = Dirac (-5/128 k^8) x 1.00007 (two kappa ranges agree 3e-5)",
+   "T8 (k^8 pinned too) on dev seeds 11-14: NOT tame at w = 5 and 6 (bz 0.5-1.1, negative motion energies): rejected",
+   "T6 at w = 6 on dev seeds 11-14: energy 1.2-4.8e-6 (w = 5: 2.5-8.9e-6), tame: widening helps, k^8 pinning does not",
+   "phase 4 chose w as 'smallest TAME' and then judged the energy; the agglomerator's own rule (auto_level) is 'smallest w "
+   "passing the WHOLE check, energy budget included': phase 5 uses that rule, and judges on an INDEPENDENT check sample",
+   "solver: the 2p high-k tail is wrong-parity junk: H = P H P annihilates the wrong sector (eigenvalue 0 > E), LOBPCG "
+   "leaves it in the Ritz vector; junk norm^2 3.8e-6 (N = 256) and 8.8e-5 (N = 192), all of the weight at kappa > 1.6; "
+   "after projection the 2p weight at kappa > 1.6 is 1.1e-9. The residual floor 1.3e-8 = |E| |junk| (6.7e-6 x 2e-3). "
+   "The s vectors have NO junk (0): their high-k weight (1s 5.7e-6, 2s 7e-7) is physical (the cusp), so the s-state F3K "
+   "FAIL is NOT a solver effect (stays with the cusp / the hybrid atom of nucleo1s_)",
+ ],
+ "cure (2)": "'clean' solver: A = H + sigma (1 - P), sigma = max T (the wrong sector goes to the top of the spectrum), start "
+             "and result projected on the parity sector. Physical, not a filter: the sector is the symmetry of the state.",
+ "exams": {
+   "M2c": "Z = 10 level-1 with T6, w by the auto_level rule among 4..7: for ALL seeds 1..6 a level is found AND it passes the "
+          "3e-5 check (energy, rest, packet, bz, neg) on an independent sample (seed+200, nk = 10000)",
+   "C1": "clean solver, 2p at a0/8 (N = 256), original, K and T kinetics: wrong-parity norm^2 <= 1e-20 and weight at "
+         "kappa > 1.6 <= 1e-8; residual below 2e-9 (the old floor 1.3e-8 gone)",
+   "C2": "F3 of the 2p (2p1/2 and 2p3/2) on the WHOLE cube (no kappa filter, as the original F3) within 5 % with the T "
+         "kinetic; original and K reported",
+   "C3": "energies of the clean 2p equal the old ones within 1e-6 relative (the junk carried no energy)",
+ },
+}
+json.dump(P, open(os.path.join(OUT, "aggfull_p5_prereg.json"), "w"), indent=1)
+print("written")

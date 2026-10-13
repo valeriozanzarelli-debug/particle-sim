@@ -39,13 +39,14 @@ JOBS = {
     "ca8_1s": (512, 256, "1s", False, None, "cellavg"),                 # the old restriction in the large box
     "ca8_2s": (512, 256, "2s", False, "ca8_1s", "cellavg"),
     "e8_2p_N192": (512, 192, "2p", False, None, "learned"),           # phase 4: float64 field (N <= 192), box +-12 a0
+    "e8_2p_c": (512, 256, "2p", False, None, "learned"),               # phase 5: 'clean' solver (parity penalty + projection)
 }
 if DEV:      # development: same jobs on small grids (pipeline test only)
     DN = int(os.environ.get("AGGFULL_DEVN", "96"))
     JOBS = {k: (v[0], min(v[1], DN)) + v[2:] for k, v in JOBS.items()}
-PERT = {"q16_1s": "e16_1s", "q8_1s": "e8_1s", "q8_2s": "e8_2s", "q8_2p": "e8_2p", "q8_2p_N192": "e8_2p_N192"}
+PERT = {"q16_1s": "e16_1s", "q8_1s": "e8_1s", "q8_2s": "e8_2s", "q8_2p": "e8_2p", "q8_2p_N192": "e8_2p_N192", "q8_2p_c": "e8_2p_c"}
 for _L in "KT":
-    for _j in ("e16_1s", "p16_1s", "e8_1s", "e8_2s", "e8_2p", "p8_1s", "p8_2s", "p8_2p", "e8_2p_N192"):
+    for _j in ("e16_1s", "p16_1s", "e8_1s", "e8_2s", "e8_2p", "p8_1s", "p8_2s", "p8_2p", "e8_2p_N192", "e8_2p_c"):
         _v = JOBS[_j]
         JOBS[_j[0] + _L + _j[1:]] = _v[:4] + ((_v[4][0] + _L + _v[4][1:]) if _v[4] else None,) + _v[5:]
     for _q, _s in [x for x in list(PERT.items()) if x[0][1] not in "KT"]:
@@ -131,7 +132,7 @@ def run_job(job):
     gam = g0.real if restr == "learned" else 1.0
     info["gamma0"] = [g0.real, g0.imag]
     f = field(N, h, restr)
-    at = aa.Atom(T, f, gamma0=gam, real=True, sym="oddz" if kind == "2p" else "even")
+    at = aa.Atom(T, f, gamma0=gam, real=True, sym="oddz" if kind == "2p" else "even", clean=job.endswith("_c"))
     Y = None
     if dep is not None:
         if not res.get(dep, {}).get("converged"):
@@ -139,6 +140,9 @@ def run_job(job):
             return
         Y = np.load(vecfile(dep))[:, None]
     warm = vecfile(job.replace(KL, "", 1)) if KMODE else None      # K jobs start from the converged original vector
+    if job.endswith("_c") and not os.path.exists(vecfile(job)):    # phase 5: start from the same job without '_c' (projected)
+        w2 = vecfile(job[:-2])
+        warm = w2 if os.path.exists(w2) else warm
     x0 = (np.load(vecfile(job)) if os.path.exists(vecfile(job)) else
           np.load(warm) if warm and os.path.exists(warm) else aa.guess(f.x, kind))
     budget = 560 - (time.time() - t0)
