@@ -65,7 +65,7 @@ segni sbagliati del nucleo dei camminatori, pezzo k⁴ della banda, parità).
    limiti "a palline" verificati (salti ≥ 4,3 λ_C per il k⁶; nessuna regola positiva relativistica con celle > √3 λ_C);
    F3 dei 2p **chiuso con il cinetico T** (−0,7 % e −3,0 %), con un emendamento dichiarato sulla coda finta ad alto k.
 
-**Esami: 16 PASS / 3 FAIL** (fase 2 + emendamenti), **5 PASS / 1 FAIL** (fase 3), **3 PASS / 2 FAIL** (fase 4), **3 PASS / 1 FAIL** (fase 5, §13: livello Z = 10 entro 3·10⁻⁵ su 6 semi su 6; la coda ad alto k era parità sbagliata lasciata dal solutore; F3 dei 2p chiuso senza filtri).
+**Esami: 16 PASS / 3 FAIL** (fase 2 + emendamenti), **5 PASS / 1 FAIL** (fase 3), **3 PASS / 2 FAIL** (fase 4), **3 PASS / 1 FAIL** (fase 5, §13: livello Z = 10 entro 3·10⁻⁵ su 6 semi su 6; la coda ad alto k era parità sbagliata lasciata dal solutore; F3 dei 2p chiuso senza filtri), **6 PASS / 3 FAIL** (fase 6, §14: l'accoppiamento campo–moto imparato nella lingua della componente grande è quello di Dirac e nella colla fa esattamente il Darwin spalmato esterno, ma il plateau −10 % della 1s di nucleo1s **non** viene da lì).
 
 ---
 
@@ -493,7 +493,82 @@ Soglie vecchie invariate. **3 PASS / 1 FAIL.**
 che proietti H su un settore senza penalizzare il resto: la patch è `aggfull_atom.Atom(..., clean=True)` (proposta, i
 loro file non sono toccati).
 
-## 14. Come rieseguire
+## 14. Fase 6: il livello grosso imparato col campo acceso, nella lingua della componente grande
+
+Pre-registrazione `lab/aggfull_p6_prereg.py` → `lab/out/aggfull_p6_prereg.json` (**commit fe3637c, prima delle corse**;
+corse di sviluppo dichiarate lì). Codice `lab/aggfull_p6.py` (impara), `lab/aggfull_p6_atom.py` (atomo 3-D),
+`lab/aggfull_p6_glue.py` (colla, importa `nucleo1s_f8_core.py` **in sola lettura**), `lab/aggfull_drive6.sh`,
+`lab/aggfull_p6_analyze.py` → `lab/out/aggfull_p6_verdict.json`, figura `lab/out/aggfull_p6_figure.png`.
+**6 PASS / 3 FAIL** (i 3 FAIL erano previsti per iscritto).
+
+**Il problema, semplice.** NUCLEO_1S fase 8 attacca la sua catena fine (che parla la lingua della **componente grande**
+g della pallina zig-zag) al mio livello T (banda libera + potenziale nudo). La catena vede la relatività "alla Dirac";
+il livello T no: gli manca l'accoppiamento campo–moto. Quello della fase 2 c'era, ma nella lingua FW (descrittore
+unitario), che è un'altra lingua. Qui la **stessa** regola fine col campo acceso viene letta attraverso la componente
+grande stessa: ampiezza grossa a(k) = Φ(k)·c(k), con Φ = (U_L + U_R)/√2 della banda positiva. Allora il livello grosso
+è H_LC = Φ H_FW Φ⁻¹ (stessi autovalori, non hermitiano) e l'accoppiamento è Γ_LC(k′,k) = Φ(k′) Γ_FW(k′,k) Φ(k)⁻¹.
+Φ(k) **si legge** dalla regola fine, non si mette.
+
+| esame | cosa | risultato | esito |
+|---|---|---|---|
+| L1 | coefficienti imparati Γ_LC = g₀ + a k′² + b k² + c k′·k + i g_so σ·(k′×k) contro Dirac (−1/4, 0, +1/4, +1/4), entro 0,005 | a/16: a −0,25020, b +0,00004, c +0,25043, g_so +0,25013; a/8: a −0,25012, b −0,00001, c +0,24998, g_so +0,25074 | **PASS** |
+| L2 | ampiezza della componente grande N(k) = 1 + n₂k² …: n₂ = −1/8 entro 1 %, parte non scalare ≤ 10⁻⁶ | n₂ = −0,125046 / −0,125047; non scalare 10⁻¹⁵; contro √((E+1)/2E) 2·10⁻⁷ | **PASS** |
+| L3 | parti immaginarie di a e b = ±θ/4 (dove nel tick fine agisce il campo: una rietichettatura del tempo, unitaria) | +0,008365 / −0,008366 (θ/4 = 0,008364) | **PASS** |
+| A1 | 3-D a a₀/8, cinetico T + Γ_LC: α⁴ di 2p½ e 2p3/2 entro 5 % | **−0,34 % / −1,13 %** | **PASS** |
+| A2 | 3-D: α⁴ di 1s (a₀/16, a₀/8) e 2s (a₀/8) entro 5 % | 1s a₀/16 +37 %, 1s a₀/8 +268 %, 2s +110 % (Darwin −6 / −12 / −12 %, massa-velocità +3 / +44 / +35 %) | **FAIL (previsto: cuspide)** |
+| A3 | la lingua non conta: |α⁴(LC) − α⁴(FW)| sugli stessi vettori ≤ 1 % della massa-velocità | 0,01–0,05 % | **PASS** |
+| G1 | colla: il cambio portato dal termine imparato = la parte **esterna** del Darwin "spalmato" (formula: 1s 4e^(−2x), 2s 1,6(1−x/2)²e^(−x), x = R Z/a₀, R = (J0−½) celle), entro 30 % | rapporti 1,10 (1s, tutti i J0) e 1,13–1,24 (2s) | **PASS** |
+| G2 | col termine imparato il plateau di −10 % sparisce (|err| ≤ 5 % a J0 ≥ 24) | 1s **−10,5 %** (uguale a prima); 2s −2,9 … −4,1 % (prima −4,6 … −6,7 %) | **FAIL (previsto)** |
+| G3 | J0 = 3 (H1 di nucleo1s) entro 5 % | 1s +332 % (prima +94 %), 2s +124 % (prima +30 %) | **FAIL (previsto)** |
+
+**Cosa vuol dire, semplice.**
+
+1. **L'accoppiamento campo–moto nella lingua della catena esce dai dati, ed è quello di Dirac**: nella lingua della
+   componente grande il potenziale grosso diventa V + ¼(∇²V) + ¼∇V·∇ (+ spin-orbita): un pezzo di contatto al nucleo e
+   un pezzo **spalmato** ¼∇V·∇ (che vale −1 Darwin in tutto e si cancella con metà del contatto). Lo stesso Darwin della
+   fase 2, scritto in un'altra lingua: sugli stessi vettori le due lingue danno lo stesso α⁴ entro 0,05 % (A3).
+2. **Nella colla il termine fa esattamente quello che deve** (G1): fuori dalla catena c'è solo il pezzo spalmato, e il
+   suo peso è il Darwin moltiplicato per ψ(R)²/ψ(0)², cioè ~e^(−2R). Misurato/previsto = 1,10 per la 1s a ogni J0.
+3. **Ma il plateau di −10 % della 1s non è questo** (G2 FAIL). Il pezzo che mancava al livello T pesa 4e^(−2x): 50 % a
+   J0 = 8, 1 % a J0 = 24, 10⁻⁷ a J0 = 64. Il plateau è identico con e senza il termine (−10,48 % / −10,48 % a J0 = 64):
+   la sua causa sta **dentro** la catena o nella colla stessa, non nel livello grosso. La diagnosi di NUCLEO_1S §18
+   ("niente Darwin nella lingua della componente grande") è giusta per J0 piccoli e medi (lì il termine sposta di decine
+   di %), ma non spiega il plateau. Per il 2s invece il termine aiuta: il plateau si stabilizza a −4,1 % (prima ballava
+   fra −4,6 e −6,7 %).
+4. **A J0 piccoli il termine peggiora** (G3): la colla senza termine sbagliava già in eccesso (+94 %), e il termine giusto
+   aggiunge altro +240 %. Vuol dire che a J0 piccoli c'è un altro errore grande, **di segno opposto**, che prima
+   nascondeva in parte il Darwin mancante (due errori che si compensano, come il vecchio 2s). Con il termine, l'errore
+   rimasto (senza più compensazioni) è: +332 % (J0 = 3), +54 % (8), −4 % (12), −13 % (16), −10,5 % (≥ 32).
+5. **Indizio (non giudicato)**: per la 1s il termine misurato è 1,10 volte la formula a **ogni** J0, e il plateau è
+   −10,5 %. Lo stesso 10 % in due posti fa pensare a qualcosa che scala la 1s nella differenza Z = 1 / Z = 2 (per esempio
+   la catena interna, che ha celle fisse in λ_C e quindi non è alla stessa geometria in a₀/Z per i due Z). Da verificare
+   da `nucleo1s_`; non ho toccato i loro file.
+6. **Gli s a livello grosso da solo restano limitati dal cuspide** (A2, previsto): il Darwin esce −6 % (a₀/16) e −12 %
+   (a₀/8) come in fase 5, e la massa-velocità ⟨−p⁴/8⟩ della 1s è ancora più sensibile (+44 % a a₀/8): gli α⁴ degli s
+   sono piccole differenze di due numeri grandi, e l'errore esplode. Per gli s serve la catena vicino al nucleo; per i 2p
+   il livello grosso basta (A1 PASS anche nella nuova lingua).
+
+**Debiti nuovi (dichiarati).** (#d6a) Nella colla uso i tre coefficienti imparati (a, b, c) tramite la loro forma a
+piccoli k, con la base di operatori (V p², ∇V·∇, ∇²V) e una derivata radiale di ordine 8 scelte da me; con p² = 2m·K del
+livello T. Una prima versione con i prodotti di reticolo P2·V e V·P2 è stata **scartata in sviluppo**: la V·u riflessa
+dispari salta a r = 0 e il "delta di reticolo" lascia code 1/n² in ogni riga (segno sbagliato lontano). (#d6b) La parte
+immaginaria ±θ/4 (convenzione del tempo nel tick fine) è tolta: la catena legge la soluzione al punto palindromo (reale),
+la stessa convenzione. (#d6c) Il pezzo di contatto (−a)∇²V non è aggiunto fuori: vive dentro la catena. (#d6d) La
+correzione del cuspide di `Glue8` (τ_c) resta quella non relativistica di nucleo1s (l'errore del termine nuovo sul cuspide
+è < 10⁻⁹ relativo per le righe j ≥ 5, verificato).
+
+**Manopole.** Γ_LC: stencil a stella, 7×7 siti × 2×2 complessi non hermitiani = 392 numeri reali per livello (2 livelli),
+scelti dalla stessa regola automatica della fase 2 (budget invariati). Nella colla entrano 4 numeri letti dallo stencil
+(g₀, a, b, c); nessun numero fittato sull'atomo.
+
+**Parità.** La cura **non tocca la parità**: il livello T resta con G₋ⱼ = Gⱼ; Γ_LC è imparato senza vincolo di parità e
+la sua parte dispari misurata è 2·10⁻⁸ (a₀/16) e 6·10⁻⁹ (a₀/8).
+
+**Patch proposta per `nucleo1s_` (non applicata):** sostituire `Glue8` con `aggfull_p6_glue.GlueLC(c, Z, J0, rmax,
+lc_coeffs(B))` (aggiunge il termine imparato fuori dalla catena), e cercare il plateau −10,5 % della 1s dentro la catena
+(per esempio: stessa geometria in a₀/Z anche per le celle della catena, cioè θ scalato con 1/Z, o più livelli di zoom).
+
+## 15. Come rieseguire
 
 ```
 cd lab
@@ -506,6 +581,7 @@ python aggfull_posthoc_kin.py; python aggfull_geo_bz.py
 python aggfull_l1_prereg.py; python aggfull_l1.py run; python aggfull_l1_analyze.py   # fase 3
 python aggfull_p4_prereg.py; python aggfull_p4.py; python aggfull_relearnT.py; ./aggfull_drive4.sh; python aggfull_p4_f3.py; python aggfull_p4_analyze.py   # fase 4
 python aggfull_p5_prereg.py; python aggfull_p5.py; ./aggfull_drive5.sh; python aggfull_p5_analyze.py   # fase 5
+python aggfull_p6_prereg.py; python aggfull_p6.py learn; ./aggfull_drive6.sh; python aggfull_p6_atom.py eT8_1s eT8_2s eT16_1s eT8_2p_c; python aggfull_p6_glue.py run; python aggfull_p6_analyze.py; python aggfull_p6_figure.py   # fase 6
 python aggfull_analyze.py; python aggfull_figure.py
 ```
 I campi di Galerkin (`aggfull_field_*.npz`, ~0,5 GB) e i vettori (`.npy`) non sono nel repo: si rifanno.
