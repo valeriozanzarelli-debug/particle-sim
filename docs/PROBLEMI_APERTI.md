@@ -24,3 +24,11 @@ Figure: `lab/out/rifl_figura.png`, `tunnel_figura.png`, `supercrit_figura.png`, 
 | Dilatazione quantistica del tempo | `DILATAZIONE_QUANTISTICA.md` | Smith–Ahmadi entro 1,8 % (lento), continuo esatto 4e-4 | ritmo dell'orologio √(1−v²)·cos(ka); correzione nulla a p = mc/√2 | per particella libera la regola non può differire dalla letteratura; nessuna scoperta |
 | Violazione di Lorentz dai loop | `LORENTZ_LOOP.md` | quadro di Collins et al. 2004 | simmetria vera della regola = D4h con asse y (16/48), ordine a giro = T_h | con la fase 3 di Debiti: regola congelata esclusa come reticolo dell'universo per qualunque a (anisotropia 1e-4 vs 1e-21); ordine a giro escluso con riserva (gap +0,044 α vs luce nuda) |
 | Velocità protetta (problema di Collins) | `VELOCITA_PROTETTA.md` | ω = 2ω_W(k/2) di Bisio et al. | la luce della regola è esattamente una coppia di walker di Weyl a k/2 (1,3e-15); c vestita dell'elettrone indipendente dall'impulso | nessun meccanismo noto protegge c_e = c_γ nella regola; il fotone composto eredita c solo al livello delle autoenergie (gap ≤ 2,5e-4 α, ne serve 1e-18) |
+
+## Giro 4: doppioni e FW1 (13/10/2026)
+
+| Studio | Documento | Risultato |
+|---|---|---|
+| Regola senza doppioni | `SENZA_DOPPIONI.md` | teorema: nessuna regola fatta di pezzi a una direzione evita i gemelli (W₃ = 0, anche BCC/FCC); proposta FW1 = congelata + un Wilson ritorto (h = 0,4, debito) sui tick pari: gemelli ≥ 0,37/a, coppie 0,99 di una specie senza proiettore; T rotta |
+| FW1, vuoto senza proiettore | `FW1_VUOTO.md` | mare intero: 2α/3π a −0,14 %, Uehling −0,2/−0,3 %; congelata a mare intero: 4 specie meno 4 coni (validazione del problema); luce vestita +0,043 α e birifrangente (Collins non curato); FW1 rompe x↔z |
+| FW1, due righe, battimento, atomo 3-D | `FW1_ATOMO.md` | le due righe a θ = 0,5 sono la coppia di spin spaccata dalla T rotta (∝ θ^3,3); una sola riga per θ ≤ 1/3; battimento congelata ritrovato (0,84037/0,88627/0,89930/0,89960); atomo 3-D senza toppe: FW1 un solo 1s al ≥ 99,5 % nella valle vera, errore tra −2,5 % e +2,7 % (scatola); costo ×2,1–2,4 |
