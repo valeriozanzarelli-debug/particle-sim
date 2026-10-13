@@ -1,0 +1,132 @@
+"""qg_prereg.py - writes lab/out/qg_prereg.json (QUARK_GLUONI study). Committed BEFORE any production run."""
+import json
+import os
+
+OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "out", "qg_prereg.json")
+
+P = {
+    "studio": "QUARK_GLUONI (prefisso qg_)",
+    "data": "2026-10-13",
+    "regole": "niente fake: l'unico ingresso della parte 1 e' beta = 6/g^2; della parte 2 le condizioni iniziali "
+              "(ampiezza, colore, forma dei pacchetti) dichiarate qui. I numeri di letteratura sono SOLO esami.",
+    "pilota": "PRIMA di questa pre-registrazione: una corsa pilota della parte 1 (tag 'pilota', stessa fisica, "
+              "beta 5.7, 12^4, 40 misure) per stimare il rumore e il costo, e una prova della parte 2 su 56x24x24 "
+              "(ampiezze 0.005, 0.05, 1.0) per controllare il codice. I dati pilota NON entrano nei voti. Quello che "
+              "il pilota ha mostrato e' scritto in 'pilota_visto'.",
+    "pilota_visto": ("parte 1 (40 misure, NON votate): placchetta 0.5491(3); a*sqrt(sigma) = 0.366(13), cioe' al bordo della "
+                     "tolleranza dell'esame B (lo dichiariamo: il metodo non viene cambiato dopo averlo visto); R_Y = "
+                     "1.26(1) a d=3 T=2, 1.28(4) a d=3 T=4, 1.33(1) a d=4 T=2, 1.5(4) a d=4 T=4 (troppo rumoroso con "
+                     "40 misure: per questo 600). Costo ~10-17 s a misura. Parte 2 (56x24x24, t=30): D(0.05) = 5.3e-4, "
+                     "D(1.0) = 0.205, D(1.0, stesso colore) = 0.029; residuo di Gauss finale ||G||/||E|| = 1.7e-6, "
+                     "1.7e-5, 3.5e-4, 2e-15. Le soglie G3-G5 erano gia' scritte in questo file prima di vedere i "
+                     "numeri di ampiezza 1.0; la soglia G1 e' stata riscritta DOPO aver visto il residuo iniziale "
+                     "(prima diceva <= 1e-6 assoluto, che il pilota violava per costruzione delle condizioni iniziali)."),
+    "parte1": {
+        "cosa": "SU(3) pura di gauge, 3+1 D, tempo immaginario, azione di Wilson, heat bath Cabibbo-Marinari "
+                "(Kennedy-Pendleton) + over-relaxation; tre quark statici = loop di Wilson barionico "
+                "(giunzione nell'origine, quark in d*e_x, d*e_y, d*e_z: triangolo equilatero di lato d*sqrt2, "
+                "contrazione eps eps = singoletto di colore), correlato con il campo delle placchette sulla fetta "
+                "di tempo di mezzo.",
+        "config": {
+            "T": 12, "L": 12, "beta": 5.7, "seed": 2026, "therm": 150, "sweep_or": 3, "between": 2,
+            "n_meas": 600,
+            "ape4_alpha": 0.5, "ape4_n": 2, "apes_alpha": 0.5, "apes_n": 12,
+            "Rmax": 6, "Tmax": 5, "T_pot": 3, "R_fit": [2, 3, 4, 5, 6],
+            "d_list": [2, 3, 4], "Tb_list": [1, 2, 3, 4, 5], "corr_d": [3, 4], "corr_T": [2, 4]
+        },
+        "manopole_fisiche": {"beta": 5.7},
+        "manopole_di_misura": ["ape4 (2 passi, alpha 0.5, in 4-D: campo di misura e linee di tempo)",
+                               "apes (12 passi, alpha 0.5, solo spaziale: linee spaziali dei quark)",
+                               "T del loop (2, 4) e d (3, 4)", "proiezione su SU(3) = Gram-Schmidt"],
+        "analisi": "jackknife su 20 blocchi; le prime 'therm' unita' scartate; nessuna misura scartata dopo.",
+        "esami": {
+            "A_placchetta": {"cosa": "<P> = <Re tr U_P>/3 a beta 5.7 (campo non lisciato)",
+                             "letteratura": 0.5492, "tolleranza_assoluta": 0.002,
+                             "fonte": "valore standard di SU(3) Wilson a beta 5.7 (es. Edwards-Heller-Klassen 1998, "
+                                      "liste di letteratura: 0.549); controllo di correttezza del codice"},
+            "B_tensione": {"cosa": "a*sqrt(sigma) dal fit di Cornell V0 - alpha/R + sigma R su R = 2..6, con "
+                                   "V(R) = ln W(R,3)/W(R,4) (linee spaziali lisciate)",
+                           "letteratura": 0.40, "tolleranza_relativa": 0.10,
+                           "fonte": "r0/a(5.7) = 2.922 (Edwards-Heller-Klassen 1998) con r0*sqrt(sigma) = 1.16-1.18 "
+                                    "-> 0.397-0.404; misure dirette anni '90 ~0.40-0.41",
+                           "voto": "PASS se |noi - 0.40| <= 0.04 + 2 errori"},
+            "C_Y_contro_Delta": {
+                "cosa": "f = (Delta p_t + Delta p_s)/2 = meno la variazione della densita' d'azione (positivo dove "
+                        "le fluttuazioni del vuoto sono espulse = dove c'e' il tubo), sulla fetta di mezzo del loop "
+                        "T = 4, triangolo d = 4 (lato 5.66 a). R_Y = f(centroide = punto di Steiner) / media f(3 "
+                        "punti medi dei lati) (interpolazione trilineare).",
+                "voto": "Y PASS se R_Y - 1 > 2 errori E f(centroide) > 3 errori. Delta (FAIL della Y) se 1 - R_Y > 2 "
+                        "errori. Altrimenti NON CONCLUSO (= FAIL dichiarato, si mostra quello che si vede).",
+                "nota_operatore": "le linee spaziali del loop vanno dall'origine lungo gli assi: distano 0.47 d dal "
+                                  "centroide e 0.50 d dai punti medi, quindi l'operatore non favorisce ne' Y ne' Delta "
+                                  "nel confronto C. Diagnostica (non votata): f(origine)/f(centroide).",
+                "anche_riportati_non_votati": "d = 3 (lato 4.24 a), T = 2; densita' 'energia' eps = Delta p_t - Delta p_s"
+            },
+            "D_energia_3Q": {"cosa": "E_3Q(d) = ln W3Q(T)/W3Q(T+1) a T = 3 per d = 2, 3, 4: deve crescere con d; "
+                                      "pendenza confrontata con sigma * dL_Y (L_Y = sqrt3 * lato = sqrt6 d)",
+                             "voto": "solo riportato (non votato)"}
+        }
+    },
+    "parte2": {
+        "cosa": "Yang-Mills SU(3) CLASSICO in tempo reale su reticolo 3-D (Hamiltoniana, gauge temporale, "
+                "leapfrog). Due pacchetti d'onda di gluone (soluzioni lineari trasverse) immersi lungo un generatore "
+                "di colore, che si vengono incontro lungo x.",
+        "comune": {"lam": 12, "sig_par": 3.5, "sig_perp": 4.0, "dt": 0.1, "diag_every": 20, "eps_floor": 0.02,
+                   "fid_cell": 8},
+        "corse": {
+            "rif":   {"shape": [56, 24, 24], "amp": 0.005, "steps": 300,
+                      "pacchetti": [{"centre": [14, 12, 12], "pol": [0, 1, 0], "direction": 1, "gen": 0},
+                                    {"centre": [42, 12, 12], "pol": [0, 0, 1], "direction": -1, "gen": 1}]},
+            "a002":  {"shape": [56, 24, 24], "amp": 0.02, "steps": 300, "come": "rif"},
+            "a005":  {"shape": [56, 24, 24], "amp": 0.05, "steps": 300, "come": "rif"},
+            "a01":   {"shape": [56, 24, 24], "amp": 0.1, "steps": 300, "come": "rif"},
+            "a03":   {"shape": [56, 24, 24], "amp": 0.3, "steps": 300, "come": "rif"},
+            "a1":    {"shape": [56, 24, 24], "amp": 1.0, "steps": 300, "come": "rif"},
+            "a1_stesso": {"shape": [56, 24, 24], "amp": 1.0, "steps": 300, "come": "rif", "gen2": 0},
+            "rif_stesso": {"shape": [56, 24, 24], "amp": 0.005, "steps": 300, "come": "rif", "gen2": 0},
+            "video_piccolo": {"shape": [96, 48, 48], "amp": 0.05, "steps": 560, "video": True, "n_balls": 160000,
+                              "frame_every": 4,
+                              "pacchetti": [{"centre": [28, 24, 24], "pol": [0, 1, 0], "direction": 1, "gen": 0},
+                                            {"centre": [68, 24, 24], "pol": [0, 0, 1], "direction": -1, "gen": 1}]},
+            "video_grande": {"shape": [96, 48, 48], "amp": 1.0, "steps": 560, "video": True, "n_balls": 160000,
+                             "frame_every": 4, "come": "video_piccolo"}
+        },
+        "esami": {
+            "G1_gauss": {"cosa": "legge di Gauss G(x) = 0. Il residuo INIZIALE non e' zero: le code dei due "
+                                  "pacchetti (rese lunghe dalla proiezione trasversa) si toccano e i due colori non "
+                                  "commutano. Il pilota l'ha misurato: ||G||/||E|| = 1.7e-6 (amp 0.005), 1.7e-5 "
+                                  "(amp 0.05), cresce come amp. Esame: (a) residuo relativo iniziale <= 1e-3; "
+                                  "(b) CONSERVAZIONE: max_t | ||G(t)|| - ||G(0)|| | / ||G(0)|| <= 1e-3",
+                         "voto": "PASS se (a) e (b) in tutte le corse"},
+            "G2_energia": {"cosa": "|H(t) - H(0)| / H(0) (E ricostruito al tempo intero)",
+                           "voto": "PASS se <= 1e-3 a tutti i tempi di tutte le corse"},
+            "G3_lineare": {"cosa": "D(amp) = sum|eps_amp - (amp/0.005)^2 eps_rif| / sum eps_amp al tempo finale "
+                                   "(t = 30, pacchetti gia' incrociati), colori diversi (T^1 polarizzato y, T^2 "
+                                   "polarizzato z)",
+                           "voto": "PASS se D(0.02) <= 0.01 (piccola ampiezza: si attraversano come la luce)"},
+            "G4_non_lineare": {"cosa": "stesso D a grande ampiezza",
+                               "voto": "PASS se D(1.0) >= 0.10 (si urtano: energia spostata altrove)"},
+            "G5_colore": {"cosa": "controllo: stessa ampiezza 1.0 ma STESSO colore (T^1 e T^1: commutano, "
+                                  "abeliano). Riferimento rif_stesso.",
+                          "voto": "PASS se D_stesso(1.0) <= D(1.0)/3: l'urto viene dal colore (non commutativita'), "
+                                  "non dal reticolo"},
+            "G6_scala": {"cosa": "pendenza di log D contro log amp su amp = 0.02, 0.05, 0.1",
+                         "previsione": "2 (il primo campo diffuso sta nel colore T^3 = [T^1,T^2], ortogonale ai due "
+                                       "di partenza: niente termine incrociato, quindi D ~ amp^2)",
+                         "voto": "PASS se 1.6 <= pendenza <= 2.4"},
+            "G7_palline": {"cosa": "fedelta' delle palline del video: correlazione di Pearson fra palline per "
+                                   "cella 8^3 e energia del campo per cella",
+                           "voto": "PASS se r >= 0.9 in tutti i fotogrammi delle due corse video"}
+        }
+    },
+    "grafica": "solo palline-bagliore (lab/qg_bagliori.py, stessa ricetta di vz_render): niente linee, scie, tubi. "
+               "Parte 1: palline campionate con densita' proporzionale a max(f, 0) interpolato (spline cubica) dal "
+               "reticolo 12^3, tre quark = tre bagliori forti nelle posizioni di ingresso; colore = intensita' di f "
+               "(palette fissa: il colore di carica non e' gauge-invariante). Parte 2: palline nate con densita' "
+               "proporzionale all'energia e portate da v = S/eps (vettore di Poynting di Yang-Mills / energia); "
+               "colore = frazione elettrica E^2/(E^2+B^2) (gauge-invariante)."
+}
+
+if __name__ == "__main__":
+    json.dump(P, open(OUT, "w"), indent=1, ensure_ascii=False)
+    print(OUT)
