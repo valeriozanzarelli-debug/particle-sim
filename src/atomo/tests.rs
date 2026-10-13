@@ -531,6 +531,7 @@ fn accoppiato_esporta() {
   "tick_per_fotogramma": {ogni}, "dt_fotogramma": {dtf}, "fotogrammi": {fotogrammi}, "tick_totali": {ticks},
   "t_sparo": {t_sparo}, "omega_21": {w21}, "omega_1s": {o1}, "omega_2p": {o2}, "periodo_luce": {per},
   "stato_1s": "1s ESATTO della regola 3-D (Atomo::uno_s_esatto, diagonalizzazione del filtro, docs/BATTIMENTO_1S.md): un livello del multipletto 1s del reticolo cubico (4 valli mescolate dal nucleo), fermo senza luce a 1e-16. Rigenerato il 14/10/2026; i dati del 13/10 usavano l'1s ascoltato (miscuglio di 3 livelli: p_exc batteva 0.2-0.88 con periodo 476 anche senza luce)",
+  "accoppiamento": "{accn}", "accoppiamento_nota": "centrato+trasverso = campo centrato 1/2(U F_n + F_n+1) con predittore/correttore e deposito trasverso P_perp(k) dall'asse di Bloch della luce (docs/ATOMO.md par. 3.7, docs/EMISSIONE.md par. 3.2); ritardato = quello di prima (smorzamento finto in piu')",
   "e_eff": {ee}, "K_ACC": {k}, "E0_ACC": {e0}, "alpha": {al}, "Z": {z},
   "griglia_atomo": {{"n": {n}, "passo": {a}, "coordinate": "x_i = (i - {n}/2 + 0.5) * {a} lambda_C, i = 0..{n}-1 (stesse per y, z); centro = nucleo = origine"}},
   "griglia_luce_originale": {{"n": {nl}, "passo": {bl}, "coordinate": "x_i = (i - {nl}/2) * {bl} lambda_C; la cella {h} e' l'origine (nucleo); spugna assorbente {sp} celle ai bordi"}},
@@ -551,13 +552,14 @@ fn accoppiato_esporta() {
     "semi-classico: la luce e' un campo classico (camminatori di spin 1), l'atomo quantistico; niente fotone quantizzato",
     "emissione solo da sovrapposizione (1s + 2p, dipolo oscillante): uno stato eccitato puro non decadrebbe (manca l'emissione spontanea vera)",
     "forma di dipolo e E mediato su una gaussiana sigma = 2 celle di luce intorno all'atomo (riduce la potenza irradiata di W^2)",
+    "tempo dell'accoppiamento: con 'ritardato' l'atomo legge il campo prima del tick di luce e deposita dopo (attrito finto); con 'centrato+trasverso' il predittore della corrente e' lineare (errore residuo misurato in docs/ATOMO.md par. 3.7)",
     "ione Z = 60 invece dell'idrogeno (la cella deve essere << raggio di Bohr)",
     "l'1s del reticolo cubico e' un multipletto di 4 livelli (0.8404, 0.8863, 0.8993, 0.8996): lo stato usato (0.89960) e' un ibrido delle 4 valli del cammino, con una trama di densita' di periodo 4 celle (2 lambda_C): smussare su ~2 lambda_C per le palline, dichiarandolo"
   ],
   "comando": "ESPORTA_DIR=<dir> TICKS={ticks} OGNI={ogni} cargo test --bin atomo accoppiato_esporta -- --ignored --nocapture"
 }}
 "#, z = crate::zz::Z_ION, lc = crate::zz::LAMBDA_C_M, tu = crate::zz::T_UNIT_S, mc2 = crate::zz::MC2_KEV, a = a, bl = B_LUCE, sub = SUB,
-        dtf = ogni as f64 * a, per = std::f64::consts::TAU / w21, o1 = x.omega1s, o2 = x.omega2p, k = K_ACC, e0 = crate::zzscena::E0_ACC, al = alpha(),
+        dtf = ogni as f64 * a, per = std::f64::consts::TAU / w21, o1 = x.omega1s, o2 = x.omega2p, k = K_ACC, e0 = crate::zzscena::E0_ACC, al = alpha(), accn = x.acc.nome(),
         h = nl / 2, sp = SPUGNA, bd = 2.0 * B_LUCE, ia = (nl / 2) as f64 / 2.0 - 0.25, la = n as f64 * a, ll = nl as f64 * B_LUCE,
         am = -(n as f64) * a / 2.0, ap = n as f64 * a / 2.0, so = SONDA, sod = SONDA as f64 * B_LUCE);
     std::fs::write(format!("{dir}/manifest.json"), man).unwrap();

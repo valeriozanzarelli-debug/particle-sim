@@ -147,6 +147,38 @@ pub struct Atomo {
     lab: [u8; 2],
 }
 
+/// The nucleus seen by the walk. `Nudo`: −Zα/r on every site. `Imparato` (docs/NUCLEO_1S.md §13–14, used by
+/// docs/EMISSIONE.md §11): the potential of the 8 sites at r0 = √3/2·a times s0 and of the 24 sites at r1 = √11/2·a
+/// times s1 (2 numbers learned for Z = 60 with an internal criterion: one 1s line, on the rule's blind pair U); at
+/// other a they follow the line s0(a) = 0.5546 + 0.1011 (0.5 − a), s1(a) = 1.0035 − 0.0051 (0.5 − a) (phase 4).
+/// It closes the 4 valleys of the cubic walk (1s split 0.0196 → 0.0002 mc²). Debt: 2 learned numbers, valid for Z = 60.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Nucleo { Nudo, Imparato }
+impl Nucleo {
+    pub fn nome(self) -> &'static str { match self { Nucleo::Nudo => "nudo", Nucleo::Imparato => "imparato (s0 0.554593, s1 1.003549)" } }
+    /// (s0, s1) at the cell size A of this lattice
+    pub fn fattori(self) -> (f64, f64) {
+        match self {
+            Nucleo::Nudo => (1.0, 1.0),
+            // at a = 0.5 the phase-3 numbers themselves (the phase-4 line passes through them)
+            Nucleo::Imparato => if (A - 0.5).abs() < 1e-12 { (0.554593, 1.003549) } else { (0.5546 + 0.1011 * (0.5 - A), 1.0035 - 0.0051 * (0.5 - A)) },
+        }
+    }
+}
+/// The nucleus of every new `Atomo` (Laboratorio, export).
+pub const NUCLEO: Nucleo = Nucleo::Nudo;
+
+/// Coulomb potential at a site, with the nucleus `nu`.
+pub fn potenziale(x: [f64; 3], nu: Nucleo) -> f64 {
+    let r2 = x[0] * x[0] + x[1] * x[1] + x[2] * x[2];
+    let r = r2.sqrt();
+    let (s0, s1) = nu.fattori();
+    // r² in units of (a/2)²: 3 for the nearest 8 sites, 11 for the next 24
+    let q = (r2 / (0.25 * A * A)).round() as i64;
+    let f = if (r2 / (0.25 * A * A) - q as f64).abs() < 1e-6 { match q { 3 => s0, 11 => s1, _ => 1.0 } } else { 1.0 };
+    -z_alpha() / r * f
+}
+
 pub fn x_of(i: usize) -> f64 { (i as f64 - N as f64 / 2.0 + 0.5) * A }
 
 impl Atomo {
@@ -172,8 +204,8 @@ impl Atomo {
         psi.par_iter_mut().zip(vc.par_iter_mut()).zip(zs.par_iter_mut()).enumerate().for_each(|(s, ((p, v), z))| {
             let c = sito(s, col);
             let x = [x_of(c[0]), x_of(c[1]), x_of(c[2])];
-            let r = (x[0] * x[0] + x[1] * x[1] + x[2] * x[2]).sqrt();
-            *v = -za / r;
+            let _ = za;
+            *v = potenziale(x, NUCLEO);
             *z = x[2];
             let d = spinore(&lv, kappa, x);
             *p = dirac_a_chirale(d);
@@ -184,6 +216,15 @@ impl Atomo {
         let psi0 = psi.clone();
         let pc = vc.iter().map(|v| C::expi(-v * A)).collect();
         Atomo { tmp: vec![[C::ZERO; 4]; ns], psi, pc, zs, ticks: 0, impulsi: vec![], campo_est: [0.0; 3], psi0, colore: col, lab: col.unwrap_or([0, 0]) }
+    }
+
+    /// Change the nucleus (the Coulomb phases of every site); the wave is untouched.
+    pub fn con_nucleo(&mut self, nu: Nucleo) {
+        let col = self.colore;
+        self.pc = (0..self.psi.len()).map(|s| {
+            let c = sito(s, col);
+            C::expi(-potenziale([x_of(c[0]), x_of(c[1]), x_of(c[2])], nu) * A)
+        }).collect();
     }
 
     pub fn t(&self) -> f64 { self.ticks as f64 * A }
@@ -713,5 +754,30 @@ impl Atomo {
             .map(|l| { let d = dipolo_tra(phi, &l.v, col); LivelloDipolo { lv: l, d } }).collect();
         out.sort_by(|a, b| b.d[asse].norm2().total_cmp(&a.d[asse].norm2()));
         out
+    }
+}
+
+impl Atomo {
+    /// THE SMOOTH 1s WITH THE LEARNED NUCLEUS (docs/NUCLEO_1S.md §13–14): the 4 valley levels are pushed within ~2·10⁻⁴
+    /// of each other, too close for a filter of `ticks` to tell apart; each single Ritz vector is still a valley mixture
+    /// (checkerboard). The start state (the smooth radial 1s) is projected on ALL the exact levels within 0.0015 of the
+    /// strongest one in [0.82, 0.94] (the criterion of docs/EMISSIONE.md §11.1): smooth, but it beats slowly with the
+    /// residual split. Returns (state, weighted frequency, weight of the start state in the group).
+    pub fn uno_s_liscio(&self, ticks: usize) -> (Vec<[C; 4]>, f64, f64) {
+        let lv = self.livelli_esatti(0.82, 0.94, 0.005, ticks);
+        let pesi: Vec<(f64, C)> = lv.iter().map(|l| (l.omega, sovrapp(&l.v, &self.psi))).collect();
+        let k = (0..lv.len()).max_by(|&i, &j| pesi[i].1.norm2().total_cmp(&pesi[j].1.norm2())).expect("no level near the 1s");
+        let w0 = lv[k].omega;
+        let mut v = vec![[C::ZERO; 4]; self.psi.len()];
+        let (mut wsum, mut om) = (0.0, 0.0);
+        for (l, (w, c)) in lv.iter().zip(pesi.iter()) {
+            if (w - w0).abs() > 0.0015 { continue; }
+            wsum += c.norm2();
+            om += c.norm2() * w;
+            v.par_iter_mut().zip(l.v.par_iter()).for_each(|(x, y)| for q in 0..4 { x[q] += *c * y[q]; });
+        }
+        let nv = norma(&v);
+        v.par_iter_mut().for_each(|p| for c in p.iter_mut() { *c = c.scale(1.0 / nv); });
+        (v, om / wsum, wsum)
     }
 }

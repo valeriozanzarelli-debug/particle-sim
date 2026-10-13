@@ -1,0 +1,22 @@
+{
+  "studio": "emissione_lab, emendamento 1 (scritto DOPO i risultati della v1 in lab/out/emissione_lab_results.json e PRIMA di ogni corsa col nucleo imparato)",
+  "data": "2026-10-14",
+  "esito_v1_secondo_la_regola_scritta": "D1, E1, F1 PASS ma L1 FAIL (riga forte 0.078895 contro 0.079255, -0.45 %): per la regola del default della v1 CENTRATO da solo NON diventa il default. Resta FAIL.",
+  "cambio_dichiarato_della_regola_del_default": "Decisione presa dopo aver visto i risultati (dichiarata come tale): L1 misura dove stanno i livelli 2p3/2 del reticolo nudo, non il tempo dell'accoppiamento. Con RITARDATO (info) entrambe le righe escono spostate di +0.27 % (0.079473 e 0.076648: lo spostamento reattivo del campo ritardato), con CENTRATO la riga 2p1/2 cade a -0.04 % (L2) e la 2p3/2 a -0.45 %. Quindi da qui il default dell'ACCOPPIAMENTO si decide con D1, E1, F1 (e K1), tutti PASS: CENTRATO diventa il default dell'accoppiamento. L1 resta FAIL nel conteggio e va nel documento.",
+  "nucleo_imparato": {
+    "cosa": "zz::Nucleo::Imparato: potenziale degli 8 siti a sqrt(3)/2 a moltiplicato per s0 = 0.554593 e dei 24 a sqrt(11)/2 a per s1 = 1.003549 (docs/NUCLEO_1S.md par. 13-14, a = 0.5; 2 numeri imparati altrove con un criterio interno, debito contato)",
+    "stati": "1s = uno_s_liscio: lo stato radiale proiettato su TUTTI i livelli esatti entro 0.0015 dal piu' forte in [0.82, 0.94] (criterio di EMISSIONE par. 11.1); 2p3/2*, 2p1/2* = come la v1 (livelli_di_dipolo da z*1s) col nucleo imparato",
+    "sviluppo_dichiarato": "Solo i livelli 1s col nucleo imparato (1200 tick): il gruppo 0.89932/0.89943/0.89953 non si separa (residui 7e-5..5e-3), ogni vettore di Ritz da solo ha ancora la scacchiera (C4 0.3-1.2); lo stato radiale ha C4 = 0.020, l'1s esatto nudo usato oggi 0.90. Previsione onesta: lo stato liscio batte piano con lo split residuo (~1e-4..2e-4): in 1600 unita' p_exc ~ (t dw)^2 ~ 0.01-0.03, quindi NF1 alla soglia della v1 probabilmente FALLISCE.",
+    "accoppiamento": "CENTRATO, K = 10, tutto come la v1",
+    "esami": {
+      "NF1": {"cosa": "1s liscio da solo, accoppiamento acceso, nessun impulso, 3200 tick: max p_exc", "soglia": "< 1e-3 (come F1)"},
+      "NL1": {"cosa": "come L1 con i livelli del nucleo imparato", "soglia": "riga forte entro 0.3 % di omega(2p3/2*) - omega1s"},
+      "NL2": {"cosa": "come L2", "soglia": "seconda riga entro 0.3 % di omega(2p1/2*) - omega1s"},
+      "NL3": {"cosa": "rapporto delle ampiezze delle due righe", "soglia": "informativo (EMISSIONE fase 2: 1.99 contro 2.12)"},
+      "ND1": {"cosa": "come D1 su (1s liscio + 2p3/2*)/sqrt2", "soglia": "|rapporto - 1| < 0.05, ogni finestra < 0.07"},
+      "NE1": {"cosa": "come E1", "soglia": "|luce/atomo - 1| < 0.05"},
+      "NC": {"cosa": "scacchiera di periodo 4 della densita' dell'1s usato: C4 = somma |rho^(k)|^2 sui k con componenti in {0, 12, 24, 36} (periodo 4 celle su 48), k != 0, su |rho^(0)|^2; imparato (1s liscio) / nudo (1s esatto della v1)", "soglia": "< 0.1"}
+    },
+    "regola_del_default": "Il nucleo imparato diventa il default (zz::NUCLEO) solo se NF1, NL1, ND1, NE1 e NC passano. Altrimenti l'esportazione si rifa' con CENTRATO e nucleo nudo, e si dice perche'."
+  }
+}

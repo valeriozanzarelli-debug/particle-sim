@@ -53,9 +53,12 @@ fn leggi_v(b: &[u8], off: &mut usize, n: usize) -> Vec<[C; 4]> {
     (0..n).map(|_| { let mut p = [C::ZERO; 4]; for c in p.iter_mut() { let re = f(); let im = f(); *c = C::new(re, im); } p }).collect()
 }
 
+fn nucleo_env() -> crate::zz::Nucleo { if std::env::var("NUCLEO").as_deref() == Ok("imparato") { crate::zz::Nucleo::Imparato } else { crate::zz::Nucleo::Nudo } }
+
 pub fn stati() -> Stati {
+    let nu = nucleo_env();
     let n = crate::zz::n_siti(None);
-    let file = format!("{}/stati.bin", dir());
+    let file = if nu == crate::zz::Nucleo::Nudo { format!("{}/stati.bin", dir()) } else { format!("{}/stati_imparato.bin", dir()) };
     if let Ok(b) = std::fs::read(&file) {
         let mut off = 0;
         let mut f = |o: &mut usize| { let x = f64::from_le_bytes(b[*o..*o + 8].try_into().unwrap()); *o += 8; x };
@@ -67,7 +70,7 @@ pub fn stati() -> Stati {
         let d12 = crate::zz::dipolo_tra(&s1, &p12, None);
         return Stati { s1, w1, p32, w32, d32, p12, w12, d12, res32, res12 };
     }
-    let x = Esperimento::new(600);
+    let x = Esperimento::nuovo_nucleo(600, None, nu);
     let lv = x.at.livelli_di_dipolo(&x.phi1s, 2, 0.966, 0.986, 0.0015, 6000, 1e-3);
     for l in &lv { eprintln!("  level ω {:.6} resid {:.1e} |d_z|² {:.4}", l.lv.omega, l.lv.resid, l.d[2].norm2()); }
     let p32 = lv.iter().find(|l| l.lv.omega > 0.977 && l.lv.omega < 0.981).expect("no 2p3/2 level");
@@ -84,7 +87,7 @@ pub fn stati() -> Stati {
 
 /// The coupled experiment on the exam's states (1s exact, 2p½* as the Laboratorio's "2p": the pulse frequency).
 fn esperimento(st: &Stati, acc: Accoppiamento) -> Esperimento {
-    Esperimento::da_stati(st.s1.clone(), st.w1, st.p12.clone(), st.w12).con_accoppiamento(acc)
+    Esperimento::da_stati(st.s1.clone(), st.w1, st.p12.clone(), st.w12, nucleo_env()).con_accoppiamento(acc)
 }
 
 /// (1s + 2p3/2*)/√2.
@@ -120,12 +123,14 @@ fn json_righe(r: &[[f64; 8]]) -> String {
 
 fn salva(nome: &str, testo: &str) {
     std::fs::create_dir_all(dir()).unwrap();
+    let nome = &if nucleo_env() == crate::zz::Nucleo::Imparato { format!("imparato_{nome}") } else { nome.to_string() };
     std::fs::write(format!("{}/{nome}", dir()), testo).unwrap();
     eprintln!("{nome}: {testo}");
 }
 
 fn serie_csv(nome: &str, x: &Esperimento) {
     use std::io::Write;
+    let nome = &if nucleo_env() == crate::zz::Nucleo::Imparato { format!("imparato_{nome}") } else { nome.to_string() };
     let mut f = std::io::BufWriter::new(std::fs::File::create(format!("{}/{nome}", dir())).unwrap());
     writeln!(f, "t,p_exc,z_fine_tick,energia_luce_piu_assorbita,sonda_Ez").unwrap();
     for (i, (t, p)) in x.serie_p.iter().enumerate() {
@@ -222,6 +227,7 @@ fn emissione_esame_k1() {
     let t0 = std::time::Instant::now();
     // free drift
     let mut a = crate::zz::Atomo::new();
+    a.con_nucleo(nucleo_env());
     a.imposta(sovrapposizione(&st));
     let mut lib = vec![];
     while a.t() < tk - 1e-9 { a.avanti(); if a.ticks % SUB as u64 == 0 { let p = 1.0 - sovrapp(&st.s1, &a.psi).norm2(); lib.push((a.t(), (p / (1.0 - p)).ln())); } }
@@ -234,4 +240,56 @@ fn emissione_esame_k1() {
     serie_csv("k1.csv", &x);
     salva("k1.json", &format!("{{\"omega\": {w:.6}, \"intero\": {}, \"deriva_libera\": {deriva:.4e}, \"deriva_su_atteso\": {:.4}, \"p_fine\": {:.7}, \"secondi\": {:.0}}}",
         json_righe(&r), deriva / r[0][3], x.serie_p.last().unwrap().1, t0.elapsed().as_secs_f64()));
+}
+
+/// Period-4 checkerboard of the density (the 4 valleys): Σ |ρ̂(k)|² over the wave vectors with every component in
+/// {0, ±12, 24} (period 4 cells on 48) except k = 0, over |ρ̂(0)|².
+pub fn scacchiera(v: &[[C; 4]]) -> f64 {
+    use rayon::prelude::*;
+    let n = crate::zz::N;
+    let rho: Vec<f64> = v.iter().map(|p| p.iter().map(|c| c.norm2()).sum()).collect();
+    let ks = [0usize, 12, 24, 36];
+    let tw = std::f64::consts::TAU / n as f64;
+    let hat = |k: [usize; 3]| -> C {
+        rho.par_iter().enumerate().map(|(s, r)| { let c = crate::zz::sito(s, None); C::expi(-tw * (k[0] * c[0] + k[1] * c[1] + k[2] * c[2]) as f64).scale(*r) })
+            .reduce(|| C::ZERO, |a, b| a + b)
+    };
+    let mut s = 0.0;
+    for &a in &ks { for &b in &ks { for &c in &ks {
+        if a + b + c == 0 { continue; }
+        s += hat([a, b, c]).norm2();
+    }}}
+    s / hat([0, 0, 0]).norm2()
+}
+
+/// Development (declared, amendment 1): the learned nucleus in the Laboratorio's lattice: exact 1s levels, which one
+/// uno_s_esatto takes, checkerboard numbers.
+#[test]
+#[ignore]
+fn emissione_sviluppo_nucleo() {
+    use crate::zz::{Atomo, Nucleo};
+    for nu in [Nucleo::Nudo, Nucleo::Imparato] {
+        let t0 = std::time::Instant::now();
+        let mut a = Atomo::new();
+        a.con_nucleo(nu);
+        eprintln!("{}: radial 1s checkerboard {:.3e}", nu.nome(), scacchiera(&a.psi));
+        let lv = a.livelli_esatti(0.82, 0.94, 0.005, env_usize("TICKS1S", 1200));
+        for l in lv.iter().take(8) { eprintln!("  ω {:.6} resid {:.1e} weight {:.4} inner {:.4} checker {:.3e}", l.omega, l.resid, sovrapp(&l.v, &a.psi).norm2(), crate::zz::peso_interno(&l.v, 1.0, None), scacchiera(&l.v)); }
+        eprintln!("  ({:?})", t0.elapsed());
+    }
+}
+
+/// Exam NC (amendment 1): the period-4 checkerboard of the 1s used, bare (exact level) vs learned (smooth group), and of
+/// the radial start state (the floor of the measure).
+#[test]
+#[ignore]
+fn emissione_esame_scacchiera() {
+    std::env::set_var("NUCLEO", "nudo");
+    let b = stati();
+    std::env::set_var("NUCLEO", "imparato");
+    let i = stati();
+    let r = crate::zz::Atomo::new();
+    let (cb, ci, cr) = (scacchiera(&b.s1), scacchiera(&i.s1), scacchiera(&r.psi));
+    let (pb, pi) = (scacchiera(&b.p32), scacchiera(&i.p32));
+    salva("scacchiera.json", &format!("{{\"C4_1s_nudo\": {cb:.4e}, \"C4_1s_imparato\": {ci:.4e}, \"C4_radiale\": {cr:.4e}, \"rapporto\": {:.4e}, \"C4_2p32_nudo\": {pb:.4e}, \"C4_2p32_imparato\": {pi:.4e}, \"w1s_imparato\": {:.6}, \"w32\": {:.6}, \"w12\": {:.6}, \"d32\": {:.4}, \"d12\": {:.4}}}", ci / cb, i.w1, i.w32, i.w12, i.d32[2].norm2(), i.d12[2].norm2()));
 }

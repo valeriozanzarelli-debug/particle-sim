@@ -275,15 +275,19 @@ impl Esperimento {
 
     /// The same on one colour of the cube (`Some`, docs/SOTTORETICOLO.md: 4 times less work, the colours never
     /// exchange amplitude) or on the whole cube (`None`).
-    pub fn nuovo(ascolto: usize, col: crate::zz::Colore) -> Self {
+    pub fn nuovo(ascolto: usize, col: crate::zz::Colore) -> Self { Self::nuovo_nucleo(ascolto, col, crate::zz::NUCLEO) }
+
+    /// The same with the nucleus `nu` (docs/NUCLEO_1S.md §13–14).
+    pub fn nuovo_nucleo(ascolto: usize, col: crate::zz::Colore, nu: crate::zz::Nucleo) -> Self {
         let mut at = crate::zz::Atomo::new_in(col);
+        at.con_nucleo(nu);
         // the 1s of the 3-D rule: one EXACT level of the 1s multiplet (the 4 valleys of the cubic walk mixed by the
         // nucleus), the one least touched by the first cells. Before (ascolta 0.885–0.915, short window, every
         // tick) the "1s" was a mixture of three levels and p_exc beat with period ~476 even without light.
-        let (s1, _) = at.uno_s_esatto(2 * ascolto);
-        let (phi, om) = (s1.v, s1.omega);
+        let (phi, om) = if nu == crate::zz::Nucleo::Nudo { let (s1, _) = at.uno_s_esatto(2 * ascolto); (s1.v, s1.omega) } else { let (v, w, _) = at.uno_s_liscio(2 * ascolto); (v, w) };
         // the 2p½: the radial 2p½ put on the lattice is already (almost) one level; listened briefly
-        let a2 = crate::zz::Atomo::con_stato_in(1, 2, col);
+        let mut a2 = crate::zz::Atomo::con_stato_in(1, 2, col);
+        a2.con_nucleo(nu);
         let (phi2, om2) = a2.ascolta(0.96, 0.99, ascolto / 3);
         at.imposta(phi.clone());
         let mut x = Esperimento { at, luce: LuceAtomo::new(), phi1s: phi, omega1s: om, phi2p: phi2, omega2p: om2, serie_p: vec![], serie_d: vec![], serie_j: vec![],
@@ -293,8 +297,9 @@ impl Esperimento {
     }
 
     /// From states already found (whole cube): the 1s and a 2p with their frequencies; no listening.
-    pub fn da_stati(phi1s: Vec<[crate::cplx::C; 4]>, omega1s: f64, phi2p: Vec<[crate::cplx::C; 4]>, omega2p: f64) -> Self {
+    pub fn da_stati(phi1s: Vec<[crate::cplx::C; 4]>, omega1s: f64, phi2p: Vec<[crate::cplx::C; 4]>, omega2p: f64, nu: crate::zz::Nucleo) -> Self {
         let mut at = crate::zz::Atomo::new_in(None);
+        at.con_nucleo(nu);
         at.imposta(phi1s.clone());
         let mut x = Esperimento { at, luce: LuceAtomo::new(), phi1s, omega1s, phi2p, omega2p, serie_p: vec![], serie_d: vec![], serie_j: vec![],
                       t_impulso: None, r0: None, sub: 0, acc: ACCOPPIAMENTO, jstoria: vec![], jpred: [0.0; 3], campo_tick: [0.0; 3], k_acc: K_ACC };

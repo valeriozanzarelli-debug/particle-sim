@@ -1,0 +1,371 @@
+{
+ "verdetti": {
+  "P0": {
+   "misurato": 1.22339,
+   "soglia": "> 1.10",
+   "esito": "PASS"
+  },
+  "D1": {
+   "misurato": 1.00419,
+   "finestre": [
+    1.00262,
+    1.00357,
+    1.00638
+   ],
+   "soglia": "|r-1|<0.05, finestre <0.07",
+   "esito": "PASS"
+  },
+  "D1c": {
+   "misurato": 0.99537,
+   "esito": "info"
+  },
+  "E1": {
+   "misurato": 0.96786,
+   "soglia": "|r-1|<0.05",
+   "esito": "PASS"
+  },
+  "E1r": {
+   "misurato": 0.80349,
+   "esito": "info"
+  },
+  "E1c": {
+   "misurato": 0.98851,
+   "esito": "info"
+  },
+  "F1": {
+   "misurato": [
+    0.0,
+    0.0
+   ],
+   "soglia": "< 1e-3",
+   "esito": "PASS"
+  },
+  "L1": {
+   "misurato": 0.078895,
+   "atteso": 0.079255,
+   "scarto": -0.00453,
+   "soglia": "0.3 %",
+   "esito": "FAIL"
+  },
+  "L2": {
+   "misurato": 0.076414,
+   "atteso": 0.076442,
+   "scarto": -0.00036,
+   "soglia": "0.3 %",
+   "esito": "PASS"
+  },
+  "L3": {
+   "misurato": 1.0907,
+   "esito": "info"
+  },
+  "Lr": {
+   "nota": "stesso esame con RITARDATO (info)",
+   "primo": 0.079473,
+   "secondo": 0.076648,
+   "esito": "info"
+  },
+  "K1": {
+   "misurato": 1.0061,
+   "deriva_libera_su_atteso": 0.0,
+   "luce_su_atomo": 0.97469,
+   "soglia": "|r-1|<0.10",
+   "esito": "PASS"
+  }
+ },
+ "grezzi": {
+  "d_centrato+trasverso": {
+   "accoppiamento": "centrato+trasverso",
+   "omega": 0.079255,
+   "d32": [
+    0.0,
+    0.0,
+    1.09926
+   ],
+   "W2": 0.66898,
+   "finestre": [
+    {
+     "t1": 200,
+     "t2": 800,
+     "A_misurato": 0.0003282537,
+     "A_larmor": 0.000327395,
+     "rapporto": 1.00262,
+     "dE_luce": 0.003792999,
+     "dE_atomo": 0.00390926,
+     "luce_su_atomo": 0.97026
+    },
+    {
+     "t1": 800,
+     "t2": 1400,
+     "A_misurato": 0.0002839434,
+     "A_larmor": 0.0002829334,
+     "rapporto": 1.00357,
+     "dE_luce": 0.003165567,
+     "dE_atomo": 0.003278177,
+     "luce_su_atomo": 0.96565
+    },
+    {
+     "t1": 1400,
+     "t2": 2000,
+     "A_misurato": 0.0002599538,
+     "A_larmor": 0.000258305,
+     "rapporto": 1.00638,
+     "dE_luce": 0.002769682,
+     "dE_atomo": 0.002863854,
+     "luce_su_atomo": 0.96712
+    }
+   ],
+   "rapporto_medio": 1.00419,
+   "intero": [
+    {
+     "t1": 200,
+     "t2": 2000,
+     "A_misurato": 0.0002873535,
+     "A_larmor": 0.000280821,
+     "rapporto": 1.02326,
+     "dE_luce": 0.009728249,
+     "dE_atomo": 0.01005129,
+     "luce_su_atomo": 0.96786
+    }
+   ],
+   "p_fine": 0.354433,
+   "secondi": 116
+  },
+  "d_centrato": {
+   "accoppiamento": "centrato",
+   "omega": 0.079255,
+   "d32": [
+    0.0,
+    0.0,
+    1.09926
+   ],
+   "W2": 0.66898,
+   "finestre": [
+    {
+     "t1": 200,
+     "t2": 800,
+     "A_misurato": 0.0003423294,
+     "A_larmor": 0.0003444923,
+     "rapporto": 0.99372,
+     "dE_luce": 0.004002291,
+     "dE_atomo": 0.00404573,
+     "luce_su_atomo": 0.98926
+    },
+    {
+     "t1": 800,
+     "t2": 1400,
+     "A_misurato": 0.0003199533,
+     "A_larmor": 0.0003225797,
+     "rapporto": 0.99186,
+     "dE_luce": 0.003571002,
+     "dE_atomo": 0.003610195,
+     "luce_su_atomo": 0.98914
+    },
+    {
+     "t1": 1400,
+     "t2": 2000,
+     "A_misurato": 0.0002769374,
+     "A_larmor": 0.0002767884,
+     "rapporto": 1.00054,
+     "dE_luce": 0.003070458,
+     "dE_atomo": 0.003111523,
+     "luce_su_atomo": 0.9868
+    }
+   ],
+   "rapporto_medio": 0.99537,
+   "intero": [
+    {
+     "t1": 200,
+     "t2": 2000,
+     "A_misurato": 0.0003135078,
+     "A_larmor": 0.0003116359,
+     "rapporto": 1.00601,
+     "dE_luce": 0.01064375,
+     "dE_atomo": 0.01076745,
+     "luce_su_atomo": 0.98851
+    }
+   ],
+   "p_fine": 0.344975,
+   "secondi": 104
+  },
+  "d_ritardato": {
+   "accoppiamento": "ritardato",
+   "omega": 0.079255,
+   "d32": [
+    0.0,
+    0.0,
+    1.09926
+   ],
+   "W2": 0.66898,
+   "finestre": [
+    {
+     "t1": 200,
+     "t2": 800,
+     "A_misurato": 0.0004128679,
+     "A_larmor": 0.0003386295,
+     "rapporto": 1.21923,
+     "dE_luce": 0.003933476,
+     "dE_atomo": 0.004878041,
+     "luce_su_atomo": 0.80636
+    },
+    {
+     "t1": 800,
+     "t2": 1400,
+     "A_misurato": 0.0003862088,
+     "A_larmor": 0.0003174798,
+     "rapporto": 1.21648,
+     "dE_luce": 0.003427378,
+     "dE_atomo": 0.004289291,
+     "luce_su_atomo": 0.79905
+    },
+    {
+     "t1": 1400,
+     "t2": 2000,
+     "A_misurato": 0.0003114685,
+     "A_larmor": 0.0002523113,
+     "rapporto": 1.23446,
+     "dE_luce": 0.002716748,
+     "dE_atomo": 0.003374942,
+     "luce_su_atomo": 0.80498
+    }
+   ],
+   "rapporto_medio": 1.22339,
+   "intero": [
+    {
+     "t1": 200,
+     "t2": 2000,
+     "A_misurato": 0.0003734681,
+     "A_larmor": 0.0003010403,
+     "rapporto": 1.24059,
+     "dE_luce": 0.0100776,
+     "dE_atomo": 0.01254227,
+     "luce_su_atomo": 0.80349
+    }
+   ],
+   "p_fine": 0.319617,
+   "secondi": 103
+  },
+  "fermo_centrato+trasverso": {
+   "accoppiamento": "centrato+trasverso",
+   "p_exc_max": 0.0,
+   "energia_luce": 6.312e-32
+  },
+  "fermo_ritardato": {
+   "accoppiamento": "ritardato",
+   "p_exc_max": 0.0,
+   "energia_luce": 7.163e-32
+  },
+  "k1": {
+   "omega": 0.079255,
+   "intero": [
+    {
+     "t1": 200,
+     "t2": 4000,
+     "A_misurato": 4.005378e-06,
+     "A_larmor": 3.981099e-06,
+     "rapporto": 1.0061,
+     "dE_luce": 0.0002935855,
+     "dE_atomo": 0.0003012093,
+     "luce_su_atomo": 0.97469
+    }
+   ],
+   "deriva_libera": 2.5851e-15,
+   "deriva_su_atteso": 0.0,
+   "p_fine": 0.4960025,
+   "secondi": 410
+  },
+  "riga_centrato+trasverso": {
+   "accoppiamento": "centrato+trasverso",
+   "w21_lab": 0.076442,
+   "atteso_32": 0.079255,
+   "atteso_12": 0.076442,
+   "primo": [
+    0.078895,
+    1.8018e-06
+   ],
+   "secondo": [
+    0.076414,
+    1.652e-06
+   ],
+   "scarto_primo": -0.00453,
+   "scarto_secondo": -0.00036,
+   "rapporto_ampiezze": 1.0907,
+   "picchi": [
+    [
+     "0.07890",
+     "1.80e-6"
+    ],
+    [
+     "0.07641",
+     "1.65e-6"
+    ],
+    [
+     "0.08996",
+     "1.21e-7"
+    ],
+    [
+     "0.07277",
+     "1.63e-8"
+    ],
+    [
+     "0.07192",
+     "8.34e-9"
+    ],
+    [
+     "0.08323",
+     "7.83e-9"
+    ]
+   ],
+   "p_exc_max": 0.12263,
+   "t_picco": 204.0,
+   "p_exc_fine": 0.01843,
+   "secondi": 558
+  },
+  "riga_ritardato": {
+   "accoppiamento": "ritardato",
+   "w21_lab": 0.076442,
+   "atteso_32": 0.079255,
+   "atteso_12": 0.076442,
+   "primo": [
+    0.076648,
+    1.3576e-06
+   ],
+   "secondo": [
+    0.079473,
+    1.3212e-06
+   ],
+   "scarto_primo": -0.03289,
+   "scarto_secondo": 0.03965,
+   "rapporto_ampiezze": 1.0276,
+   "picchi": [
+    [
+     "0.07665",
+     "1.36e-6"
+    ],
+    [
+     "0.07947",
+     "1.32e-6"
+    ],
+    [
+     "0.08942",
+     "1.12e-7"
+    ],
+    [
+     "0.07283",
+     "1.08e-8"
+    ],
+    [
+     "0.08384",
+     "9.46e-9"
+    ],
+    [
+     "0.08686",
+     "6.24e-9"
+    ]
+   ],
+   "p_exc_max": 0.12067,
+   "t_picco": 224.0,
+   "p_exc_fine": 0.01416,
+   "secondi": 512
+  }
+ }
+}
