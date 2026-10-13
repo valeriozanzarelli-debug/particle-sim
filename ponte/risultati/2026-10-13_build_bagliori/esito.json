@@ -1,0 +1,11 @@
+{
+  "id": "2026-10-13_build_bagliori",
+  "azione": "build",
+  "ok": true,
+  "inizio": "2026-10-13T19:18:09Z",
+  "fine": "2026-10-13T19:19:27Z",
+  "durata_s": 78.6,
+  "git": "de6fd2c8810d4962505b398f3dd4f76a3c99618d",
+  "macchina": "LAPTOP-01UIII6L",
+  "exit": 0
+}
