@@ -50,6 +50,8 @@ mod test_battimento;
 mod test_emissione;
 #[cfg(test)]
 mod test_sottoreticolo;
+#[cfg(test)]
+mod test_diffusa;
 
 use camera::{Bersaglio, Cam, PointerOverHud};
 use fotone3d::Polar;
@@ -86,6 +88,8 @@ pub struct Lab {
     pub opz: misura::Opzioni,
     /// atom scene: light coupled live (Maxwell–Dirac) instead of the prescribed pulse; photon energy set for it
     pub accoppiato: bool,
+    /// atom scene: the scattered view (docs/ATOMO.md §3.8)
+    pub diffusa: bool,
     pub e_kev_acc: bool,
     pub misura: bool,
     pub azzera_clic: bool,
@@ -124,7 +128,7 @@ impl Lab {
         let w_rot = prof.omega_rot_s();
         let info2 = [prof.inerzia(), prof.delta_n_mev(), w_rot, w_resp, e_resp];
         Lab {
-            scena: Scena::Fotone, fot: None, fot_par: par, ritmo_fot: 20.0, segui: false, vista_fot: fotscena::Vista::default(), lambda_m: 500e-9, zz: None, orb: None, orb_scelta: orbitali::Scelta::default(), ritmo_orb: 30.0, opz: misura::Opzioni::default(), accoppiato: true, e_kev_acc: false, misura: false, azzera_clic: false, orb_r: 25.0, e_kev: 0.0, ritmo: 25.0,
+            scena: Scena::Fotone, fot: None, fot_par: par, ritmo_fot: 20.0, segui: false, vista_fot: fotscena::Vista::default(), lambda_m: 500e-9, zz: None, orb: None, orb_scelta: orbitali::Scelta::default(), ritmo_orb: 30.0, opz: misura::Opzioni::default(), accoppiato: true, diffusa: true, e_kev_acc: false, misura: false, azzera_clic: false, orb_r: 25.0, e_kev: 0.0, ritmo: 25.0,
             t_nucleo: 0.0, omega_rot: OMEGA_ROT_SCHERMO, omega_resp: OMEGA_ROT_SCHERMO * w_resp / w_rot, nodo_info2: info2,
             modo: Modo::Avanti, spara: false, panel_open: false, mostra_protone: true, bagliore: true, grandezza: 1.0, luce: 1.0,
             nodo_palline, nodo_info: info, frame_count: 0, palline_disegnate: 0, fps: 0.0,
@@ -235,8 +239,11 @@ impl Lab {
                     g.ritmo = self.ritmo;
                     g.opz = self.opz;
                     g.accoppiato = self.accoppiato;
+                    g.diffusa = self.diffusa;
                     if self.misura { g.misura = true; }
                     if self.azzera_clic { g.azzera = true; }
+                    // the coupled atom's own 1s → 2p (the uncoupled radial value is not its resonance)
+                    if g.out.accoppiato && !self.e_kev_acc { self.e_kev = g.out.omega_res * zz::MC2_KEV; self.e_kev_acc = true; }
                     if self.spara {
                         self.spara = false;
                         if self.e_kev <= 0.0 { self.e_kev = g.out.omega_res * zz::MC2_KEV; }
@@ -305,6 +312,11 @@ fn main() {
         auto.frames = arg("--frames").and_then(|v| v.parse().ok()).unwrap_or(240);
         auto.spara_al = arg("--spara-al").and_then(|v| v.parse().ok());
         auto.misure = arg("--misure").and_then(|v| v.parse().ok()).unwrap_or(0);
+        // atom scene: fire the pulse as soon as the coupled atom is prepared, and take the photo `--foto-dopo T`
+        // (λ_C/c) after it (then `--frames` is only an upper limit)
+        auto.spara_pronto = args.iter().any(|a| a == "--spara-pronto");
+        auto.foto_dopo = arg("--foto-dopo").and_then(|v| v.parse().ok());
+        if args.iter().any(|a| a == "--senza-diffusa") { lab.diffusa = false; }
         lab.panel_open = args.iter().any(|a| a == "--pannello");
         if let Some(r) = arg("--ritmo").and_then(|v| v.parse().ok()) { lab.ritmo_fot = r; }
         if let Some(t) = arg("--tick").and_then(|v| v.parse::<u64>().ok()) { fotscena::TICK_FERMO.store(t, std::sync::atomic::Ordering::Relaxed); }
@@ -406,15 +418,39 @@ pub struct Auto {
     pub yaw: Option<f32>,
     pub pitch: Option<f32>,
     pub fatto: bool,
+    /// atom scene: fire when the coupled atom is ready; photo this long (λ_C/c) after the pulse
+    pub spara_pronto: bool,
+    pub sparato: bool,
+    pub foto_dopo: Option<f64>,
+    pub frame_foto: u64,
+    /// atom scene: the frame at which the pulse really left (it waits for the coupled atom to be prepared)
+    pub frame_impulso: Option<u64>,
 }
 
 fn auto_sys(mut commands: Commands, mut auto: ResMut<Auto>, mut lab: ResMut<Lab>, mut exit: EventWriter<AppExit>) {
     if !auto.attivo { return; }
     let f = lab.frame_count;
     if Some(f) == auto.spara_al { lab.spara = true; }
+    let o_zz = if lab.scena == Scena::Atomo { lab.zz.as_ref().map(|z| z.lock().unwrap().out.clone()) } else { None };
+    if auto.spara_pronto && !auto.sparato {
+        if let Some(o) = &o_zz { if o.pronto && o.accoppiato { lab.spara = true; auto.sparato = true; } }
+    }
+    if auto.frame_impulso.is_none() { if let Some(o) = &o_zz { if o.t_dal_impulso.is_some() { auto.frame_impulso = Some(f); } } }
+    let pronta = match (auto.foto_dopo, &o_zz) {
+        (Some(t), Some(o)) => o.t_dal_impulso.map(|x| x >= t).unwrap_or(false),
+        // atom scene with --spara-al: the pulse waits for the prepared atom, the photo keeps the same distance in frames
+        // from the pulse (frames − spara-al) as asked; never later than frame 20000
+        (None, Some(_)) => match (auto.spara_al, auto.frame_impulso) {
+            (Some(sa), Some(fi)) => f >= fi + auto.frames.saturating_sub(sa),
+            _ => false,
+        },
+        _ => false,
+    };
+    let atomo_attende = o_zz.is_some() && auto.foto_dopo.is_none() && auto.spara_al.is_some();
     if auto.misure > 0 && f >= 30 && f % 3 == 0 && (f - 30) / 3 < auto.misure { lab.misura = true; }
-    if f == auto.frames && !auto.fatto {
+    if ((f == auto.frames && !atomo_attende) || pronta || f == 20_000) && !auto.fatto {
         auto.fatto = true;
+        auto.frame_foto = f;
         let path = auto.foto.clone();
         commands.spawn(bevy::render::view::screenshot::Screenshot::primary_window())
             .observe(bevy::render::view::screenshot::save_to_disk(path));
@@ -423,10 +459,10 @@ fn auto_sys(mut commands: Commands, mut auto: ResMut<Auto>, mut lab: ResMut<Lab>
                 let o = z.lock().unwrap().out.clone();
                 format!("tick {} v {:?} elicita {:?} w {:.2} theta {:?} {:.0} ms/tick", o.ticks, o.v, o.elicita, o.w, o.theta, o.ms_tick)
             }).unwrap_or_default(),
-            Scena::Atomo => lab.zz.as_ref().map(|z| { let o = z.lock().unwrap().out.clone(); format!("tick {} p1s {:.3} dip {:+.3} {:.0} ms/tick", o.ticks, o.p1s, o.dipolo, o.ms_tick) }).unwrap_or_default(),
+            Scena::Atomo => lab.zz.as_ref().map(|z| { let o = z.lock().unwrap().out.clone(); format!("tick {} p1s {:.3} dip {:+.3} {:.0} ms/tick p_exc {:.3} t_dal_impulso {:?} luce_diffusa_x {:?} e_diffusa {:.3e}", o.ticks, o.p1s, o.dipolo, o.ms_tick, o.p_exc, o.t_dal_impulso, o.amp_diffusa, o.e_diffusa) }).unwrap_or_default(),
             Scena::Orbitali => lab.orb.as_ref().map(|z| { let o = z.lock().unwrap().out.clone(); format!("t {:.1} R {:.1} livelli {:?} {:.0} ms", o.t, o.r, o.livelli.iter().map(|l| (l.0.nome(), l.1, l.2)).collect::<Vec<_>>(), o.ms) }).unwrap_or_default(),
         };
         eprintln!("foto al frame {f}: scena {:?}, {} palline, {:.0} fps {info}", lab.scena, lab.palline_disegnate, lab.fps);
     }
-    if f >= auto.frames + 20 { exit.send(AppExit::Success); }
+    if auto.fatto && f >= auto.frame_foto + 20 { exit.send(AppExit::Success); }
 }

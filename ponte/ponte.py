@@ -76,8 +76,9 @@ FOTO_ARGS = {
     "yaw": _num(-10.0, 10.0),
     "pitch": _num(-10.0, 10.0),
     "distanza": _num(0.01, 1e6),
+    "foto-dopo": _num(0.0, 5000.0),
 }
-FOTO_FLAGS = {"surfisti", "collassa", "pannello"}
+FOTO_FLAGS = {"surfisti", "collassa", "pannello", "spara-pronto", "senza-diffusa"}
 
 TIMEOUT = {"ping": 60, "build": 3600, "test": 3600, "foto": 3600}
 

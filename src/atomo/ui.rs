@@ -217,8 +217,12 @@ fn stato_scena(lab: &Lab) -> (String, String) {
             let o = lab.zz.as_ref().map(|z| z.lock().unwrap().out.clone());
             match o {
                 Some(o) if o.pronto && o.accoppiato => (
-                    format!("Nd⁵⁹⁺ · luce e atomo ACCOPPIATI (la stessa regola nei due versi) · tick {} · 1s {:.0} % · 2p½ {:.1} % · eccitato {:.0} %",
-                            o.ticks, 100.0 * (1.0 - o.p_exc), 100.0 * o.p2p, 100.0 * o.p_exc),
+                    format!("Nd⁵⁹⁺ · luce e atomo ACCOPPIATI (la stessa regola nei due versi) · tick {} · 1s {:.0} % · 2p½ {:.1} % · eccitato p_exc = {:.0} %{}",
+                            o.ticks, 100.0 * (1.0 - o.p_exc), 100.0 * o.p2p, 100.0 * o.p_exc,
+                            match o.amp_diffusa {
+                                Some(a) => format!(" · LUCE DIFFUSA ×{:.0} (rosa/verde, ampiezza; l'impulso libero è attenuato ×0,25) · palline bianche = corrente d'energia", a),
+                                None => String::new(),
+                            }),
                     format!("dipolo ⟨z⟩ = {:+.3} ħ/mc · ω₂₁ della regola 3-D {:.4} mc²/ħ · luce rimandata {} · {:.0} ms per tick",
                             o.dipolo, o.omega21, o.omega_emessa.map(|w| format!("ω = {:.4} ({:+.1} %)", w, 100.0 * (w / o.omega21 - 1.0))).unwrap_or_else(|| "…".into()), o.ms_tick)),
                 Some(o) if o.pronto => (
@@ -457,6 +461,12 @@ fn pannello_atomo(ctx: &egui::Context, lab: &mut Lab, cam: &mut Cam) {
         ui.label(RichText::new("LUCE").strong().color(GOLD));
         ui.checkbox(&mut lab.accoppiato, "luce dal vivo, accoppiata (Maxwell–Dirac: la stessa regola nei due versi)");
         ui.label(RichText::new("Accoppiata: il fotone è un impulso di palline a spin 1 in una scatola di luce di 512 ħ/mc attorno all'atomo;             il suo campo spinge l'elettrone, e la corrente dell'elettrone è una sorgente della luce: la luce che l'atomo rimanda             e il suo rilassamento escono dalla regola (accoppiamento ×10 per vederlo; semiclassico: emette solo una             sovrapposizione). Popolazioni = proiezioni sugli stati 1s e 2p½ della regola 3-D (ascoltati). In questa modalità             il tempo va solo avanti (la luce presa dalla spugna non torna).").small().color(GREY));
+        ui.checkbox(&mut lab.diffusa, "vista diffusa: mostra la luce che l'atomo manda fuori (amplificata, dichiarato)");
+        ui.label(RichText::new("La luce è divisa in due scatole esatte (la regola è lineare): l'impulso libero, senza atomo, e la luce \
+            fatta SOLO dalla corrente dell'elettrone; l'atomo sente la somma. La seconda è la luce diffusa e riemessa: ~1/30–1/50 \
+            dell'impulso in ampiezza, quindi si disegna moltiplicata per il fattore ×A scritto in alto (A = impulso / diffusa lontano \
+            dall'atomo, aggiornato). Le palline bianche si muovono con la velocità dell'energia v = S/u = (E × B)/u della luce \
+            diffusa: vanno via dall'atomo a c.").small().color(GREY));
         if ui.button("guarda la luce (zoom fino a 350 ħ/mc)").clicked() { cam.vai(Bersaglio::Atomo, 350.0); }
         ui.separator();
         ui.label(RichText::new("FOTONE").strong().color(GOLD));

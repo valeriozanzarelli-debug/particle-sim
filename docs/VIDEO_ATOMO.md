@@ -14,8 +14,10 @@ con checkpoint), `lab/vl_esami.py` (esami), `lab/vl_render.py` (disegno), `lab/v
 **`vl_amend3.json` (cb03c72, prima di muovere le palline sui dati nuovi)**. Risultati: `lab/out/vl_campi.json`,
 `lab/out/vl_esami.json`, `lab/out/vl_serie.json` (versioni vecchie: `*_v1.json`).
 
-Video e fermo-immagine: **in rendering** (verranno copiati in `/mnt/project-files/modello-standard/` appena finiti;
-questo paragrafo sarà aggiornato con i nomi verificati).
+Video e fermo-immagine (verificati con `ls -la` il 13/10 alle 19:19 UTC), in `/mnt/project-files/modello-standard/`:
+`video_atomo_bagliori_1080p.mp4` (51 s, 35 MB), `video_atomo_bagliori_720p.mp4` (15 MB), fermo-immagine
+`video_atomo_bagliori_assorbe.png` (t = 120), `_oscilla.png` (t = 200), `_riemette.png` (t = 360),
+`_si_svuota.png` (t = 1400). Versione "bagliori": ogni pallina è un bagliore additivo, niente scie.
 
 ![figura](fig/video_atomo.png)
 
