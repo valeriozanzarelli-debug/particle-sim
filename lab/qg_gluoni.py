@@ -28,6 +28,9 @@ def run_cfg(name):
     pr = json.load(open(os.path.join(LAB, "out", "qg_prereg.json")))
     p2 = pr["parte2"]
     c = dict(p2["comune"])
+    if name not in p2["corse"]:            # declared addition after the pre-registration
+        ag = json.load(open(os.path.join(LAB, "out", "qg_aggiunta.json")))
+        p2["corse"][name] = ag["corsa"][name]
     r = dict(p2["corse"][name])
     if "come" in r:                       # same packets as another run
         r["pacchetti"] = [dict(p) for p in p2["corse"][r["come"]]["pacchetti"]]

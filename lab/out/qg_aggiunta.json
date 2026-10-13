@@ -1,0 +1,12 @@
+{
+ "studio": "QUARK_GLUONI, aggiunta dichiarata DOPO la pre-registrazione (2026-10-13 sera)",
+ "perche": "nelle prove di disegno le due corse video pre-registrate (pacchetti corti, 2 creste) danno un solo grumo liscio: si vede l'urto nei numeri ma poco a occhio. Aggiungiamo UNA corsa solo per il film: tre pacchetti piu' lunghi, di tre colori che non commutano (T1, T2, T4), da tre direzioni perpendicolari, che si incontrano al centro. Nessun esame nuovo: si riportano solo G1 (Gauss), G2 (energia) e G7 (fedelta' delle palline) con le stesse soglie. I voti pre-registrati non cambiano.",
+ "corsa": {
+  "video_tre": {"shape": [64, 64, 64], "amp": 1.0, "steps": 560, "video": true, "n_balls": 200000, "frame_every": 4,
+   "lam": 10, "sig_par": 5.0, "sig_perp": 5.0,
+   "pacchetti": [
+    {"centre": [14, 32, 32], "pol": [0, 1, 0], "direction": 1, "gen": 0, "asse": 0},
+    {"centre": [32, 14, 32], "pol": [0, 1, 0], "direction": 1, "gen": 1, "asse": 1},
+    {"centre": [32, 32, 14], "pol": [0, 1, 0], "direction": 1, "gen": 3, "asse": 2}]}
+ }
+}

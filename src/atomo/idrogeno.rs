@@ -382,17 +382,28 @@ pub struct Livello {
     /// the stencil (kept for the velocity operator ∂G/∂k)
     pub offs: Vec<[i32; 3]>,
     pub g: Vec<C>,
+    /// phase 4: learned Hermitian correction Δ on a few cells (the agglomerated fine block): step e^{−iΔτ/2} S e^{−iΔτ/2},
+    /// generator G/τ + V + Δ
+    pub corr: Option<Correzione>,
+    /// phase 4: twist of the box boundary per axis (0: periodic, 1: anti-periodic ψ(x + L) = −ψ(x)); the field stored
+    /// is u = ψ e^{−iθx/L} (G evaluated at k + θ/L)
+    pub torsione: [u8; 3],
 }
 
 impl Livello {
     pub fn new(reg: &Regola, n: usize, z: f64) -> Self { Self::con_nucleo(reg, n, z, 0.0) }
 
-    pub fn con_nucleo(reg: &Regola, n: usize, z: f64, off: f64) -> Self {
+    pub fn con_nucleo(reg: &Regola, n: usize, z: f64, off: f64) -> Self { Self::con_torsione(reg, n, z, off, torsione_env()) }
+
+    pub fn con_torsione(reg: &Regola, n: usize, z: f64, off: f64, torsione: [u8; 3]) -> Self {
         let fft = Fft::new(n);
         let mut a = vec![C::ZERO; n * n * n];
         let w = |o: i32| -> usize { o.rem_euclid(n as i32) as usize };
+        // twisted box: G(k + δ), δ_a = π tw_a / n per cell  ⇔  stencil coefficients times e^{i δ·j}
+        let del: Vec<f64> = torsione.iter().map(|t| std::f64::consts::PI * *t as f64 / n as f64).collect();
         for (o, g) in reg.offs.iter().zip(reg.g.iter()) {
-            a[(w(o[0]) * n + w(o[1])) * n + w(o[2])] += *g;
+            let ph = C::expi(del[0] * o[0] as f64 + del[1] * o[1] as f64 + del[2] * o[2] as f64);
+            a[(w(o[0]) * n + w(o[1])) * n + w(o[2])] += *g * ph;
         }
         // G(k) = Σ_j g_j e^{+i k·j}: unnormalized inverse transform
         fft.tre(&mut a, true);
@@ -402,7 +413,7 @@ impl Livello {
         let im_g = reg.g.iter().map(|c| c.im.abs()).fold(0.0, f64::max);
         let mut lv = Livello { n, h: reg.h, tau: reg.h, phi0: reg.phi0, c0: n / 2, fft, gk, molt, v: vec![0.0; n * n * n],
                                calcio: vec![C::ONE; n * n * n], z, off, im_g, spin: reg.spin,
-                               offs: reg.offs.clone(), g: reg.g.clone() };
+                               offs: reg.offs.clone(), g: reg.g.clone(), corr: None, torsione };
         lv.metti_potenziale(z);
         lv
     }
@@ -444,11 +455,13 @@ impl Livello {
 
     /// one step of the learned rule with the Coulomb half kicks
     pub fn passo(&self, f: &mut [C]) {
+        if let Some(c) = self.corr.as_ref() { c.applica(f); }
         f.par_iter_mut().zip(self.calcio.par_iter()).for_each(|(a, k)| *a = *a * *k);
         self.fft.tre(f, false);
         f.par_iter_mut().zip(self.molt.par_iter()).for_each(|(a, m)| *a = *a * *m);
         self.fft.tre(f, true);
         f.par_iter_mut().zip(self.calcio.par_iter()).for_each(|(a, k)| *a = *a * *k);
+        if let Some(c) = self.corr.as_ref() { c.applica(f); }
     }
 
     /// the rule's own velocity operator v_a(k) = ∂G/∂k_a (units c; k in 1/cell, G in rad per step, h = τ)
@@ -492,6 +505,7 @@ impl Livello {
         out.par_iter_mut().zip(self.gk.par_iter()).for_each(|(a, g)| *a = a.scale(*g / tau));
         self.fft.tre(out, true);
         out.par_iter_mut().zip(f.par_iter()).zip(self.v.par_iter()).for_each(|((o, x), v)| *o += x.scale(*v));
+        if let Some(c) = self.corr.as_ref() { c.aggiungi_ham(f, out); }
     }
 
     /// energy read from the RULE: E = −arg(⟨f|W f⟩ e^{−iφ₀})/τ, and the residual |Wf − λ f|/|f|
@@ -1008,6 +1022,7 @@ impl Fine {
         let hi = (nh + ni) * b;
         let ptrs: [SendPtr; 4] = [SendPtr(self.psi[0].as_mut_ptr()), SendPtr(self.psi[1].as_mut_ptr()),
                                   SendPtr(self.psi[2].as_mut_ptr()), SendPtr(self.psi[3].as_mut_ptr())];
+        let bordo_nuovo = std::env::var("IDRO_BORDO_VECCHIO").is_err();
         (0..p).into_par_iter().for_each(|i| {
             let ptrs = ptrs;
             for j in 0..p {
@@ -1022,7 +1037,13 @@ impl Fine {
                             let cl = |v: isize| v.clamp(0, p as isize - 1) as usize;
                             at(cl(a), cl(c), cl(d))
                         };
-                        (get(1) - get(-1)).scale(0.5)
+                        // phase 4: at the two edge sites of the patch the old clamped difference was half a derivative; its
+                        // error reached the first interior fine cell after exactly b ticks (light cone, off by one) — the
+                        // seam leak of phases 1–3. One-sided second-order differences there (IDRO_BORDO_VECCHIO=1: old)
+                        let q = match ax { 0 => ii, 1 => jj, _ => kk };
+                        if bordo_nuovo && q == 0 { (get(0).scale(-3.0) + get(1).scale(4.0) - get(2)).scale(0.5) }
+                        else if bordo_nuovo && q == p as isize - 1 { (get(0).scale(3.0) - get(-1).scale(4.0) + get(-2)).scale(0.5) }
+                        else { (get(1) - get(-1)).scale(0.5) }
                     };
                     let f = at(i, j, k);
                     let mut chi = [C::ZERO; 2];
@@ -1156,6 +1177,9 @@ impl Fine {
     pub fn scala_interno(&mut self, k: f64) {
         for c in 0..4 { self.psi[c].par_iter_mut().for_each(|x| *x = x.scale(k)); }
     }
+    pub fn ruota_interno(&mut self, k: C) {
+        for c in 0..4 { self.psi[c].par_iter_mut().for_each(|x| *x = *x * k); }
+    }
 
     /// probability in the interior (fine), and the scalar density ψ†βψ = 2 Re(L†R) summed over the interior
     pub fn interno_norma_beta(&self) -> (f64, f64) {
@@ -1180,6 +1204,32 @@ impl Fine {
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Calcio { DalFine, Grosso }
 
+/// the seam (phase 4, docs/IDROGENO_BOHR.md §13): how the fine block talks back to the coarse grid.
+/// Vecchia: covered cells ← block means of the fine field (phases 1–3; with IDRO_REFLUX the charge balance);
+/// Fase: as Vecchia, but the reflux factor is complex: the fine block is also turned by the phase that the coarse rule
+/// predicts for the covered cells (diagnostic variant); UnaVia: the coarse grid is never overwritten (fine block = zoom
+/// slaved to the coarse field); Imparata: the coarse step carries a learned Hermitian correction on the covered cells
+/// (see `Correzione`), the fine block is a slaved zoom.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum Cucitura { Vecchia, Fase, UnaVia, Imparata, Cella }
+
+/// IDRO_TORSIONE=000 (default) | 111 | 100 | 110: the box twist (AGGLOMERATO_2S §2.2)
+pub fn torsione_env() -> [u8; 3] {
+    let t = std::env::var("IDRO_TORSIONE").unwrap_or_else(|_| "000".to_string());
+    let b = t.as_bytes();
+    [(b[0] - b'0'), (b[1] - b'0'), (b[2] - b'0')]
+}
+
+pub fn cucitura_env() -> Cucitura {
+    match std::env::var("IDRO_CUCITURA").unwrap_or_default().as_str() {
+        "fase" => Cucitura::Fase,
+        "unavia" => Cucitura::UnaVia,
+        "imparata" => Cucitura::Imparata,
+        "cella" => Cucitura::Cella,
+        _ => Cucitura::Vecchia,
+    }
+}
+
 pub struct Atomo {
     pub lv: Livello,
     pub psi: Vec<C>,
@@ -1192,6 +1242,46 @@ pub struct Atomo {
     /// charge balance at the seam (IDRO_REFLUX=1) and the last correction factor − 1 (diagnostic)
     pub reflux: bool,
     pub ultimo_reflux: f64,
+    /// phase 4: the seam variant and per-step diagnostics: charge the seam would lose (fatt² − 1), phase of the restricted
+    /// fine field against the coarse prediction on the covered cells, Σ conj(u)·a
+    pub cucitura: Cucitura,
+    pub perdita: f64,
+    pub sfasamento: f64,
+}
+
+/// A small dense unitary acting on a list of coarse cells: U = e^{−iΔ τ/2} (Δ Hermitian, learned).
+#[derive(Clone)]
+pub struct Correzione { pub celle: Vec<usize>, pub u: Vec<Vec<C>>, pub delta: Vec<Vec<C>> }
+
+impl Correzione {
+    /// Δ Hermitian (n×n, units μc²) → U = e^{−iΔτ/2} by Jacobi diagonalisation
+    pub fn da_delta(celle: Vec<usize>, delta: Vec<Vec<C>>, tau: f64) -> Self {
+        let n = celle.len();
+        let mut a: Vec<Vec<C>> = delta.clone();
+        let (ev, v) = herm_eig(&mut a);
+        let mut u = vec![vec![C::ZERO; n]; n];
+        for i in 0..n { for j in 0..n {
+            let mut s = C::ZERO;
+            for k in 0..n { s += v[i][k] * C::expi(-0.5 * ev[k] * tau) * v[j][k].conj(); }
+            u[i][j] = s;
+        }}
+        Correzione { celle, u, delta }
+    }
+    pub fn applica(&self, f: &mut [C]) {
+        let x: Vec<C> = self.celle.iter().map(|s| f[*s]).collect();
+        let n = x.len();
+        let y: Vec<C> = (0..n).into_par_iter().map(|i| { let mut s = C::ZERO; for j in 0..n { s += self.u[i][j] * x[j]; } s }).collect();
+        for (k, s) in self.celle.iter().enumerate() { f[*s] = y[k]; }
+    }
+    /// ⟨f|Δ|f⟩ contribution and Δ f added into out (for the Hermitian generator used by LOBPCG)
+    pub fn aggiungi_ham(&self, f: &[C], out: &mut [C]) {
+        let n = self.celle.len();
+        for i in 0..n {
+            let mut s = C::ZERO;
+            for j in 0..n { s += self.delta[i][j] * f[self.celle[j]]; }
+            out[self.celle[i]] += s;
+        }
+    }
 }
 
 /// (h²/12) Σ_j ∂_jV ∂_jf with central differences, f ← f − i (τ/2) (that), skipping masked cells
@@ -1219,10 +1309,12 @@ pub fn calcio_covarianza(lv: &Livello, f: &mut [C], coperte: &[usize]) {
 impl Atomo {
     pub fn new(lv: Livello, psi: Vec<C>, fine: Option<Fine>, calcio: Calcio) -> Self {
         let reflux = std::env::var("IDRO_REFLUX").map(|v| v != "0").unwrap_or(false);
-        let mut a = Atomo { lv, psi, fine, passi: 0, calcio, covarianza: false, reflux, ultimo_reflux: 0.0 };
+        let mut a = Atomo { lv, psi, fine, passi: 0, calcio, covarianza: false, reflux, ultimo_reflux: 0.0,
+                            cucitura: cucitura_env(), perdita: 0.0, sfasamento: 0.0 };
+        let schiavo = matches!(a.cucitura, Cucitura::UnaVia | Cucitura::Imparata);
         if let Some(f) = a.fine.as_mut() {
             f.prolunga(&a.psi, true);
-            for (s, v) in f.restringi(false) { a.psi[s] = v; }
+            if !schiavo { for (s, v) in f.restringi(false) { a.psi[s] = v; } }
         }
         a
     }
@@ -1234,18 +1326,27 @@ impl Atomo {
     /// the same step, calling `oss(fine, t)` after every fine tick t = 1..b (for the zoom export)
     pub fn passo_osserva(&mut self, oss: &mut dyn FnMut(&Fine, usize)) {
         let mut g = self.psi.clone();
+        let schiavo = matches!(self.cucitura, Cucitura::UnaVia | Cucitura::Imparata);
+        if let Some(c) = self.lv.corr.as_ref() { c.applica(&mut g); }
         g.par_iter_mut().zip(self.lv.calcio.par_iter()).for_each(|(a, k)| *a = *a * *k);
         let coperte: Vec<usize> = match self.fine.as_ref() { Some(f) => f.celle_coperte(), None => vec![] };
         if self.covarianza { calcio_covarianza(&self.lv, &mut g, &coperte); }
         if let Some(f) = self.fine.as_mut() {
-            f.prolunga(&self.psi, false);
-            if self.calcio == Calcio::DalFine { for (s, v) in f.restringi(true) { g[s] = v; } }
+            f.prolunga(&self.psi, !schiavo && std::env::var("IDRO_FRESCO").is_ok());
+            if self.calcio == Calcio::DalFine && !schiavo { for (s, v) in f.restringi(true) { g[s] = v; } }
         }
         self.lv.fft.tre(&mut g, false);
         g.par_iter_mut().zip(self.lv.molt.par_iter()).for_each(|(a, m)| *a = *a * *m);
         self.lv.fft.tre(&mut g, true);
         g.par_iter_mut().zip(self.lv.calcio.par_iter()).for_each(|(a, k)| *a = *a * *k);
+        if let Some(c) = self.lv.corr.as_ref() { c.applica(&mut g); }
         if self.covarianza { calcio_covarianza(&self.lv, &mut g, &coperte); }
+        if schiavo {
+            if let Some(f) = self.fine.as_mut() { for t in 1..=f.b { f.tick(t); oss(f, t); } }
+            self.psi = g;
+            self.passi += 1;
+            return;
+        }
         // reflux: the charge that crosses the interface is the one the coarse rule moves. The covered cells get, in total,
         // exactly the charge Q(before) − Q(uncovered, after); the fine block is rescaled by the same factor, so the
         // fine region keeps its own shape (cusp, jitter) but cannot create or lose charge at the seam
@@ -1253,14 +1354,35 @@ impl Atomo {
         if let Some(f) = self.fine.as_mut() {
             for t in 1..=f.b { f.tick(t); oss(f, t); }
             let r = f.restringi(false);
-            if self.reflux {
-                let q_cov_g: f64 = r.iter().map(|(s, _)| g[*s].norm2()).sum();
-                let q_unc = norm2(&g) - q_cov_g;
-                let q_r: f64 = r.iter().map(|(_, v)| v.norm2()).sum();
+            // diagnostics (always): what the seam would lose, and the phase of the fine block against the coarse prediction
+            let q_all = norm2(&self.psi);
+            let q_cov_g: f64 = r.iter().map(|(s, _)| g[*s].norm2()).sum();
+            let q_unc = norm2(&g) - q_cov_g;
+            let q_r: f64 = r.iter().map(|(_, v)| v.norm2()).sum();
+            self.perdita = (q_all - q_unc) / q_r - 1.0;
+            let ov = r.iter().fold(C::ZERO, |acc, (s, v)| acc + g[*s].conj() * *v);
+            self.sfasamento = ov.arg();
+            if self.cucitura == Cucitura::Cella {
+                // phase-respecting seam: every covered cell keeps the charge the coarse rule gives it and takes the PHASE
+                // of the fine block (the fine block is the clock of the cells it covers). Exactly unitary per step (a
+                // diagonal phase on the covered cells after the coarse step), no reflux needed. The zoom is rescaled
+                // (real factor) to the coarse charge of the covered cells; it never feeds amplitudes back.
+                let mut qa = 0.0;
+                let mut qg = 0.0;
+                for (s, v) in r.iter() {
+                    let m = g[*s].abs();
+                    qa += v.norm2();
+                    qg += m * m;
+                    if v.abs() > 0.0 { g[*s] = v.scale(m / v.abs()); }
+                }
+                f.scala_interno((qg / qa).sqrt());
+                self.ultimo_reflux = (qg / qa).sqrt() - 1.0;
+            } else if self.reflux {
                 let fatt = ((q_prima - q_unc).max(0.0) / q_r).sqrt();
                 self.ultimo_reflux = fatt - 1.0;
-                for (s, v) in r { g[s] = v.scale(fatt); }
-                f.scala_interno(fatt);
+                let k = if self.cucitura == Cucitura::Fase { C::expi(-self.sfasamento).scale(fatt) } else { C::real(fatt) };
+                for (s, v) in r { g[s] = v * k; }
+                f.ruota_interno(k);
             } else {
                 for (s, v) in r { g[s] = v; }
             }
