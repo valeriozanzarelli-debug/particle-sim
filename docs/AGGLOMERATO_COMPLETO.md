@@ -65,7 +65,7 @@ segni sbagliati del nucleo dei camminatori, pezzo k⁴ della banda, parità).
    limiti "a palline" verificati (salti ≥ 4,3 λ_C per il k⁶; nessuna regola positiva relativistica con celle > √3 λ_C);
    F3 dei 2p **chiuso con il cinetico T** (−0,7 % e −3,0 %), con un emendamento dichiarato sulla coda finta ad alto k.
 
-**Esami: 16 PASS / 3 FAIL** (fase 2 + emendamenti), **5 PASS / 1 FAIL** (fase 3), **3 PASS / 2 FAIL** (fase 4), **3 PASS / 1 FAIL** (fase 5, §13: livello Z = 10 entro 3·10⁻⁵ su 6 semi su 6; la coda ad alto k era parità sbagliata lasciata dal solutore; F3 dei 2p chiuso senza filtri), **6 PASS / 3 FAIL** (fase 6, §14: l'accoppiamento campo–moto imparato nella lingua della componente grande è quello di Dirac e nella colla fa esattamente il Darwin spalmato esterno, ma il plateau −10 % della 1s di nucleo1s **non** viene da lì), **5 PASS / 1 FAIL** (fase 7, §16: il plateau è un termine Z³ della catena di zoom, ∝ θ²·R_z·|ψ(0)|²; con la cella della catena θ/4 la 1s sta a −0,03 %; il c4 di K è già fissato nel livello T).
+**Esami: 16 PASS / 3 FAIL** (fase 2 + emendamenti), **5 PASS / 1 FAIL** (fase 3), **3 PASS / 2 FAIL** (fase 4), **3 PASS / 1 FAIL** (fase 5, §13: livello Z = 10 entro 3·10⁻⁵ su 6 semi su 6; la coda ad alto k era parità sbagliata lasciata dal solutore; F3 dei 2p chiuso senza filtri), **6 PASS / 3 FAIL** (fase 6, §14: l'accoppiamento campo–moto imparato nella lingua della componente grande è quello di Dirac e nella colla fa esattamente il Darwin spalmato esterno, ma il plateau −10 % della 1s di nucleo1s **non** viene da lì), **5 PASS / 1 FAIL** (fase 7, §16: il plateau è un termine Z³ della catena di zoom, ∝ θ²·R_z·|ψ(0)|²; con la cella della catena θ/4 la 1s sta a −0,03 %; il c4 di K è già fissato nel livello T), **2 PASS / 2 FAIL** (fase 8, §17: con le due patch l'α⁴ di 1s e 2s della coppia Z = 1/2 sta entro ±0,35 % da J0 = 32; Z = 3/6 e 5/10 entro ±1 % da R = 6 a₀/Z).
 
 ---
 
@@ -583,6 +583,7 @@ python aggfull_p4_prereg.py; python aggfull_p4.py; python aggfull_relearnT.py; .
 python aggfull_p5_prereg.py; python aggfull_p5.py; ./aggfull_drive5.sh; python aggfull_p5_analyze.py   # fase 5
 python aggfull_p6_prereg.py; python aggfull_p6.py learn; ./aggfull_drive6.sh; python aggfull_p6_atom.py eT8_1s eT8_2s eT16_1s eT8_2p_c; python aggfull_p6_glue.py run; python aggfull_p6_analyze.py; python aggfull_p6_figure.py   # fase 6
 python aggfull_p7_prereg.py; ./aggfull_drive7.sh; python aggfull_p7_analyze.py; python aggfull_p7_figure.py   # fase 7
+python aggfull_p8_prereg.py; timeout 590 python aggfull_p8.py run (fino a 'all done'); python aggfull_p8_analyze.py; python aggfull_p8_figure.py   # fase 8
 python aggfull_analyze.py; python aggfull_figure.py
 ```
 I campi di Galerkin (`aggfull_field_*.npz`, ~0,5 GB) e i vettori (`.npy`) non sono nel repo: si rifanno.
@@ -647,3 +648,44 @@ nucleo, senza zoom, con cusp risolto.
 
 **Patch proposte per `nucleo1s_`** (non applicate): in `Glue8` passare la cella esterna della catena `a_out = θ_A/4`
 (oggi `mesh_zoom(TH_A, …)`), oppure misurare l'α⁴ con tre o quattro Z togliendo il termine Z³.
+
+## 17. Fase 8: l'atomo ibrido con le due patch
+
+Pre-registrazione `lab/aggfull_p8_prereg.py` → `lab/out/aggfull_p8_prereg.json` (**commit b2fb9f7, prima delle corse**;
+sviluppo dichiarato lì). Codice `lab/aggfull_p8.py` (catena a θ_A/4 = `aggfull_p7_glue.GlueT`, livello T + accoppiamento
+della fase 6 + colla di `nucleo1s_f8_core`, **nessun file nucleo1s modificato**), `lab/aggfull_p8_analyze.py` →
+`lab/out/aggfull_p8_verdict.json`, figura `lab/out/aggfull_p8_figure.png`. **2 PASS / 2 FAIL.**
+
+**Come si confrontano gli Z.** Con i soli livelli che esistono (B = 512 e 256) le coppie alla stessa geometria in a₀/Z
+sono (Z, B=512) con (2Z, B=256): Z = 1/2, 3/6, 5/10. Per Z = 3 e 5 J0 = 32 vuol dire R = 12 e 20 a₀/Z: lì la parte
+grossa è coda lontana e la colla non ha soluzione (sviluppo, dichiarato). Quindi J0 è dato **allo stesso raggio di colla
+in a₀/Z**: R = 3,06 / 4,06 / 6,06 / 8,06 a₀/Z, cioè J0 = 24/32/48/64 (Z = 1), 8/10/16/21 (Z = 3), 4/6/9/12 (Z = 5).
+
+| esame | cosa | risultato | esito |
+|---|---|---|---|
+| Q1 | coppia 1/2, J0 = 32, 48, 64: 1s e 2s entro ±1 % | 1s −0,10 / −0,03 / −0,03 %; 2s +0,35 / −0,02 / −0,02 % (J0 = 24: −0,72 / +1,22 %) | **PASS** |
+| Q2 | coppie 3/6 e 5/10 da R = 4,06 a₀/Z | 3/6: tutto entro ±0,4 %; 5/10 a J0 = 6 (solo 6 celle grosse): 1s +1,78 %, **2s −3,47 %** | **FAIL (previsto)** |
+| Q3 | coppie 3/6 e 5/10 da R = 6,06 a₀/Z | 3/6: +0,07/−0,13, +0,06/+0,10 %; 5/10: −0,02/+0,82, +0,07/−0,16 % | **PASS** |
+| Q4 | previsione: senza patch (catena θ) a R = 8 a₀/Z la 1s sbaglia di −11,87 %/Z (30 %) | Z = 1: −10,48 % (pred. −11,87); Z = 3: −2,78 (−3,96); Z = 5: −1,39 (−2,37) | **FAIL** |
+
+**Cosa vuol dire, semplice.**
+
+1. **Le due patch insieme funzionano per la coppia 1/2**: da J0 = 32 la 1s e il 2s stanno entro ±0,35 %, e da J0 = 48
+   entro ±0,03 %. La catena fine a θ/4 toglie l'artefatto Z³; il termine campo–moto della fase 6 serve per le colle a
+   raggio medio. **Validazione** (si ritrova Dirac), non scoperta.
+2. **Per Z = 3 e 5 serve lo stesso numero di celle grosse dentro la catena, non lo stesso raggio.** A R = 4 a₀/Z la
+   coppia 5/10 ha la colla a sole 6 celle grosse: è il regime "J0 piccolo" di nucleo1s, dove la colla sbaglia di qualche
+   %. Da R = 6 a₀/Z (9 celle) tutto passa. La coppia 3/6 passa ovunque.
+3. **Q4 FAIL, onesto.** Ho previsto solo il pezzo Z³ (−11,87 %/Z) e ho dimenticato il resto Z⁴ della catena (+1,24 %,
+   uguale per tutti gli Z), che si somma. Con i due pezzi insieme: −10,6 / −2,7 / −1,1 % contro −10,5 / −2,8 / −1,4 %
+   misurati. È una spiegazione **a posteriori**, non giudicata.
+4. **agg2s con `aggfull_relearnT.pkl`: già fatto da loro.** È la riga F3S_T di AGGLOMERATO_2S (commit 5d60a03): 1s a₀/16
+   +0,93 %, 1s a₀/8 −0,54 %, 2s a₀/8 −0,14 %, **PASS** (anche la versione stretta, entro 1,5 %). F3S_K resta FAIL perché è
+   l'esame col cinetico K, per definizione. Non ho rifatto le loro corse: i file `agg2s_*` non sono miei. La risposta alla
+   domanda "con T passa?" è sì.
+
+**Debiti.** Nessuno nuovo. La mappa J0 → stesso R in a₀/Z è una scelta di misura, dichiarata prima delle corse. La cella
+θ/4 della catena è risoluzione.
+
+**Parità.** Non toccata.
+
