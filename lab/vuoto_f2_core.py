@@ -58,9 +58,12 @@ def sphere_rule(nr, nct, nph, kmin, kmax):
     return K, WW
 
 
+SLICE = {"s": 0}     # phase 3 diagnostic: 1 = effective Hamiltonian taken at the other time slice (default 0 = phase 2)
+
+
 def lattice_electron(K, th):
     """two-tick Floquet eigen of the electron walk at K (N,3): E per tick (N,4), V (N,4,4)"""
-    W = U3d(K, th, 1) @ U3d(K, th, 0)
+    W = U3d(K, th, 1) @ U3d(K, th, 0) if SLICE["s"] == 0 else U3d(K, th, 0) @ U3d(K, th, 1)
     Om, lam, V = ueig(W)
     return Om / 2, V
 
