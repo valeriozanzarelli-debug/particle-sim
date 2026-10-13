@@ -54,7 +54,8 @@ verdict("W5", None, f"decision by the pre-registered rule: {w5['W5_decision']}",
 x5 = json.load(open(os.path.join(OUT, "emiss_x5.json")))
 x5b = json.load(open(os.path.join(OUT, "emiss_x5_16000_bh.json")))
 verdict("X5", None, f"pre-registered estimator (Hann, 4000 ticks): '{x5['decision']}' but from side lobes of the 1s line; with the declared "
-        f"clean window (Blackman-Harris, 16000 ticks) BOTH windows are empty (no level > 1e-4 near 0.886 or 0.989): neither H1 nor H2", None)
+        f"clean window (Blackman-Harris, 16000 ticks) BOTH windows are empty (no level > 1e-4 near 0.886 or 0.989): neither H1 nor H2. "
+        f"Declared extra diagnostic: a level at 1.06848 (box continuum, weight 0.012) gives 1.06848 - w(2p3/2) = 0.08966 and - w(2p1/2) = 0.09250", None)
 verdict("M5", None, "dynamic multipole coupling: not done (declared)", None)
 json.dump(R, open(os.path.join(OUT, "emiss_results3.json"), "w"), indent=1, default=lambda x: x.tolist() if hasattr(x, "tolist") else float(x))
 print(f"=== {sum(1 for v in R.values() if isinstance(v, dict) and v.get('pass_') is True)} PASS, "

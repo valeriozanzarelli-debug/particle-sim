@@ -53,6 +53,8 @@ la luce classica non fa?
 
 **Fase 2 (§11, pre-registrazione v4):** con il nucleo imparato di NUCLEO_1S e livelli esatti sul cubo intero E1 (rapporto e σ⁻) e R1 **passano** (E4a/b/c/s, R4 0,997, R4b); il ritardo dagli stati della regola dà **+0,89 %** da Dirac completo (N2); nel Laboratorio con l'1s pulito il battito è sparito (L1b 0,0009). 8 PASS, 1 FAIL (S4, stesso difetto di progetto di S1).
 
+**Fase 3 (§12, v5):** il 2p puro dà alla luce 10⁻³² col semiclassico e 1,07·10⁻³ col quantistico (S5 PASS, su corse nuove 96³); nel 96³ il dipolo scende a +13 % da Dirac (D5 FAIL) e il ritmo contro Dirac passa solo per compensazione (−1,5 %); le righe deboli sono un elettrone libero tenuto dalla scatola; il doppietto 2p3/2 punta alle valli (indeciso per la regola). 5 PASS, 1 FAIL.
+
 **Conteggio fase 1 (21 prove pre-registrate):** **11 PASS, 6 FAIL, 2 informative, 2 non eseguite** (tabella §5). Parametri fisici nuovi: **0**.
 
 ---
@@ -576,3 +578,110 @@ quello dell'export vecchio.
 `src/atomo/zz.rs`: nel Laboratorio (Z = 60, a = 0,5) applicare il nucleo imparato di NUCLEO_1S §13.2 e prendere 1s **e 2p**
 con la diagonalizzazione del filtro e il criterio "più peso nello stato radiale, più i vicini entro 0,0015". Effetto atteso
 (da questa fase): la riga del Laboratorio con luce lungo z è la 1s→2p3/2 con il 2 : 1 giusto, e con luce σ⁻ la 1s→2p½.
+
+---
+
+## 12. Fase 3: emissione giudicata sull'energia, scatola 96³, il doppietto e le righe deboli
+
+Pre-registrazione v5: `lab/emiss_prereg3.py` → `lab/out/emiss_prereg3.json` (**commit 52bf8ca, prima delle corse**; soglie
+vecchie invariate). Dichiarazioni dopo: `lab/out/emiss_amend3.json`. File: `lab/emiss_ritz96.py`, `lab/emiss_w5.py`,
+`lab/emiss_x5.py` (+ `x5b`, `x5c`, `x5d`, diagnosi dichiarate), `lab/emiss_judge3.py` → `lab/out/emiss_results3.json`,
+`lab/emiss_figure3.py` → `lab/out/emiss_figure3.png`.
+
+![figura fase 3](../lab/out/emiss_figure3.png)
+
+### 12.0 In breve
+
+**5 PASS, 1 FAIL, 3 informativi** (W5, X5, M5).
+
+| prova | che cosa | misurato | soglia | esito |
+|---|---|---|---|---|
+| S5 | 2p puro nel 96³: energia data alla luce, semiclassico / quantistico | **1,4·10⁻³² / 1,07·10⁻³** (1·10⁻²⁹) | < 1 % | **PASS** |
+| S5b | il 2p puro quantistico si svuota da solo | 1 − norma = 2,94·10⁻² (≥ 1,51·10⁻²) | | **PASS** |
+| R5 | QE 96³: ritmo / ritmo della regola | **0,974** (finestre col dipolo del momento: 1,031) | 3 % | **PASS** |
+| R5b | fotoni / norma | 0,981 | 3 % | **PASS** |
+| R2v5 | ritmo/W² contro Dirac A_LW | **1,072·10⁻⁵ (−1,5 %)** = 8,32·10¹⁵ s⁻¹ | 5 % | **PASS (per compensazione, vedi sotto)** |
+| D5 | dipolo 96³ contro Dirac | **2,81 / 2,48 (+13,3 %)** (48³: +48,8 %) | 5 % | **FAIL** |
+| W5 | il doppietto 2p3/2 è valli o reticolo cubico? | regola pre-registrata: **indeciso** | | info |
+| X5 | da dove vengono le righe deboli | **né H1 né H2**: elettrone libero nella scatola (dopo, dichiarato) | | info |
+| M5 | accoppiamento multipolare dinamico | **non fatto** | | — |
+
+### 12.1 S1/S4 rifatti bene (S5)
+
+L'errore di progetto di S1 e S4 era misurare la proiezione sul 2p (che batte da sola) invece della luce emessa. In v5 l'esame
+è sull'energia data alla luce, e **su corse nuove** (96³, nucleo imparato), non sui dati già visti. Il 2p puro semiclassico dà
+alla luce **1,4·10⁻³²** (rumore di macchina), il quantistico **1,07·10⁻³**: rapporto 10⁻²⁹. **L'emissione spontanea c'è solo
+con la luce quantizzata, e la regola lo mostra senza ambiguità.**
+
+### 12.2 Scatola 96³ (48 λ_C) con il nucleo imparato
+
+Livelli (filtro, criterio cieco): 1s+ 0,899547 (gruppo 0,89942/0,89960/0,89968), 2p3/2 m = 3/2 0,973387 (peso nello stato di
+partenza 0,974). Memoria massima ~1,5 GB, un pezzo da 6 minuti per livello.
+
+- **Il dipolo scende da +48,8 % (48³) a +13,3 % (96³)**: gran parte dell'eccesso del 48³ era la scatola che taglia il 2p.
+  Il resto: circa metà è la **forma del 2p a cella 0,5** (controllo dichiarato: il 2p radiale della regola a a = 0,5 con l'1s di
+  Dirac dà già +6,5 %; a a = 0,25 +1,5 %). D5 FAIL.
+- **ω(1s→2p3/2) = 0,07384, −3,7 % da Dirac** (−10,7 % in ω³): il 2p a cella 0,5 è troppo legato, come previsto in v3.
+- **R2v5 passa a −1,5 % solo perché due errori si compensano**: 0,893 (ω³) × 1,133 (dipolo) = 1,012. **Non è una
+  validazione**: lo scrivo con lo stesso peso del PASS. La validazione vera del ritmo contro Dirac resta quella radiale (N1 +0,87 %,
+  H1 +0,78 %, N2 +0,89 % col ritardo).
+- R5 = 0,974: anche qui il rapporto finestra per finestra col dipolo del momento è **1,031** (il residuo del campo vicino 3-D,
+  ~3 %, uguale in 48³ e 96³) e il dipolo cala nella corsa; il numero pre-registrato passa.
+
+### 12.3 Il doppietto 2p3/2 (0,97872 / 0,97887): valli o cubo?
+
+Prima la fisica: la regola ha un'**inversione del tempo esatta con T² = −1** (`docs/SURFISTI_ESATTI.md` §12.8). Quindi ogni livello
+è una coppia di Kramers (m ↔ −m): un doppietto che si apre **dentro** la partenza m = 3/2 non è Kramers rotto, è la separazione di
+due coppie di Kramers diverse. Le cause possibili sono due: (a) le **valli** (le 4 copie del 2p, che il nucleo imparato, allenato
+sull'1s, non unisce del tutto); (b) la **simmetria del reticolo**: nel cubo pieno (gruppo O_h doppio) il j = 3/2 resta un quartetto
+(Γ8) e non si apre, ma il cammino ha una simmetria più bassa (ordine degli assi alternato, 4 colori con il nucleo sulle diagonali)
+che può aprire Γ8 in due coppie di Kramers.
+
+Misure (`emiss_w5.json`, Ritz a 2400 tick):
+
+| membro | peso nella partenza m = 3/2 | peso nella partenza m = ½ | valle 0 | xy | xz | yz |
+|---|---|---|---|---|---|---|
+| 0,97887 | 0,56 | 0,60 | 0,64–0,68 | 0,07–0,19 | 0,07–0,11 | 0,11–0,14 |
+| 0,97872 | 0,33 | 0,29 | 0,34–0,38 | 0,15–0,33 | 0,11–0,23 | 0,18–0,29 |
+
+La regola pre-registrata dice **INDECISO** (il primo membro ha più di 0,15 solo in 2 valli). Lettura mia (non è un verdetto):
+lo stato radiale di partenza sta al 98 % nella valle 0, mentre **ogni** membro ha dal 32 al 66 % fuori dalla valle 0. Una
+separazione del solo reticolo cubico agirebbe dentro la valle 0 e lascerebbe i membri nella valle 0. In più le partenze m = ½ e
+m = 3/2 si dividono sui due membri **nelle stesse proporzioni** (0,60/0,29 e 0,56/0,33): una separazione tetragonale lungo z
+separerebbe |m| = 3/2 da |m| = ½. Entrambi i fatti puntano alle **valli**. Il passo che decide: imparare il nucleo anche sul 2p
+(il doppietto dovrebbe chiudersi) oppure guardarlo con la regola di Wilson ritorta (REGOLA_LOCALE), che toglie le valli alla radice.
+
+### 12.4 Le righe deboli a +0,0131: spiegate (X5)
+
+Le due ipotesi pre-registrate erano un livello di tipo 1s a ω₁ₛ − 0,0131 (H1) o di tipo 2p a ω₂ₚ + 0,0131 (H2). Lo stimatore
+scritto prima (finestra di Hann, 4000 tick) diceva H1, ma prendeva **i lobi laterali** della riga forte dell'1s (picchi simmetrici
+attorno a 0,89946). Con una finestra pulita (Blackman–Harris, 16 000 tick; dichiarata) **nessuna delle due**: niente sopra 10⁻⁴
+né vicino a 0,886 né vicino a 0,989; il Ritz dallo stesso stato in [0,86; 0,92] trova solo il gruppo dell'1s.
+
+Guardando tutto lo spettro dello stato dopo l'impulso (dichiarato) c'è un livello a **1,06848** con peso **1,2 %**: sopra mc², cioè
+un **elettrone non legato**, strappato dall'impulso e tenuto dalla scatola periodica (un elettrone libero con k = √2·2π/L, L = 24 λ_C,
+ha 1,066). Le differenze: 1,06848 − 0,97882 = **0,08966** e 1,06848 − 0,97598 = **0,09250**: esattamente le due righe deboli.
+La coincidenza con 0,0131 (il vecchio battito delle valli) è casuale. La riga è vera nel dipolo dell'atomo (con passo 1, non è un
+alias del campionamento ogni 4) e vive a r = 4–8 λ_C (`emiss_x5b/c`). **In uno spazio aperto queste righe non ci sarebbero**:
+l'elettrone strappato se ne andrebbe. È un artefatto della scatola, non dell'atomo. Previsione (non provata): nel 96³ il livello si
+abbassa verso ~1,017 e le righe si spostano verso ~0,04.
+
+### 12.5 Accoppiamento multipolare dinamico (M5): non fatto
+
+Il ritardo è oggi **calcolato** con gli stati della regola (N2 +0,89 %), non emerso. Per farlo emergere la luce deve vedere
+la nuvola dell'atomo cella per cella: celle di luce ≲ 1 λ_C attorno all'atomo e celle grandi lontano (una "cipolla" per la luce,
+che ha lo stesso problema di raccordo della cipolla 3-D di NUCLEO_1S §13.3). Progetto: deposito della corrente di transizione
+−e ψ†αφ cella per cella su un guscio interno di luce a b = 0,5, raccordato a b = 4 fuori; esame: rapporto ritmo dinamico / ritmo
+di dipolo = F_ret(regola) = 0,9168 entro 1 %.
+
+### 12.6 Debiti dopo la fase 3
+
+- **#17 emissione spontanea**: confermata pulita sull'energia (S5, 10⁻²⁹).
+- **Dipolo 3-D contro Dirac**: +13 % nel 96³ (scatola quasi risolta; resta la cella 0,5 per il 2p). Serve a = 0,25 in 3-D (8×
+  celle) o il nucleo imparato più la cipolla.
+- **ω del 2p 3-D −3,7 %**: stesso debito di sempre (cella 0,5).
+- **Residuo del campo vicino 3-D ~3 %** (R4 e R5 finestra per finestra): aperto.
+- **Doppietto 2p3/2**: probabilmente valli del 2p (indeciso per la regola scritta prima).
+- **Righe deboli**: chiuso (scatola).
+- **Ritardo dinamico**: aperto (M5).
+- Parametri nuovi della fase 3: **0**. Scelte nuove: finestre del filtro per il 96³.
