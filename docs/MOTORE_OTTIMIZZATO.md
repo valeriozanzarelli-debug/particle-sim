@@ -256,7 +256,7 @@ finte.
   `AGGLOMERATO_ZIGZAG.md`: 2s +1,0 % ad a₀/8.)
 * **Zitterbewegung (EE5, descrittivo).** Ad Ultra (passo 0,54 ħ/mc²) il tremolio si vede alla frequenza giusta (2,03
   contro 2). A Intel (passo 6,4) non è "sparito": la regola imparata con i due fogli (R, L) lo **ricampiona** e mostra un
-  battito **lento finto** a 0,12 mc²/ħ, identico a quello del fine guardato agli stessi istanti. Per il motore è una
+  battito **lento finto** ~~a 0,12 mc²/ħ~~ [correzione fase 2: 0,12 era solo il limite di risoluzione della FFT con 8 campioni; la frequenza vera, misurata in §14.4, è 0,0437 mc²/ħ = l'alias del tremolio], identico a quello del fine guardato agli stessi istanti. Per il motore è una
   trappola visiva: un'oscillazione che sembra fisica e non lo è. Ai livelli grossi va usato il descrittore di **Pauli**
   (solo energie positive), come già fa la catena 3-D: lì il tremolio non c'è e non c'è nemmeno il fantasma.
 
@@ -383,6 +383,134 @@ scala dei livelli, intervallo di controllo 10 λ, pavimenti 32 / 12, regola del 
 3. Atomo-cartolina spettrale: provare che il salto nella base degli stati fermi riproduce la griglia, e quanto costa
    tornare alla griglia quando arriva la luce.
 4. Cambio di livello spettrale **locale** per i blocchi del reticolo.
+
+(Punti 2–4 fatti in fase 2, §14. Restano: ponte; cinetica al bordo del blocco (D-F2-2); cartolina con più stati (D-F2-3).)
+
+## 14. Fase 2: la mela vera (un atomo colpito), il cambio di livello locale, il descrittore a energia positiva
+
+Pre-registrazione: `lab/out/motore_f2_prereg.json` (committata prima delle corse, `lab/motore_f2_prereg.py`).
+Codice: `lab/motore_f2_core.py`, `lab/motore_f2_run.py`; controllo dichiarato a posteriori `lab/motore_f2_posthoc.py`;
+figura `lab/out/motore_f2_figure.png`; esiti in `lab/out/motore_f2_{atom,lot,pos,clip,judge,posthoc}.json`.
+
+![fase 2](../lab/out/motore_f2_figure.png)
+
+### 14.1 La scena: un atomo agglomerato che prende un calcio
+
+L'atomo è quello della catena 3-D (regola imparata, `agg_zz_3d_A.pkl`), risolto in un ottante (nucleo sullo spigolo,
+stencil simmetrizzato sulle 48 operazioni del cubo: cambia i livelli di ≤ 4·10⁻⁵). Lo stato 1s prende un impulso
+brevissimo lungo z (ψ → e^{iqz}ψ, q = 0,5/a₀), poi "batte": il dipolo ⟨z⟩(t) oscilla alla riga 1s→2p. È la versione
+per la materia della mela: **stessa scena, due risoluzioni, deve marcire allo stesso modo**.
+
+| | Ultra (a₀/16, ottante 192³) | Intel (a₀/8, ottante 96³) | esatto |
+|---|---|---|---|
+| 1s / 2s / 2p (eV) | −13,59335 / −3,44062 / −3,39130 | −13,54753 / −3,43550 / −3,39145 | −13,606 / −3,401 / −3,401 |
+| riga 1s→2p (G1a) | 10,2021 eV (−0,02 %) **PASS** | 10,1561 eV (−0,47 %) **PASS** | 10,2043 |
+| P(2p0) dopo il calcio (G1b) | 0,07545 (+2,33 %) **FAIL** (tol 2 %) | 0,07608 (+3,19 %) **PASS** (tol 10 %) | 0,073728 |
+| P(1s) | −0,04 % | −0,18 % | 0,784665 |
+| P(2s) | 0,0077 | 0,0078 | (0 nel continuo) |
+| norma dopo M passi (G1c) | 1,5·10⁻¹⁴ **PASS** | 4,5·10⁻¹⁴ **PASS** | ≤ 10⁻¹⁰ |
+| sequenza + primi 4 zeri del dipolo (G1d) | **PASS** | **PASS** | |
+| cartolina (G2) | **PASS**, peso tagliato 13,2 % | **PASS**, peso tagliato 13,3 % | |
+| costo griglia / cartolina per passo | ×3,5·10⁶ | ×5,3·10⁵ | |
+
+**G1e (Intel contro Ultra entro 10 %): PASS.** La riga differisce dello 0,45 %, P(2p0) dello 0,8 %.
+
+**Il FAIL di Ultra (G1b) è dichiarato e resta FAIL.** Il controllo a posteriori (`motore_f2_posthoc.json`, solo Intel,
+scatola più grande) dice da dove viene: P(2p0) +3,19 % a ±12 a₀, **+1,17 % a ±18 a₀, +1,13 % a ±24 a₀**. Circa 2 punti
+erano la **scatola** (lo stato 2p, largo ~5 a₀, a ±12 a₀ viene schiacciato), non la risoluzione. Avevo scelto la scatola
+pre-registrata per stare nei 10 minuti; è stato un errore mio di disegno dell'esame, non della dinamica. Anche la riga
+si sposta un poco con la scatola (Intel 10,156 → 10,145 eV). Lezione per il motore: **anche la scatola è un livello**, e
+va messa nel passaporto d'errore come la risoluzione.
+
+**La cartolina.** Tre stati fermi (1s, 2s, 2p0) fatti girare con le loro fasi riproducono la griglia, nel sottospazio,
+a livello di arrotondamento, e costano un milione di volte meno. **Ma il 13 % del calcio va fuori**: in stati più alti e
+nel continuo (ionizzazione). Una cartolina a 3 stati quindi **non** è l'atomo colpito: o si aggiungono stati (3s, 3p,
+…), o quel 13 % resta sulla griglia. Onestamente: la cartolina vale per l'atomo **lontano e tranquillo**, non per quello
+che sta prendendo la botta.
+
+### 14.2 Cambio di livello LOCALE (G3): trasformata a coseni locali
+
+Cosa: invece di cambiare livello su tutto il mondo con la FFT (D1, fase 1), lo si cambia **a blocchi** con una base di
+coseni locali (Coifman–Meyer/Malvar: blocchi di 32 celle fini = 16 grosse, sovrapposizione 16/8, campana = seno iterato
+2 volte). È ortogonale, quindi l'energia si conserva per costruzione; tenendo la metà bassa dei coefficienti si passa
+al livello grosso solo dentro quel blocco.
+
+* **G3a PASS.** Luce 2-D, pacchetti a 30°: |ΔE/E| = 2,4·10⁻¹¹ … 5,4·10⁻¹¹ per N grosso = 32, 16, 12 **e anche 8**;
+  salto del baricentro ≤ 6·10⁻⁷ λ. Come lo spettrale globale di D1 (10⁻¹¹), molto meglio del cubico (3,5·10⁻⁵…8,6·10⁻³).
+* **G3b FAIL (come registrato).** Avevo scritto "il campo grosso cambia solo entro il blocco ± la sovrapposizione".
+  Sbagliato io: la funzione di base di un blocco tocca anche **il blocco vicino**, e la restrizione grossa ha la sua
+  sovrapposizione. Il supporto vero, misurato, è blocco ± (blocco vicino + sovrapposizione grossa): righe grosse
+  [40,104) per il blocco fine [128,160), e **oltre è esattamente zero**. La località c'è, è solo un blocco più larga.
+* **G3c FAIL.** Elettrone 1-D, 4 dimezzamenti locali: la **carica** passa (|ΔN/N| 1,6·10⁻¹⁰ ≤ 10⁻⁶), ma l'**energia
+  cinetica** nel giro andata-ritorno sbaglia di 7·10⁻⁵ e 2,8·10⁻⁵ (soglia 10⁻⁶). Perché: quell'1e-10 di norma che si
+  perde finisce su frequenze della scala del blocco, che portano 10⁴–10⁵ volte l'energia cinetica media. La campana
+  morbida riduce questa fuga ma non la annulla. Rimedio da provare (non fatto): campana più lunga (sovrapposizione
+  piena) o correzione della cinetica sul bordo del blocco. Debito D-F2-2.
+
+### 14.3 Descrittore a energia positiva ai livelli grossi (G4): PASS
+
+Al livello Intel 1-D (B = 192) si proietta sulla banda positiva della regola imparata dopo il blocco.
+
+* pacchetto atomico positivo: peso negativo dopo il blocco 3,6·10⁻¹²;
+* battito finto: 1,3·10⁻⁶ senza proiezione → **2,5·10⁻¹⁶** con proiezione (soglia 10⁻¹⁰);
+* fuga fra bande per passo 1,9·10⁻²⁹; dinamica lenta cambiata di ~3·10⁻⁸ (baricentro, larghezza);
+* stato "R puro fermo" (peso negativo 0,5): **segnalato**, resta al fine; senza proiezione il suo battito finto ha
+  ampiezza 0,495.
+
+Quindi: ai livelli grossi si porta solo la parte a energia positiva (descrittore di Pauli); dove la parte negativa pesa
+(> 10⁻³), il motore **non** sale di livello lì.
+
+### 14.4 Il battito finto viene dalle valli? (ipotesi del thread principale) — No
+
+Il thread principale ha trovato (`BATTIMENTO_1S.md`, 83485bc) che la regola cubica 3-D ha 4 valli d'impulso che il
+nucleo mescola, e che questo fa battiti finti. Ho controllato se il mio battito lento ai livelli grossi è la stessa cosa.
+
+* Il picco del battito è a ω = 0,043711; l'alias del tremolio (2mc² ripiegato dal passo grosso) è 0,043707. Coincide.
+* I candidati "valle" ripiegati sono 0 e 0,0437: coincidono anche loro **per costruzione** in 1-D (la seconda valle
+  sta a k = π e si ripiega sulla stessa frequenza), quindi la frequenza da sola non decide.
+* Decide il contenuto: il peso del pacchetto vicino a k = π grosso è **1,3·10⁻³³**. Non c'è niente nella seconda valle.
+
+**Esito dichiarato: è Zitterbewegung aliasata, non mescolanza delle valli.** In più, per la catena 3-D A: il blocco con
+b = 16 uccide esattamente le valli a (π/2, π/2, 0), perché Σ_{j=0}^{15} e^{iπj/2} = 0. Questo è coerente coi livelli
+puliti dell'ottante (§14.1). Le valli restano un problema del livello fine vicino al nucleo, non del motore ai livelli grossi.
+
+**Correzione della fase 1.** In §7 avevo scritto "battito lento finto a 0,12 mc²/ħ". Era sbagliato: con 8 campioni 0,12
+era solo la risoluzione della FFT. La frequenza vera è 0,0437 mc²/ħ (misurata 0,04371).
+
+### 14.5 Gusci di livelli attorno all'occhio (G5, solo calcolo)
+
+Ogni guscio ha m³ celle (meno il buco del guscio più fine), e la cella raddoppia a ogni guscio. Col passo locale, un
+guscio di livello ℓ fa un tick ogni 2^ℓ tick fini.
+
+| m | gusci | celle totali | memoria luce | costo per tick fine (passo locale) | lato del mondo / lato fine |
+|---|---|---|---|---|---|
+| 64 | 10 | 2,33 M | 0,11 GB | 491 k | 512 |
+| 64 | 20 | 4,62 M | 0,22 GB | 491 k | 5,2·10⁵ |
+| 64 | 40 | 9,21 M | 0,44 GB | 491 k | 5,5·10¹¹ |
+| 96 | 10 | 7,85 M | 0,38 GB | 1,66 M | 512 |
+| 96 | 40 | 31,1 M | 1,49 GB | 1,66 M | 5,5·10¹¹ |
+
+Il punto bello: **col passo locale il costo per tick non cresce coi gusci** (serie geometrica: ~1,07 volte il guscio
+fine). Un mondo grande 10¹¹ volte la zona fine costa come la zona fine. Contro questo c'è il passaporto (B2): l'errore
+dei gusci lontani si accumula e va tenuto sotto la soglia del pixel. Le transizioni fra gusci sono il cambio locale di
+§14.2, perciò il debito D-F2-2 (cinetica al bordo) pesa proprio lì.
+
+### 14.6 Conto fase 2
+
+* Esami: G1a ✓✓, G1b ✗(Ultra) ✓(Intel), G1c ✓✓, G1d ✓✓, G1e ✓, G2 ✓✓, G3a ✓, G3b ✗, G3c ✗, G4 ✓ (G5 senza
+  soglia). **PASS 12, FAIL 3.**
+* Manopole nuove: 4 scelte di disegno, fissate prima delle corse e non adattate: blocco 32, sovrapposizione 16,
+  campana iterata 2 volte, soglia di segnalazione 10⁻³ del peso negativo. Più q e la scatola della scena (sono esame).
+  Nessun fit.
+* Debiti nuovi:
+  - **D-F2-1** scatola ±12 a₀ troppo stretta per P(2p): la scatola entra nel passaporto.
+  - **D-F2-2** cinetica al bordo del blocco nel cambio locale (G3c).
+  - **D-F2-3** cartolina a 3 stati: perde il 13 % di un atomo colpito; servono più stati o la griglia.
+  - **D-F2-4** stencil simmetrizzato sul cubo (≤ 4·10⁻⁵ sui livelli), messo a mano per usare l'ottante.
+* Cambi rispetto alla pre-registrazione, dichiarati:
+  - controllo della scatola a posteriori (non cambia gli esiti);
+  - verifica delle valli aggiunta dopo la richiesta del coordinatore.
+* Ponte: nessuna richiesta creata; l'atomo-cartolina e i gusci restano da misurare sul portatile (§8).
 
 ## Appendice — idee di disegno da passare al thread "Modello standard a palline"
 

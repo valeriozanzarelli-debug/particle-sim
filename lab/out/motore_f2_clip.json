@@ -1,0 +1,101 @@
+[
+ {
+  "m": 64,
+  "levels": 10,
+  "cells": 2326528,
+  "mem_GB_light": 0.111673344,
+  "cost_per_fine_tick_local": 491072.0,
+  "cost_global": 2326528,
+  "full_world_cells": 35184372088832.0,
+  "saving_vs_full": 15123124.281690141,
+  "world_side_over_fine_side": 512.0
+ },
+ {
+  "m": 64,
+  "levels": 20,
+  "cells": 4620288,
+  "mem_GB_light": 0.221773824,
+  "cost_per_fine_tick_local": 491519.5625,
+  "cost_global": 4620288,
+  "full_world_cells": 3.777893186295716e+22,
+  "saving_vs_full": 8176748259623028.0,
+  "world_side_over_fine_side": 524288.0
+ },
+ {
+  "m": 64,
+  "levels": 40,
+  "cells": 9207808,
+  "mem_GB_light": 0.441974784,
+  "cost_per_fine_tick_local": 491519.99999958277,
+  "cost_global": 9207808,
+  "full_world_cells": 4.3556142965880123e+40,
+  "saving_vs_full": 4.730348739448099e+33,
+  "world_side_over_fine_side": 549755813888.0
+ },
+ {
+  "m": 96,
+  "levels": 10,
+  "cells": 7852032,
+  "mem_GB_light": 0.376897536,
+  "cost_per_fine_tick_local": 1657368.0,
+  "cost_global": 7852032,
+  "full_world_cells": 118747255799808.0,
+  "saving_vs_full": 15123124.281690141,
+  "world_side_over_fine_side": 512.0
+ },
+ {
+  "m": 96,
+  "levels": 20,
+  "cells": 15593472,
+  "mem_GB_light": 0.748486656,
+  "cost_per_fine_tick_local": 1658878.5234375,
+  "cost_global": 15593472,
+  "full_world_cells": 1.2750389503748042e+23,
+  "saving_vs_full": 8176748259623028.0,
+  "world_side_over_fine_side": 524288.0
+ },
+ {
+  "m": 96,
+  "levels": 40,
+  "cells": 31076352,
+  "mem_GB_light": 1.491664896,
+  "cost_per_fine_tick_local": 1658879.9999985918,
+  "cost_global": 31076352,
+  "full_world_cells": 1.4700198250984542e+41,
+  "saving_vs_full": 4.730348739448099e+33,
+  "world_side_over_fine_side": 549755813888.0
+ },
+ {
+  "m": 128,
+  "levels": 10,
+  "cells": 18612224,
+  "mem_GB_light": 0.893386752,
+  "cost_per_fine_tick_local": 3928576.0,
+  "cost_global": 18612224,
+  "full_world_cells": 281474976710656.0,
+  "saving_vs_full": 15123124.281690141,
+  "world_side_over_fine_side": 512.0
+ },
+ {
+  "m": 128,
+  "levels": 20,
+  "cells": 36962304,
+  "mem_GB_light": 1.774190592,
+  "cost_per_fine_tick_local": 3932156.5,
+  "cost_global": 36962304,
+  "full_world_cells": 3.022314549036573e+23,
+  "saving_vs_full": 8176748259623028.0,
+  "world_side_over_fine_side": 524288.0
+ },
+ {
+  "m": 128,
+  "levels": 40,
+  "cells": 73662464,
+  "mem_GB_light": 3.535798272,
+  "cost_per_fine_tick_local": 3932159.999996662,
+  "cost_global": 73662464,
+  "full_world_cells": 3.48449143727041e+41,
+  "saving_vs_full": 4.730348739448099e+33,
+  "world_side_over_fine_side": 549755813888.0
+ }
+]
