@@ -22,14 +22,14 @@ di Valerio (Intel UHD) attraverso il ponte. Niente elica: solo palline di energi
 
 | preset | celle per λ | scatola | palline di energia | scia |
 |---|---|---|---|---|
-| bassa | 12 | 96³ | 20 000 | 4 |
-| media | 16 | 128³ | 60 000 | 4 |
-| (medio-alta) | 20 | 160³ | 120 000 | 4 |
+| bassa | 12 | 128³ | 20 000 | 4 |
+| media | 16 | 160³ | 60 000 | 4 |
+| (medio-alta) | 20 | 176³ | 120 000 | 4 |
 | alta | 24 | 192³ | 250 000 | 4 |
 | ultra | 32 | 384³ | 1 000 000 | 4 |
 
 *Aggiornato dopo lo studio: il preset più basso usa 12 celle per λ (pavimento della luce di `MOTORE_OTTIMIZZATO.md`,
-esame EL: a 8 celle la diffrazione cambia del −21 %, la dinamica non si sfoca soltanto). La scia ha 4 campioni a ogni
+esame EL: a 8 celle la diffrazione cambia del −21 %, la dinamica non si sfoca soltanto). Anche la scatola conta: a 12 celle per λ una scatola di 8 λ (96³) apre il fascio del −11,5 % rispetto a Maxwell (fuori dal 10 % di `MOTORE_OTTIMIZZATO.md`), una di 10,7 λ (128³) del −9,8 % (dentro, ma di poco); test `fotone_divergenza_scatola`. Per questo bassa è 12 celle su 128³: sul portatile costa circa 74 ms/tick (misura del vecchio preset media, stessa griglia), non più 32. La scia ha 4 campioni a ogni
 preset, λ/3 l'uno dall'altro (regola di Valerio: i preset cambiano risoluzione e numeri, mai i fenomeni). Da
 `MOTORE_GRAFICO_GPU.md`: alta e ultra girano con la regola, le palline e le misure sulla GPU.*
 

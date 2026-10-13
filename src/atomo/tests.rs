@@ -78,7 +78,7 @@ impl Volo {
 /// F1a: a wide beam (w0 = 3λ) flies along a lattice axis at c within 0.5 %.
 #[test]
 fn fotone_f1_velocita_c() {
-    let v = vola(Parametri { qual: 0, w0_lambda: 3.0, polar: Polar::Orizzontale, dir: 0 });
+    let v = vola(Parametri { qual: 0, w0_lambda: 3.0, polar: Polar::Orizzontale, dir: 0, griglia: Some((8.0, 96)) });
     let vel = v.velocita();
     let vc = Fotone3D::velocita_continuo(&v.l, v.n);
     eprintln!("F1a: v = {vel:.5} c (continuum, same pulse: {vc:.5} c); energy kept to {:e}", v.storia.last().unwrap().energia / v.energia0 - 1.0);
@@ -104,9 +104,9 @@ fn fotone_f1_velocita_continuo() {
 /// F2: helicity ±1 for circular light, 0 for linear, within 0.02 (8 and 16 cells per λ).
 #[test]
 fn fotone_f2_elicita() {
-    for qual in [0, 2] {
+    for (qual, griglia) in [(0, (8.0, 96)), (2, (16.0, 144))] {
         for (p, atteso) in [(Polar::CircolarePiu, 1.0), (Polar::CircolareMeno, -1.0), (Polar::Orizzontale, 0.0), (Polar::Verticale, 0.0)] {
-            let v = vola(Parametri { qual, w0_lambda: 1.0, polar: p, dir: 0 });
+            let v = vola(Parametri { qual, w0_lambda: 1.0, polar: p, dir: 0, griglia: Some(griglia) });
             eprintln!("F2 q{qual}: {:?} helicity {:+.4} (expected {atteso:+})", p, v.elicita);
             assert!((v.elicita - atteso).abs() < 0.02, "{p:?}: {}", v.elicita);
         }
@@ -118,8 +118,8 @@ fn fotone_f2_elicita() {
 #[ignore = "pre-registered, FAILED (−21 % and −6 %): docs/ATOMO.md §4.1"]
 fn fotone_f3_divergenza() {
     let mut ok = true;
-    for qual in [0, 2] {
-        let par = Parametri { qual, w0_lambda: 1.5, polar: Polar::Orizzontale, dir: 0 };
+    for (qual, griglia) in [(0, (8.0, 96)), (2, (16.0, 144))] {
+        let par = Parametri { qual, w0_lambda: 1.5, polar: Polar::Orizzontale, dir: 0, griglia: Some(griglia) };
         let v = vola(par);
         let th = theta_da(&v.storia, v.l.dir).unwrap();
         let att = 1.0 / (std::f64::consts::PI * par.w0_lambda);
@@ -133,7 +133,7 @@ fn fotone_f3_divergenza() {
 /// λ/(π w0) · k a / tan(k a) within 2 % (8 cells per λ, w0 = 1.5 λ).
 #[test]
 fn fotone_divergenza_come_la_regola() {
-    let par = Parametri { qual: 0, w0_lambda: 1.5, polar: Polar::Orizzontale, dir: 0 };
+    let par = Parametri { qual: 0, w0_lambda: 1.5, polar: Polar::Orizzontale, dir: 0, griglia: Some((8.0, 96)) };
     let v = vola(par);
     let th = theta_da(&v.storia, v.l.dir).unwrap();
     let k = std::f64::consts::TAU / par.cpl();
@@ -162,7 +162,7 @@ fn fotone_f4_indietro_esatto() {
 #[ignore]
 fn fotone_divergenza_qualita() {
     for qual in 0..4 {
-        let par = Parametri { qual, w0_lambda: 1.5, polar: Polar::Orizzontale, dir: 0 };
+        let par = Parametri { qual, w0_lambda: 1.5, polar: Polar::Orizzontale, dir: 0, griglia: None };
         let v = vola(par);
         let th = theta_da(&v.storia, v.l.dir).unwrap();
         let att = 1.0 / (std::f64::consts::PI * par.w0_lambda);
@@ -180,7 +180,7 @@ fn fotone_divergenza_qualita() {
 #[ignore]
 fn fotone_direzioni_oblique() {
     for dir in 0..5 {
-        let v = vola(Parametri { qual: 0, w0_lambda: 1.5, polar: Polar::CircolarePiu, dir });
+        let v = vola(Parametri { qual: 0, w0_lambda: 1.5, polar: Polar::CircolarePiu, dir, griglia: Some((8.0, 96)) });
         let vc = Fotone3D::velocita_continuo(&v.l, v.n);
         let th = theta_da(&v.storia, v.l.dir).unwrap_or(f64::NAN);
         eprintln!("dir {dir}: v = {:.4} c (continuum {vc:.4}), helicity {:+.3}, θ = {th:.4}", v.velocita(), v.elicita);
@@ -564,4 +564,21 @@ fn accoppiato_esporta() {
         am = -(n as f64) * a / 2.0, ap = n as f64 * a / 2.0, so = SONDA, sod = SONDA as f64 * B_LUCE);
     std::fs::write(format!("{dir}/manifest.json"), man).unwrap();
     eprintln!("done: {fotogrammi} frames in {dir} ({:?})", t0.elapsed());
+}
+
+/// Informative (13/10, after the preset floor moved to 12 cells per λ with a 96³ box): is the spreading angle
+/// limited by the cells per λ or by the box? Same 12 cells per λ in an 8, 10.7 and 12 λ box.
+#[test]
+#[ignore = "informative, slow"]
+fn fotone_divergenza_scatola() {
+    for griglia in [(12.0, 96), (12.0, 128), (12.0, 144)] {
+        let par = Parametri { qual: 0, w0_lambda: 1.5, polar: Polar::Orizzontale, dir: 0, griglia: Some(griglia) };
+        let v = vola(par);
+        let th = theta_da(&v.storia, v.l.dir).unwrap();
+        let k = std::f64::consts::TAU / par.cpl();
+        let reticolo = k / k.tan() / (std::f64::consts::PI * par.w0_lambda);
+        let att = 1.0 / (std::f64::consts::PI * par.w0_lambda);
+        eprintln!("SCATOLA {griglia:?}: θ = {th:.4}, λ/(π w0) {att:.4} ({:+.2} %), walk {reticolo:.4} ({:+.2} %)",
+            100.0 * (th / att - 1.0), 100.0 * (th / reticolo - 1.0));
+    }
 }

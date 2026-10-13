@@ -22,13 +22,14 @@ use crate::misura::{Opzioni, Rivelatore};
 use crate::render::Ball;
 use crate::rng::Rng;
 
-/// Quality: (cells per wavelength, cells per side of the box). The box is 8–12 λ wide.
+/// Quality: (cells per wavelength, cells per side of the box). The box is 8–12 λ wide (≥ 10,7 λ from 12 cells per λ up to medio-alta).
 pub const QUALITA: [(f64, usize, &str); 5] = [
     // floor at 12 cells per λ: below it diffraction changes (ka/tan ka, −21 % at 8), the dynamics would
-    // not just blur (docs/MOTORE_OTTIMIZZATO.md, exam EL). Low presets keep the floor and shrink the box.
-    (12.0, 96, "bassa: 12 celle per λ, 96³ (scatola 8 λ)"),
-    (16.0, 128, "media: 16 celle per λ, 128³ (scatola 8 λ)"),
-    (20.0, 160, "medio-alta: 20 celle per λ, 160³"),
+    // not just blur (docs/MOTORE_OTTIMIZZATO.md, exam EL). The box must stay ≥ ~10 λ too: at 12 cells per λ
+    // an 8 λ box spreads the beam −11.5 % against Maxwell, a 10.7 λ box −9.8 % (test fotone_divergenza_scatola).
+    (12.0, 128, "bassa: 12 celle per λ, 128³"),
+    (16.0, 160, "media: 16 celle per λ, 160³"),
+    (20.0, 176, "medio-alta: 20 celle per λ, 176³"),
     (24.0, 192, "alta: 24 celle per λ, 192³"),
     (32.0, 384, "ultra: 32 celle per λ, 384³ (per una GPU da 16 GB; qui lentissima)"),
 ];
@@ -62,17 +63,20 @@ pub struct Parametri {
     pub w0_lambda: f64,
     pub polar: Polar,
     pub dir: usize,
+    /// (cells per λ, cells per side) overriding the preset: tests of the rule pin their own grid, so a change
+    /// of the presets does not change what they test
+    pub griglia: Option<(f64, usize)>,
 }
 
 impl Default for Parametri {
-    fn default() -> Self { Parametri { qual: 0, w0_lambda: 1.0, polar: Polar::CircolarePiu, dir: 0 } }
+    fn default() -> Self { Parametri { qual: 0, w0_lambda: 1.0, polar: Polar::CircolarePiu, dir: 0, griglia: None } }
 }
 
 impl Parametri {
     /// Cells per wavelength.
-    pub fn cpl(&self) -> f64 { QUALITA[self.qual.min(QUALITA.len() - 1)].0 }
+    pub fn cpl(&self) -> f64 { if let Some((c, _)) = self.griglia { return c; } QUALITA[self.qual.min(QUALITA.len() - 1)].0 }
     /// Cells per side.
-    pub fn n(&self) -> usize { QUALITA[self.qual.min(QUALITA.len() - 1)].1 }
+    pub fn n(&self) -> usize { if let Some((_, n)) = self.griglia { return n; } QUALITA[self.qual.min(QUALITA.len() - 1)].1 }
     pub fn lancio(&self) -> Lancio {
         let n = self.n();
         let lambda = self.cpl();
