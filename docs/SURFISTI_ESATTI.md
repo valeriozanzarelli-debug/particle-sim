@@ -919,3 +919,33 @@ lineare: la scelta della retta nella pre-registrazione era sbagliata. Lo dico ma
 2. **La legge a^{2γ}.** È la stessa del legame: tutto quello che "sbaglia" vicino al nucleo scala con la potenza
    del contatto di Dirac. Ti piace come regola generale da usare nell'agglomeratore ("ogni errore vicino al
    nucleo va come a^{2γ}")? Si può mettere alla prova con un reticolo in più.
+
+---
+
+## 15. Fase 5: la legge a^{2γ} messa alla prova su a = 0,2 (IN PAUSA)
+
+Pre-registrazione: `lab/surf_f5_prereg.py` → `lab/out/surf_f5_prereg.json` (commit e1c8f3b, prima della corsa).
+La legge d(a) = d0 + c·a^{2γ}, con 2γ = 1,798, era stata trovata dopo la fase 4 (D1). Qui è scritta prima e messa
+alla prova su un reticolo mai usato: a = 0,2 (120³). In un test di 6 tick con 200 000 surfisti la memoria è
+arrivata al massimo a 1,3 GB, quindi ci sta (limite 2,5 GB). Un tick costa circa 1 s.
+
+**Previsione scritta prima:** dal fit dei 4 punti della fase 4 (d0 = 0,0058, c = 0,4412), a a = 0,2 manca
+**d = 0,0302**, cioè i surfisti dovrebbero girare a **0,970 Zα c sinθ**.
+
+**Esami:**
+- H1: |d misurato − 0,0302| ≤ 0,005;
+- H2: limite del fit a 5 punti |d0| ≤ 1 %;
+- H3: R² ≥ 0,999;
+- H4: corsa sana (valle 0 ≥ 0,99, ⟨Σz⟩ ≥ 0,9, fedeltà ≥ 0,9, 3 finestre in [0,75; 1,25], |z| ≤ 4).
+
+**Scelta dichiarata:** per stare nei tempi la corsa dura 600 λ_C/c (3000 tick) invece di 2000, con le finestre a 250,
+500 e una alla fine. La velocità v(0,2) si prende dalle finestre a 250 e 500, come nella fase 4.
+
+**Stato (pausa per il limite di 2 agenti alla volta):** la preparazione a = 0,2 è a metà della prima passata
+(spettro). Il checkpoint è in `lab/out/surf_ckpt/f4_prep_0.20.pkl` (non nel repo). Mancano circa 3 ore di
+preparazione e circa 1 ora di corsa. Nessun risultato ancora: niente esiti.
+
+**Per riprendere** (riparte dal checkpoint; poi il giudizio e la figura):
+
+    lab/surf_f5_drive.sh > lab/out/surf_f5.log 2>&1      # prep 0.2 a pezzi da 590 s, poi run 0.2 600
+    python lab/surf_f5_judge.py                           # -> lab/out/surf_f5_results.json, surf_f5_figure.png
