@@ -1,0 +1,13 @@
+{
+  "id": "2026-10-13_foto_sottoreticolo_pieno",
+  "azione": "foto",
+  "ok": true,
+  "inizio": "2026-10-13T03:34:12Z",
+  "fine": "2026-10-13T03:34:29Z",
+  "durata_s": 17.2,
+  "git": "1cf1c0139986466fb803e5a6d4b561f4303950b3",
+  "macchina": "LAPTOP-01UIII6L",
+  "exit": 0,
+  "secondi": 15.8,
+  "comando": "--scena atomo --frames 600 --pannello --foto C:\\Users\\valer\\Desktop\\Programma di simulazione\\ponte_lab\\ponte\\risultati\\2026-10-13_foto_sottoreticolo_pieno\\foto.png"
+}
