@@ -98,7 +98,8 @@ class Colour3D:
     """one colour (E + O classes) of the cubic 3-D rule, n sites per axis (n even), spacing a, periodic box.
     V: function r -> potential (default point Coulomb -Za/r at the sites, as in the Laboratorio)."""
 
-    def __init__(self, n, a, Za, mass=1.0, Vfun=None, q=(0, 0, 0)):
+    def __init__(self, n, a, Za, mass=1.0, Vfun=None, q=(0, 0, 0), origin=(0.0, 0.0, 0.0)):
+        self.origin = origin
         assert n % 2 == 0
         self.n, self.a, self.Za, self.m, self.q = n, a, Za, n // 2, tuple(q)
         x = (np.arange(n) - n / 2 + 0.5) * a
@@ -118,10 +119,13 @@ class Colour3D:
 
     def _r(self, x):
         X, Y, Z = np.meshgrid(*(self.xE3 if x is self.xE else self.xO3), indexing="ij")
-        return np.sqrt(X**2 + Y**2 + Z**2)
+        o = self.origin
+        return np.sqrt((X - o[0])**2 + (Y - o[1])**2 + (Z - o[2])**2)
 
     def coords(self, cls):
-        return np.meshgrid(*(self.xE3 if cls == 0 else self.xO3), indexing="ij")
+        X, Y, Z = np.meshgrid(*(self.xE3 if cls == 0 else self.xO3), indexing="ij")
+        o = self.origin
+        return X - o[0], Y - o[1], Z - o[2]
 
     def tick(self, E, O, E2, O2):
         """one tick: (E, O) -> (E2, O2). returns the new pair (buffers swapped by the caller)."""
