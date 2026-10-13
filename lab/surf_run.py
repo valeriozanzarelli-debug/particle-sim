@@ -576,9 +576,9 @@ def poisson_corrected_flux(sp_mid, P0, P1, dt_cells):
     return F, float(np.sqrt(np.mean(rhs**2)))
 
 
-def run_orb():
+def run_orb(budget=540.0):
     """analytic 1s + 2p1/2 (radial rule levels, continuous time, as orbitali.rs) on a 48^3 grid at a = 0.5"""
-    rng = np.random.default_rng(SEED + 9)
+    t_start = time.time()
     X, Y, Z = grid3()
     o1, c1, rw1 = radial_state(-1, 1, A3, ZA, 40.0)
     o2, c2, rw2 = radial_state(1, 2, A3, ZA, 40.0)
@@ -590,26 +590,35 @@ def run_orb():
         return (s1 * np.exp(-1j * (o1 - 1) * t) + s2 * np.exp(-1j * (o2 - 1) * t)) / np.sqrt(2)
     P = lambda sp: density(sp) / np.sum(density(sp))
     steps = 2000 if not SMOKE else 4                 # 10 beat periods
-    rho = P(psi_at(0.0))
-    c, x = born_sample(rng, rho, 200000)
-    co, xo = born_sample(rng, rho, 50000)
-    zr, zo, zrb, res_rms = [], [], [], []
-    cob, xob = co.copy(), xo.copy()
-    for s in range(steps + 1):
-        t = s * dt
-        if s % 50 == 0:
+    ck = os.path.join(CK, "orb.pkl")
+    if os.path.exists(ck):
+        S = pickle.load(open(ck, "rb"))
+    else:
+        rng = np.random.default_rng(SEED + 9)
+        rho = P(psi_at(0.0))
+        c, x = born_sample(rng, rho, 200000)
+        co, xo = born_sample(rng, rho, 20000)
+        S = dict(s=0, rng=rng, c=c, x=x, co=co, xo=xo, cob=co.copy(), xob=xo.copy(), zr=[], zo=[], zrb=[], res_rms=[])
+    rng = S["rng"]
+    while S["s"] <= steps and time.time() - t_start < budget:
+        s_ = S["s"]
+        t = s_ * dt
+        if s_ % 50 == 0:
             r = P(psi_at(t))
-            zr.append(chi2_z(c, r, 2)[0]); zo.append(chi2_z(co, r, 2)[0]); zrb.append(chi2_z(cob, r, 2)[0])
-        if s == steps:
+            S["zr"].append(chi2_z(S["c"], r, 2)[0]); S["zo"].append(chi2_z(S["co"], r, 2)[0])
+            S["zrb"].append(chi2_z(S["cob"], r, 2)[0])
+        if s_ == steps:
+            S["s"] += 1
             break
         P0, P1 = P(psi_at(t)), P(psi_at(t + dt))
         F, rr = poisson_corrected_flux(psi_at(t + dt / 2), P0, P1, dt / A3)
-        res_rms.append(rr)
-        flow_tick(c, x, P0, P1, F)
+        S["res_rms"].append(rr)
+        flow_tick(S["c"], S["x"], P0, P1, F)
         # old orbital reader: 4 midpoint sub-steps with trilinear spinor (orbitali.rs), with and without rebirth
-        for (cc, xx, reb) in ((co, xo, False), (cob, xob, True)):
+        sp = psi_at(t)
+        for (kc, kx, reb) in (("co", "xo", False), ("cob", "xob", True)):
+            cc, xx = S[kc], S[kx]
             Xc = cc + xx
-            sp = psi_at(t)
             hh = dt / A3 / 4
             for _ in range(4):
                 v1 = bohm_dirac_v(trilinear(sp, Xc)); q = Xc + 0.5 * hh * v1
@@ -618,11 +627,20 @@ def run_orb():
             if reb:                                  # orbitali.rs: 25 of 5000 reborn per step (0.5 %)
                 m = int(0.005 * len(cc)); idx = rng.choice(len(cc), m, replace=False)
                 c2_, x2_ = born_sample(rng, P(psi_at(t + dt)), m); cc[idx] = c2_; xx[idx] = x2_
+        S["s"] += 1
+    if S["s"] <= steps:
+        pickle.dump(S, open(ck, "wb"))
+        print(f"orb: checkpoint at step {S['s']}/{steps}", flush=True)
+        sys.exit(3)
+    zr, zo, zrb = S["zr"], S["zo"], S["zrb"]
     res = dict(omega=[o1, o2], period=per, steps=steps, z_flow=zr, z_old=zo, z_old_rebirth=zrb,
                max_abs_z_flow=float(np.max(np.abs(zr))), max_abs_z_old=float(np.max(np.abs(zo))),
-               max_abs_z_old_rebirth=float(np.max(np.abs(zrb))), poisson_correction_rms=float(np.mean(res_rms)))
+               max_abs_z_old_rebirth=float(np.max(np.abs(zrb))), poisson_correction_rms=float(np.mean(S["res_rms"])),
+               surfers=dict(proiettato=200000, old=20000))
     print({k: v for k, v in res.items() if k.startswith("max") or k.startswith("poisson")})
     save("orb", res)
+    if os.path.exists(ck):
+        os.remove(ck)
 
 
 if __name__ == "__main__":
