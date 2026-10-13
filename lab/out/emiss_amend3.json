@@ -1,0 +1,10 @@
+{
+ "study": "Emissione vera phase 3, declarations after the pre-registration v5 (lab/out/emiss_prereg3.json, commit 52bf8ca)",
+ "thresholds_changed": "none",
+ "declarations": [
+  "X5: the pre-registered estimator (Hann window, 4000 ticks of free evolution) answered 'H1' from SIDE LOBES of the strong 1s line (peaks symmetric around 0.89946 at +-0.0074, +-0.0107). After seeing this I added a clean estimator (Blackman-Harris window, 16000 ticks, emiss_x5.py 16000 bh): both windows empty (weight < 1e-4). Two more declared diagnostics: emiss_x5b.py (true frequency of the weak dipole line with dt = 1: 0.090, real, not aliasing of the dt = 4 sampling) and emiss_x5c.py (where the weak line lives: r = 4-8 lambda_C, smooth in k). X5 is reported as 'neither H1 nor H2', not as H1.",
+  "W5: the pre-registered rule gives UNDECIDED; reported as such. Extra reading (not a verdict): each doublet member has 32-66 % outside valley 0 while the radial start has 98 % in valley 0, and the m = 1/2 and m = 3/2 starts split on the two members in the same proportion (0.60/0.29 and 0.56/0.33).",
+  "D5 FAIL (+13.3 %): extra declared check: the radial rule's 2p at a = 0.5 combined with Dirac's 1s already gives +6.5 % (+1.5 % at a = 0.25): about half of the excess is the coarse cell's 2p shape.",
+  "M5: not done."
+ ]
+}

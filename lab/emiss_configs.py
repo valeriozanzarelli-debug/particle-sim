@@ -195,3 +195,29 @@ if os.path.exists(_L4F):
                  excited=lambda at: [level4("2p3/2+3")], ground=lambda at: level4("1s+"))
         c["atom_factory"] = atom4
         add(c)
+
+# =============================================================== PHASE 3 (pre-registration v5, lab/out/emiss_prereg3.json)
+def level5(st, n=96):
+    k = ("v5", n, st)
+    if k not in LEVELS:
+        LEVELS[k] = np.load(os.path.join(CK, f"level5_{n}_{st.replace('/', '_')}.npy"))
+    return LEVELS[k]
+
+
+def atom5():
+    from emiss_v4_dev import make_atom, S_LEARNED
+    return make_atom(n=96, s=S_LEARNED)
+
+
+if os.path.exists(os.path.join(CK, "level5_96_1s+.npy")) and os.path.exists(os.path.join(CK, "level5_96_2p3_2+3.npy")):
+    c = base("P5_R1_96", "qe", 96, 3000.0, K=1.0, centered=True, transverse=True,
+             psi0_factory=lambda at: level5("2p3/2+3").copy(),
+             excited=lambda at: [level5("2p3/2+3")], ground=lambda at: level5("1s+"),
+             channels=lambda at: [level5("1s+")])
+    c["atom_factory"] = atom5
+    add(c)
+    c = base("P5_S1sc_96", "sc", 96, 3000.0, K=1.0, centered=True, transverse=True,
+             psi0_factory=lambda at: level5("2p3/2+3").copy(),
+             excited=lambda at: [level5("2p3/2+3")], ground=lambda at: level5("1s+"))
+    c["atom_factory"] = atom5
+    add(c)
