@@ -407,6 +407,31 @@ taglio dà +0,053 α, non zero.
 nuda senza proiettore. Solo se il gap c_e − c_γ vestito venisse ≤ 10⁻²⁰ **senza sintonia** il verdetto cambierebbe, e
 sarebbe una scoperta (una simmetria nascosta).
 
+## 10bis. Aggiornamento con la luce vestita (fase 4 di Debiti, origin/master 47782ae)
+
+La riserva del §10 ("gap misurato contro la luce nuda") è sostituita dai numeri della fase 4 (docs/VUOTO_POLARIZZA.md §15 su master).
+Δ_iso = c_e vestito − c_luce vestita, isotropo, in unità α·c, estrapolato a a → 0:
+
+| regola | taglio | Δ_iso | in valore assoluto | contro Granchio (2,5e-20) | contro LEP (5e-15) |
+|---|---|---|---|---|---|
+| congelata | K12 | −0,114 α | 8,3e-4 | ×3e16 | ×2e11 |
+| congelata | K12/3 | +0,017 α | 1,2e-4 | ×5e15 | ×2,5e10 |
+| ordine a giro | K12/3 | +0,013 α | 9,5e-5 | ×4e15 | ×2e10 |
+
+Anisotropia relativa elettrone–luce: −0,042 α (K12), −0,002 α (K12/3) = 1,5e-5 nel caso migliore, contro Yb⁺ 1e-21: ×1,5e16; zero per l'ordine a giro.
+Birifrangenza lungo y e x/z: 2–4e-5 α, sotto la soglia di Debiti (0,002 α): non vista; il segnale lungo (1,1,1) è attribuito al taglio.
+
+**Incertezza onesta.** L'incertezza di taglio (≥ 0,007 α, fino a ~0,05 α) è dello stesso ordine del segnale: il VALORE del gap non è
+fissato, e con queste incertezze non si può nemmeno dire che sia diverso da zero a 1–2σ per l'ordine a giro. Ma per salvare la regola il gap
+dovrebbe essere zero entro ~3e-18 α, cioè 15–16 ordini sotto l'incertezza attuale, e nessuna simmetria della regola lo impone
+(docs/VELOCITA_PROTETTA.md §§4–6: P, T, C, U(1), D4h/T_h non mescolano tick e cella; il gap isotropo è uno scalare).
+
+**Il verdetto non cambia.** Come reticolo fondamentale dell'universo la regola (congelata o a ordine a giro) è esclusa per qualunque passo,
+a meno di una cancellazione non protetta da nessuna simmetria a ~1 parte su 1e16 (Collins). Cambia solo la forma della frase: prima era "il
+gap è +0,044 α contro la luce nuda", ora è "il gap vale tra ~0 e ~0,1 α a seconda del taglio, e solo una simmetria che la regola non ha
+potrebbe fissarlo a zero". Per il Laboratorio come strumento (a → 0 + agglomeratore) non cambia nulla. Nota a margine (validazione di Debiti, non
+nostra): il g−2 col vertice esatto ora converge a Schwinger (1,0052 → 1,0001), quindi la regola vestita fa la QED giusta *a parte* la velocità limite.
+
 ## 11. Come rifare
 
     export OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1
