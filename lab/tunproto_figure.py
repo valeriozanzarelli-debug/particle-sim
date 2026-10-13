@@ -17,15 +17,15 @@ th, d = C["theta"], C["delta"]
 N1 = C["discriminazioni"]["D1"]["N_5sigma_per_punto_per_orologio"]
 N2 = C["discriminazioni"]["D2"]["N_5sigma"]
 
-fig, ax = plt.subplots(2, 2, figsize=(12, 9))
+fig, ax = plt.subplots(2, 3, figsize=(17, 9))
+SC = json.load(open(os.path.join(OUT, "tunproto_rC_scan.json")))
 # (a) fibra: inclinazione contro numero di siti, V0 = E
 a = ax[0, 0]
 Ns = np.array(C["N_siti"])
 for c, col, lab in (("m", "C3", "orologio di massa  τ_mz"), ("V", "C0", "orologio di potenziale  τ_z (Büttiker–Landauer)")):
     y = np.array([RC["d0.15_V2.0_N%d" % N][c]["tz"] for N in Ns]) / th
     e = np.array([np.sqrt(c_tilt(RC["d0.15_V2.0_N%d" % N][c]["sz"], d) / N1) for N in Ns]) / th
-    sysn = np.array([max(abs(RN[k]["V2.0_N%d" % N][c]["tz"] - RC["d0.15_V2.0_N%d" % N][c]["tz"]) for k in RN)
-                     if N in (4, 6, 8) else 0 for N in Ns]) / th
+    sysn = np.array([abs(RC["d0.15_V2.0_N%d" % N][c]["tz"] - C["val"]["V2.0_N%d" % N]["spett"][c]["tz"]) for N in Ns]) / th
     tot = np.hypot(e, sysn)
     a.fill_between(Ns, y - tot, y + tot, color=col, alpha=0.25, lw=0)
     a.errorbar(Ns, y, e, fmt="o", color=col, capsize=3, label=lab)
@@ -34,7 +34,7 @@ a.plot(xx, xx / np.cos(th) + (RC['d0.15_V2.0_N8']['m']['tz'] / th - 8 / np.cos(t
 a.plot(xx, xx, ":", color="k", lw=1, label="L/c (1 passo per sito)")
 a.set_xlabel("spessore della barriera N (siti = intervalli di tempo)")
 a.set_ylabel("tempo letto dall'ancella (passi)")
-a.set_title("(a) fibra, θ = 0,5, V0 = E: inclinazione (barre: N = %.0f trasmessi; banda: + rumore)" % N1, fontsize=9)
+a.set_title("(a) fibra, θ = 0,5, V0 = E: inclinazione (barre: N = %.0f trasmessi; banda: + taglio del pacchetto)" % N1, fontsize=9)
 a.legend(fontsize=7)
 a.set_xlim(1, 9)
 # (b) fibra: nel piano contro V0/E, N = 8
@@ -84,6 +84,28 @@ a.axhline(5, color="k", ls=":", lw=1)
 a.set_xlabel("particelle trasmesse rivelate (per punto, per orologio)")
 a.set_ylabel("significatività (σ)")
 a.set_title("(d) quante ripetizioni: solo rumore di proiezione dell'ancella", fontsize=9)
+a.legend(fontsize=7)
+# (e) rumore tollerabile (post-hoc)
+a = ax[0, 2]
+clean = np.polyfit(np.array([4, 6, 8]) * th, [RC["d0.15_V2.0_N%d" % N]["m"]["tz"] for N in (4, 6, 8)], 1)[0]
+ss = np.array([0.001, 0.002, 0.005, 0.01, 0.02, 0.05])
+for kind, col, lab in (("fase_comune", "C0", "fase, uguale nei due rami"), ("fase_indipendente", "C1", "fase, diversa nei due rami"),
+                       ("moneta_comune", "C2", "angolo della moneta")):
+    a.semilogx(ss, [SC["%s_%g" % (kind, x)]["pendenza_m"] / clean for x in ss], "o-", color=col, label=lab)
+a.axhspan(0.9, 1.1, color="k", alpha=0.08)
+a.axhline(0, color="k", lw=0.5)
+a.set_xlabel("rumore bianco per sito e per passo (rad, rms)")
+a.set_ylabel("pendenza di τ_mz / valore pulito")
+a.set_title("(e) post-hoc: rumore tollerabile in fibra (banda grigia: ±10 %)", fontsize=9)
+a.legend(fontsize=7)
+# (f) perche': il rumore 'scalda' e fa passare sopra la barriera
+a = ax[1, 2]
+for kind, col in (("fase_comune", "C0"), ("moneta_comune", "C2")):
+    a.loglog(ss, [SC["%s_%g" % (kind, x)]["PT_N8"] for x in ss], "o-", color=col, label=kind.replace("_", " "))
+a.axhline(RC["d0.15_V2.0_N8"]["m"]["PT"], color="k", ls=":", label="senza rumore (tunnel vero)")
+a.set_xlabel("rumore (rad, rms)")
+a.set_ylabel("probabilità trasmessa, N = 8, V0 = E")
+a.set_title("(f) il rumore che cambia nel tempo non conserva l'energia:\nuna parte passa SOPRA la barriera e diluisce l'orologio", fontsize=9)
 a.legend(fontsize=7)
 fig.tight_layout()
 p = os.path.join(OUT, "tunproto_figura.png")
