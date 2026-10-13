@@ -1,0 +1,22 @@
+{
+ "cube (simple cubic)": {
+  "I_rel": 1.0,
+  "J_rel": 1.0,
+  "R_min_over_R_max": 0.577516051544331
+ },
+ "truncated octahedron (bcc)": {
+  "I_rel": 0.9779752131675231,
+  "J_rel": 0.9084581932793918,
+  "R_min_over_R_max": 0.7746344902965642
+ },
+ "rhombic dodecahedron (fcc)": {
+  "I_rel": 0.9778099696679194,
+  "J_rel": 0.9064005839021309,
+  "R_min_over_R_max": 0.7072391116492915
+ },
+ "sphere": {
+  "I_rel": 0.9697019018354746,
+  "J_rel": 0.8740717053714575,
+  "R_min_over_R_max": 1.0
+ }
+}

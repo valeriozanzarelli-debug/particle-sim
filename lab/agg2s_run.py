@@ -100,7 +100,7 @@ def run_job(job):
     h_a0 = h / c.A0
     nrm = float(np.sum(vv ** 2)) * h_a0 ** 3
     rho = float(vv[N // 2, N // 2, N // 2] ** 2 / nrm) if kind != "2p" else 0.0
-    F = c.sfft.fftn(vv, workers=1)
+    F = c.sfft.fftn(at._to_u(vv), workers=1)          # the Bloch-periodic part u (k on the twisted grid)
     w = np.empty(F.shape)
     np.multiply(F.real, F.real, out=w)
     w += F.imag ** 2

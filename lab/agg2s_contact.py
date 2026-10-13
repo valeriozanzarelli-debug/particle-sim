@@ -39,7 +39,7 @@ for tws in ("000", "111"):
         h_a0 = 1.0 / DIV
         nrm = float(np.sum(vv ** 2)) * h_a0 ** 3
         rho = float(vv[N // 2, N // 2, N // 2] ** 2 / nrm)
-        F = np.fft.fftn(vv)
+        F = np.fft.fftn(at._to_u(vv))            # Bloch-periodic part u: k on the twisted grid
         ka = c.kgrid_axes(N, h_a0, tw)
         k2 = ka[0][:, None, None] ** 2 + ka[1][None, :, None] ** 2 + ka[2][None, None, :] ** 2
         w = np.abs(F) ** 2
@@ -52,3 +52,22 @@ for tws in ("000", "111"):
         if not ok:
             sys.exit(0)
         vecs.append(v)
+
+
+# fix (declared): the first version took the FFT of psi instead of u for the twisted states (wrong k grid for <k^4>);
+# recompute <k^4> from the saved vectors where the flag is missing
+for tws in ("000", "111"):
+    tw = tuple(int(x) for x in tws)
+    at = c.TwistAtom(c.kin_schroedinger(N, h, tw), f, tw, sym="even")
+    for st in ("1s", "2s", "3s"):
+        key = f"S{st}_{tws}"
+        if res.get(key, {}).get("converged") and not res[key].get("k4_twisted_grid"):
+            vv = np.load(os.path.join(c.OUT, f"agg2s_cvec_{key}.npy")).reshape((N,) * 3)
+            F = np.fft.fftn(at._to_u(vv))
+            ka = c.kgrid_axes(N, 1.0 / DIV, tw)
+            k2 = ka[0][:, None, None] ** 2 + ka[1][None, :, None] ** 2 + ka[2][None, None, :] ** 2
+            w = np.abs(F) ** 2
+            res[key]["k4_c_a0"] = float(np.sum(w * k2 ** 2) / np.sum(w))
+            res[key]["k4_twisted_grid"] = True
+            json.dump(res, open(JS, "w"), indent=1)
+            print(key, "k4 recomputed", res[key]["k4_c_a0"], flush=True)
