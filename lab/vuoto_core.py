@@ -196,7 +196,7 @@ def chi_1d(q, th, weight=None, n=4000, kc=None, beta=None, period=1):
     return np.sum(F * w) / (2 * PI)
 
 
-def chi_3d(q, th, weight=None, n=64, kc=None, beta=None, chunk=60000, start=0):
+def chi_3d(q, th, weight=None, n=64, kc=None, beta=None, chunk=60000, start=0, mu=0.0):
     """chi(q) (q: 3-vector, lattice units) for the 3-D rule (two-tick Floquet period), physical species with weight;
     product sinh-Gauss rule on [-kc, kc]^3. Returns complex chi (per site = per volume a^3)."""
     q = np.asarray(q, float)
@@ -207,7 +207,7 @@ def chi_3d(q, th, weight=None, n=64, kc=None, beta=None, chunk=60000, start=0):
     Ks = np.stack([KX.ravel(), KY.ravel(), KZ.ravel()], 1) - 0.5 * q[None, :]   # centre the pair (k, k+q)
     tot = 0.0 + 0.0j
     for s in range(0, len(Ks), chunk):
-        F = lr_terms(Ks[s:s + chunk], q, 3, th, 2, weight, start)
+        F = lr_terms(Ks[s:s + chunk], q, 3, th, 2, weight, start, mu)
         tot += np.sum(F * WW[s:s + chunk])
     return tot / (2 * PI) ** 3
 
