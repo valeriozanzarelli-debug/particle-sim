@@ -1,0 +1,188 @@
+{
+ "E1 forma chiusa luce": {
+  "max_err": 7.494005416219807e-16,
+  "esito": "PASS"
+ },
+ "E4 birifrangenza": {
+  "max | |w+|-|w-| |": 4.440892098500626e-16,
+  "modo longitudinale max|w|": 3.0531133177191805e-16,
+  "esito": "PASS"
+ },
+ "E2 forma chiusa Dirac": {
+  "max_err": 5.273559366969494e-16,
+  "spin splitting max": 4.440892098500626e-16,
+  "esito": "PASS"
+ },
+ "E7 identita' elettrone = luce a 2k": {
+  "max_err": 2.220446049250313e-16,
+  "esito": "PASS"
+ },
+ "E3 coefficiente k^3": {
+  "direzioni": {
+   "asse (1,0,0)": {
+    "A": 0.0,
+    "luce c3 num": -4.495663101048797e-09,
+    "luce c3 analitico": -0.0,
+    "elettrone c3 num": -4.495663101048797e-09,
+    "elettrone c3 analitico": -0.0
+   },
+   "faccia (1,1,0)": {
+    "A": 0.24999999999999992,
+    "luce c3 num": -0.04166666340473428,
+    "luce c3 analitico": -0.04166666666666665,
+    "elettrone c3 num": -0.16666666664999485,
+    "elettrone c3 analitico": -0.1666666666666666
+   },
+   "corpo (1,1,1)": {
+    "A": 0.33333333333333354,
+    "luce c3 num": -0.05555555609548787,
+    "luce c3 analitico": -0.05555555555555559,
+    "elettrone c3 num": -0.22222222196166527,
+    "elettrone c3 analitico": -0.22222222222222235
+   },
+   "generica (1,2,3)": {
+    "A": 0.25000000000000006,
+    "luce c3 num": -0.04166669342960576,
+    "luce c3 analitico": -0.04166666666666668,
+    "elettrone c3 num": -0.16666666854403533,
+    "elettrone c3 analitico": -0.1666666666666667
+   },
+   "generica (3,-1,2)": {
+    "A": 0.2500000000000001,
+    "luce c3 num": -0.04166666662512121,
+    "luce c3 analitico": -0.041666666666666685,
+    "elettrone c3 num": -0.16666666509716294,
+    "elettrone c3 analitico": -0.16666666666666674
+   }
+  },
+  "max |c3_num - c3_an|": 2.6762939080160475e-08,
+  "esito": "PASS"
+ },
+ "E5 niente termine n=1": {
+  "direzioni": {
+   "asse (1,0,0)": {
+    "luce b1 (lineare in E)": 1.729093059209064e-11,
+    "elettrone b1": 1.729093059209064e-11,
+    "un tick: b1(+k), b1(-k)": [
+     -1.5766752982569534e-11,
+     -1.8185453143360054e-11
+    ],
+    "un tick previsto |b1|": 0.0
+   },
+   "faccia (1,1,0)": {
+    "luce b1 (lineare in E)": -1.1243387376678598e-11,
+    "elettrone b1": 2.854853258813771e-13,
+    "un tick: b1(+k), b1(-k)": [
+     -9.769962638746823e-12,
+     -2.8389988784046573e-11
+    ],
+    "un tick previsto |b1|": 0.0
+   },
+   "corpo (1,1,1)": {
+    "luce b1 (lineare in E)": 4.315595361192768e-12,
+    "elettrone b1": 6.851657026270428e-13,
+    "un tick: b1(+k), b1(-k)": [
+     -0.0962250321872566,
+     0.09622503209944748
+    ],
+    "un tick previsto |b1|": 0.09622504486493767
+   },
+   "generica (1,2,3)": {
+    "luce b1 (lineare in E)": 1.1145211719752538e-10,
+    "elettrone b1": 1.083736235210486e-11,
+    "un tick: b1(+k), b1(-k)": [
+     -0.05727026113078182,
+     0.057270261364528174
+    ],
+    "un tick previsto |b1|": 0.05727026612409095
+   },
+   "generica (3,-1,2)": {
+    "luce b1 (lineare in E)": -1.950820539813018e-12,
+    "elettrone b1": -6.391712933487687e-12,
+    "un tick: b1(+k), b1(-k)": [
+     0.05727026113561287,
+     -0.05727026115317502
+    ],
+    "un tick previsto |b1|": 0.057270266124090946
+   }
+  },
+  "max |b1| palindromo": 1.1145211719752538e-10,
+  "omega(k)-omega(-k) max": 4.440892098500626e-16,
+  "un tick: max scarto da -+nxnynz/2": 1.276549019268991e-08,
+  "esito": "PASS"
+ },
+ "E6 simmetria cubica": {
+  "max_err": 4.996003610813204e-16,
+  "esito": "PASS"
+ },
+ "E8 soglie": {
+  "casi": {
+   "faccia (1,1,0) E_a=10000": {
+    "k_th numerica": 282.8120766877672,
+    "k_th analitica": 282.842712474619,
+    "scarto rel": -0.00010831386314946734,
+    "x migliore a 1.2 k_th": 0.09598082000000001
+   },
+   "faccia (1,1,0) E_a=100000": {
+    "k_th numerica": 894.4174548071601,
+    "k_th analitica": 894.427190999916,
+    "scarto rel": -1.0885394422066597e-05,
+    "x migliore a 1.2 k_th": 0.09600581500000001
+   },
+   "faccia (1,1,0) E_a=1e+06": {
+    "k_th numerica": 2828.4098920395318,
+    "k_th analitica": 2828.42712474619,
+    "scarto rel": -6.092681868241634e-06,
+    "x migliore a 1.2 k_th": 0.09623077000000001
+   },
+   "corpo (1,1,1) E_a=10000": {
+    "k_th numerica": 263.1951761143649,
+    "k_th analitica": 263.21480259049844,
+    "scarto rel": -7.456448474918442e-05,
+    "x migliore a 1.2 k_th": 0.09598082000000001
+   },
+   "corpo (1,1,1) E_a=100000": {
+    "k_th numerica": 832.3519793074065,
+    "k_th analitica": 832.3582900575633,
+    "scarto rel": -7.581771254261405e-06,
+    "x migliore a 1.2 k_th": 0.09600581500000001
+   },
+   "corpo (1,1,1) E_a=1e+06": {
+    "k_th numerica": 2632.1062195783798,
+    "k_th analitica": 2632.1480259049845,
+    "scarto rel": -1.588296942012235e-05,
+    "x migliore a 1.2 k_th": 0.09605580500000001
+   },
+   "generica (1,2,3) E_a=10000": {
+    "k_th numerica": 282.81702228447455,
+    "k_th analitica": 282.84271247461896,
+    "scarto rel": -9.082853830544302e-05,
+    "x migliore a 1.2 k_th": 0.09598082000000001
+   },
+   "generica (1,2,3) E_a=100000": {
+    "k_th numerica": 894.4190328301393,
+    "k_th analitica": 894.4271909999159,
+    "scarto rel": -9.121111096188628e-06,
+    "x migliore a 1.2 k_th": 0.09603081000000001
+   },
+   "generica (1,2,3) E_a=1e+06": {
+    "k_th numerica": 2828.411109512761,
+    "k_th analitica": 2828.4271247461897,
+    "scarto rel": -5.66224007991778e-06,
+    "x migliore a 1.2 k_th": 0.09608080000000001
+   },
+   "non collineare (corpo, E_a=1e5, k=1.2 k_th)": {
+    "max eccesso": 0.005067572244229268,
+    "a (x, angolo)": [
+     0.1,
+     0.0
+    ]
+   },
+   "e -> e gamma max Delta E (deve essere <0)": -1.0885792267600891e-09,
+   "gamma -> gamma gamma max Delta E (deve essere <=0)": 1.4850967677837446e-12
+  },
+  "max scarto rel soglia": 0.00010831386314946734,
+  "esito": "FAIL"
+ },
+ "tempo_s": 1.8407726287841797
+}

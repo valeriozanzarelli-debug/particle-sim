@@ -1,0 +1,17 @@
+{
+ "studio": "LIMITI_LORENTZ (lv_)",
+ "emendamenti_dopo_la_preregistrazione": [
+  {
+   "id": "EM1",
+   "data": "2026-10-13",
+   "cosa": "E8: la soglia 'gamma -> gamma gamma: max Delta E <= 1e-15' era sbagliata come numero. Lungo un asse la dispersione e' esattamente lineare (Delta E = 0 esatto) e arccos vicino a 1 amplifica l'arrotondamento a ~1e-12. Trovato 1.49e-12 sull'asse, -1.2e-10 / -1.7e-10 fuori asse.",
+   "effetto": "E8 resta FAIL formale come pre-registrato; fisicamente gamma -> gamma gamma e' vietato (0 esatto sugli assi, < 0 altrove). Le soglie di gamma -> e+e- (parte principale di E8) sono entro 1.1e-4 dall'analitica (soglia 1 %)."
+  },
+  {
+   "id": "EM2",
+   "data": "2026-10-13",
+   "cosa": "Aggiunte dopo la pre-registrazione (non erano esami): (a) controllo che e -> e e+e-, nu -> nu nu nubar e nu -> nu e+e- siano vietati (stessa specie o stesso coefficiente: Delta E proporzionale a -(p^3 - somma p_i^3) < 0); (b) stima indicativa del Lorentz massimo dell'elettrone (stile Jacobson-Liberati-Mattingly) con gli elettroni del Granchio da 2.3 PeV; (c) variante a un tick (non la regola) contro i limiti n=1.",
+   "effetto": "solo informazioni in piu', nessun esame cambiato"
+  }
+ ]
+}

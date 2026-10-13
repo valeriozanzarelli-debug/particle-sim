@@ -1,0 +1,158 @@
+{
+ "A_casi": {
+  "peggiore (diagonale)": 0.3333333333333333,
+  "media sulle direzioni": 0.2
+ },
+ "limiti": {
+  "peggiore (diagonale)": {
+   "tempo di volo: LHAASO GRB 221009A (PRL 133, 071501, 2024): E_QG2 > 6e-8 E_Pl": {
+    "a_max_m": 8.081275973224453e-28,
+    "a_max_lP": 50000006.02147838,
+    "E_a_min_GeV": 244177999999.9999
+   },
+   "tempo di volo: H.E.S.S. Mrk 501 (ApJ 870, 93, 2019): E_QG2 > 8.5e10 GeV": {
+    "a_max_m": 6.964481663258824e-27,
+    "a_max_lP": 430902404.8345604,
+    "E_a_min_GeV": 28333333333.33333
+   },
+   "tempo di volo: MAGIC GRB 190114C (PRL 125, 021301, 2020): E_QG2 > 6.3e10 GeV": {
+    "a_max_m": 9.396522879e-27,
+    "a_max_lP": 581376260.4910735,
+    "E_a_min_GeV": 21000000000.0
+   },
+   "decadimento del fotone: LHAASO J2032+4102, 1.42 PeV (limite 95%: 1.21 PeV; Nature 594, 33, 2021)": {
+    "a_max_m": 4.771515688126396e-31,
+    "a_max_lP": 29522.047499474993,
+    "E_a_min_GeV": 413551989255815.0
+   },
+   "decadimento del fotone: Granchio, 1.1 PeV (LHAASO, Science 373, 425, 2021)": {
+    "a_max_m": 5.773533982632938e-31,
+    "a_max_lP": 35721.67747436474,
+    "E_a_min_GeV": 341778503517202.5
+   },
+   "cavita': risonatori ottici 1064 nm (Herrmann et al., PRD 80, 105011, 2009): dc/c < 1e-17": {
+    "a_max_m": 2.6240141084123723e-15,
+    "a_max_lP": 1.6235149208586345e+20,
+    "E_a_min_GeV": 0.07520042663886067
+   },
+   "cavita': risonatori a microonde 13 GHz (Nagel et al., Nat. Commun. 6, 8174, 2015): dc/c < 1e-18": {
+    "a_max_m": 1.7901867207729524e-11,
+    "a_max_lP": 1.1076140341548533e+24,
+    "E_a_min_GeV": 1.1022703842524301e-05
+   },
+   "INDICATIVO elettroni del Granchio 2.3 PeV (Lorentz massimo, stile JLM)": {
+    "a_max_m": 8.253752503527712e-33,
+    "a_max_lP": 510.67142892227474,
+    "E_a_min_GeV": 2.3907547551814892e+16
+   }
+  },
+  "media sulle direzioni": {
+   "tempo di volo: LHAASO GRB 221009A (PRL 133, 071501, 2024): E_QG2 > 6e-8 E_Pl": {
+    "a_max_m": 1.0432882420134814e-27,
+    "a_max_lP": 64549730.210485436,
+    "E_a_min_GeV": 189139465502.04688
+   },
+   "tempo di volo: H.E.S.S. Mrk 501 (ApJ 870, 93, 2019): E_QG2 > 8.5e10 GeV": {
+    "a_max_m": 8.991107165589452e-27,
+    "a_max_lP": 556292612.5883262,
+    "E_a_min_GeV": 21946905628.508694
+   },
+   "tempo di volo: MAGIC GRB 190114C (PRL 125, 021301, 2020): E_QG2 > 6.3e10 GeV": {
+    "a_max_m": 1.2130858874207991e-26,
+    "a_max_lP": 750553524.9207577,
+    "E_a_min_GeV": 16266530054.07115
+   },
+   "decadimento del fotone: LHAASO J2032+4102, 1.42 PeV (limite 95%: 1.21 PeV; Nature 594, 33, 2021)": {
+    "a_max_m": 6.160000265426985e-31,
+    "a_max_lP": 38112.79943713699,
+    "E_a_min_GeV": 320335993435744.0
+   },
+   "decadimento del fotone: Granchio, 1.1 PeV (LHAASO, Science 373, 425, 2021)": {
+    "a_max_m": 7.453600321166652e-31,
+    "a_max_lP": 46116.48731893576,
+    "E_a_min_GeV": 264740490442763.66
+   },
+   "cavita': risonatori ottici 1064 nm (Herrmann et al., PRD 80, 105011, 2009): dc/c < 1e-17": {
+    "a_max_m": 2.6240141084123723e-15,
+    "a_max_lP": 1.6235149208586345e+20,
+    "E_a_min_GeV": 0.07520042663886067
+   },
+   "cavita': risonatori a microonde 13 GHz (Nagel et al., Nat. Commun. 6, 8174, 2015): dc/c < 1e-18": {
+    "a_max_m": 1.7901867207729524e-11,
+    "a_max_lP": 1.1076140341548533e+24,
+    "E_a_min_GeV": 1.1022703842524301e-05
+   },
+   "INDICATIVO elettroni del Granchio 2.3 PeV (Lorentz massimo, stile JLM)": {
+    "a_max_m": 1.0655548663293534e-32,
+    "a_max_lP": 659.2739798666382,
+    "E_a_min_GeV": 1.8518706703368196e+16
+   }
+  }
+ },
+ "variante un tick (diagnosi)": {
+  "tempo di volo n=1, E_QG1 > 10 E_Pl (LHAASO 2024): a_max": {
+   "a_max_m": 3.110484572357861e-37,
+   "a_max_lP": 0.019245011290655627,
+   "E_a_min_GeV": 6.3439305313583e+20
+  },
+  "decadimento del fotone n=1 superluminale, E_LV1 >= 1.7e24 GeV (Chen et al. 2021): a_max": {
+   "a_max_m": 6.0314180445730415e-40,
+   "a_max_lP": 3.731724291385358e-05,
+   "E_a_min_GeV": 3.271651525407879e+23
+  },
+  "nota": "nella direzione opposta il fotone e' superluminale: la variante senza palindromo e' esclusa per a > ~1e-5 l_P"
+ },
+ "ritardo previsto a = l_P, GRB 221009A, 10 TeV, diagonale": {
+  "s": 8.613319273067327e-15,
+  "E_QG2_GeV": 3.66267e+19
+ },
+ "soglia decadimento fotone a = l_P": {
+  "diagonale_GeV": 207901958.95812792,
+  "media_GeV": 236222232.09475616
+ },
+ "laboratorio": {
+  "a = 0.05 lambda_C": {
+   "a_m": 1.930796338621417e-14,
+   "a/l_P": 1.1946112083931166e+21,
+   "soglia decadimento fotone (diag) MeV": 6.015134116771854,
+   "anisotropia della luce visibile (550 nm)": 2.019546174134134e-15
+  },
+  "a = 0.10 lambda_C": {
+   "a_m": 3.861592677242834e-14,
+   "a/l_P": 2.389222416786233e+21,
+   "soglia decadimento fotone (diag) MeV": 4.253342123715932,
+   "anisotropia della luce visibile (550 nm)": 8.078184696536537e-15
+  },
+  "a = 0.50 lambda_C": {
+   "a_m": 1.9307963386214167e-13,
+   "a/l_P": 1.1946112083931167e+22,
+   "soglia decadimento fotone (diag) MeV": 1.9021524240384289,
+   "anisotropia della luce visibile (550 nm)": 2.019546174134134e-13
+  },
+  "a = 1.00 lambda_C": {
+   "a_m": 3.8615926772428334e-13,
+   "a/l_P": 2.3892224167862333e+22,
+   "soglia decadimento fotone (diag) MeV": 1.345024877888002,
+   "anisotropia della luce visibile (550 nm)": 8.078184696536536e-13
+  }
+ },
+ "controlli EM2 (max Delta E, deve essere < 0)": {
+  "nu -> 3 nu / e -> 3e (m~0), [0.577, 0.577, 0.577]": -2.4260403122866592e-05,
+  "nu -> 3 nu / e -> 3e (m~0), [0.267, 0.535, 0.802]": -1.8196264235825765e-05
+ },
+ "piu_severo": {
+  "peggiore (diagonale)": {
+   "piu' severo (robusto)": "decadimento del fotone: LHAASO J2032+4102, 1.42 PeV (limite 95%: 1.21 PeV; Nature 594, 33, 2021)",
+   "a_max_m": 4.771515688126396e-31,
+   "a_max_lP": 29522.047499474993,
+   "E_a_min_GeV": 413551989255815.0
+  },
+  "media sulle direzioni": {
+   "piu' severo (robusto)": "decadimento del fotone: LHAASO J2032+4102, 1.42 PeV (limite 95%: 1.21 PeV; Nature 594, 33, 2021)",
+   "a_max_m": 6.160000265426985e-31,
+   "a_max_lP": 38112.79943713699,
+   "E_a_min_GeV": 320335993435744.0
+  }
+ },
+ "verdetto": "compatibile"
+}
