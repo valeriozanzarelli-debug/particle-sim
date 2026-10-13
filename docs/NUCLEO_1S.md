@@ -50,6 +50,12 @@ imparato: a a = 0,5 l'1s 3-D va a −0,40 % con split 0,0002 (il battimento del 
 a = 0,4 / 0,3 / 0,24 / 0,2 danno −0,95 / **−1,02** / −0,88 / −0,72 %: l'esame "entro 1 % a tutti gli a" cade per 0,017 punti
 (FAIL). Cipolla 3-D e idrogeno Z = 1 in 3-D: progetto, non corsi. Esiti fase 3: 3 PASS, 2 FAIL.
 
+**Fase 4 (§14):** il nucleo imparato su due reticoli (0,5 e 0,3) e trasferito con una retta in a: sui reticoli di prova
+0,4 / 0,24 / 0,2 l'1s 3-D è a −0,80 / −0,71 / −0,58 % da Dirac con **una sola riga** (valli fuse), cioè sul livello U
+della regola. Debito #20 chiuso per Z = 60; il resto dell'errore è il bulk della regola. Costo ÷ 28 celle. Prototipo 1-D del
+raccordo grosso/fine della cipolla: unitario, riflessione 0,8 % (a = 0,5) → 0,05 % (a = 0,25) con la sola moneta di massa
+m·a/2. Esiti fase 4: 4 PASS, 0 FAIL.
+
 **Esiti pre-registrati (fase 1):** 11 PASS, 3 FAIL (L1, L2, L3: la legge regge, ma due soglie strette cadono a Z = 20 e Z = 92
 per motivi che spiego sotto). Dettaglio nella §6.
 
@@ -757,3 +763,141 @@ imparato andrà ri-imparato sopra di esso (forse non servirà più s1).
     for a in 0.5 0.4 0.3 0.24 0.2; do timeout 590 python lab/nucleo1s_3d_run.py scan $a learned2; done
     timeout 590 python lab/nucleo1s_3d_run.py excited 0.4 learned2
     python lab/nucleo1s_f3_judge.py; python lab/nucleo1s_f3_figure.py
+
+---
+
+## 14. Fase 4: il nucleo imparato su due reticoli, trasferito con una legge; il raccordo della cipolla (prototipo 1-D)
+
+File: `lab/nucleo1s_f4_prereg.py` → `lab/out/nucleo1s_f4_prereg.json` (**commit 4760f9c, prima delle corse**),
+`lab/nucleo1s_3d_run.py` (parte `learn3`, configurazioni `transfer` e `transferP`, funzione `s_for`),
+`lab/nucleo1s_f4_judge.py` → `lab/out/nucleo1s_f4_results.json`, `lab/nucleo1s_junction1d.py` →
+`lab/out/nucleo1s_junction1d.json` (prototipo, nessun esame), `lab/nucleo1s_f4_figure.py` → `lab/out/nucleo1s_f4_figure.png`.
+Soglie delle fasi 1–3 invariate (N3, C1, M2, M5 restano FAIL).
+
+![figura fase 4](../lab/out/nucleo1s_f4_figure.png)
+
+### 14.0 In breve
+
+* **Come.** Stesso criterio interno della fase 3 (una sola riga **e** livello sulla coppia cieca U della regola nuda),
+  imparato su **due** reticoli: a = 0,5 (fase 3: s = 0,5546 / 1,0035) e a = 0,3 (nuovo: s = 0,5748 / 1,0025; split
+  5·10⁻⁵, livello a 1,6·10⁻⁶ da U: **Q1 PASS**). Per gli altri a i due numeri seguono una **retta in a** fissata prima
+  (perché lineare: §14.1). Nessuna manopola nuova; i reticoli di prova (0,4, 0,24, 0,2) non sono mai stati usati per
+  imparare.
+* **L'esame principale (Q2): PASS.** Errore del legame 1s 3-D contro Dirac (Z = 60):
+
+  | a (λ_C) | nudo (media) | nudo U | fase 3 (numeri di 0,5) | **fase 4 (trasferito)** | righe dell'1s (fase 4) |
+  |---|---|---|---|---|---|
+  | 0,5 (allenamento) | +19,2 % | −0,40 % | −0,40 % | −0,40 % | split 0,0002 |
+  | 0,4 (prova) | +11,5 % | −0,80 % | −0,95 % | **−0,80 %** | 2 righe a 1,2·10⁻⁴ |
+  | 0,3 (allenamento) | +6,0 % | −0,83 % | −1,02 % | −0,83 % | split 5·10⁻⁵ |
+  | 0,24 (prova) | +3,7 % | −0,71 % | −0,88 % | **−0,71 %** | 1 riga, peso 97 % |
+  | 0,2 (prova) | +2,5 % | −0,57 % | −0,72 % | **−0,58 %** | 1 riga, peso 99,8 % |
+  | 0,16 (in più, non giudicato) | +1,6 % | −0,49 % | — | −0,42 % | 1 riga, peso 99,5 % |
+
+  Le 4 valli si fondono in **una riga sola** (split sotto la risoluzione) e il livello cade sulla coppia U a meno di
+  0,01 punti fino a a = 0,2. **Q2 PASS.**
+* **Q3 PASS**: gli eccitati a a = 0,4 non peggiorano (errore medio 5,76 % contro 6,19 % del nudo; 2p1/2 1,7 % contro 2,7 %).
+* **Q4 PASS**: costo. Il reticolo più grosso fra quelli di prova che passa è a = 0,4: 60³ = 2,2·10⁵ celle contro
+  6,1·10⁶ del reticolo uniforme nudo per l'1 %: **÷ 28**.
+* **Legge alternativa** a^{2−2γ} (non giudicata): −0,82 / −0,69 / −0,56 %, a 0,02 punti dalla retta. Fra 0,16 e 0,5 le due
+  leggi non si distinguono.
+* **Raccordo della cipolla (punto 2): prototipo 1-D**, nessun esame (§14.3). Un raccordo vivo fra celle a e a/2 **esatto**
+  (unitario a 10⁻¹³) esiste. Con la sola "moneta di massa" che il conto impone (angolo m·a/2, nessuna manopola) la
+  riflessione di un pacchetto lento scende da 34 % a 0,8 % (a = 0,5, k = 0,4) e va come a⁴.
+* **Esiti fase 4: 4 PASS, 0 FAIL.** Totale delle quattro fasi: 32 PASS, 11 FAIL.
+
+**Cosa vuol dire davvero (onestà).** È una **validazione**, non una scoperta. Il nucleo imparato **non** porta l'1s su
+Dirac: lo porta sul livello U che la regola nuda ha già per i due stati che non vedono il nucleo, e lo fa a tutti gli a.
+L'errore che resta (−0,4 … −0,8 %) è quello di U, cioè della regola stessa lontano dal nucleo (il "bulk", che va come a²),
+non del nucleo. Il criterio U era stato scelto sapendo che U sta entro l'1 % (fase 3). Il punto nuovo è che **la cura del
+#20 ora si trasferisce**: due numeri imparati su due reticoli e una retta bastano per tutti gli a fra 0,16 e 0,5.
+
+### 14.1 Perché una retta in a (come a un ventenne)
+
+Vicino al nucleo la forza di Coulomb non ha una lunghezza propria: se ingrandisci, −Zα/r sembra uguale. Per questo nella
+fase 1 il coefficiente K del termine di contatto (K a^{2γ}, K = +1,640) era lo stesso per ogni a, calcolato senza fit.
+Misurato in celle, l'unica cosa che cambia quando rimpicciolisci la cella è il pezzetto di massa che la pallina gira in un
+tick, θ = m·a. I fattori del nucleo correggono il contatto a un θ. Per un altro θ la correzione cambia poco e in modo
+liscio: al primo ordine **linearmente in a**. Il termine a^{2γ} dice solo quanto pesa il resto sull'energia, e il resto è
+piccolo. Due reticoli fissano la retta.
+
+Sorpresa utile: **s1 non serve quasi**. È 1,0035 a a = 0,5 e 1,0025 a a = 0,3, cioè il potenziale dei 6 siti successivi
+è giusto quasi così com'è. Il lavoro lo fa s0 sui 2 siti vicinissimi (0,555 → 0,575 → 0,585 → 0,589 da a = 0,5 a 0,16):
+quei due siti devono tirare **poco più di metà** di −Zα/r. In pratica la cura è **un numero per reticolo** su una sola
+coppia di palline.
+
+### 14.2 Debiti e parametri della fase 4
+
+* Numeri imparati: **4** (s0, s1 a a = 0,5 e a = 0,3), fissati dal criterio interno; la legge (retta in a) è scelta prima
+  e motivata (§14.1), ma è una **scelta**: è un debito dichiarato. La legge alternativa dà lo stesso risultato.
+* A a = 0,3 l'apprendimento ascolta T = 500 (come le scansioni), a a = 0,5 T = 2000 (fase 3): dichiarato nella
+  pre-registrazione.
+* Valido per Z = 60. Per altri Z i numeri vanno re-imparati (2 reticoli, ~1 h di calcolo su un core).
+* **Debito #20** (battimento del Laboratorio): **chiuso** in 3-D per Z = 60, con energia sul livello U a tutti gli a
+  provati. Patch per `src/atomo/zz.rs` (non applicata, è di un altro thread): potenziale dei 2 siti a r0 = √3/2·a moltiplicato
+  per s0(a) = 0,5546 + 0,1011·(0,5 − a/λ_C), dei 6 siti a r1 = √11/2·a per s1(a) = 1,0035 − 0,0051·(0,5 − a/λ_C). Al
+  Laboratorio (a = 0,5) servono solo i due numeri della fase 3.
+* **Debito #6 in 3-D**: l'errore che resta è il bulk di U (−0,4 … −0,8 %). L'estrapolazione A1 di U della fase 2 dava
+  −0,27 %. L'idrogeno Z = 1 in 3-D resta non fatto (serve l'ibrido 3-D).
+* La correzione del thread principale (un colore solo vale per livelli e spettri, non per correnti, dipoli e luce) è
+  stata applicata al §12 (commit d327742).
+
+### 14.3 Il raccordo grosso/fine (punto 2, prototipo 1-D; nessun esame)
+
+**Il problema, contato.** In un tick grosso (durata a) dal lato grosso entra nel raccordo **1** pallina che va verso
+destra e ne deve uscire 1 verso sinistra. Dal lato fine, nello stesso tempo (2 tick fini), arrivano **2** palline verso
+sinistra e ne devono partire 2 verso destra. 1 + 2 entrano, 1 + 2 escono: una matrice 3×3 unitaria chiude il conto **senza
+perdere niente**. In 3-D per ogni faccia grossa ci sono 4 facce fini × 2 tick = 8 posti, e la matrice è 9×9 per faccia e
+per colore. Il conto torna anche lì.
+
+**La scelta.** Il lato fine ha un modo "liscio" (le due palline con la fase che avrebbe un'onda lenta, e^{−i m a/2}) e un
+modo "ruvido" (la differenza). Il liscio passa nel grosso; il ruvido, che un'onda lunga non ha, torna indietro nel fine.
+Per rispettare l'ordine nel tempo serve aspettare un tick fine (le due palline fini vanno raccolte prima di decidere).
+
+**Cosa succede (1-D, pacchetti liberi con m = 1, unitarietà controllata a 10⁻¹³):**
+
+| a | moneta del raccordo | k = 0,2 | k = 0,4 | k = 0,8 |
+|---|---|---|---|---|
+| 0,5 | 0 | 65 % riflesso | 34 % | 15 % |
+| 0,5 | m·a/2 | **0,9 %** | **0,8 %** | **1,1 %** |
+| 0,25 | 0 | 30 % | 10 % | 4 % |
+| 0,25 | m·a/2 | **0,06 %** | **0,05 %** | **0,07 %** |
+
+Senza correzione il raccordo è un muro per le palline lente. Il motivo è che durante l'attesa di un tick fine la pallina
+**non gira la sua massa**, e una massa mancante vale come una barriera. Rimettere esattamente quel giro mancante (angolo
+m·a/2 fra la pallina grossa e il modo liscio fine; è un conto, non una manopola) toglie quasi tutto: la riflessione
+scende di 40–500 volte e va come **a⁴** (ampiezza ∝ a²: è un raccordo del secondo ordine come la regola). A k = 0,1
+resta 4 % / 2 %: il pacchetto (σ = 25) contiene impulsi quasi fermi, dove ogni piccolo difetto pesa molto.
+
+**Cosa manca per la cipolla 3-D vera** (non fatto): (1) la matrice 9×9 per faccia in 3-D con il modo liscio fatto dalle 4
+facce fini; (2) gli spigoli e i vertici del guscio a ottaedro troncato (§13.3), dove si incontrano facce diverse; (3) l'esame
+della pre-registrazione proposto al §13.3 (unitarietà a 10⁻¹², nessuna fuga di colore, una sola riga 1s senza nucleo
+imparato). Il prototipo 1-D dice che la strada è aperta e quale correzione serve. Non dice ancora che in 3-D la riflessione
+residua (≈ 1 % a a = 0,5 per un elettrone lento) sia abbastanza piccola per un livello entro lo 0,1 %. Proposta: raccordo a
+a = 0,25 ↔ 0,125 (riflessione 0,05 %), lontano dal nucleo.
+
+### 14.4 Idee geometriche e visive (fase 4)
+
+1. **Il guscio che "gira" la massa.** A schermo: sul bordo fra palline grosse e fini un sottile velo dove le palline
+   cambiano un poco colore (la fase della massa) mentre aspettano un tick. È il raccordo del §14.3: senza quel giro il
+   guscio sarebbe uno specchio. Costo: un indice per pallina di confine.
+2. **Due palline più leggere.** Il nucleo imparato si vede come **due palline** (quelle sulla diagonale del colore) che
+   sentono il nucleo poco più della metà. Si potrebbe disegnarle più piccole: sono il "nucleo come lo vede il reticolo".
+
+### 14.5 Dove l'intuizione di Valerio può aiutare (fase 4)
+
+1. **Metà forza sui due siti vicini.** I due siti vicinissimi al nucleo devono sentire ~0,56–0,59 del Coulomb puntiforme.
+   Fisicamente la carica di un nucleo non è un punto e la pallina occupa una cella: secondo te esiste un modo "geometrico"
+   per ottenere quel ~0,57 (per esempio la media di −Zα/r sulla parte della cella vista dal colore) invece di impararlo?
+   Sarebbe la stessa cura senza nessun numero imparato.
+2. **Lo specchio della cipolla.** Ti torna l'immagine del guscio che, se non "gira la massa" mentre aspetta, diventa uno
+   specchio per l'elettrone lento? È la stessa cosa che rendeva la prima cella uno specchio sbagliato nella fase 1.
+
+### 14.6 Come rieseguire (fase 4)
+
+    python lab/nucleo1s_f4_prereg.py
+    timeout 590 python lab/nucleo1s_3d_run.py learn3          # rilanciare finché "learned3" (3 corse)
+    for a in 0.4 0.24 0.2 0.16; do timeout 590 python lab/nucleo1s_3d_run.py scan $a transfer; done
+    for a in 0.4 0.24 0.2; do timeout 590 python lab/nucleo1s_3d_run.py scan $a transferP; done
+    timeout 590 python lab/nucleo1s_3d_run.py excited 0.4 transfer
+    python lab/nucleo1s_f4_judge.py; python lab/nucleo1s_junction1d.py; python lab/nucleo1s_f4_figure.py
