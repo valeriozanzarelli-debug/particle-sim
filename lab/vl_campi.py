@@ -4,11 +4,12 @@ Electron (48^3, a = 0.5 lambda_C):
   * rho_s = |psi|^2 smoothed with a gaussian sigma = 2 cells (1 lambda_C, FWHM 2.35 lambda_C): removes the
     period-4-cell checkerboard of the 4 lattice valleys (docs/BATTIMENTO_1S.md). Declared on screen.
   * the exported current j (cell-centred bilinear R+sR - L+sL, averaged over 16 ticks) is NOT the lattice face
-    flux: its divergence does not match d rho/dt (measured below). So the flow is rebuilt:
-        J = (divergence-free part of smoothed j)  +  grad(phi),   lap(phi) = -(rho_s[k+1] - rho_s[k]) / 8
-    i.e. the rotation comes from the rule's current, the compression from continuity (L2-minimal correction,
-    the same choice as SURFISTI S5). With rho linear in time inside a frame interval, the balls moved by
-    v = J / rho_s carry rho_s exactly (up to the integrator).
+    flux: its divergence does not match d rho/dt (measured below). So the flow is corrected, per frame interval:
+        J = j_s - rho_s grad(chi),   div(rho_s grad chi) = div j_s + d rho_s/dt
+    on the faces of the cells (j_s, rho_s: mean of the two frames). This is the smallest change of the
+    velocity field (minimum of int |dJ|^2/rho) that makes the flow carry rho_s exactly: the rotation stays the
+    rule's, the compression comes from continuity. Balls use the face fluxes inside each cell (RT0, like
+    SURFISTI) and rho_s of the cell, linear in time: a uniform cloud in a cell stays uniform.
 Light (64^3, h = 8 lambda_C):
   * only E is exported. B is rebuilt with Faraday dB/dt = -curl E (spectral curl, trapezoid in time, dt = 8),
     starting from B0 = x^ x E0 (the pulse moves along +x); the static residual this leaves where the pulse
@@ -66,66 +67,129 @@ def curl_spec(F, K):
     return np.stack([np.fft.ifftn(x).real for x in c])
 
 
+def _faces(c, axis):
+    """cell-centred field -> interior face values (average of the two cells), zero on the box boundary"""
+    n = c.shape[axis]
+    sh = list(c.shape); sh[axis] = n + 1
+    out = np.zeros(sh, c.dtype)
+    sl = [slice(None)] * 3
+    sl[axis] = slice(1, n)
+    a = np.take(c, np.arange(n - 1), axis=axis)
+    b = np.take(c, np.arange(1, n), axis=axis)
+    out[tuple(sl)] = 0.5 * (a + b)
+    return out
+
+
+def _div(F):
+    return sum(np.diff(F[ax], axis=ax) for ax in range(3)) / A
+
+
+def _grad_faces(chi):
+    out = []
+    for ax in range(3):
+        n = chi.shape[ax]
+        sh = list(chi.shape); sh[ax] = n + 1
+        g = np.zeros(sh)
+        sl = [slice(None)] * 3
+        sl[ax] = slice(1, n)
+        g[tuple(sl)] = np.diff(chi, axis=ax) / A
+        out.append(g)
+    return out
+
+
+def _cg(rf, f, x0, tol=1e-7, itmax=3000):
+    """solve div(rf grad chi) = f (Neumann) by conjugate gradients on -L; rf: face densities (3 arrays)"""
+    def L(x):
+        g = _grad_faces(x)
+        return _div([rf[a] * g[a] for a in range(3)])
+    diag = sum(np.take(rf[a], np.arange(rf[a].shape[a] - 1), axis=a) + np.take(rf[a], np.arange(1, rf[a].shape[a]), axis=a)
+               for a in range(3)) / A ** 2
+    Minv = 1.0 / np.maximum(diag, 1e-30)
+    b = -(f - f.mean())
+    x = x0.copy()
+    r = b - (-L(x))
+    z = Minv * r
+    p = z.copy()
+    rz = (r * z).sum()
+    nb = np.sqrt((b ** 2).sum()) + 1e-300
+    for it in range(itmax):
+        Ap = -L(p)
+        al = rz / (p * Ap).sum()
+        x += al * p
+        r -= al * Ap
+        if np.sqrt((r ** 2).sum()) < tol * nb:
+            break
+        z = Minv * r
+        rz2 = (r * z).sum()
+        p = z + (rz2 / rz) * p
+        rz = rz2
+    return x, it, float(np.sqrt((r ** 2).sum()) / nb)
+
+
 def elettrone(d, info):
     n = 48
-    K = kgrid(n, A)
     nf = d.n
     rho_s = np.zeros((nf, n, n, n), np.float32)
-    jrot = np.zeros((nf, 3, n, n, n), np.float32)
-    share_grad, div_vs_dt = [], []
+    js = np.zeros((nf, 3, n, n, n), np.float32)
     for k in range(nf):
         rho_s[k] = gaussian_filter(d.rho(k), SIG, mode="constant")
-        js = np.stack([gaussian_filter(c, SIG, mode="constant") for c in d.j(k)])
-        g = grad_spec(inv_lap(div_spec(js, K), K), K)
-        jrot[k] = js - g
-        if k > 0:
-            share_grad.append(float(np.sqrt((g ** 2).sum() / max((js ** 2).sum(), 1e-30))))
-    G = np.zeros((nf - 1, 3, n, n, n), np.float32)
+        js[k] = np.stack([gaussian_filter(c, SIG, mode="constant") for c in d.j(k)])
+    Fx = np.zeros((nf - 1, n + 1, n, n), np.float32)
+    Fy = np.zeros((nf - 1, n, n + 1, n), np.float32)
+    Fz = np.zeros((nf - 1, n, n, n + 1), np.float32)
+    chi = np.zeros((n, n, n))
+    miss, corr_share, its, resid = [], [], [], []
     for k in range(nf - 1):
-        drdt = (rho_s[k + 1] - rho_s[k]) / DT
-        G[k] = grad_spec(inv_lap(-drdt, K), K)
-        if k >= 1:
-            js_div = div_spec(jrot[k] + 0, K)  # ~0 by construction
-            div_vs_dt.append(float(np.abs(js_div).sum() / max(np.abs(drdt).sum(), 1e-30)))
-    # how badly the exported current misses continuity (raw, smoothed, central differences)
-    miss = []
-    for k in (10, 25, 60, 150):
-        r0_, r1_ = gaussian_filter(d.rho(k), SIG, mode="constant"), gaussian_filter(d.rho(k + 1), SIG, mode="constant")
-        js = np.stack([gaussian_filter(c, SIG, mode="constant") for c in d.j(k)])
-        dv = div_spec(js, K)
-        drdt = (r1_ - r0_) / DT
-        miss.append({"frame": k, "sum_abs_div_j": float(np.abs(dv).sum()), "sum_abs_drho_dt": float(np.abs(drdt).sum()),
-                     "corr(drho/dt, -div j)": float(np.corrcoef(drdt.ravel(), -dv.ravel())[0, 1])})
-    # azimuthal share and speed of the rotation (frame 100)
-    xa = (np.arange(n) - n / 2 + 0.5) * A
-    X, Y, Z = np.meshgrid(xa, xa, xa, indexing="ij")
-    k = 100
-    jr = jrot[k]
-    rp = np.hypot(X, Y).clip(1e-9)
-    jphi = (-Y * jr[0] + X * jr[1]) / rp
-    jm = np.sqrt((jr ** 2).sum(0))
-    w = rho_s[k] / rho_s[k].sum()
-    vm = jm / np.maximum(rho_s[k], 1e-12)
-    # checkerboard: power at the period-4 valley wavevectors, raw vs smoothed
+        jm = 0.5 * (js[k].astype(np.float64) + js[k + 1])
+        rm = 0.5 * (rho_s[k].astype(np.float64) + rho_s[k + 1])
+        drdt = (rho_s[k + 1].astype(np.float64) - rho_s[k]) / DT
+        jf = [_faces(jm[a], a) for a in range(3)]
+        rf = [np.maximum(_faces(rm, a), 1e-7 * rm.max()) for a in range(3)]
+        for a in range(3):   # no flux through the box boundary
+            sl = [slice(None)] * 3; sl[a] = 0; rf[a][tuple(sl)] = 0; sl[a] = -1; rf[a][tuple(sl)] = 0
+        divj = _div(jf)
+        if k in (10, 25, 60, 150):
+            miss.append({"intervallo": k, "sum_abs_div_j": float(np.abs(divj).sum()), "sum_abs_drho_dt": float(np.abs(drdt).sum()),
+                         "corr(drho/dt, -div j)": float(np.corrcoef(drdt.ravel(), -divj.ravel())[0, 1])})
+        f = divj + drdt
+        chi, it, res = _cg(rf, f, chi)
+        g = _grad_faces(chi)
+        F = [jf[a] - rf[a] * g[a] for a in range(3)]
+        its.append(it); resid.append(res)
+        num = sum(((rf[a] * g[a]) ** 2).sum() for a in range(3))
+        den = sum((jf[a] ** 2).sum() for a in range(3))
+        corr_share.append(float(np.sqrt(num / den)))
+        Fx[k], Fy[k], Fz[k] = F
+        if k == 100:
+            cont = _div(F) + drdt
+            cont_rel = float(np.abs(cont).sum() / np.abs(drdt).sum())
+            xa = (np.arange(n) - n / 2 + 0.5) * A
+            X, Y, Z = np.meshgrid(xa, xa, xa, indexing="ij")
+            Jc = np.stack([0.5 * (F[0][1:] + F[0][:-1]), 0.5 * (F[1][:, 1:] + F[1][:, :-1]), 0.5 * (F[2][:, :, 1:] + F[2][:, :, :-1])])
+            rp = np.hypot(X, Y).clip(1e-9)
+            jphi = (-Y * Jc[0] + X * Jc[1]) / rp
+            jmag = np.sqrt((Jc ** 2).sum(0))
+            vm = jmag / np.maximum(rm, 1e-12)
+            w = rm / rm.sum()
+            rot = {"quota_azimutale": float(np.abs(jphi).sum() / jmag.sum()), "quota_azimutale_con_segno": float(jphi.sum() / jmag.sum()),
+                   "velocita_media_pesata_c": float((w * vm).sum()), "continuita_residuo_rel": cont_rel}
     def valley_amp(f):
-        F = np.abs(np.fft.fftn(f))
+        Fh = np.abs(np.fft.fftn(f))
         idx = [(12, 12, 0), (12, 0, 12), (0, 12, 12), (12, 36, 0), (36, 12, 0), (36, 36, 0)]
-        return float(sum(F[i] for i in idx)), float(F[0, 0, 0])
-    va_raw, v0_raw = valley_amp(d.rho(100))
-    va_s, v0_s = valley_amp(rho_s[100])
+        return float(sum(Fh[i] for i in idx)) / float(Fh[0, 0, 0])
     info["elettrone"] = {
         "sigma_celle": SIG, "sigma_lambdaC": SIG * A,
-        "continuita_corrente_esportata": miss,
-        "peso_parte_gradiente_della_j_esportata_mediana": float(np.median(share_grad)),
-        "jrot_quota_azimutale_fotogramma100": float(np.abs(jphi).sum() / jm.sum()),
-        "jrot_quota_azimutale_con_segno": float(jphi.sum() / jm.sum()),
-        "velocita_media_pesata_rho_fotogramma100_c": float((w * vm).sum()),
-        "scacchiera_periodo4_rel_grezza": va_raw / v0_raw, "scacchiera_periodo4_rel_smussata": va_s / v0_s,
-        "attenuazione_scacchiera": (va_s / v0_s) / (va_raw / v0_raw),
+        "continuita_corrente_esportata (facce, smussata, media dell'intervallo)": miss,
+        "correzione_rho_grad_chi_su_j_mediana": float(np.median(corr_share)),
+        "cg_iterazioni_max": int(max(its)), "cg_residuo_max": float(max(resid)),
+        "fotogramma100": rot,
+        "scacchiera_periodo4_rel_grezza": valley_amp(d.rho(100)), "scacchiera_periodo4_rel_smussata": valley_amp(rho_s[100]),
     }
+    info["elettrone"]["attenuazione_scacchiera"] = info["elettrone"]["scacchiera_periodo4_rel_smussata"] / info["elettrone"]["scacchiera_periodo4_rel_grezza"]
     np.save(os.path.join(SCR, "rho_s.npy"), rho_s)
-    np.save(os.path.join(SCR, "jrot.npy"), jrot)
-    np.save(os.path.join(SCR, "G.npy"), G)
+    np.save(os.path.join(SCR, "Fx.npy"), Fx)
+    np.save(os.path.join(SCR, "Fy.npy"), Fy)
+    np.save(os.path.join(SCR, "Fz.npy"), Fz)
 
 
 def pexc_campo(d):

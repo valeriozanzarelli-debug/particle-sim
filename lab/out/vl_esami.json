@@ -1,0 +1,53 @@
+{
+ "fotogrammi_valutati": 201,
+ "E1": {
+  "corr_min": 0.9995435942531259,
+  "corr_min_fotogramma": 114,
+  "TV0": 0.022281294204847264,
+  "TV_max": 0.028363526652268628,
+  "TV_max_fotogramma": 43,
+  "PASS": true
+ },
+ "E2": {
+  "pearson": 0.9999904039881423,
+  "rms_lambdaC": 0.015406055510538311,
+  "ampiezza_max_palline": 1.171599597921536,
+  "ampiezza_max_manifest": 1.165855,
+  "PASS": true
+ },
+ "E3a": {
+  "max_diff_palline_vs_reticolo": 0.01661231896167048,
+  "PASS": true
+ },
+ "E3b": {
+  "max_diff_palline_vs_manifest": 0.07095600038328592,
+  "media_diff": 0.04565900221960026,
+  "PASS": false
+ },
+ "E6": {
+  "pearson": {
+   "10": 0.9848274841988516,
+   "20": 0.9840049122695876,
+   "30": 0.9801849314923067
+  },
+  "PASS": true
+ },
+ "E4": {
+  "media": 0.9628705390209656,
+  "min": 0.8316925562241441,
+  "PASS": true
+ },
+ "E5": {
+  "rapporto": 0.9058614047814186,
+  "PASS": true
+ },
+ "elettrone_corsa": {
+  "kind": "elettrone",
+  "iv": 1121,
+  "nv": 1121,
+  "t": 1600.0,
+  "secondi": 391.4208369255066,
+  "clipped": 329,
+  "outside": 738
+ }
+}
