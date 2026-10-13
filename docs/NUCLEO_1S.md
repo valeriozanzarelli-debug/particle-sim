@@ -67,6 +67,9 @@ esterne pre-registrate (θ fino a 0,1) sbagliano del 2–11 % (A1–A3 FAIL). Co
 convergono a +0,19 % (1s) e +0,08 % (2s) a Z = 1, e a +0,10 / +0,04 % a Z = 2. Il 3s resta a −14 %. La regola grossa
 agglomerata fuori oggi sbaglia 100–1000 volte più dell'effetto: progetto, non corsa. Esiti fase 6: 0 PASS, 3 FAIL.
 
+**Fase 7 (§17):** esame cieco a Z = 3 e 5: spostamenti α⁴ di 1s e 2s entro lo 0,07 % (+0,073 / +0,029 % e +0,050 / +0,020 %),
+PASS. Il 3s della fase 6 era la **scatola** (45 a₀ troppo stretta): a 90 a₀ va a +0,055 %. Esiti fase 7: 3 PASS, 0 FAIL.
+
 **Esiti pre-registrati (fase 1):** 11 PASS, 3 FAIL (L1, L2, L3: la legge regge, ma due soglie strette cadono a Z = 20 e Z = 92
 per motivi che spiego sotto). Dettaglio nella §6.
 
@@ -1110,3 +1113,52 @@ regola grossa non può ancora stare fuori: sbaglia la parte lontana di più di q
 
     python lab/nucleo1s_f6_prereg.py; timeout 590 python lab/nucleo1s_f6_run.py; python lab/nucleo1s_f6_judge.py
     timeout 590 python lab/nucleo1s_f6_posthoc.py      # dopo, dichiarato
+
+---
+
+## 17. Fase 7: lo spostamento α⁴ diventa un esame vero; la causa del 3s
+
+File: `lab/nucleo1s_f7_prereg.py` → `lab/out/nucleo1s_f7_prereg.json` (**commit 5276f55, prima delle corse**),
+`lab/nucleo1s_f7_run.py` → `lab/out/nucleo1s_f7_results.json`, `lab/out/nucleo1s_f7_judged.json`.
+
+### 17.0 In breve
+
+**Esame cieco** (Z = 3 e Z = 5, mai usati prima; celle esterne θ = 0,025 / 0,0125 / 0,00625, zoom 14 × 16, scatola
+45 a₀/Z, estrapolazione in θ²). Spostamento α⁴ (Darwin + cinetico) della regola contro Dirac − Schrödinger:
+
+| | 1s | 2s | 3s (non giudicato) |
+|---|---|---|---|
+| Z = 3 | **+0,073 %** | **+0,029 %** | −1,56 % |
+| Z = 5 | **+0,050 %** | **+0,020 %** | −0,55 % |
+
+**B1 PASS** (entro 1 %), **B2 PASS** (entro 0,5 %). Ora è un risultato pre-registrato, non solo visto dopo: la regola,
+con il cuspide risolto dallo zoom, porta la relatività degli stati s (Darwin compreso) entro lo 0,07 %.
+
+**La causa del 3s: la scatola.** Diagnosi a Z = 1, una modifica alla volta:
+
+| modifica | 1s | 2s | 3s |
+|---|---|---|---|
+| nessuna (fase 6, dopo) | +0,19 % | +0,08 % | −14,3 % |
+| **scatola 90 a₀ invece di 45** | +0,19 % | +0,07 % | **+0,055 %** |
+| zoom 18 livelli invece di 14 | +0,19 % | +0,08 % | −14,2 % |
+| 32 celle per livello invece di 16 | +0,37 % | +0,13 % | −14,2 % |
+| quarto punto θ = 0,003125 | +0,11 % | +0,05 % | −14,3 % |
+
+**B3 PASS.** Il 3s arriva fino a ~40 a₀ e la parete a 45 a₀ lo stringe: il livello sale di 1,9·10⁻⁶, cioè quasi tutto lo
+spostamento relativistico del 3s (che è piccolissimo: 2,0·10⁻⁵ eV). Con la scatola doppia il 3s va a +0,055 %. A Z = 3 e
+5 lo stesso effetto è più piccolo (−1,6 %, −0,55 %) perché lo spostamento cresce come Z⁴ e l'errore della parete no.
+Lo zoom e il numero di celle non c'entrano. Il quarto punto θ migliora un poco 1s e 2s (+0,11 %, +0,05 %).
+
+**Esiti fase 7: 3 PASS, 0 FAIL.**
+
+### 17.1 Debiti e cosa resta
+
+* Debito chiuso: il "3s −14 %" della fase 6 era la scatola troppo stretta, non la regola.
+* Regola pratica: scatola ≥ 90 a₀/Z per gli n = 3 quando si misurano effetti di 10⁻⁶.
+* **Non fatto** (budget): il progetto §16.2 (catena fino a ~30 λ_C + colla del cuspide al livello Taylor-fissato radiale
+  di AGGLOMERATO_COMPLETO). È il prossimo passo per mettere la regola grossa fuori senza perdere lo spostamento.
+* Parametri nuovi: 0.
+
+### 17.2 Come rieseguire
+
+    python lab/nucleo1s_f7_prereg.py; timeout 590 python lab/nucleo1s_f7_run.py   # rilanciare finché "all done"
