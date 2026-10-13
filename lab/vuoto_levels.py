@@ -70,13 +70,31 @@ class RadialWalkV(RadialWalk):
             setattr(self, attr, np.einsum("ab,nbc,cd->nad", U_CHI.conj().T, M, U_CHI))
 
 
-def state(kappa, n, th, Z, rmax, dV=None):
+def smooth_species(g, f, th):
+    """POST-HOC (declared, not graded): physical-species part of the electron state, the same projector as the
+    vacuum (w(|k a|), K1 = 0.6, K2 = 1.05) applied along the radius with the odd extension (DST-II); renormalized."""
+    from scipy.fft import dst, idst
+    from vuoto_core import species_weight
+    w = species_weight()
+    N = len(g)
+    k = PI * (np.arange(N) + 1) / N                     # k a for DST-II modes
+    sq = np.sqrt(w(k))
+    out = []
+    for h in (g, f):
+        out.append(idst(dst(np.real(h), type=2) * sq, type=2) + 1j * idst(dst(np.imag(h), type=2) * sq, type=2))
+    d = np.abs(out[0]) ** 2 + np.abs(out[1]) ** 2
+    return d / d.sum()
+
+
+def state(kappa, n, th, Z, rmax, dV=None, smooth=False):
     Za = Z * ALPHA
     rw = RadialWalk(kappa, th, rmax, Zalpha=Za) if dV is None else RadialWalkV(kappa, th, rmax, Za, dV)
     E0 = dirac_formula(n, kappa, Za)
     om, u, res = rw.eigen(E0, iters=10)
     g, f = rw.gf(u)
-    return om, rw.r, (g**2 + f**2) * th           # weights summing to 1
+    if smooth:
+        return om, rw.r, smooth_species(g, f, th)
+    return om, rw.r, (np.abs(g)**2 + np.abs(f)**2) * th           # weights summing to 1
 
 
 def formfactor(r, wgt, qs):
@@ -112,6 +130,10 @@ def P_2s(lam):
     return lambda r: 0.5 * lam**3 * (1 - lam * r / 2) ** 2 * r * r * np.exp(-lam * r)
 
 
+def P_2p(lam):
+    return lambda r: lam**5 / 24 * r**4 * np.exp(-lam * r)
+
+
 def P_dirac1s(Za):
     gm = np.sqrt(1 - Za * Za)
     lam = Za
@@ -144,7 +166,8 @@ def main():
     out = {}
     ZREF[0] = 1
     lam = ALPHA
-    refs = {"1s": ref_shift(P_1s(lam), 60 / lam), "2s": ref_shift(P_2s(lam), 120 / lam)}
+    refs = {"1s": ref_shift(P_1s(lam), 60 / lam), "2s": ref_shift(P_2s(lam), 120 / lam),
+            "2p1/2": ref_shift(P_2p(lam), 120 / lam)}
     lead = {n: -4 * ALPHA * ALPHA**4 / (15 * PI * n**3) for n in (1, 2)}
     out["H_ref_MHz"] = {k: MHz(v) for k, v in refs.items()}
     out["H_leading_formula_MHz"] = {str(n): MHz(v) for n, v in lead.items()}
@@ -183,6 +206,16 @@ def main():
                "leading_formula_eV": -4 * ALPHA * Za**4 / (15 * PI) * 510998.95}
     R["V4d_PASS"] = bool(abs(ext2 / refNd - 1) <= 0.02)
     print("Nd ref", refNd * 510998.95, "eV; ratio", ext2 / refNd, ext3 / refNd, flush=True)
+    # ---- POST-HOC (not graded): electron density projected on the physical species
+    ph = {}
+    for name, kappa, n, rmax, Z_ in (("H_1s", -1, 1, 40 / ALPHA, 1), ("H_2s", -1, 2, 80 / ALPHA, 1), ("Nd_1s", -1, 1, 40.0, 60)):
+        ph[name] = {}
+        for th in (0.05, 0.025, 0.0125) if Z_ == 60 else (0.05, 0.025):
+            om, r, wgt = state(kappa, n, th, Z_, rmax, smooth=True)
+            v = shift_q(pit, r, wgt, Z_, qmax)
+            ph[name][str(th)] = MHz(v) if Z_ == 1 else v * 510998.95
+        print("posthoc smoothed", name, ph[name], flush=True)
+    R["posthoc_smoothed_density"] = ph
     # ---- V4e nonperturbative: put the smeared lattice V_U into the walk
     qcN = 0.15 / TH_VAC         # AMENDED, as qc
     qg2 = np.unique(np.concatenate([np.exp(np.linspace(np.log(1e-3), np.log(0.5), 300)), np.arange(0.5, qmax, 0.01)]))
@@ -199,9 +232,9 @@ def main():
     om1, _, _ = state(-1, 1, th, Z, 40.0, dV=dV)
     # first-order with the same smeared potential
     exp1 = np.sum(w0 * dV(r))
-    R["V4e"] = {"dE_eigen_eV": (om1 - om0) * 510998.95, "dE_first_order_eV": exp1 * 510998.95,
-                "ratio": (om1 - om0) / exp1}
-    R["V4e_PASS"] = bool(abs((om1 - om0) / exp1 - 1) <= 0.01)
+    exp1 = float(np.real(exp1)); dE = float(np.real(om1 - om0))
+    R["V4e"] = {"dE_eigen_eV": dE * 510998.95, "dE_first_order_eV": exp1 * 510998.95, "ratio": dE / exp1}
+    R["V4e_PASS"] = bool(abs(dE / exp1 - 1) <= 0.01)
     print("V4e", R["V4e"], flush=True)
     R["time_s"] = time.time() - T0
     json.dump(R, open(os.path.join(OUT, "vuoto_levels%s.json" % ("" if TH_VAC == 0.0125 else "_th%g" % TH_VAC)), "w"), indent=1)
