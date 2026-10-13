@@ -91,6 +91,10 @@ Quattro studi erano in corso quando è stato scritto questo file. Se uno risulta
    Fase 2 (13/10): reflux PASS (carica 10⁻¹⁶/passo), parità esatta con la regola T (AGGLOMERATO_COMPLETO §11),
    convergenza nel blocco FAIL (picco al blocco 7; blocchi 9–13: 1s −0,043 ± 0,004 %). Resta: picco del blocco 7,
    partenza dall'autostato dell'ibrido, regola della fase 4 (massa esatta), 2p a a0/16, grafica del Laboratorio.
+   Fase 3 (13/10): il picco del blocco 7 viene dalla cucitura (alone 2 lo sposta di 1–3·10⁻⁴), non dallo stato iniziale;
+   convergenza ancora FAIL, corrente spuria non transitoria (artefatto della cucitura nelle celle coperte, 57× il pavimento);
+   regola fase 4 adottata (asset P4_v1): 2p +0,0338 % come previsto (massa = quella del maestro). Prossimo: cucitura che
+   rispetti la fase, maestro con massa corretta.
 3. **Elio e litio esatti** sulla zig-zag (o sulla regola agglomerata), poi imparare da loro la
    regola effettiva a molti elettroni. Esame: energie di ionizzazione e righe.
 4. Atomi uno a uno, numero atomico per numero atomico. Dopo: legami, H₂, acqua.

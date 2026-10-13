@@ -487,3 +487,140 @@ Celle fini a0/256, reflux, scatola ±8 a0. L'1s contro Dirac × μ (%):
 1. Capire il picco al blocco 7: un alone di 2 celle al posto di 1, e lo stesso con la regola larga w = 2.
 2. Partire dall'autostato dell'ibrido invece che da quello grosso, per togliere il transitorio e la corrente.
 3. Adottare la regola della fase 4 dell'agglomeratore, con massa esatta: deve far sparire il +0,034 % del 2p.
+
+## 12. Fase 3: il picco del blocco 7, l'autostato dell'ibrido, la regola della fase 4 (13/10)
+
+Pre-registrazione: `lab/out/idrogeno_bohr_fase3_prereg.json`, committata **prima** delle corse (commit 79fa535).
+Emendamento 1 (commit ce8660f) committato prima della corsa di controllo: aggiunge la diagnostica della corrente e il
+controllo con la sola regola grosso. Il criterio di convergenza è quello della fase 2, **non allentato**.
+
+Codice nuovo:
+- `IDRO_NH`: lo spessore dell'alone, in celle grosse.
+- `IDRO_FILTRO=K`: un filtro spettrale. Fa K passi dell'ibrido e somma lo stato intero (campo grosso + 4 componenti fini),
+  pesato con una finestra di Hann e "girato all'indietro" con la fase dell'1s. Si riparte da questa somma. Quello che
+  non gira alla frequenza dell'1s si cancella. Manopola: K = 48.
+- `lab/idro_regola_P4.py` → `assets/atomo/agglomerato_zz_P4_v1.json`.
+
+### 12.1 Il picco del blocco 7 (P1, P1b)
+
+Configurazione: errore dell'1s rispetto a Dirac×μ, regola T, celle fini a0/256, reflux, 48 passi, finestra [24,48].
+
+| blocco | fase 2 (alone 1) | P1: alone 2 | P1b: alone 1, partenza filtrata |
+|---|---|---|---|
+| 3 | −0,0675 % | −0,0648 % | −0,0674 % |
+| 5 | −0,0489 % | −0,0403 % | −0,0490 % |
+| 7 | −0,0212 % | **−0,0071 %** | −0,0214 % |
+| 9 | −0,0380 % | −0,0135 % | −0,0371 % |
+
+- **P1b FAIL** su convergenza e picco. Partire dall'autostato dell'ibrido **non cambia nulla**: le energie sono uguali
+  alla fase 2 entro 1·10⁻⁵. Quindi il picco non viene dallo stato di partenza.
+- **P1 FAIL** su convergenza (|E5−E3| = 2,5·10⁻⁴) e picco (E7 − (E5+E9)/2 = 2,0·10⁻⁴; soglie 1·10⁻⁴).
+  Però **l'alone conta**: i blocchi 7 e 9 si spostano di 1,4·10⁻⁴ e 2,5·10⁻⁴.
+- Detto semplice: quanto vale l'energia dipende **da come cuciamo** il blocco fine alla regola grossa (alone e
+  ricostruzione), più che da quanto è grande il blocco. Finché la cucitura conta per 10⁻⁴, il blocco non può
+  "convergere" a 10⁻⁴.
+- Il valore vero dell'1s resta incerto fra −0,01 % e −0,05 %. Tutti i numeri della serie stanno **dentro 0,07 %**.
+- La prova con la regola stretta w = 2, scritta come idea nella §11.5, **non è stata fatta**: era fuori dalla
+  pre-registrazione e il budget era stretto.
+
+### 12.2 L'autostato dell'ibrido e la corrente spuria (P2 + emendamento 1)
+
+Configurazione: blocco 7, alone 1, partenza filtrata.
+
+| esame | risultato | soglia | esito |
+|---|---|---|---|
+| E1 | −0,0214 % | 0,10 % | PASS |
+| stabilità della lettura (finestre [8,48]…[32,48]) | 5·10⁻⁷ | 1·10⁻⁵ | PASS |
+| stazionarietà grosso / fine | 3,0·10⁻⁴ / 5,3·10⁻⁴ (fase 2 ~1·10⁻³) | 1·10⁻⁴ | FAIL |
+| corrente spuria max\|j\| | 1,64·10⁻³ α c/a0³ | 1·10⁻⁶ | FAIL |
+
+**Cosa si capisce.**
+- Il filtro sposta lo stato di appena 1,7·10⁻⁹ in probabilità. L'ibrido partiva già praticamente dal suo autostato.
+- La corrente **non è un transitorio**, come invece avevo ipotizzato in fase 2: correzione dichiarata.
+- La diagnostica dell'emendamento 1 mostra dove sta la corrente, per zone:
+
+  | zona | P2 | fase 2 |
+  |---|---|---|
+  | celle grosse coperte dal blocco | 1,66·10⁻³ | 1,72·10⁻³ |
+  | appena fuori dal blocco | 2,7·10⁻⁴ | 3,3·10⁻⁴ |
+  | oltre 0,5 a0 | 1,3·10⁻⁴ | 2,3·10⁻⁴ |
+
+- Nelle celle coperte il campo grosso è solo la media del campo fine. La sua "corrente", letta con la regola grossa,
+  non è un flusso vero: è il segno della **cucitura**, la stessa che sposta l'energia nella §12.1.
+- Era radiale, verso il nucleo, e in uno stato stazionario non può esserci un flusso netto: con la carica conservata
+  a 10⁻¹⁵ per passo, non scorre niente davvero.
+
+**Controllo con la sola regola grossa** (emendamento 1, nessun blocco, 48 passi):
+
+| misura | sola regola grossa | ibrido |
+|---|---|---|
+| corrente | 2,9·10⁻⁵ | 1,64·10⁻³ |
+| stazionarietà | 2,2·10⁻⁵ | 3,0·10⁻⁴ |
+
+- La corrente della sola regola grossa è il **pavimento** della misura, che viene dal residuo del solutore.
+- Quindi la soglia 1·10⁻⁶ della fase 2 era sotto il pavimento di circa 30 volte: va dichiarato.
+- L'ibrido però sta **57 volte sopra** il pavimento, quindi il FAIL è vero e resta.
+
+### 12.3 La regola della fase 4 dell'agglomeratore (P3)
+
+**Costruzione.** `assets/atomo/agglomerato_zz_P4_v1.json` (nuovo, versionato) rifà il metodo di
+AGGLOMERATO_COMPLETO §12:
+- c2, c4 e c6 fissati al livello sotto, parità esatta;
+- B = 512 imparato dal B = 256;
+- passa il controllo kcheck, con w = 4 a entrambi i livelli.
+
+Massa assoluta: 1,000373 = 1 + θ²/3 del cammino fine.
+
+**Previsione scritta prima delle corse.** La "massa esatta" della fase 4 è esatta rispetto al **maestro** (il cammino
+fine), non rispetto a Dirac. Quindi il +0,034 % del 2p **non sparisce**.
+- Esce **+0,0338 %**: previsione giusta.
+- Correggo la §11.5 punto 3, che diceva il contrario.
+
+**Regola.**
+
+| controllo | B = 256 | B = 512 |
+|---|---|---|
+| c6 (vincolo) / Dirac | 1,00018 | 0,706 |
+| banda / cammino a k = 0,785 per cella sull'asse | +1,3·10⁻³ | +1,5·10⁻³ |
+
+L'errore di banda della regola T al primo livello era −3,8·10⁻³.
+
+**Spettro a a0/8** (`spettro 512 288`):
+
+| esame | regola P4 | regola T | soglia | esito |
+|---|---|---|---|---|
+| parità 1−\|P\| | ≤ 5·10⁻⁷ (stampa a 6 cifre) | | ≤ 1·10⁻⁶ | PASS |
+| allargamento del tripletto 2p | 8,5·10⁻⁸ | | ≤ 1·10⁻⁶ | PASS |
+| 2p | +0,0338 % | | +0,029…+0,039 % | PASS |
+| 2s | −0,1615 % | −0,163 % | | |
+| 1s(a0/8) | −0,383 % | −0,385 % | | |
+| Lyman-α dagli autovalori | 10,1457 eV (−0,52 %) | | | |
+
+**Ibrido** al blocco 7 con la regola P4 e la partenza filtrata:
+- E1 **−0,0276 %**: PASS entro 0,10 %, contro −0,0214 % con la regola T;
+- corrente 1,62·10⁻³ e stazionarietà 2,7·10⁻⁴: FAIL, come P2.
+
+La regola della fase 4 è un po' migliore ad alto k, ma **non cambia** gli stati legati oltre 0,01 %.
+
+### 12.4 Conto della fase 3
+
+**Esami.**
+- **FAIL:** P1 (convergenza e picco), P1b (convergenza e picco), P2 su stazionarietà e corrente.
+- **PASS:** P2 su energia e lettura, P3 su costruzione, parità, tripletto, 2p (previsione giusta) e ibrido.
+
+**Manopole.** Una nuova: K = 48 del filtro, scelta prima. 0 manopole fittate.
+
+**Debiti aperti.**
+- **La cucitura.** Pesa ~1–3·10⁻⁴ sull'energia e dà la corrente nelle celle coperte. È il prossimo cantiere vero:
+  serve una restrizione/prolungamento che rispetti anche la **fase** (la corrente), non solo la carica come fa il reflux.
+- **La massa del maestro.** Il +0,037 % viene dal cammino fine a a0/4096, θ²/3. Si toglie solo con un cammino più fine
+  o con la massa corretta nel maestro, non con la regola grossa.
+
+**Come rifarlo.**
+```
+IDRO_ASSET=assets/atomo/agglomerato_zz_T_v1.json IDRO_REFLUX=1 IDRO_ORD=9 IDRO_B=16 IDRO_NH=2 target/release/idrogeno esame_ibrido 256 256 7 48
+IDRO_ASSET=... IDRO_REFLUX=1 IDRO_ORD=9 IDRO_B=16 IDRO_FILTRO=48 target/release/idrogeno esame_ibrido 256 256 7 48 <dir>
+python3 lab/idro_regola_P4.py; IDRO_ASSET=assets/atomo/agglomerato_zz_P4_v1.json target/release/idrogeno spettro 512 288 0 <dir>
+```
+
+**Video.** Nessun nuovo dato: i fotogrammi della fase 2 restano validi, perché l'ibrido filtrato è uguale entro 10⁻⁵.
