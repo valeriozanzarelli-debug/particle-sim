@@ -182,11 +182,15 @@ pub struct Esperimento {
 }
 
 impl Esperimento {
-    /// Prepare: the start atom, then its 1s listened for `ascolto` ticks (≈ 10 s), the light box empty.
+    /// Prepare: the start atom, then its clean 1s found by filter diagonalisation over 2 × `ascolto` ticks
+    /// (docs/BATTIMENTO_1S.md), the 2p½ listened, the light box empty.
     pub fn new(ascolto: usize) -> Self {
         let mut at = crate::zz::Atomo::new();
-        // the 1s of the 3-D rule: the strongest level of the start state around Dirac's 1s
-        let (phi, om) = at.ascolta(0.885, 0.915, ascolto);
+        // the 1s of the 3-D rule: one EXACT level of the 1s multiplet (the 4 valleys of the cubic walk mixed by the
+        // nucleus), the one least touched by the first cells. Before (ascolta 0.885–0.915, short window, every
+        // tick) the "1s" was a mixture of three levels and p_exc beat with period ~476 even without light.
+        let (s1, _) = at.uno_s_esatto(2 * ascolto);
+        let (phi, om) = (s1.v, s1.omega);
         // the 2p½: the radial 2p½ put on the lattice is already (almost) one level; listened briefly
         let a2 = crate::zz::Atomo::con_stato(1, 2);
         let (phi2, om2) = a2.ascolta(0.96, 0.99, ascolto / 3);

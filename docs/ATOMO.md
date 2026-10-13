@@ -208,9 +208,11 @@ prove usano formule con lo stesso K.
 reticolo cubico contiene tre livelli, a ω = 0,901 (60 %), 0,8405 (26 %) e 0,882 (13 %) mc²/ħ; il primo è l'1s
 (legame 0,099 mc², Dirac 0,101), gli altri due sono livelli del reticolo che il continuo non ha (debito). Il 2p½
 radiale è già un solo livello: ω = 0,9755. Differenza 1s → 2p della regola 3-D: ω₂₁ ≈ 0,0744–0,0758 mc²/ħ
-(Dirac 0,0754; la forma radiale dava 0,1146). L'1s ascoltato non è perfettamente fermo: anche senza luce la
-sua popolazione oscilla (si mescola con il livello vicino a 0,882): le popolazioni sul cruscotto sono proiezioni
-"sporche" (debito).
+(Dirac 0,0754; la forma radiale dava 0,1146). **Aggiornamento (14 ottobre 2026, `docs/BATTIMENTO_1S.md`)**: l'1s ascoltato non era un livello: anche senza
+luce p_exc arrivava a 0,89. Causa: il cammino 3-D a due tick ha **4 valli** equivalenti (k = 0 e (π/2, π/2, 0) con
+le permutazioni) e il nucleo sullo spigolo di 8 celle le mescola, così l'1s è un **multipletto di 4 livelli esatti**
+(0,8404, 0,8863, 0,8993, 0,8996, ognuno 25 % per valle). Ora `Esperimento::new` prende **un livello esatto**
+(diagonalizzazione del filtro, 0,89960; esame pre-registrato B1–B4 PASS): fermo a 10⁻¹⁶ senza luce.
 
 **Pre-registrazione** (scritta prima della corsa di produzione; test `accoppiato_e1_e2`, lungo, `--ignored`).
 Corse di sviluppo già viste (dichiarate): con ascolto corto (600 tick) e impulso e·E = 0,004 a ω₂₁, la luce
@@ -287,10 +289,12 @@ Lettore e figura di controllo: `python3 lab/atomo_export_leggi.py <dir> --figura
 `lab/out/atomo_export_controllo.png`.
 
 Che cosa si vede (corsa del 13 ottobre 2026): il campo dell'impulso sta sull'atomo per t ≈ 0–150 λ_C/c, p_exc sale
-da 0 a **0,88 a t ≈ 256**, poi oscilla tra ~0,2 e ~0,88 con periodo ~470 λ_C/c. Attenzione: **non è uno scambio di energia con la luce**
-(dopo t ≈ 450 l'energia della luce nella scatola è < 10⁻³ di quella dell'impulso, troppo poca): è un battimento
-dentro l'atomo, quasi certamente perché l'1s ascoltato non è un livello pulito (si mescola con il livello del
-reticolo a 0,882, §3.5) e p_exc = 1 − |⟨1s|ψ⟩|² misura anche quel miscuglio. Da verificare: è un'imprecisione aperta. Dopo t ≈ 450 l'impulso è uscito dalla scatola (energia nella
+da 0 a **0,88 a t ≈ 256**, poi oscilla tra ~0,2 e ~0,88 con periodo ~470 λ_C/c. Attenzione: **non è uno scambio di energia con la luce**.
+**Risolto (`docs/BATTIMENTO_1S.md`)**: lo stesso "1s" senza nessuna luce fa la stessa curva (massimo 0,889;
+differenza con la corsa accoppiata ≤ 0,080). È il battimento fra i livelli esatti 0,8994 e 0,8862 del multipletto
+1s del reticolo cubico (0,0132 → periodo 476); l'eccitazione vera era solo ~5 % (2p3/2). Con l'1s esatto (ora il
+default di `Esperimento::new`) p_exc dopo l'impulso sta fra 0,097 e 0,064 e scende piano (luce rimandata). **I dati
+esportati il 13 ottobre sono del vecchio 1s: vanno rigenerati.** Dopo t ≈ 450 l'impulso è uscito dalla scatola (energia nella
 scatola < 10⁻³ di quella iniziale) e resta solo la luce del dipolo dell'atomo: anelli a sin²θ intorno a z, ampiezza
 ~10⁻⁵ mc²/λ_C. Due avvertenze per chi disegna: (1) p(2p½, m = ½) resta < 0,01: l'eccitazione va quasi tutta nel
 2p3/2 (vedi la diagnosi di E1v2 sopra), quindi "p_exc" è la popolazione da usare; (2) ρ di una singola fetta di

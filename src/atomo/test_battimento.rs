@@ -46,6 +46,16 @@ fn libera(start: &Atomo, refs: &[&[[C; 4]]], ticks: usize) -> Vec<Vec<f64>> {
     out
 }
 
+
+/// The Laboratorio's 1s as it was before the cure (zz::Atomo::ascolta(0.885, 0.915, asc), every tick): the
+/// diagnosis is about this one.
+fn vecchio_1s(x: &mut crate::accoppiato::Esperimento, asc: usize) {
+    let (phi, om) = Atomo::new().ascolta(0.885, 0.915, asc);
+    x.phi1s = phi.clone();
+    x.omega1s = om;
+    x.at.imposta(phi);
+}
+
 /// Phase 1: the Laboratorio's preparation (Esperimento::new(ASCOLTO), default 600) and the free evolution of
 /// (a) the radial 1s put on the lattice (the start state of the listening) and (b) the listened 1s, no light.
 #[test]
@@ -54,7 +64,8 @@ fn battimento_libero() {
     let t0 = std::time::Instant::now();
     let asc = env_usize("ASCOLTO", 600);
     let ticks = env_usize("TICKS", 6000);
-    let x = crate::accoppiato::Esperimento::new(asc);
+    let mut x = crate::accoppiato::Esperimento::new(asc);
+    vecchio_1s(&mut x, asc);
     eprintln!("ascolto {asc}: ω1s {:.5}, ω2p½ {:.5}, ω21 {:.5} ({:?})", x.omega1s, x.omega2p, x.omega_21(), t0.elapsed());
     let rad = Atomo::new();
     let r = libera(&rad, &[&rad.psi, &x.phi1s], ticks);
@@ -82,6 +93,7 @@ fn battimento_accoppiato() {
     let t_dopo = env_usize("T_DOPO", 500) as f64;
     let ticks_dopo = env_usize("TICKS_DOPO", 8000);
     let mut x = Esperimento::new(asc);
+    vecchio_1s(&mut x, asc);
     let w21 = x.omega_21();
     let e00 = x.luce.energia();
     x.spara(w21, crate::zzscena::E0_ACC);
@@ -107,142 +119,10 @@ fn battimento_accoppiato() {
     eprintln!("done ({:?})", t0.elapsed());
 }
 
-/// Jacobi eigen-decomposition of a real symmetric matrix (row-major n×n): (eigenvalues, eigenvectors as columns).
-pub fn jacobi(mut a: Vec<f64>, n: usize) -> (Vec<f64>, Vec<f64>) {
-    let mut v = vec![0.0; n * n];
-    for i in 0..n { v[i * n + i] = 1.0; }
-    for _sweep in 0..100 {
-        let off: f64 = (0..n).flat_map(|i| (0..n).filter(move |&j| j != i).map(move |j| (i, j))).map(|(i, j)| a[i * n + j].powi(2)).sum();
-        if off < 1e-30 { break; }
-        for p in 0..n { for q in p + 1..n {
-            let apq = a[p * n + q];
-            if apq.abs() < 1e-300 { continue; }
-            let th = (a[q * n + q] - a[p * n + p]) / (2.0 * apq);
-            let t = th.signum() / (th.abs() + (th * th + 1.0).sqrt());
-            let t = if th == 0.0 { 1.0 } else { t };
-            let c = 1.0 / (t * t + 1.0).sqrt();
-            let s = t * c;
-            for k in 0..n {
-                let (akp, akq) = (a[k * n + p], a[k * n + q]);
-                a[k * n + p] = c * akp - s * akq;
-                a[k * n + q] = s * akp + c * akq;
-            }
-            for k in 0..n {
-                let (apk, aqk) = (a[p * n + k], a[q * n + k]);
-                a[p * n + k] = c * apk - s * aqk;
-                a[q * n + k] = s * apk + c * aqk;
-            }
-            for k in 0..n {
-                let (vkp, vkq) = (v[k * n + p], v[k * n + q]);
-                v[k * n + p] = c * vkp - s * vkq;
-                v[k * n + q] = s * vkp + c * vkq;
-            }
-        }}
-    }
-    ((0..n).map(|i| a[i * n + i]).collect(), v)
-}
-
-/// One period of the rule (two ticks: the axis order alternates), from an even tick.
-fn u2(psi: &[[C; 4]], base: &Atomo) -> Vec<[C; 4]> {
-    let mut a = base.clone();
-    a.impulsi.clear();
-    a.campo_est = [0.0; 3];
-    a.psi = psi.to_vec();
-    a.ticks = 0;
-    a.avanti();
-    a.avanti();
-    a.psi
-}
-
+pub use crate::zz::Livello3D;
 fn norma(v: &[[C; 4]]) -> f64 { sovrapp(v, v).re.sqrt() }
-
-/// A level found by `ritz`: frequency, residual ‖U₂v − e^{−iω}v‖ (0 for an exact level of the rule), the wave.
-pub struct Livello3D { pub omega: f64, pub resid: f64, pub v: Vec<[C; 4]> }
-
-/// FILTER DIAGONALISATION of the 3-D rule (the "listening" done properly): the start state is evolved without
-/// light for `ticks` ticks; on EVEN ticks only (the rule repeats every two ticks, its axis order alternates)
-/// Σ h(t) e^{iωt} ψ(t) is kept at frequencies lo, lo+dw, …, hi (Hann window h). These filtered waves span the
-/// levels near [lo, hi]; the two-tick rule U₂ restricted to them is diagonalised (Rayleigh–Ritz). Each Ritz
-/// vector comes with its residual: the levels are separated by their exact frequencies, not by the window width.
-pub fn ritz(start: &Atomo, lo: f64, hi: f64, dw: f64, ticks: usize) -> Vec<Livello3D> {
-    use rayon::prelude::*;
-    let mut a = start.clone();
-    a.impulsi.clear();
-    a.campo_est = [0.0; 3];
-    a.ticks = 0;
-    let nc = ((hi - lo) / dw).round() as usize + 1;
-    let cand: Vec<f64> = (0..nc).map(|k| lo + dw * k as f64).collect();
-    let len = a.psi.len();
-    let mut acc: Vec<Vec<[C; 4]>> = vec![vec![[C::ZERO; 4]; len]; nc];
-    let ticks = ticks + ticks % 2;
-    for t in 0..ticks {
-        if t % 2 == 0 {
-            let w = (std::f64::consts::PI * (t as f64 + 1.0) / (ticks as f64 + 2.0)).sin().powi(2);
-            let time = a.t();
-            let fasi: Vec<C> = cand.iter().map(|om| C::expi(om * time).scale(w)).collect();
-            let p = &a.psi;
-            acc.par_iter_mut().zip(fasi.par_iter()).for_each(|(v, ph)| for (s, x) in v.iter_mut().zip(p.iter()) { for q in 0..4 { s[q] += x[q] * *ph; } });
-        }
-        a.avanti();
-    }
-    // orthonormal basis (modified Gram–Schmidt, dropping dependent directions)
-    let mut qs: Vec<Vec<[C; 4]>> = vec![];
-    let n0 = acc.iter().map(|v| norma(v)).fold(0.0, f64::max);
-    for mut v in acc {
-        for _ in 0..2 { for q in &qs {
-            let c = sovrapp(q, &v);
-            v.par_iter_mut().zip(q.par_iter()).for_each(|(x, y)| for k in 0..4 { x[k] -= c * y[k]; });
-        }}
-        let nv = norma(&v);
-        if nv < 1e-7 * n0 { continue; }
-        v.par_iter_mut().for_each(|x| for c in x.iter_mut() { *c = c.scale(1.0 / nv); });
-        qs.push(v);
-    }
-    let m = qs.len();
-    let uq: Vec<Vec<[C; 4]>> = qs.iter().map(|q| u2(q, start)).collect();
-    let mut mm = vec![C::ZERO; m * m];
-    for i in 0..m { for j in 0..m { mm[i * m + j] = sovrapp(&qs[i], &uq[j]); } }
-    // M is (nearly) unitary hence normal: the joint eigenvectors of its Hermitian parts (M+M†)/2 and (M−M†)/2i
-    // are its eigenvectors; diagonalise H = Re-part + γ Im-part (γ breaks the cos/sin degeneracies) as a real
-    // symmetric 2m×2m matrix [[Re, −Im], [Im, Re]].
-    let g = 0.37;
-    let h = |i: usize, j: usize| -> C {
-        let (a, b) = (mm[i * m + j], mm[j * m + i].conj());
-        let herm = (a + b).scale(0.5);
-        let anti = (a - b) * C::new(0.0, -0.5);
-        herm + anti.scale(g)
-    };
-    let n2 = 2 * m;
-    let mut r = vec![0.0; n2 * n2];
-    for i in 0..m { for j in 0..m {
-        let z = h(i, j);
-        r[i * n2 + j] = z.re; r[(i + m) * n2 + j + m] = z.re;
-        r[i * n2 + j + m] = -z.im; r[(i + m) * n2 + j] = z.im;
-    }}
-    let (_, vecs) = jacobi(r, n2);
-    let mut out: Vec<Livello3D> = vec![];
-    for k in 0..n2 {
-        let c: Vec<C> = (0..m).map(|i| C::new(vecs[i * n2 + k], vecs[(i + m) * n2 + k])).collect();
-        let nn: f64 = c.iter().map(|z| z.norm2()).sum::<f64>().sqrt();
-        if nn < 1e-9 { continue; }
-        let mut v = vec![[C::ZERO; 4]; len];
-        for (ci, q) in c.iter().zip(qs.iter()) {
-            let ci = ci.scale(1.0 / nn);
-            v.par_iter_mut().zip(q.par_iter()).for_each(|(x, y)| for kk in 0..4 { x[kk] += ci * y[kk]; });
-        }
-        let nv = norma(&v);
-        v.par_iter_mut().for_each(|x| for c in x.iter_mut() { *c = c.scale(1.0 / nv); });
-        // the real doubling gives each eigenvector twice (c and i·c): keep one
-        if out.iter().any(|o| sovrapp(&o.v, &v).norm2() > 0.5) { continue; }
-        let uv = u2(&v, start);
-        let lam = sovrapp(&v, &uv);
-        let omega = -lam.arg();
-        let res: f64 = uv.par_iter().zip(v.par_iter()).map(|(x, y)| (0..4).map(|q| (x[q] - lam * y[q]).norm2()).sum::<f64>()).sum::<f64>().sqrt();
-        out.push(Livello3D { omega, resid: res, v });
-    }
-    out.sort_by(|a, b| a.resid.total_cmp(&b.resid));
-    out
-}
+/// Filter diagonalisation of the 3-D rule: now `Atomo::livelli_esatti` in zz.rs (moved there after the exam).
+pub fn ritz(start: &Atomo, lo: f64, hi: f64, dw: f64, ticks: usize) -> Vec<Livello3D> { start.livelli_esatti(lo, hi, dw, ticks) }
 
 /// Sublattice of a site: the walk moves every coordinate by ±1 per tick, so (i − j) mod 2 and (j − k) mod 2 never
 /// change: the cube splits into 4 sublattices that the rule never connects (the 3-D "doubling").
@@ -285,7 +165,8 @@ fn battimento_ritz() {
     let rad = Atomo::new();
     let lv = ritz(&rad, 0.82, 0.94, 0.005, ticks);
     eprintln!("ritz on the radial start, {ticks} ticks: {} vectors ({:?})", lv.len(), t0.elapsed());
-    let x = crate::accoppiato::Esperimento::new(600);
+    let mut x = crate::accoppiato::Esperimento::new(600);
+    vecchio_1s(&mut x, 600);
     let s1 = lv.iter().filter(|l| l.resid < 0.05).min_by(|a, b| (a.omega - 0.9).abs().total_cmp(&(b.omega - 0.9).abs())).unwrap();
     let mut righe = vec![];
     for l in lv.iter().filter(|l| l.resid < 0.2) {
@@ -340,7 +221,8 @@ fn forma(v: &[[C; 4]]) -> (f64, f64, f64) {
 fn battimento_carattere() {
     let t0 = std::time::Instant::now();
     let rad = Atomo::new();
-    let x = crate::accoppiato::Esperimento::new(600);
+    let mut x = crate::accoppiato::Esperimento::new(600);
+    vecchio_1s(&mut x, 600);
     let mut lab = Atomo::new();
     lab.imposta(x.phi1s.clone());
     let dopo = carica_psi("psi_dopo_a600.bin");
@@ -459,14 +341,7 @@ fn battimento_salva_livelli() {
 /// The pre-registered choice (lab/out/battimento_prereg.json): among the exact levels near the 1s (residual
 /// < 1e-6, weight > 1 % in the radial start), the one with the least weight inside r < 1 λ_C (least touched
 /// by the first cells around the nucleus). Returns (chosen, all of them sorted by ω).
-pub fn scegli_1s(rad: &Atomo) -> (Livello3D, Vec<Livello3D>) {
-    let lv = ritz(rad, 0.82, 0.94, 0.005, 1200);
-    let mut sel: Vec<Livello3D> = lv.into_iter().filter(|l| l.resid < 1e-6 && sovrapp(&l.v, &rad.psi).norm2() > 0.01).collect();
-    sel.sort_by(|a, b| a.omega.total_cmp(&b.omega));
-    let k = (0..sel.len()).min_by(|&i, &j| forma(&sel[i].v).1.total_cmp(&forma(&sel[j].v).1)).unwrap();
-    let s = sel.remove(k);
-    (s, sel)
-}
+pub fn scegli_1s(rad: &Atomo) -> (Livello3D, Vec<Livello3D>) { rad.uno_s_esatto(1200) }
 
 /// PRE-REGISTERED EXAM B1–B4 (lab/out/battimento_prereg.json, committed before this was run).
 #[test]
