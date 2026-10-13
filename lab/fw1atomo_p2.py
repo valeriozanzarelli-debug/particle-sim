@@ -114,7 +114,7 @@ def beat_stats(c, T=2 * A):
     win = [(float(t0), float(pex[(t >= t0) & (t < t0 + 200)].max() - pex[(t >= t0) & (t < t0 + 200)].min()))
            for t0 in range(0, 1600, 200)]
     return {"max_p_exc": float(pex.max()), "range_450_1600": float(pex[m].max() - pex[m].min()), "range_per_200": win,
-            "lines": sorted(fc.lines(c, T), key=lambda x: -x[1])[:6], "p_exc_every_25": pex[::25].tolist()}
+            "lines": sorted(fc.lines(c, T), key=lambda x: -x[1])[:6], "p_exc_every_25": pex[::25].tolist(), "p_exc_every_5": pex[::5].tolist()}
 
 
 def summary():

@@ -69,8 +69,8 @@ b.set_title("(b) le due righe = spin spaccato dalla T rotta: dipendenza da theta
 # (c) survival
 c_ = ax[1, 0]
 for rule, col in (("F0", "k"), ("FW1", "tab:blue")):
-    p = np.array(P2[rule]["surv"]["p_exc_every_25"])
-    t = np.arange(len(p)) * 25 * 1.0
+    p = np.array(P2[rule]["surv"]["p_exc_every_5"])
+    t = np.arange(len(p)) * 5 * 1.0
     c_.plot(t, p, color=col, lw=1, label="congelata" if rule == "F0" else "FW1")
 c_.set_xlabel("t  [lambda_C / c]")
 c_.set_ylabel("p_exc = 1 - |<1s radiale|psi(t)>|^2")
@@ -100,8 +100,15 @@ for aa, e in P3["per_a"].items():
 d.plot(xs, np.array(ys) * 100, "s", mfc="none", color="gray", label="congelata: tutti i livelli del multipletto")
 xs = [float(aa)**(2 * gam) for aa in P3["per_a"]]
 d.plot(xs, [(e["radial_B"] / BD - 1) * 100 for e in P3["per_a"].values()], "k+", ms=10, label="regola radiale (stesso a)")
+X2 = os.path.join(OUT, "fw1atomo_x2.json")
+if os.path.exists(X2):
+    x2 = json.load(open(X2))
+    for key, mk, lab in (("b20", "D", "FW1, scatola ~20 (x2)"), ("b24", "P", "FW1, scatola 24 (x2)")):
+        pts = [(float(k.split("b")[0]), v["err"]) for k, v in x2.items() if (("b" not in k and key == "b20") or k.endswith(key))]
+        if pts:
+            d.plot([p[0]**(2 * gam) for p in pts], [100 * p[1] for p in pts], mk, mfc="none", ms=8, label=lab)
 if "extrap_FW1_a2gamma" in P3:
-    d.plot([0], [P3["extrap_FW1_a2gamma"]["rel"] * 100], "r*", ms=12, label="FW1 estrapolato (a^2gamma)")
+    d.plot([0], [P3["extrap_FW1_a2gamma"]["rel"] * 100], "r*", ms=12, label="FW1 estrapolato (a^2gamma, scatola 16)")
 d.axhline(0, color="k", lw=0.6)
 d.set_xlabel("a^(2 gamma)   (gamma = 0,899)")
 d.set_ylabel("errore sul legame dell'1s  [%]")
