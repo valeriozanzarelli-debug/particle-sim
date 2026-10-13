@@ -43,6 +43,11 @@ File: motore `lab/locale_core.py`, candidati `lab/locale_cands.py`, pre-registra
    leggerissimo sorpasso di c (1,001 c) anche per onde risolte. Per questo l'esame pre-registrato M3 è **FAIL**.
 5. Il reticolo **esagonale** in 2-D (luce lungo 3 direzioni a 60°) dà 21,7 celle/λ (costo ×0,41) **senza** nessun
    sorpasso di c: è la cura "pulita" per il 2-D, solo positiva. In 3-D nessun reticolo (fcc, bcc, misto) aiuta.
+6. **Fase 2 (§11): S4 come regola? No.** Esami pre-registrati: idrogeno 100–400× più preciso a θ = 0,1, ma gli stati
+   s non scendono come θ⁴ (P3 FAIL); Schwinger sbaglia del 6–14 % a θ = 0,1 perché il periodo è lungo (P4 FAIL, va
+   bene da θ = 0,05); la luce di sorgenti piccole "esce dal cono" 3–20 volte più della congelata, fino a 1,57 c (P6
+   FAIL). Nessun paradosso: il tick è un "adesso" globale, niente anelli causali. Anche la congelata ha un precursore
+   (√2 in diagonale). S4 resta ottimo per la luce libera ben risolta (≥ 13 celle/λ, sorgenti ≥ 24 celle).
 
 Tabellone: r1 **66 PASS / 1 FAIL**, r2 **33 PASS / 16 FAIL**, r3 **20 PASS / 12 FAIL**, emendamento 6/0.
 Molti FAIL sono **previsti nella pre-registrazione** (la regola congelata che fallisce gli esami dei doppioni); quelli
@@ -382,3 +387,188 @@ Letteratura citata (da verificare sulle fonti prima di usarla altrove): Nielsen�
 PRA 90, 062106 (2014) (la regola a un tick è il loro automa di Weyl su bcc: cos ω = c_x c_y c_z + s_x s_y s_z);
 Sheng (1989), Suzuki (1991) per l'ordine dei metodi a passi; Yoshida (1990); Frezzotti–Rossi (twisted mass, 2004);
 Dubail–Read (2015) per i proiettori a raggio finito.
+
+---
+
+## 11. Fase 2: "se è meglio, usiamo" — S4 messo alla prova
+
+Valerio ha detto che per lui il passo all'indietro di S4 va bene e conta come regola. Allora la domanda non è più
+"è lecito?" ma **"è davvero meglio, dappertutto?"**: idrogeno, creazione di coppie (Schwinger), ripiegamento di
+Floquet, e cosa fa la luce che "arriva prima" (il cono del reticolo a 1,67 c).
+
+File: strumenti `lab/locale_s4_core.py` (Dirac 1-D con campo, idrogeno radiale composto con la sequenza),
+pre-registrazione `lab/locale_s4_prereg.py` → `lab/out/locale_s4_prereg.json` (commit **5b421b1**, prima delle
+corse; la pre-registrazione della fase 1 non è stata toccata), corsa `lab/locale_s4_run.py` →
+`lab/out/locale_s4_run.json` (171 s), diagnosi **dopo** la corsa (non pre-registrate, non cambiano nessun verdetto)
+`lab/locale_s4_diag.py` → `lab/out/locale_s4_diag.json`, figura `lab/locale_s4_figure.py` →
+`lab/out/locale_s4_figure.png`.
+
+![S4 fase 2](../lab/out/locale_s4_figure.png)
+
+### 11.1 Verdetto in una riga
+
+**Non adottare S4 come regola unica.** Secondo la regola pre-registrata ("NON ADOTTARE se P3 o P4 falliscono")
+il verdetto è no: P3 fallisce (gli stati s dell'idrogeno non scendono come θ⁴), P4 fallisce (Schwinger a θ = 0,1
+sbaglia del 6–14 %), e anche P6 fallisce (la luce di sorgenti piccole "esce dal cono" più della congelata).
+S4 resta **molto meglio** per la luce libera ben risolta e per i livelli stazionari (100–400 volte più preciso
+sull'idrogeno a θ = 0,1), ma ha tre punti deboli veri che la congelata non ha. Dettagli e numeri sotto.
+
+### 11.2 Tabellone della fase 2 (contro `locale_s4_prereg.json`)
+
+| esame | cosa | numeri | esito |
+|---|---|---|---|
+| P1 celle | N₁% S4 / congelata | 14,4/36,3 (2-D), 14,6/36,3 (3-D) = 0,40 ≤ 0,6 | **PASS** (fase 1, ridetto) |
+| P2 massa | massa cinetica S4 a θ = 0,1 | −1,8·10⁻⁵ ≤ 10⁻⁴ | **PASS** (fase 1, ridetto) |
+| P3a idrogeno ≥ 10× meglio a θ = 0,1 | errore relativo sul legame | 1s 3,1·10⁻⁵ contro 3,1·10⁻³ (98×), 2s 7,9·10⁻⁶ contro 3,2·10⁻³ (406×), 2p 6,5·10⁻⁶ contro 1,1·10⁻³ (170×) | PASS |
+| P3b ordine θ 0,1 → 0,05 ≥ 8 | rapporto degli errori | 2p½ 15,5, 2p³⁄₂ 15,4; **1s 7,2, 2s 2,2** | **FAIL** |
+| P3c struttura fine a θ = 0,1 | 2p³⁄₂ − 2p½ | errore relativo 9,0·10⁻⁵ ≤ 10⁻⁴ | PASS (di poco) |
+| P3d residuo | autovettore | ≤ 5·10⁻¹⁰ | PASS |
+| **P3** | | | **FAIL** (per P3b) |
+| P4 Schwinger, θ = 0,1 | P/P_Schwinger − 1 per E/E_c = 1, 2, 4 | S4: **−13,6 %, −7,7 %, −6,0 %**; congelata: −1,8 %, −0,4 %, −5,8 % | **FAIL** |
+| P5a ripiegamento luce | incroci evitati con gap > 10⁻⁶ per N ≥ 13 | 0 in 2-D (15 direzioni) e 3-D (40); il primo è a N = 12,06 con gap fino a 0,20 rad; gli incroci a N = 24 sono protetti (gap ≤ 2,6·10⁻¹³) | **PASS** |
+| P5b ripiegamento Dirac 1-D | finestra e gap | S4: si ripiega a E = 5,23 m (k = 0,514), gap 0,096 rad per periodo; congelata: a E = 31,4 m (k = π), gap 0,2 | riportato |
+| P6 causalità | sorgente liscia R ≥ 6: fuori cono ≤ 10⁻⁶ e v(10⁻⁶) ≤ 1,01; disco netto S4 ≤ 10× congelata | fuori cono R = 6: 4,2·10⁻³, R = 12: 1,8·10⁻⁵, R = 24: 1,3·10⁻⁷; v(10⁻⁶) diagonale 1,16 / 1,10 / 1,03; disco 5,7·10⁻³ contro 1,5·10⁻³ (3,8×) | **FAIL** (passa solo il disco) |
+| P7 varianti | cono ≥ (c²+1)/(c²−1); seq_c(4) | limite verificato su tutte le sequenze (|m| ≤ 2, 3 fino a 13 passi; |m| ≤ 4 fino a 11); seq_c(4): N₁% 41,2, ripiegamento a N = 120 | riportato: **variante morta** |
+
+Totale: PASS 7 sotto-esami (P1, P2, P3a, P3c, P3d, P5a, disco di P6), FAIL 3 esami (P3, P4, P6).
+
+**Deviazioni dichiarate rispetto alla pre-registrazione** (nessuna soglia cambiata):
+
+- P6: per S4 il periodo dura 12 tick, quindi i tempi t = 30 e 90 non esistono (si vede lo stato solo ogni 12); ci sono
+  solo t = 60 e 120. Il tempo d'arrivo al ricevitore è interpolato in log tra due periodi (risoluzione 12 per S4, 2 per
+  la congelata). Come controllo c'è anche il "raggio del fronte" a t = 120, che non ha interpolazione (stessa storia).
+- P5b: la fase 2 di sviluppo parlava di "gap 0,048"; quello era il mezzo-gap. Il numero misurato qui è la distanza
+  intera tra le due fasi (0,096 = 2 × 0,048).
+- P4 era scritto male per E/E_c = 4: con una spazzata finita (k da −0,4 a +0,4) anche la **fisica continua** dà
+  −3,3 % rispetto alla formula, e la congelata sbaglia −5,8 % rispetto alla formula ma −0,15 % rispetto al continuo con la
+  stessa spazzata. Il FAIL di S4 però non dipende da questo: rispetto al continuo con la stessa spazzata S4 sbaglia
+  −9,8 %, −5,7 %, −2,9 %, la congelata −0,7 %, −0,2 %, −0,1 %.
+
+### 11.3 La particella che "arriva prima" (causalità)
+
+**Cosa si vede.** Accendo una macchia di luce al centro (raggio R) e guardo a t = 120 l'energia lungo una retta
+(figura, primo pannello, scala logaritmica). La luce vera, nel continuo, sta tutta dentro il cerchio r ≤ t + R (riga
+nera): fuori c'è **zero esatto**. Sul reticolo invece davanti al fronte c'è una "coda" sottilissima che sporge: è il
+**precursore**. Con S4 lungo la diagonale si arriva fino a r ≈ 180 (cioè 1,5 c) a livello 10⁻¹⁷ del picco. Non è una
+pallina che viaggia nel tempo: è un'ombra debolissima della parte più "spigolosa" della sorgente (le onde corte che il
+reticolo non sa fare bene) che corre davanti.
+
+**Quanto pesa.** Frazione di energia fuori dal cono vero a t = 120 (secondo pannello):
+
+| sorgente | congelata | S4 | S4 / congelata |
+|---|---|---|---|
+| liscia R = 3 | 1,0·10⁻³ | 1,2·10⁻² | 12 |
+| liscia R = 6 | 2,0·10⁻⁴ | 4,2·10⁻³ | 21 |
+| liscia R = 12 | 5,1·10⁻⁶ | 1,8·10⁻⁵ | 3,5 |
+| liscia R = 24 | 3,6·10⁻⁸ | 1,3·10⁻⁷ | 3,6 |
+| disco netto R = 12 | 1,5·10⁻³ | 5,7·10⁻³ | 3,8 |
+
+Velocità d'arrivo al ricevitore a distanza 100 (soglia ε del picco): congelata, disco R = 12, diagonale: 1,04 c
+(10⁻³), 1,09 c (10⁻⁶), 1,17 c (10⁻¹²); S4: 1,16 c, 1,36 c, **1,57 c**. Lungo l'asse S4 sta a 0,99–1,16 c.
+
+**Tre cose da capire:**
+
+1. **Anche la regola congelata ha il precursore.** Il suo cono di reticolo lungo la diagonale è √2 = 1,41 c (in 3-D
+   √3), e la sua coda esce dal cono vero (2·10⁻⁴ dell'energia per una sorgente di 6 celle). Quindi "la particella che
+   arriva prima" non è una novità di S4: S4 la rende **3–20 volte più grande** e più veloce (fino a 1,57 c misurati,
+   1,67 c come limite sull'asse, 2,36 c sulla diagonale come limite geometrico). P6 fallirebbe anche per la congelata
+   (R = 6: 2·10⁻⁴, v diagonale 1,07).
+2. **Si cura risolvendo la sorgente.** La coda scende molto in fretta con R: con sorgenti lisce di ≥ 24 celle S4 è
+   sotto 10⁻⁶ (1,3·10⁻⁷). Cioè: se la sorgente ha onde che il reticolo sa rappresentare, il precursore è trascurabile.
+   È lo stesso fenomeno dei precursori di Sommerfeld–Brillouin nei materiali: la "velocità del fronte" la decide la
+   struttura più fine del mezzo (qui il reticolo), quella del segnale utile la decide la velocità di gruppo.
+3. **Niente paradossi, niente anelli causali.** Il reticolo ha un "adesso" globale: il tick. Ogni passo (anche quello
+   all'indietro di S4, che è solo un pezzo interno del periodo) calcola lo stato al tick dopo da quello al tick prima.
+   Quindi un segnale può arrivare "prima della luce" ma **mai prima di essere partito** nel tempo del reticolo, e non
+   esiste un modo di farlo tornare indietro: nessun anello. Il "viaggio nel tempo" esiste solo per un osservatore che
+   si muove rispetto al reticolo: per lui un segnale a velocità v > c arriva prima di partire se lui va più veloce di
+   c²/v. Con v = 1,57 c serve un osservatore a più di **0,64 c** (0,6 c per il limite 1,67 c); per la congelata
+   (1,17 c misurati) più di 0,85 c. Ma l'antitelefono (mandare la risposta indietro e ricevere prima di chiedere) non si
+   può costruire, perché il canale superluminale esiste solo nel sistema del reticolo e non si "ruota" con un
+   osservatore in moto. Fisica nota: è come una teoria con un sistema privilegiato (etere di Lorentz), che è
+   coerente ma **non relativistica** nelle code.
+
+### 11.4 Perché P3 e P4 falliscono (diagnosi dopo la corsa)
+
+**Idrogeno, stati s** (terzo pannello, `locale_s4_diag.json` D1). Gli stati p scendono puliti come θ⁴ (2p½: 6,5·10⁻⁶
+→ 4,2·10⁻⁷ → 1,4·10⁻⁸ per θ = 0,1, 0,05, 0,025). Gli stati 1s e 2s invece a θ ≤ 0,07 si fermano su un "pavimento"
+di 2–13·10⁻⁶ che **cambia segno a caso** con θ (0,07: +2,3·10⁻⁶; 0,06: −2,0·10⁻⁶; 0,05: +4,4·10⁻⁶; 0,04: −1,3·10⁻⁵;
+0,025: −2,2·10⁻⁶). La congelata invece scende come θ² senza sorprese. Spiegazione più probabile (non dimostrata):
+vicino al nucleo la rotazione locale della prima cella ha un angolo di circa 1 radiante **a qualunque θ** (il termine
+κ/r a r = a/2 vale 2/a), e il pezzo all'indietro lo raddoppia; lì lo sviluppo che dà il 4° ordine non vale. Solo gli
+stati s hanno peso vicino al nucleo, perciò solo loro ne soffrono. In più l'autovettore S4 dell'1s contiene il 10–20 %
+di onde corte (contro 10⁻⁹ della congelata), segno che si mescola con stati ripiegati quasi della stessa energia; uno
+stato liscio filtrato però resta stabile (sopravvivenza 0,999999 dopo 222 periodi). Ho anche provato l'ipotesi "gemello
+alternato esatto" (P W P = W con P = (−1)ⁱ): **falsa** (‖PWP − W‖ = 1,93, il bordo a r = 0 la rompe); dichiarata.
+Comunque, anche col pavimento, S4 resta 30–200 volte più preciso della congelata a ogni θ provato.
+
+**Schwinger** (quarto pannello, D3). Il campo cambia il momento di E·T in un periodo; per S4 il periodo è 6 volte più
+lungo, e a θ = 0,1, E/E_c = 1 il "calcio" per periodo è 3·(E/E_c)·θ = 0,3 volte il gap 2m. Il 4° ordine vale per un
+hamiltoniano fermo, non per uno che cambia molto **dentro** un periodo. Con θ = 0,05 S4 torna esatto (scarto dal
+continuo ≤ 0,1 %), a θ = 0,1 no. Peggio: se l'elettrone viene accelerato oltre E = π/(Tθ) = **5,2 m** (a θ = 0,1)
+attraversa il primo ripiegamento di Floquet e salta di banda per finta: con la spazzata fino a ±0,8 a E/E_c = 0,5 la
+"creazione di coppie" viene **0,117 invece di 0,0019** (62 volte troppo). La congelata ha la finestra a 31 m e lì non
+succede niente (0,3 %).
+
+### 11.5 Varianti per tagliare il cono (P7 e fase 1)
+
+- **Pesi diversi (passi interi).** Ho enumerato tutte le sequenze palindrome con Σm³ = 0 (condizione del 4° ordine) e
+  |m| ≤ 2 o 3 fino a 13 blocchi, |m| ≤ 4 fino a 11. Il limite analitico cono ≥ (c²+1)/(c²−1) regge sempre. Con |m| ≤ 2
+  S4 è **l'ottimo** (1,667). Con |m| ≤ 3 la migliore ha cono 3,67 (peggio). Per scendere davvero serve |m| = 4 e una
+  sequenza lunghissima: seq_c(4) = 32 passi avanti, 4 indietro, 32 avanti, cono 1,133. Ma il periodo diventa 60 volte
+  quello della congelata, la luce si ripiega a **N = 120 celle/λ** (gap fino a 1,1 rad) e la finestra di Dirac è
+  0,52 m a θ = 0,1, **più piccola della massa**: inutilizzabile. N₁% misurato 41,2 (peggio della congelata, 36,3).
+- **Combinazioni esagonali** (fase 1): esagonale da sola 21,7 celle/λ con cono vero ≤ c (nessun passo indietro);
+  esagonale + S4 18,9, peggio di S4 sul quadrato (14,4).
+- **Filtri locali**: un filtro che smorza le onde corte non è unitario (la carica non si conserva più) → vietato dalle
+  regole del progetto; non provato.
+- Conclusione: dentro "passi interi, 4° ordine" il cono 1,67 c è il minimo pratico. Non c'è modo gratis di avere 4°
+  ordine e cono vero.
+
+### 11.6 Cosa resta vero di buono e cosa propongo
+
+Il punto dove S4 vince netto è la **luce libera ben risolta** (14,4 celle/λ contro 36,3, costo ×0,1 in 3-D): lì P5a
+passa (nessun ripiegamento sopra 13 celle/λ) e il precursore è trascurabile se le sorgenti sono lisce su ≥ 24 celle.
+Il punto dove perde è dove c'è **materia**: nucleo puntiforme (stati s), campi forti che cambiano in fretta
+(Schwinger), elettroni veloci (finestra 5,2 m), sorgenti piccole (precursori 3–20 volte più grandi).
+
+Quindi la mia proposta è: **la regola resta la zig-zag congelata.** Se Valerio vuole comunque usare S4, l'unico
+uso che i numeri difendono è "S4 come modo di far correre la luce libera lontano dalle cariche" (per esempio
+l'impostazione grafica alta della luce nel motore), ma questo vuol dire **due regole** (zig-zag per la materia, S4 per
+la luce libera) e va contro "una sola strada": decide Valerio, e servirebbe una pre-registrazione nuova (con un esame
+sul passaggio luce ↔ materia al confine).
+
+### 11.7 Piano di migrazione (solo se Valerio decide di usare S4 lo stesso)
+
+Il verdetto è no, quindi nessuna migrazione è proposta. Se si decidesse il contrario, ecco cosa andrebbe rifatto, in
+ordine:
+
+1. `zz_light` L1–L5 con S4 (attese: L-errori ÷6 a parità di celle) e `zz_slit` a 8 e 16 celle/λ (a 8 celle S4 è sotto
+   la soglia di ripiegamento 13: atteso **peggio**).
+2. Precursori nel 3-D (questo studio è 2-D): stessa P6 su 192³ col cono √3/2,36.
+3. `zz_free` F1–F5 e `zz_atom3d` A1–A2 con S4 (attesa: 1s col pavimento ~10⁻⁵, non θ⁴).
+4. Idrogeno radiale fine (`zz_hydrogen` / struttura fine) a θ ≤ 0,05; nucleo finito (raggio del protone) per vedere se
+   il pavimento degli stati s sparisce (ipotesi da verificare).
+5. Schwinger/Sauter (`COPPIE_IN_SCATOLA`) a θ ≤ 0,05 con controllo della finestra E < π/(Tθ).
+6. Porto in Rust (`src/zigzag/walk.rs`, Laboratorio Atomo): sequenza di tick con passo m e flip mθ; richiesta di ponte
+   proposta (NON creata) `ponte/richieste/locale_s4_precursore.json` con
+   `{"azione": "foto", "scena": "impulso di luce da sorgente piccola", "regola": "S4", "raggio_sorgente": 6}` per vedere
+   a schermo la coda davanti al fronte.
+
+### 11.8 Debiti e parametri della fase 2
+
+- Parametri: **0 nuovi**. S4 usa solo la sequenza intera (1,1,1,1,−2,1,1,1,1), fissata dalla condizione del 4° ordine
+  con |m| ≤ 2 (è l'unica col cono minimo). θ, c, Z come prima.
+- Debiti nuovi: (a) pavimento degli stati s di S4 non spiegato del tutto; (b) causalità misurata solo in 2-D e solo per
+  la luce; (c) finestra di Floquet di S4 (E < 5,2 m a θ = 0,1, luce N ≥ 13) da rispettare in ogni uso.
+- Debito #3 (doppioni): invariato dalla fase 1. Debito #4 (celle per λ): resta "ridotto in proposta", ma ora con il
+  prezzo scritto (precursori, finestra, idrogeno s, Schwinger).
+
+Come rifare la fase 2:
+
+```
+OMP_NUM_THREADS=1 python lab/locale_s4_prereg.py            # pre-registrazione (già committata, 5b421b1)
+OMP_NUM_THREADS=1 timeout 590 python lab/locale_s4_run.py   # P3-P7 (171 s; exit 3 = rilanciare)
+OMP_NUM_THREADS=1 timeout 590 python lab/locale_s4_diag.py  # diagnosi dopo la corsa (~5 min)
+python lab/locale_s4_figure.py
+```
