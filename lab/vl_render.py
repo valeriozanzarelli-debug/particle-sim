@@ -15,7 +15,7 @@ import time
 
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
-from scipy.ndimage import gaussian_filter
+from scipy.ndimage import gaussian_filter, zoom
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from vl_comune import SCR, DT, A, NA, CHUNK, timeline, idx_light, trilinear, catmull, impronta  # noqa: E402
@@ -42,6 +42,13 @@ DEPTH_L = 260.0
 
 TV = timeline()
 REFS_FILE = os.path.join(SCR, "vl_refs.json")
+_FL = open(os.path.join(SCR, "flusso.txt")).read().strip() if os.path.exists(os.path.join(SCR, "flusso.txt")) else "continuita"
+if _FL == "corrente":   # new export (1s started in the k = 0 valley, learned nucleus): the rule's own current
+    RIGHE_FLUSSO = [("1s partito nella valle k = 0, nucleo imparato: le palline girano attorno a z", (170, 175, 200)),
+                    ("a 0,85–0,87 della velocità di Dirac (Debiti, surfisti esatti): scarto in verifica, niente ritocchi", (170, 175, 200))]
+else:
+    RIGHE_FLUSSO = [("in un livello puro questo reticolo non porta corrente: le palline stanno ferme", (170, 175, 200)),
+                    ("(debito aperto: le copie del reticolo, da provare); si muovono solo per la luce", (170, 175, 200))]
 REFS = json.load(open(REFS_FILE)) if os.path.exists(REFS_FILE) else {}
 NV = len(TV)
 MAN = json.load(open("/mnt/project-files/ripresa/dati/atomo_accoppiato/manifest.json"))
@@ -147,8 +154,25 @@ def splat(img, sx, sy, wts, col, w, h):
     img[3] += np.bincount(lin, ww, w * h).reshape(h, w)
 
 
+def blur(a, sig):
+    """gaussian blur; wide ones are done on a 4x (or 2x) smaller image and scaled back (same look, ~10x cheaper)"""
+    if sig < 0.3:
+        return a
+    f = 4 if sig >= 8 else (2 if sig >= 4 else 1)
+    if f == 1:
+        return gaussian_filter(a, sig, truncate=3.0)
+    h, w = a.shape
+    H2, W2 = -(-h // f) * f, -(-w // f) * f
+    p = np.zeros((H2, W2))
+    p[:h, :w] = a
+    small = p.reshape(H2 // f, f, W2 // f, f).mean((1, 3))
+    small = gaussian_filter(small, sig / f, truncate=3.0)
+    big = zoom(small, f, order=1)
+    return big[:h, :w]
+
+
 def tone(img, spot, gain, ref=None):
-    rgbw = np.stack([gaussian_filter(img[c], spot) for c in range(4)])
+    rgbw = np.stack([blur(img[c], spot) for c in range(4)])
     D = rgbw[3]
     col = rgbw[:3] / np.maximum(D, 1e-12)
     if ref is None:
@@ -215,7 +239,7 @@ def scena_atomo(dat, iv, w, h):
     for ib in range(NBIN):
         zc = 0.5 * (zb[ib] + min(zb[ib + 1], CAM_D + 8))
         sp = SPOT_E * s * (CAM_D / max(zc, 3.0)) ** 1.3
-        img += np.stack([gaussian_filter(layers[ib][c], sp) for c in range(4)])
+        img += np.stack([blur(layers[ib][c], sp) for c in range(4)])
     balls, ref = tone(img, 0.01, GAIN_E, REFS.get("eb", 0) / s ** 2 or None)
     glow, ref2 = tone(img2, GLOW_E * s, 1.0, REFS.get("eg", 0) / s ** 2 or None)
     REFS.setdefault("eb_now", ref * s ** 2)
@@ -358,8 +382,7 @@ def pannello_info(draw, x0, y0, w, h, iv, dzs):
         ("luce: palline di energia (E²+B²)/2, colore = direzione di E; vista tagliata (fetta 0 < y < 72 λ_C)", (205, 208, 230)),
         ("luce dell'atomo (da t = 240): ogni pallina vale 1/1000 → energia ×1000", (255, 160, 200)),
         ("accoppiamento ×10 (K = 10) per vedere lo svuotamento; λ_C = 3,9·10⁻¹³ m", (170, 175, 200)),
-        ("in un livello puro questo reticolo non porta corrente: le palline stanno ferme", (170, 175, 200)),
-        ("(debito aperto: le copie del reticolo, da provare); si muovono solo per la luce", (170, 175, 200)),
+        *RIGHE_FLUSSO,
         (f"dati: esportazione {IMPRONTA[0]} del {IMPRONTA[1]} UTC · {ETICHETTA.lower()}", (120, 125, 150)),
     ]
     y = 128 + 78 + 10 + 62 + 24
