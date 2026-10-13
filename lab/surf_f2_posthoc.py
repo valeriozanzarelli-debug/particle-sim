@@ -2,7 +2,7 @@
 to ~55 %, tau gets SHORTER on the finer lattice) made by circulation at the scale of one cell? Same states and start
 (|psi|^4) as surf_f2_valentini.py, but the surfers move on blocks of b x b cells with the exact block flux (sum of the
 fine face fluxes, exact by discrete Stokes; idea 3 of SURFISTI_ESATTI). Block side in physical units: 0.5 and 1.0.
-Writes lab/out/surf_f2_posthoc.json."""
+usage: python surf_f2_posthoc.py <case 0..5>. Writes lab/out/surf_f2_posthoc.json."""
 import json
 import numpy as np
 from surf_core import *
@@ -24,8 +24,11 @@ def block_flux(F, j, b):
     return G.reshape(G.shape[0] // b, b, G.shape[1]).sum(1)
 
 
-out = {}
-for n, M, b in ((48, 1, 2), (48, 16, 2), (96, 1, 2), (96, 1, 4), (96, 16, 2), (96, 16, 4)):
+import sys
+CASES = ((48, 1, 2), (48, 16, 2), (96, 1, 2), (96, 1, 4), (96, 16, 2), (96, 16, 4))
+jf = os.path.join(OUT, "surf_f2_posthoc.json")
+out = json.load(open(jf)) if os.path.exists(jf) else {}
+for n, M, b in [CASES[int(sys.argv[1])]]:
     c = CFG[n]
     wk = LatticeWalk(n, c["theta"], periodic=False)
     psi, om = modes_state(wk, M, omega0=2 * c["theta"])
@@ -49,4 +52,4 @@ for n, M, b in ((48, 1, 2), (48, 16, 2), (96, 1, 2), (96, 1, 4), (96, 16, 2), (9
     out[key] = dict(block_phys=b * c["theta"], ratio=(H[-1] - floor) / (H[0] - floor), tau_ticks=tau,
                     tau_phys=tau * c["theta"], t=ts, H=H, floor=floor)
     print(key, round(out[key]["ratio"], 3), round(out[key]["tau_phys"], 1), flush=True)
-json.dump(out, open(os.path.join(OUT, "surf_f2_posthoc.json"), "w"), indent=1, default=float)
+json.dump(out, open(jf, "w"), indent=1, default=float)
