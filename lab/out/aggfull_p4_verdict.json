@@ -1,0 +1,29 @@
+{
+ "verdict": [
+  [
+   "M2b level 1 with k^6 pinned, 3e-5 on seeds 1-6",
+   false,
+   "w chosen [5, 5, 5, 5, 5, 5]; energy 5.43e-06, 4.50e-06, 3.05e-05, 3.79e-05, 8.97e-06, 2.90e-06; 4 of 6 pass; mass dev <= 1.5e-13; c6 = Dirac x 1.00018"
+  ],
+  [
+   "P3 Markov + k^6 needs w >= 8 (moment bound)",
+   true,
+   "w=5: 1.1e+00, w=6: 5.8e-01, w=7: 2.5e-01, w=8: 6.3e-11 (w = 8 feasible, as the bound allows)"
+  ],
+  [
+   "P4 Markov impossible at a0/16 and a0/8",
+   true,
+   "B=256: 17.1, B=512: 70.3"
+  ],
+  [
+   "N1 float64 field removes the 2p high-k tail",
+   false,
+   "weight at kappa > 1.6: 4.4e-5 at N = 192 float64 (unconverged), 1.9e-6 at N = 256 float32: the tail is not the float32 field (amendment aggfull_p4_amend.json)"
+  ],
+  [
+   "F3P 2p alpha^4 shifts within 5 % (amended: |kappa| < 0.8)",
+   true,
+   "orig: 2p1/2 +248.3 %, 2p3/2 +1241.7 %; K: 2p1/2 +1.6 %, 2p3/2 +8.3 %; T: 2p1/2 -0.7 %, 2p3/2 -3.0 %; whole cube (T): +442 % / +2210 %"
+  ]
+ ]
+}

@@ -61,7 +61,11 @@ segni sbagliati del nucleo dei camminatori, pezzo k⁴ della banda, parità).
    posti (w = 2) è **impossibile**, ed è per questo che il vecchio livello aveva 42 segni sbagliati. FAIL: il controllo
    a 3·10⁻⁵ per Z = 10 passa con 1 seme su 3 (2,8–7,9·10⁻⁵): la massa non è più il problema, resta l'errore ad alto k.
 
-**Esami: 16 PASS / 3 FAIL** (fase 2 + emendamenti) e **5 PASS / 1 FAIL** (fase 3).
+7. **Fase 4 (§12).** Fissare anche il k⁶ porta il livello Z = 10 a 4 semi su 6 entro 3·10⁻⁵ (FAIL, prima 1 su 3); due
+   limiti "a palline" verificati (salti ≥ 4,3 λ_C per il k⁶; nessuna regola positiva relativistica con celle > √3 λ_C);
+   F3 dei 2p **chiuso con il cinetico T** (−0,7 % e −3,0 %), con un emendamento dichiarato sulla coda finta ad alto k.
+
+**Esami: 16 PASS / 3 FAIL** (fase 2 + emendamenti), **5 PASS / 1 FAIL** (fase 3), **3 PASS / 2 FAIL** (fase 4).
 
 ---
 
@@ -220,8 +224,8 @@ sulla 1s vale 6,41·10⁻⁴ eV a a₀/8 e 6,81·10⁻⁴ a a₀/16 contro 7,25�
 banda **della regola fine** (non quella imparata) sul vettore grosso il pezzo cinetico vale −7,65·10⁻⁴ eV contro
 −9,06·10⁻⁴ esatti: manca la coda ad alto k che la cella non ha. Quindi F3 per gli s **non** si chiude migliorando la
 regola: va chiuso con lo zoom vicino al nucleo (studio `nucleo1s_`). Per i 2p (niente cuspide) l'errore è ancora del
-cinetico (−12 % / −61 %): qui la cura della fase 3 (Taylor fissato) è quella giusta, ma non l'ho corsa ai livelli
-a₀/16 e a₀/8 (§6, cosa resta).
+cinetico (−12 % / −61 %): la cura della fase 3 (Taylor fissato) corsa in fase 4 ai livelli a₀/16 e a₀/8 lo chiude
+(−0,7 % / −3,0 %, §12).
 
 ### 4.4 Il rinculo
 Lo spostamento della massa ridotta (−5,44·10⁻⁴ relativo) esce entro 0,7 % senza mettere μ: è la coppia che lo fa. Il 2s
@@ -402,7 +406,52 @@ senza zoom: bastava la scatola più grande (±16 a₀) e il campo senza media di
 - **Ponte (proposta, non creata):** `ponte/richieste/aggfull_lanterne.json` con azione `foto` sul Laboratorio Atomo con il
   campo a 8 sotto-punti (G1) per vedere le lanterne; e una con le frecce di spin del 2p (G4).
 
-## 12. Come rieseguire
+
+## 12. Fase 4: k⁶ fissato, regola di Markov ai livelli grossi, F3 per i 2p
+
+Pre-registrazione `lab/aggfull_p4_prereg.py` → `lab/out/aggfull_p4_prereg.json` (**commit fb6518d, prima delle corse**);
+emendamento `lab/out/aggfull_p4_amend.json` (commit 307e674, dichiarato **prima** di calcolare F3P). Codice:
+`lab/aggfull_p4.py` (livello 1), `lab/aggfull_relearnT.py` (cinetico T ai livelli a₀/16 e a₀/8), `lab/aggfull_p4_f3.py`,
+`lab/aggfull_p4_analyze.py` → `lab/out/aggfull_p4_verdict.json`. **3 PASS / 2 FAIL.**
+
+| esame | cosa | risultato | esito |
+|---|---|---|---|
+| M2b | livello 1 con k², k⁴, **k⁶** fissati + parità, Z = 10 entro 3·10⁻⁵, semi 1–6 | w scelto da solo = 5 (w = 4 non è "domato": energie di moto negative); energia 0,54 / 0,45 / **3,05** / **3,79** / 0,90 / 0,29·10⁻⁵; massa esatta (10⁻¹³); c₆ = Dirac × 1,00018 | **FAIL** (4 su 6; prima 1 su 3) |
+| P3 | Markov + k⁶: impossibile per w ≤ 7, previsto dal limite dei momenti | errore dei vincoli w = 5: 1,1; 6: 0,58; 7: 0,25; **8: 6·10⁻¹¹** | **PASS** (anche w = 8 fattibile come previsto) |
+| P4 | Markov impossibile a a₀/16 e a₀/8 | errori dei vincoli 17 e 70 | **PASS** |
+| N1 | col campo in float64 sparisce la coda ad alto k del 2p | no: a N = 192 (float64) il 2p non converge (residuo fermo a 6·10⁻⁸, E −0,30 %) e la coda è più grande (4,4·10⁻⁵) | **FAIL** (ipotesi sbagliata) |
+| F3P | spostamenti α⁴ dei 2p entro 5 % (emendato: resto cinetico per \|κ\| < 0,8) | cinetico T: **2p½ −0,7 %, 2p3/2 −3,0 %**; K: +1,6 / +8,3 %; originale: ×3 / ×13 | **PASS** (con T) |
+
+**Cosa vuol dire, semplice.**
+
+1. **Il k⁶ aiuta ma non basta.** Fissare anche il k⁶ porta l'errore del livello 1 per Z = 10 da 1,8–7,9·10⁻⁵ a
+   0,3–3,8·10⁻⁵: 4 semi su 6 passano. La macchina ha dovuto allargare lo stencil a w = 5 (con w = 4 e il k⁶ fissato la
+   banda va sotto zero in fondo al cubo: il controllo la rifiuta, come deve). Il residuo è nei pochi campioni a
+   κ ≈ 0,1–0,4 per cella: ordine k⁸ e oltre. Il c₆ della regola fine è quello di Dirac (+k⁶/16) entro 1,8·10⁻⁴.
+2. **Due teoremi a palline, verificati.** Una regola che salta solo con probabilità positive porta la relatività solo
+   se i salti sono abbastanza lunghi: per il k⁴ servono ≥ √3 λ_C (w ≥ 4 al livello 1, fase 3), per il k⁶ servono
+   salti **ancora più lunghi** (limite dei momenti: w ≥ 8, cioè ≥ 4,3 λ_C). Previsto prima, uscito esatto: w = 5, 6, 7
+   impossibili, w = 8 possibile a 6·10⁻¹¹. E quando la cella è più grande di √3 λ_C (a₀/16 = 8,6 λ_C, a₀/8 = 17 λ_C) una
+   regola positiva **non può** essere relativistica: i salti a una cella hanno già troppo k⁴ (|c₄|/c₂ ≥ 1/12 contro 0,0034
+   e 0,0009 richiesti). Quindi "Taylor + parità + Markov" ai livelli a₀/16 e a₀/8 è impossibile: lì si usa T (Taylor +
+   parità) senza positività. È la stessa fisica della Zitterbewegung: la relatività vive alla scala λ_C.
+3. **F3 per i 2p: chiuso con il cinetico T**, ma con un emendamento: il vettore del 2p ha una coda finta ad alto k
+   (peso ~3·10⁻⁶ fuori da |κ| = 0,8, che cresce con k: uno stato legato non lo fa) che, moltiplicata per la banda negli
+   angoli del cubo, domina il resto cinetico. Non era il float32 (N1 FAIL): è contenuto non convergito del solutore.
+   Dentro |κ| < 0,8 (k < 6,4/a₀, dove sta tutto il 2p vero) il cinetico T dà −2,61·10⁻⁵ eV contro −2,64·10⁻⁵ della
+   massa-velocità esatta, e gli spostamenti escono −0,7 % e −3,0 %. Su tutto il cubo restano sbagliati (×5, ×22): il
+   difetto è del solutore, da curare (il solutore deve uccidere la coda ad alto k: precondizionatore o filtro fisico).
+4. **Nucleo imparato di NUCLEO_1S per gli s: non fatto.** Il loro nucleo è imparato sulla regola fine a celle
+   0,2–0,5 λ_C (Z = 60); qui le celle sono 8,6–17 λ_C. Agganciarlo richiede l'atomo ibrido (zona fine attorno al
+   nucleo + regola grossa fuori, come A3 del vecchio studio): è il prossimo passo, non un'ora di lavoro.
+
+**Parità:** le cure T e M impongono G(−k) = G(k) a tutti i livelli (anche a₀/16 e a₀/8 in questa fase).
+
+**Debiti nuovi o aggiornati:** la regola del κ per leggere c₆ (κ ≤ 0,224 h, cioè lo stesso k fisico del livello 1: una
+prima prova con κ ≤ 0,12 a a₀/16 dava c₆ sbagliato di un fattore 3, scartata e dichiarata); il filtro |κ| < 0,8
+dell'emendamento; il solutore che lascia la coda ad alto k (aperto).
+
+## 13. Come rieseguire
 
 ```
 cd lab
@@ -413,6 +462,7 @@ python aggfull_relearn.py                # emendamenti 1-2
 ./aggfull_drive2.sh <log del primo driver>
 python aggfull_posthoc_kin.py; python aggfull_geo_bz.py
 python aggfull_l1_prereg.py; python aggfull_l1.py run; python aggfull_l1_analyze.py   # fase 3
+python aggfull_p4_prereg.py; python aggfull_p4.py; python aggfull_relearnT.py; ./aggfull_drive4.sh; python aggfull_p4_f3.py; python aggfull_p4_analyze.py   # fase 4
 python aggfull_analyze.py; python aggfull_figure.py
 ```
 I campi di Galerkin (`aggfull_field_*.npz`, ~0,5 GB) e i vettori (`.npy`) non sono nel repo: si rifanno.
