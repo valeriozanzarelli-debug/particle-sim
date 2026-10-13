@@ -228,7 +228,7 @@ def dirs_for(dim, n=300):
 
 
 # ------------------------------------------------------------------ light metrics
-def light_band(walk, K, ref=None, steps=None):
+def light_band(walk, K, ref=None, steps=None, sign=+1):
     """frequency (per unit physical time) of the moving helicity-(+) band, UNWRAPPED by continuation along the ray
     0 -> K (the period can be long, so quasi-energies fold many times).  ref = (omega, vec) from a nearby point:
     then the band is picked by eigenvector overlap and unwrapped against ref (used for finite differences)."""
@@ -245,12 +245,12 @@ def light_band(walk, K, ref=None, steps=None):
     M = steps or max(4, int(np.ceil(np.max(kn) * walk.T * 1.5 / 0.4)))
     s0 = 1e-3
     eps, v = walk.phases(K * s0)
-    target = kn * s0 * walk.T
+    target = sign * kn * s0 * walk.T
     j = np.argmin(np.abs(eps - target[:, None]), axis=1)
     o = eps[np.arange(len(j)), j]
     vec = v[np.arange(len(j)), :, j]
     for s in np.linspace(s0, 1, M + 1)[1:]:
-        o, vec = light_band(walk, K * s, ref=(o / walk.T, vec))
+        o, vec = light_band(walk, K * s, ref=(o / walk.T, vec), sign=sign)
         o = o * walk.T
     return o / walk.T, vec
 
@@ -320,7 +320,7 @@ def n_for_tol(walk, dirs, tol=0.01, key="all", lo=3.0, hi=400.0):
     if err(lo) <= tol:
         return lo
     a, b = np.log(lo), np.log(hi)
-    for _ in range(30):
+    for _ in range(22):
         m = 0.5 * (a + b)
         if err(np.exp(m)) <= tol:
             b = m
