@@ -39,7 +39,13 @@ pezzo? E come lo si fa scendere sotto l'1 % **senza cambiare regola**?
    che le manca la QED (+7,66 GHz contro la misura). Con l'agglomeratore per le zone lontane: **1s = −13,59517 eV**
    (massa ridotta) contro −13,59847 di Dirac: **−0,024 %**.
 
-**Esiti pre-registrati:** 11 PASS, 3 FAIL (L1, L2, L3: la legge regge, ma due soglie strette cadono a Z = 20 e Z = 92
+**Fase 2 (3-D, §12):** il reticolo cubico sono 4 "colori" indipendenti e in ognuno l'elettrone ha 4 copie (valli); il
+nucleo le mescola e l'1s 3-D è un multipletto di 4 livelli: è il debito #20 e il battimento del Laboratorio (953 e 213 tick,
+ritrovati entro 1 %). Quasi tutto l'errore 1s 3-D e tutto il −11,6 % del #6 sono split delle valli. Il nucleo imparato a
+2 numeri chiude le valli ma lega il 2–6 % troppo poco (FAIL). La colla dell'ibrido ora non dipende da J0 (7·10⁻⁶).
+Esiti fase 2: 14 PASS, 6 FAIL.
+
+**Esiti pre-registrati (fase 1):** 11 PASS, 3 FAIL (L1, L2, L3: la legge regge, ma due soglie strette cadono a Z = 20 e Z = 92
 per motivi che spiego sotto). Dettaglio nella §6.
 
 ---
@@ -379,12 +385,14 @@ che resta finché il nucleo sta in un cubo da 0,5. Per quello serve 7.3 o un pez
 * #5 (contatto θ² ln θ): spiegato (§2.2, §3.6); con lo zoom gli s di Z = 1 vanno a 2·10⁻⁷ (H1z PASS) e l'1S–2S vede il
   Lamb mancante (H2z PASS). **Chiuso in forma radiale.**
 * +39,9 % del laboratorio: spiegato termine per termine (§3) e curato in forma radiale (§4, §7.1). La patch è proposta.
-* #6, parte "−11,6 %": spiegato (legge sbagliata nell'estrapolazione).
+* #6, parte "−11,6 %": spiegato (legge sbagliata nell'estrapolazione). **Corretto nella fase 2 (§12.0)**: la causa
+  vera è lo split delle valli letto dal vecchio ascolto; con livelli puliti l'estrapolazione dà −0,1 / −0,3 %.
 
 **Ancora aperti / nuovi**
 * #6 idrogeno vero in **3-D**: non fatto. In radiale con l'agglomeratore lontano sì (−0,024 %, ma colla debole).
-* #20 1s 3-D sporco: la causa radiale è chiara; il reticolo cubico vicino al nucleo non è stato toccato (idee 7.3, 7.4).
-* **Nuovo**: la colla fra regola zig-zag e regola agglomerata (fantasmi + ultima equazione) dipende da J0 per ~0,1 %.
+* #20 1s 3-D sporco: **spiegato nella fase 2** (§12: 4 colori × 4 valli, multipletto); la cura con energia giusta resta aperta.
+* La colla fra regola zig-zag e regola agglomerata dipendeva da J0 per ~0,1 %: **chiuso nella fase 2** (colla del
+  cuspide, 7·10⁻⁶, §12.4).
 * **Nuovo**: la regola agglomerata ridotta all'onda s usa la media sulle direzioni del generatore (anisotropia 3·10⁻⁴ a
   k = 1/a₀ trascurata) e il Coulomb grosso nel punto (scritto a mano, #9).
 * Dinamica dal vivo su celle disuguali (debito 12): qui solo stati fermi.
@@ -413,3 +421,181 @@ Impostazioni scelte a mano: budget, frazione 0,3, rapporto 2:1, ε della cipolla
     for p in law decomp zoom agglo z1 hybrid; do timeout 590 python lab/nucleo1s_run.py $p; done   # law: rilanciare finché "done law"
     python lab/nucleo1s_posthoc.py allzoom; python lab/nucleo1s_posthoc.py geo; python lab/nucleo1s_posthoc.py R
     python lab/nucleo1s_figure.py
+
+---
+
+## 12. Fase 2: il 3-D vero (debiti #20 e #6) e la colla dell'ibrido
+
+File: `lab/nucleo1s_3d.py` (la regola cubica su un "colore", ascolto e inversione armonica), `lab/nucleo1s_3d_run.py`
+(corse), `lab/nucleo1s_3d_judge.py` (giudizio), `lab/nucleo1s_glue.py` (colla), `lab/nucleo1s_3d_figure.py`,
+`lab/nucleo1s_3d_dev.py` (sviluppo, dichiarato). Pre-registrazione: `lab/out/nucleo1s_3d_prereg.json`, **commit 8e20ad2,
+prima delle corse**; emendamento dichiarato `lab/out/nucleo1s_3d_amend1.json`, **commit 82054f8, prima delle corse che
+riguarda**. Risultati: `lab/out/nucleo1s_3d_results.json` (chiave `judge`). Figura: `lab/out/nucleo1s_3d_figure.png`.
+
+![figura fase 2](../lab/out/nucleo1s_3d_figure.png)
+
+### 12.0 In breve
+
+* **Il reticolo cubico sono 4 reticoli che non si parlano** ("4 colori"). In un tick la pallina fa un passo lungo x, uno
+  lungo y e uno lungo z: va sempre da una cella con indici (pari, pari, pari) a una (dispari, dispari, dispari) e così via.
+  Le 8 classi di parità formano 4 coppie che non si scambiano mai niente, nemmeno con il nucleo. Controllato: la regola
+  su un colore è identica a quella completa a **3·10⁻¹⁵**, la perdita verso gli altri colori è **0**, e i 4 colori danno
+  le stesse righe a **5·10⁻⁸** (B2 PASS). Effetto pratico: **si calcola un quarto del reticolo** (4 volte più veloce).
+* **In ogni colore l'elettrone ha 4 copie** ("valli": k = 0 e k = (π/2, π/2, 0)/a con le permutazioni; il thread
+  principale le ha trovate da solo, `docs/BATTIMENTO_1S.md`). Il nucleo puntiforme sull'angolo di 8 celle le mescola:
+  l'1s diventa **un multipletto di 4 livelli** (a = 0,5: 0,84037 / 0,88627 / 0,89930 / 0,89960). Lo stato 1s del
+  Laboratorio ne contiene un quarto ciascuno, quindi **batte**: le differenze 0,01333 e 0,05893 cadono sui due picchi
+  dello spettro di p_exc del Laboratorio (0,01318 → 953 tick; 0,05901 → 213 tick) a **+1,1 %** e **−0,13 %**
+  (B1 PASS; visto in sviluppo prima della pre-registrazione: è una validazione). Il "passaggio 1s ↔ 2p" della corsa
+  accoppiata è quasi tutto l'1s che batte con le sue copie (p2p massimo nei dati: 0,008).
+* **Bilancio dell'errore 1s 3-D** (regola nuda, stato del Lab). Due dei quattro livelli (la "coppia U") hanno densità
+  quasi zero sui due siti vicini al nucleo: **non vedono il contatto** e stanno a −0,4 … −0,8 % da Dirac per ogni a fra
+  0,5 e 0,16. Il centro del multipletto (quello che "sente" un 1s liscio) sta a +19,2 / +11,5 / +6,0 / +3,7 / +2,5 / +1,6 %
+  (a = 0,5 … 0,16). **La parte "valli" (centro − U) è 107–123 % dell'errore** (V1 PASS): l'errore 1s 3-D è quasi tutto
+  split delle valli, non massa o "bulk".
+* **Il −11,6 % del #6, rifatto.** Con i livelli puliti la stessa estrapolazione di ZIGZAG A1 (quadratica in a² su
+  a = 0,4; 0,3; 0,24) dà **−0,10 %** sul centro del multipletto e **−0,27 %** sulla coppia U (V2 PASS). Quindi il −11,6 %
+  non era la "legge sbagliata" (come avevo scritto nella fase 1, §9: **correzione**), ma il vecchio ascolto: una finestra
+  di 27 ħ/mc² centrata sulla frequenza media pescava il multipletto con pesi diversi a ogni a (a = 0,4: +28,8 % ascoltato
+  contro +11,5 % del centro pulito). **Tutto il −11,6 % è split delle valli letto male**; la parte "bulk" vale ≤ 0,3 %.
+* **Il nucleo agglomerato (2 numeri) chiude le valli ma sbaglia il legame.** L'agglomeratore ha imparato, sul reticolo
+  del Lab e **senza guardare Dirac** (criterio: i 4 livelli devono tornare uno solo, come nel continuo), due fattori sulla
+  fase di Coulomb dei 2 siti più vicini e dei 6 seguenti: **s0 = 0,489, s1 = 0,818**. Risultato: lo split scende da
+  0,059 a 6·10⁻⁵ a a = 0,5 (N1 PASS) e, con gli **stessi** due numeri, a 2–3·10⁻⁴ a a = 0,4 … 0,2 (rapporto 0,006–0,027,
+  N2 PASS; V3 PASS); il battimento del Lab sparisce (una riga sola, N5 PASS). **Ma** il livello unico sta a
+  **−5,8 / −5,0 / −3,7 / −2,9 / −2,3 %** da Dirac: **N3 FAIL** (soglia 1 %), e quindi anche **C1 FAIL** (nessun reticolo
+  imparato entro l'1 %). L'estrapolazione A1 dei livelli imparati dà −0,85 % (N4 PASS). Perché: l'algoritmo ha trovato
+  una **linea** di coppie (s0, s1) che chiudono il multipletto, e lungo la linea il livello comune va da 0,8975 a 0,9067
+  (vedi `learn.evals`): **il criterio "una riga sola" fissa una combinazione dei due numeri, non l'energia**. Il minimo
+  numerico è caduto a un capo della linea. Fallimento dichiarato: serve un secondo criterio interno (sotto, §12.5).
+* **Nucleo al centro di una cella** (proposta del thread principale, emendamento): il colore che contiene il sito del
+  nucleo (con la media di −Zα/r sul cubo, −2,380 Zα/a: debito) ha un livello profondo del reticolo (ω = 0,613 a a = 0,5;
+  0,731 a 0,3) che si prende il 18–31 % e l'1s sparisce dalla finestra; negli altri 3 colori lo split si **dimezza**
+  (0,0097 contro 0,0219 a a = 0,3). CN1 FAIL (per il colore del nucleo), CN2 PASS (i colori non sono più uguali).
+* **Colla dell'ibrido (Z = 1).** La colla pre-registrata con la correzione "tau" a finestra **non** funziona (G1, G2 FAIL:
+  −0,34 … −0,24 %, deriva 0,10 % con J0). La colla del **cuspide** (emendamento) sì: 1s Z = 1 **+0,0384 / +0,0391 /
+  +0,0390 / +0,0391 %** per J0 = 3…6 (spostamento **7·10⁻⁶**, soglia 2·10⁻⁴: G1b PASS), 2s Z = 1 spostamento
+  **5·10⁻⁶**, He⁺ 1s **8·10⁻⁵**, tutti entro 0,05 % da Dirac (G2b PASS; 2s e He⁺ non visti prima).
+
+**Esiti fase 2** (pre-registrazione + emendamento): **PASS** B1, B2, B3, N1, N2, N4, N5, V1, V2, V3, E1, CN2, G1b, G2b
+(14); **FAIL** N3, C1, I1, G1, G2, CN1 (6).
+
+### 12.1 I quattro colori e le quattro valli (come a un ventenne)
+
+Pensa a una scacchiera in 3-D dove il pezzo si muove sempre "in diagonale" di un passo in x, uno in y e uno in z:
+partendo da una casella con tre coordinate pari finisce in una con tre dispari, poi di nuovo tre pari. Non arriverà mai
+in una casella (pari, pari, dispari): le caselle si dividono in **4 colori** e ogni pallina resta nel suo. Il nucleo sta
+nel mezzo di un cubo di 8 caselle: per ogni colore, le 2 caselle più vicine sono su una **diagonale del cubo** (una per
+colore: i 4 colori vedono il nucleo lungo le 4 diagonali). Dentro un colore, poi, la regola che si ripete ogni due tick
+ha 4 "valli" (4 modi di essere un elettrone lento), copie esatte; un campo liscio non le mescola, ma la punta del Coulomb
+sulle prime caselle sì. Totale: **16 copie** dell'elettrone (4 colori × 4 valli). È il "raddoppio dei fermioni" dei
+reticoli: la cosa nuova qui è vederlo così in una regola che corre a c.
+
+### 12.2 Numeri della regola nuda (`scan_bare_*`, scatola 24 λ_C, ascolto 500 ħ/mc²)
+
+| a | righe dell'1s (ω) | centro | coppia U | split (U − più bassa) |
+|---|---|---|---|---|
+| 0,5 | 0,8404 / 0,8863 / 0,8994 (×2) | +19,2 % | −0,40 % | 0,0591 |
+| 0,4 | 0,8607 / 0,8912 / 0,8999 (×2) | +11,5 % | −0,80 % | 0,0391 |
+| 0,3 | 0,8780 / 0,8947 / 0,8999 (×2) | +6,0 % | −0,83 % | 0,0219 |
+| 0,24 | 0,8858 / 0,8963 / 0,8998 (×2) | +3,7 % | −0,71 % | 0,0140 |
+| 0,2 | 0,8899 / 0,8971 / 0,8996 (×2) | +2,5 % | −0,57 % | 0,0098 |
+| 0,16 (nuovo) | 0,8932 / 0,8978 / 0,8996 (×2) | +1,6 % | −0,49 % | **0,00635** |
+
+Esame B3 (reticolo nuovo a = 0,16, previsto dalla legge di potenza dello sviluppo): U − L1 = 0,006354 contro 0,00630
+previsto (**+0,9 %**), U − L2 = 0,001781 contro 0,00182 (**−2,2 %**): PASS. Lo split va come **a^≈2** (non a^{2γ}).
+
+Costo per avere il centro entro l'1 % con celle uguali: dal fit K a^{2γ} + B a² sui reticoli 0,3–0,16, a = 0,131,
+cioè **6,1·10⁶ celle** (scatola 24). **Post hoc (non pre-registrato)**: la coppia U è già entro l'1 % a a = 0,5 (48³ =
+1,1·10⁵ celle, 55 volte meno): è la scelta fatta dal thread principale (BATTIMENTO, "il livello meno toccato dalle prime
+celle"), e qui si capisce perché funziona: **U è la combinazione delle valli che sul colore ha un nodo sui due siti del
+nucleo**, quindi non sente il termine di contatto. Ma resta una scelta fra i livelli, non un livello unico.
+
+### 12.3 Isotropia e livelli eccitati
+
+Con la scatola 32 i 2s/2p sono ancora troppo stretti (il 2s di Z = 60 ha ⟨r⟩ ≈ 14 λ_C): i numeri contro Dirac (2s ≈ −20 %,
+2p1/2 −1,4 … −8 %, 2p3/2 −1,1 … −3,9 %) misurano la scatola, non il nucleo. Esame E1 (differenziale): il nucleo imparato
+**non peggiora** nessun livello (PASS; 2p1/2 a a = 0,4 migliora da 2,7 % a 1,4 %). Isotropia: 2p3/2 m = 3/2 e m = 1/2 stanno
+alla stessa frequenza entro **2·10⁻⁵ del legame** (nudo 4·10⁻⁶): isotropo. **I1 FAIL** solo per la clausola relativa
+("non più anisotropo del nudo del 10 %"): 2·10⁻⁵ contro 4·10⁻⁶. Dichiarato: la clausola era scritta male (confronta due
+numeri entrambi al livello del rumore), ma la soglia non si cambia.
+
+### 12.4 La colla dell'ibrido (Z = 1, regola agglomerata fuori)
+
+Diagnosi: la regola agglomerata ha un'energia cinetica "spettrale" (T(k) = k²/2m fino a k = π, verificato: 0,0669 contro
+0,0672 a k = π) e quindi un nucleo di interazione lungo con coda alternata 1/n². Applicata a u = r ψ estesa dispari, che
+ha il **cuspide di Coulomb** (u'' salta a r = 0), fa un errore che cambia segno da una cella all'altra e si spegne
+piano: per questo il livello saltava con la parità di J0 (+0,104 / −0,024 / +0,121 / −0,004 / +0,067 % per J0 = 2…6).
+Cura: si toglie alla regola grossa l'errore che fa sul cuspide, calcolato su una funzione nota con lo stesso cuspide
+(u_c = r e^{−λr}); l'ampiezza viene dalla pendenza della soluzione zig-zag interna e dalla legge di Kato
+u''(0⁺) = −2 m Zα u'(0) (è l'equazione stessa a r → 0, non un ingresso). Residuo vicino al nucleo **160 volte** più piccolo
+(4,7·10⁻⁵ → 2,9·10⁻⁷), e il livello non dipende più da J0. Nuovo valore dell'ibrido: **1s Z = 1 = +0,039 % da Dirac**
+(con massa ridotta −13,6038 eV, un po' troppo legato; la fase 1 dava −0,024 % con J0 = 3, che era "fortuna di parità").
+La colla "tau" con finestra (pre-registrata) falliva perché la finestra stessa, campionata dalla regola spettrale,
+crea un errore della stessa taglia.
+
+### 12.5 Cosa resta, e una proposta per il secondo numero
+
+* Il nucleo agglomerato con criterio "una sola riga" lascia **un grado di libertà** (la linea s0–s1). Il secondo criterio
+  deve essere **interno alla regola**, non Dirac. Proposta (non provata): chiedere che il livello unico sia
+  **indipendente da a** in prima approssimazione fra due reticoli (lo stesso nucleo a a e a/2, legge di scala del
+  contatto: il contatto va come a^{2γ}, il bulk come a², quindi annullare il termine a^{2γ} fissa il punto della linea).
+  In alternativa: scegliere sulla linea il punto dove il livello coincide con la coppia U (che non vede il nucleo).
+* **#20**: spiegato del tutto (4 colori × 4 valli, multipletto, battimento a 953 e 213 tick come nei dati del Lab) e
+  curabile in due modi: (a) la scelta del thread principale (prendere il livello U, già in `zz.rs`); (b) il nucleo
+  imparato (una riga, ma −5,8 % a a = 0,5). **Chiuso come diagnosi; la cura con energia giusta resta aperta.**
+* **#6 in 3-D**: il −11,6 % è spiegato (split delle valli letto dal vecchio ascolto) e con livelli puliti l'estrapolazione
+  va a −0,1 / −0,3 %. L'idrogeno vero in 3-D (Z = 1) resta non fatto.
+* Il nucleo **al centro di una cella** non conviene così: nel suo colore crea un livello profondo spurio (la media sul
+  cubo è un'altra prima cella sbagliata); negli altri colori dimezza lo split.
+
+### 12.6 Idee geometriche e visive (fase 2)
+
+* **Quattro colori, quattro diagonali.** *A schermo*: le palline colorate per colore (4 tinte); attorno al nucleo ogni
+  tinta mostra due "punte" opposte lungo una diagonale diversa del cubo: si **vede** che ogni colore ha un nucleo assiale
+  e che i 4 insieme ricostruiscono la simmetria cubica. *Perché*: è la struttura esatta della regola (§12.1). *Costo*:
+  nullo (un indice di parità per pallina). *Regole*: sì. Bonus pratico: un motore che simula un colore solo fa **4 volte
+  meno lavoro** con gli stessi livelli (proposta per `src/atomo/zz.rs`: `N³/4` siti, stesso tick).
+* **Le valli come un moiré.** *A schermo*: la densità di un livello del multipletto ha una trama a periodo 4 celle
+  (2 λ_C, già vista nelle esportazioni del Lab); il livello U ha un **buco** esattamente sulle due celle del nucleo, i
+  livelli bassi ci hanno un **picco**. *Perché*: è l'interferenza fra valli (k = π/2a). *Costo*: nullo. *Regole*: sì.
+* **Il nucleo imparato come "lente".** I due fattori (0,49 sui 2 siti vicini, 0,82 sui 6 seguenti) indeboliscono la punta
+  del Coulomb: si può disegnare come una lente che rende il nucleo "tondo" per tutte le valli. *Regole*: sono 2 numeri
+  imparati (debito), non fisica nuova.
+* **Cipolla 3-D vera** (resta l'idea migliore, §7.3): con i colori si capisce cosa deve fare il guscio interno: deve
+  rispettare le 4 diagonali (un icosaedro no; un **ottaedro/cubo troncato** sì, che è la cella di Wigner–Seitz del
+  reticolo bcc di un colore). *Costo/regole*: come §7.3.
+
+### 12.7 Debiti e parametri della fase 2
+
+* Nuovi numeri imparati: **2** (s0, s1 per Z = 60), imparati senza Dirac; non trasferibili ad altri Z senza re-imparare.
+* Scelto a mano: il criterio di apprendimento, la finestra delle righe [0,80; 0,95], pesi ≥ 0,03/0,05, la scatola 24/32,
+  la media sul cubo per il nucleo al centro (solo nell'emendamento), la funzione u_c della colla.
+* Correzione di bug dichiarata: l'inversione armonica (`pencil`) decimava troppo con segnali corti (a ≥ 0,4 e T = 500):
+  pesi assurdi (10¹²). Corretto (≥ 250 campioni) e **ri-corse** quelle 7 corse (scan nudo 0,5 e 0,4, imparato 0,5, i 4
+  eccitati); i risultati sbagliati sono conservati in `discarded_pencil_bug`. Nessuna soglia toccata.
+* Nella corsa "centro" la finestra di lettura delle righe è stata allargata a [0,55; 0,97] dopo un crash (nel colore del
+  nucleo non c'erano righe in [0,80; 0,95]); lo split dell'esame CN1 usa comunque [0,80; 0,95].
+
+### 12.8 Dove l'intuizione di Valerio può aiutare (fase 2)
+
+1. **Sedici elettroni in uno.** La regola che "corre a c lungo x, y, z" contiene 16 copie dell'elettrone. In natura ce
+   n'è uno. Secondo te le copie vanno **eliminate** (cambiando la regola: per esempio un passo che non sia sempre
+   diagonale) o **accettate** come "sapori" che il nucleo vero non mescola perché non è un punto? (Un nucleo con il suo
+   raggio vero non avrebbe la punta che mescola le valli.)
+2. **Quale delle quattro?** Due livelli non vedono il nucleo e stanno a −0,5 % da Dirac, due lo vedono troppo. La fisica
+   ci dice che l'elettrone 1s **sta** sul nucleo (densità massima lì). Ti sembra più giusto scegliere il livello "che non
+   vede il nucleo" o costruire un nucleo che tutti vedano allo stesso modo?
+3. **Il secondo numero.** Il nucleo imparato ha una "manopola" libera lungo una linea. Hai un'idea fisica di cosa
+   dovrebbe fissarla, senza guardare il risultato di Dirac?
+
+### 12.9 Come rieseguire (fase 2)
+
+    python lab/nucleo1s_3d.py                       # autotest: colore = regola completa, inversione armonica
+    python lab/nucleo1s_3d_prereg.py; python lab/nucleo1s_3d_amend.py
+    timeout 590 python lab/nucleo1s_3d_run.py lab; timeout 590 python lab/nucleo1s_3d_run.py learn   # rilanciare finché "learned"
+    for a in 0.5 0.4 0.3 0.24 0.2 0.16; do timeout 590 python lab/nucleo1s_3d_run.py scan $a bare; done
+    for a in 0.5 0.4 0.3 0.24 0.2; do timeout 590 python lab/nucleo1s_3d_run.py scan $a learned; done
+    for a in 0.5 0.4; do for c in bare learned; do timeout 590 python lab/nucleo1s_3d_run.py excited $a $c; done; done
+    timeout 590 python lab/nucleo1s_3d_run.py glue; for a in 0.5 0.3; do timeout 590 python lab/nucleo1s_3d_run.py centre $a; done
+    python lab/nucleo1s_3d_judge.py; python lab/nucleo1s_3d_figure.py

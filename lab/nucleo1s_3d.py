@@ -226,6 +226,7 @@ def pencil(c, a, wlo, whi, rank_tol=1e-7, L_frac=0.4):
     x = c * np.exp(1j * wc * a * n)                       # band centre -> 0
     # FIR low-pass (Hann-windowed sinc), cutoff 1.6 bw, applied without phase shift (valid part only)
     D = max(1, int(np.floor(np.pi / (a * 3.2 * bw))))     # decimation keeps |omega - wc| < pi/(D a)
+    D = max(1, min(D, N // 300))                          # keep >= ~250 samples after decimation (fix, phase 2)
     half = 6 * D
     k = np.arange(-half, half + 1)
     h = np.sinc(2 * 1.6 * bw * a / (2 * np.pi) * k) * np.hanning(2 * half + 1)

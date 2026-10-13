@@ -215,7 +215,7 @@ def part_scan(a, cfgname):
         return
     L = lines(C[0], a, 0.80, 0.95)
     qq = quartet([x for x in L if x["weight"] >= 0.03])
-    rec = dict(a=a, n=n, s=s, nt=nt, lines=L, quartet=qq, binding=1 - qq["centroid"], dirac_binding=1 - D1S,
+    rec = dict(a=a, n=n, s=s, nt=nt, lines=L, quartet=qq, C_re=C[0].real.tolist(), C_im=C[0].imag.tolist(), binding=1 - qq["centroid"], dirac_binding=1 - D1S,
                rel=(1 - qq["centroid"]) / (1 - D1S) - 1)
     log(key, rec["quartet"], f"rel {100 * rec['rel']:+.3f} %")
     save(key, rec)
@@ -278,7 +278,7 @@ def part_excited(a, cfgname):
     C = listen_ck(col, (E, O), nt, f"exc_{cfgname}_{a}", refs=refs)
     if C is None:
         return
-    rec = dict(a=a, n=n, s=s, nt=nt, radial_same_a=omr)
+    rec = dict(a=a, n=n, s=s, nt=nt, radial_same_a=omr, C_re=C.real.tolist(), C_im=C.imag.tolist())
     for i, k in enumerate(kinds):
         L = lines(C[i], a, 0.955, 0.995, wmin=0.01)
         rec[k] = L
@@ -304,9 +304,10 @@ def part_centre(a):
         C = listen_ck(col, start_1s(col, a), nt, f"centre_{a}_{q[0]}{q[1]}{q[2]}")
         if C is None:
             save(key, out); return
-        L = lines(C[0], a, 0.80, 0.95)
-        strong = [x for x in L if x["weight"] >= 0.05]
-        out[str(q)] = dict(lines=L, quartet=quartet([x for x in L if x["weight"] >= 0.03]),
+        L = lines(C[0], a, 0.55, 0.97)
+        strong = [x for x in L if x["weight"] >= 0.05 and 0.80 <= x["omega"] <= 0.95]
+        L1s = [x for x in L if x["weight"] >= 0.03 and 0.80 <= x["omega"] <= 0.95]
+        out[str(q)] = dict(lines=L, quartet=quartet(L1s) if L1s else None, C_re=C[0].real.tolist(), C_im=C[0].imag.tolist(),
                            split=float(max(x["omega"] for x in strong) - min(x["omega"] for x in strong)) if strong else None,
                            r_min=float(min(col.rE.min(), col.rO.min())))
         log(key, q, out[str(q)]["split"], [(round(x["omega"], 6), round(x["weight"], 3)) for x in L])
