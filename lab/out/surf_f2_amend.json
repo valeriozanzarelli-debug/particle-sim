@@ -17,6 +17,11 @@
    "what": "POST-HOC surf_f2_overlap.py: overlaps of the old E5 state (listened at 0.89945) with the exact Ritz levels, and Sigma_z of the reconstruction. Not an exam."
   },
   {
+   "id": "B5",
+   "when": "after part-2 production, on the coordinator's warning (SOTTORETICOLO, master 178743d)",
+   "what": "POST-HOC surf_f2_colori.py: E5 and S5 were measured on the full 48^3 cube (sum of the 4 colours). Each colour evolved alone: weight, Sigma_z and two-tick-flux v_phi (density-weighted as a ratio of sums so it is defined on one colour). Not an exam."
+  },
+  {
    "id": "B4",
    "when": "after part-2 production",
    "what": "S4: the smeared-nucleus listening locked on 0.9094 and gave a state with only 57 % in the k = 0 valley; it is reported as measured (FAIL). The diagnostic did not isolate one valley, so S4 says nothing either way about the cause; the cause is answered by B3."

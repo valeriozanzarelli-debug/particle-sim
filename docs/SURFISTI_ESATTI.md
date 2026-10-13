@@ -426,7 +426,7 @@ lettore. Togliere le 25 rinascite per passo.
 ## 12. Fase 2: Valentini sul reticolo e il mistero dello spin dell'1s
 
 Pre-registrazione: `lab/surf_f2_prereg.py` → `lab/out/surf_f2_prereg.json` (commit 7d6f4ef, prima delle corse).
-Emendamenti dichiarati: `lab/out/surf_f2_amend.json` (B1–B4, nessuna soglia cambiata). Tabellone:
+Emendamenti dichiarati: `lab/out/surf_f2_amend.json` (B1–B5, nessuna soglia cambiata). Tabellone:
 `lab/out/surf_f2_results.json`. Figura: `lab/out/surf_f2_figure.png`. **Esiti: PASS 6, FAIL 6.**
 
 ![fase 2](../lab/out/surf_f2_figure.png)
@@ -544,6 +544,27 @@ valli ≠ 0 è **meno** Σz del laboratorio.
    e lo stato ha solo il 57 % nella valle 0. Con il nucleo liscio le 4 valli hanno livelli quasi uguali e non si
    accoppiano, e l'ascolto con 2×4096 tick non sceglie una valle. Riporto il FAIL; la causa la dà il punto 2.
 
+**Un colore o quattro? (avviso SOTTORETICOLO, master 178743d; post-hoc B5, `lab/surf_f2_colori.py` →
+`lab/out/surf_f2_colori.json`).** Il thread principale ha trovato che il cubo 48³ sono 4 "colori" (sottoreticoli,
+parità di i+j e j+k) che non si scambiano mai niente, e che un colore da solo risponde storto (anisotropo) al campo
+della luce. Domanda: E5 misurava un colore solo? **No: E5 e S5 usano il cubo intero, cioè la somma dei 4 colori**
+(`Walk3D` su tutte le 48³ celle; surfisti campionati sull'intera |ψ|²). Ho comunque fatto evolvere ogni colore da
+solo (fuga verso gli altri colori dopo 2 tick: 0 esatto) e misurato la sua rotazione (v_φ come rapporto di somme,
+così è definita anche dove la densità è zero in 3 celle su 4; la somma pesata ridà il totale esattamente):
+
+| stato | ⟨Σz⟩ per colore 00 = 01 / 10 = 11 | v_φ/(Zα sinθ) per colore 00 = 01 / 10 = 11 | totale |
+|---|---|---|---|
+| E5 (vecchio) | 0,495 / 0,520 | 0,229 / 0,239 | 0,234 |
+| livello 0,89930 | 0,927 / 0,927 | 0 / 0 | 0 |
+| livello 0,89960 | 0,104 / 0,104 | 0 / 0 | 0 |
+
+Quindi **l'anisotropia dei colori non spiega niente del FAIL di E5**: ogni colore ha già lo stesso spin "sciolto" e
+la stessa rotazione lenta (differenze del 2–5 % fra le due coppie di colori, che si compensano nella somma). La
+causa è tutta la mescolanza delle valli, che avviene **dentro ogni colore** (SOTTORETICOLO: livelli identici su un
+colore a 10⁻¹⁶). Attenzione per il futuro: la rotazione media attorno a z è una grandezza "rotonda" e sopravvive su un
+colore; dipoli e risposte trasverse (x, y) no, come dice SOTTORETICOLO. I surfisti del Laboratorio vanno quindi
+sempre messi sulla somma dei 4 colori (o sullo schema a due colori + rotazione di 180° proposto lì).
+
 **Perché non a più piccolo?** (scritto nella pre-registrazione) La mescolanza delle valli viene dal nucleo
 puntiforme sull'angolo della cella e non sparisce con a (BATTIMENTO_1S); a = 0,25 (96³) costa 8× in memoria e
 16× in tempo e avrebbe dato lo stesso quartetto. La strada giusta è separare le valli (sotto).
@@ -587,4 +608,5 @@ puntiforme sull'angolo della cella e non sparisce con a (BATTIMENTO_1S); a = 0,2
 * `lab/surf_f2_posthoc.py <0..5>` (driver `lab/surf_f2_drive3.sh`) → `lab/out/surf_f2_posthoc.json` (B1).
 * `lab/surf_f2_valli.py ritz|smooth|analyze` (driver `lab/surf_f2_drive2.sh`) → `lab/out/surf_f2_valli.json`.
 * `lab/surf_f2_overlap.py` → `lab/out/surf_f2_overlap.json` (B3).
+* `lab/surf_f2_colori.py` → `lab/out/surf_f2_colori.json` (B5, un colore contro la somma dei 4).
 * `lab/surf_f2_figure.py` → `lab/out/surf_f2_figure.png`, `lab/out/surf_f2_results.json`.
