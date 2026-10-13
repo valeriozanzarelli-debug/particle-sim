@@ -1,0 +1,39 @@
+{
+ "studio": "RIFLUSSO, domanda Q1b (regime ultrarelativistico di Dirac)",
+ "data": "2026-10-13",
+ "previsione": "lim_{eps->inf} c_rbf(eps) * eps^2 = 1/pi = 0.3183099 (c_rbf ~ m c^2 T/(4 pi hbar))",
+ "configurazioni": {
+  "eps": [
+   2.5,
+   5,
+   10,
+   20,
+   50,
+   100,
+   200,
+   500,
+   1000,
+   3000,
+   10000
+  ],
+  "taglio": "P = X/T, X in {50,100,200,400,800,1600}, estrapolato in 1/P",
+  "griglia": "dirac_grid(geo=True), cosc = 4, controllo a cosc = 2"
+ },
+ "esami": [
+  {
+   "id": "Q1b-1",
+   "cosa": "delta(eps) = 1 - pi c eps^2 per eps in {200,500,1000,3000,10000}",
+   "soglia": "delta decresce in modo monotono e |delta(10000)| <= 1%"
+  },
+  {
+   "id": "Q1b-2",
+   "cosa": "la regola zig-zag a theta piccolo nello stesso regime (theta N = m T fisso piccolo)",
+   "soglia": "regola(a->0) entro 1% del Dirac continuo a eps = 10 e eps = 5 (completa E3)"
+  }
+ ],
+ "sviluppo_gia_visto": {
+  "eps20": 0.0006772,
+  "eps100": 3.1173e-05
+ },
+ "parametri_liberi": 0
+}

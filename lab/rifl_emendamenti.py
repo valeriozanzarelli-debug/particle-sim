@@ -15,6 +15,10 @@ em = [
     {"id": "A5", "esame": "E1", "cambio": "taglio massimo in impulso scelto per tenere la matrice <= ~6000 (memoria); "
                                          "un processo con matrice ~10000 e' stato ucciso per memoria",
      "quando": "durante E1", "effetto_sulle_soglie": "nessuno"},
+    {"id": "A6", "esame": "tutti", "cambio": ("difetto della griglia adattiva (pannello calcolato col ritmo di fase al bordo "
+                                           "sinistro: primo pannello troppo lungo). Visto in E2 a U = 40 (0,0320 invece di "
+                                           "0,0373). Corretto (ritmo al bordo destro) e RIFATTE tutte le corse r1, r2"),
+     "quando": "dopo la prima corsa E2", "effetto_sulle_soglie": "nessuno"},
 ]
 out = os.path.join(os.path.dirname(os.path.abspath(__file__)), "out", "rifl_emendamenti.json")
 json.dump(em, open(out, "w"), indent=1, ensure_ascii=False)

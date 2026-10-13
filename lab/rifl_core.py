@@ -51,6 +51,10 @@ def gl_adaptive(lo, hi, rate, cosc=6.0, npt=24, hmax=None):
         h = cosc / max(rate(x), 1e-300)
         if hmax is not None:
             h = min(h, hmax)
+        # correzione: la fase cresce dentro il pannello; uso il ritmo al bordo destro (difetto trovato
+        # in E2: il primo pannello era troppo lungo vicino a k = 0)
+        for _ in range(4):
+            h = min(h, cosc / max(rate(min(hi, x + h)), 1e-300))
         x = min(hi, x + h)
         edges.append(x)
     edges = np.array(edges)
@@ -166,16 +170,20 @@ def dirac_modes(p, m=1.0):
     return E, R, L
 
 
-def dirac_grid(T, pmax, cosc=6.0, m=1.0, pmin=0.0, npt=24):
+def dirac_grid(T, pmax, cosc=6.0, m=1.0, pmin=0.0, npt=24, geo=False):
+    """geo=True (per eps grandi, T << 1/m): sotto p ~ 1/T il nucleo non oscilla; i pannelli crescono
+    in modo geometrico (ritmo 2/(p+m)) invece di avere lunghezza fissa."""
     def rate(p):
         v = p / np.sqrt(p * p + m * m)
+        if geo:
+            return max(v * T / 2, 2.0 / (p + m))
         return max(v * T / 2, 1.0, 0.5 * np.sqrt(T / (2 * m)))
     return gl_adaptive(pmin, pmax, rate, cosc, npt, hmax=(pmax - pmin) / 4)
 
 
-def dirac_backflow(T, pmax, nint=None, npt=24, m=1.0, pmin=0.0, cosc=6.0):
+def dirac_backflow(T, pmax, nint=None, npt=24, m=1.0, pmin=0.0, cosc=6.0, geo=False):
     if nint is None:
-        p, w = dirac_grid(T, pmax, cosc, m, pmin, npt)
+        p, w = dirac_grid(T, pmax, cosc, m, pmin, npt, geo)
     else:
         p, w = gl_composite(pmin, pmax, nint, npt)
     E, R, L = dirac_modes(p, m)

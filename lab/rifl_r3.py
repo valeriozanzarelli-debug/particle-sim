@@ -28,23 +28,26 @@ def fit_inv(P, lam, nterm):
 t0 = time.time()
 part = sys.argv[1]
 if part == "Q1":
+    # griglia geometrica (geo=True) e taglio P = X/T (prereg2); la prima versione aveva P troppo basso
+    if "Q1_eps" in res and "Q1_vecchio_taglio_basso" not in res:
+        res["Q1_vecchio_taglio_basso"] = {"Q1_eps": res.pop("Q1_eps"), "Q1": res.pop("Q1", None)}
     eps = float(sys.argv[2])
     T = 4 / eps**2
     COSC = 4.0
-    p_, _ = dirac_grid(T, 1000.0 / T, COSC)
-    Pmax = (1000.0 / T) * 6000.0 / len(p_)          # M <= ~6000 (memoria)
-    Ps = Pmax / 2.0 ** np.arange(5)[::-1]
+    Xs = [50, 100, 200, 400, 800, 1600]
+    Ps = [X / T for X in Xs]
     lam = []
     for P in Ps:
-        lam.append(dirac_backflow(T, P, cosc=COSC))
+        lam.append(dirac_backflow(T, P, cosc=COSC, geo=True))
         print("Q1", eps, P, lam[-1], "%.0fs" % (time.time() - t0), flush=True)
-    chk = dirac_backflow(T, Ps[-3], cosc=COSC / 2) - lam[-3]
+    chk = dirac_backflow(T, Ps[-3], cosc=COSC / 2, geo=True) - lam[-3]
     ext = {f"fit{n}": fit_inv(Ps[-(n + 1):], lam[-(n + 1):], n) for n in (2, 3, 4)}
     best = ext["fit3"]
     unc = max(abs(ext["fit2"] - best), abs(ext["fit4"] - best))
     res.setdefault("Q1_eps", {})[f"{eps:g}"] = {"T": T, "P": list(Ps), "lambda": lam, "risoluzione": chk,
-                                              "estrapolazioni": ext, "c_rbf": best, "incertezza": unc}
-    print("Q1", eps, best, "+-", unc, flush=True)
+                                              "estrapolazioni": ext, "c_rbf": best, "incertezza": unc,
+                                              "c_eps2": best * eps**2, "delta_1_su_pi": 1 - np.pi * best * eps**2}
+    print("Q1", eps, best, "+-", unc, "c eps^2 =", best * eps**2, flush=True)
     part = f"Q1_{eps:g}"
 elif part == "Q1sum":
     d = res["Q1_eps"]
@@ -59,6 +62,14 @@ elif part == "Q1sum":
     alpha = 7.2973525693e-3
     lit = {f"{x:g}": C_BM * np.exp(-(4 * x / 9) * (1 - 4 * alpha * x)) for x in e}
     # c * eps^2 (= c * 4/(mT)): se gamma = 2 tende a una costante
+    dl = {f"{x:g}": float(1 - np.pi * y * x**2) for x, y in zip(e, c)}
+    big = [x for x in e if x >= 200]
+    dd = [dl[f"{x:g}"] for x in big]
+    q1b = {"delta": dl, "monotono": bool(all(abs(dd[i + 1]) < abs(dd[i]) for i in range(len(dd) - 1))),
+           "delta_10000": dl.get("10000"), "PASS": None}
+    if q1b["delta_10000"] is not None:
+        q1b["PASS"] = bool(q1b["monotono"] and abs(q1b["delta_10000"]) <= 0.01)
+    res["Q1b"] = q1b
     res["Q1"] = {"eps": list(e), "c_rbf": list(c), "fit_potenza": fits,
                  "gamma_stabile_0.05": bool(abs(fits["20-50"]["gamma"] - fits["50-100"]["gamma"]) <= 0.05),
                  "c_eps2": list(c * e**2), "fit_letteratura": lit, "per_eps": d}
