@@ -1,0 +1,30 @@
+{
+ "amends": "lab/out/nucleo1s_f5_prereg.json (commit 89e99f2)",
+ "bare_T": {
+  "20": 2000.0
+ },
+ "junction_extra": [
+  {
+   "a": 0.25,
+   "k": [
+    0.2,
+    0,
+    0
+   ],
+   "Ny": 1,
+   "Nz": 1,
+   "sig": 25.0
+  },
+  {
+   "a": 0.25,
+   "k": [
+    0.4,
+    0,
+    0
+   ],
+   "Ny": 1,
+   "Nz": 1,
+   "sig": 25.0
+  }
+ ]
+}

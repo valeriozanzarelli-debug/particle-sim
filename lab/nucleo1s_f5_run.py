@@ -11,6 +11,8 @@ from zz_core import ALPHA, dirac_formula  # noqa: E402
 OUT = B.OUT
 RES = os.path.join(OUT, "nucleo1s_f5_results.json")
 P5 = json.load(open(os.path.join(OUT, "nucleo1s_f5_prereg.json")))
+_AM = os.path.join(OUT, "nucleo1s_f5_amend1.json")
+AM = json.load(open(_AM)) if os.path.exists(_AM) else {}
 T0 = time.time()
 
 
@@ -80,7 +82,8 @@ def part_learn(Z):
     a, nt = cfg["a"], int(round(cfg["T"] / cfg["a"]))
     Za = Z * ALPHA
     n = int(round(box(Z) / a / 2)) * 2
-    U = load()[f"bare_Z{Z}_{a}"]["U"]
+    T = AM.get("bare_T", {}).get(str(Z), P5["config"]["bare_T"])
+    U = load()[f"bare_Z{Z}_{a}" if T == P5["config"]["bare_T"] else f"bare_Z{Z}_{a}_T{int(T)}"]["U"]
     key = f"learn_Z{Z}"
     d = load().get(key, {"evals": [], "U_bare": U})
     if d.get("done"):
@@ -122,7 +125,9 @@ if __name__ == "__main__":
     p = sys.argv[1]
     if p == "bare":
         Z, a = int(sys.argv[2]), float(sys.argv[3])
-        scan(Z, a, (1.0, 1.0), f"bare_Z{Z}_{a}", P5["config"]["bare_T"])
+        T = AM.get("bare_T", {}).get(str(Z), P5["config"]["bare_T"])
+        key = f"bare_Z{Z}_{a}" if T == P5["config"]["bare_T"] else f"bare_Z{Z}_{a}_T{int(T)}"
+        scan(Z, a, (1.0, 1.0), key, T)
     elif p == "learn":
         part_learn(int(sys.argv[2]))
     elif p == "use":

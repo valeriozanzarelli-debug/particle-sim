@@ -106,6 +106,9 @@ def run(a=0.25, k=(0.4, 0.0, 0.0), sig=12.0, Ny=1, Nz=1, m=1.0, thj=None, steps=
 
 if __name__ == "__main__":
     cases = json.load(open(os.path.join(OUT, "nucleo1s_f5_prereg.json")))["config"]["junction"]["cases"]
+    am = os.path.join(OUT, "nucleo1s_f5_amend1.json")
+    if os.path.exists(am):
+        cases = cases + json.load(open(am)).get("junction_extra", [])
     outp = os.path.join(OUT, "nucleo1s_junction3d.json")
     res = json.load(open(outp)) if os.path.exists(outp) else []
     done = {json.dumps(r["case"]) for r in res}
