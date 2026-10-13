@@ -1,0 +1,81 @@
+{
+ "study": "NUCLEO_1S phase 4",
+ "date": "2026-10-13",
+ "Z": 60,
+ "keeps": "all thresholds of nucleo1s_prereg, nucleo1s_3d_prereg, nucleo1s_3d_amend1, nucleo1s_f3_prereg unchanged",
+ "config": {
+  "learn3": {
+   "n": 80,
+   "a": 0.3,
+   "nt": 1667,
+   "U": "as learn2, from results['scan_bare_0.3']",
+   "objective": "std^2 + (centroid - U)^2 (as learn2)",
+   "start": [
+    0.5546,
+    1.0035
+   ],
+   "simplex": [
+    [
+     0.5546,
+     1.0035
+    ],
+    [
+     0.5646,
+     1.0385
+    ],
+    [
+     0.5646,
+     1.0035
+    ]
+   ],
+   "maxfev": 30
+  },
+  "first_lattice": "learn2 of phase 3 (a = 0.5, s = (0.554593, 1.003549)), unchanged",
+  "law_main": "transfer: g(a) = a",
+  "law_reported": "transferP: g(a) = a^(2 - 2 gamma), gamma = sqrt(1 - (Z alpha)^2)",
+  "scan": {
+   "box": 24.0,
+   "T": 500.0,
+   "a_test": [
+    0.4,
+    0.24,
+    0.2
+   ],
+   "a_reported": [
+    0.16
+   ]
+  },
+  "excited": {
+   "cfg": "transfer",
+   "box": 32.0,
+   "T": 1500.0,
+   "a": [
+    0.4
+   ]
+  }
+ },
+ "knobs": "2 learned numbers per lattice x 2 lattices = 4 numbers, fixed by the internal criterion; the law has no knob",
+ "exams": {
+  "Q1": {
+   "what": "training at a = 0.3: spread <= 0.002 mc^2 and |centroid - U(0.3)| <= 5e-4 mc^2",
+   "spread": 0.002,
+   "dU": 0.0005
+  },
+  "Q2": {
+   "what": "MAIN: with the transfer law g = a, at every TEST lattice a = 0.4, 0.24, 0.2 the 1s centroid binding is within 1 % of Dirac (omega 0.899052) AND the spread (lines weight >= 0.05 in [0.80, 0.95]) is <= 0.002",
+   "tol": 0.01,
+   "spread": 0.002
+  },
+  "Q3": {
+   "what": "excited states not worse at a = 0.4 (box 32), transfer law: mean |binding error| of the 4 excited starts <= bare (rule of M4)"
+  },
+  "Q4": {
+   "what": "cost, only if Q2 passes: cells (box 24) at the coarsest TEST lattice that passes vs 6.1e6 of the bare uniform lattice: ratio >= 10",
+   "min_ratio": 10
+  }
+ },
+ "reported_not_judged": [
+  "transferP at a = 0.4, 0.24, 0.2",
+  "transfer at a = 0.16"
+ ]
+}

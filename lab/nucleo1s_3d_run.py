@@ -207,7 +207,7 @@ def part_scan(a, cfgname):
         log("have", key); return
     box = PRE["config"]["scan"]["box"]
     n = int(round(box / a / 2)) * 2
-    s = (1.0, 1.0) if cfgname == "bare" else learned_s("learn2" if cfgname == "learned2" else "learn")
+    s = s_for(cfgname, a)
     nt = int(round(PRE["config"]["scan"]["T"] / a))
     col = make_colour(n, a, Za, s=s)
     C = listen_ck(col, start_1s(col, a), nt, f"scan_{cfgname}_{a}")
@@ -268,7 +268,7 @@ def part_excited(a, cfgname):
         log("have", key); return
     box = PRE["config"]["excited"]["box"]
     n = int(round(box / a / 2)) * 2
-    s = (1.0, 1.0) if cfgname == "bare" else learned_s("learn2" if cfgname == "learned2" else "learn")
+    s = s_for(cfgname, a)
     nt = int(round(PRE["config"]["excited"]["T"] / a))
     col = make_colour(n, a, Za, s=s)
     kinds, refs, omr = start_excited(col, a)
@@ -314,21 +314,48 @@ def part_centre(a):
         save(key, out)
 
 
+def s_for(cfgname, a):
+    """the nucleus factors for a configuration at lattice a.
+    bare: (1, 1); learned / learned2: the phase-2 / phase-3 numbers (same at every a);
+    transfer / transferP (phase 4, lab/out/nucleo1s_f4_prereg.json): s_i(a) = A_i + B_i g(a) through the two learned
+    lattices (learn2 at a = 0.5, learn3 at a = 0.3), g(a) = a (transfer, main) or a^(2 - 2 gamma) (transferP, reported)."""
+    if cfgname == "bare":
+        return (1.0, 1.0)
+    if cfgname in ("learned", "learned2"):
+        return learned_s("learn2" if cfgname == "learned2" else "learn")
+    P4 = json.load(open(os.path.join(OUT, "nucleo1s_f4_prereg.json")))
+    gam = np.sqrt(1 - Za**2)
+    g = (lambda x: x) if cfgname == "transfer" else (lambda x: x**(2 - 2 * gam))
+    aA, aB = 0.5, P4["config"]["learn3"]["a"]
+    sA, sB = np.array(learned_s("learn2")), np.array(learned_s("learn3"))
+    out = sA + (sB - sA) * (g(a) - g(aA)) / (g(aB) - g(aA))
+    return (round(float(out[0]), 6), round(float(out[1]), 6))
+
+
+def part_learn3():
+    """phase 4: the same second internal criterion as learn2, on the second lattice (lab/out/nucleo1s_f4_prereg.json)"""
+    P4 = json.load(open(os.path.join(OUT, "nucleo1s_f4_prereg.json")))
+    part_learnU("learn3", P4["config"]["learn3"])
+
+
 def part_learn2():
+    P3 = json.load(open(os.path.join(OUT, "nucleo1s_f3_prereg.json")))
+    part_learnU("learn2", P3["config"]["learn2"])
+
+
+def part_learnU(key, cfg):
     """phase 3 (lab/out/nucleo1s_f3_prereg.json): the SECOND internal criterion. The 4 lines must become one AND sit at
     the level of the bare rule's nucleus-blind pair U (the two levels of the bare multiplet that do not see the nucleus;
     taken from scan_bare_0.5, a number of the rule, not of Dirac). Objective: std^2 + (centroid - U)^2."""
-    P3 = json.load(open(os.path.join(OUT, "nucleo1s_f3_prereg.json")))
-    cfg = P3["config"]["learn2"]
     n, a, nt = cfg["n"], cfg["a"], cfg["nt"]
-    bl = load()["scan_bare_0.5"]["lines"]
+    bl = load()[f"scan_bare_{a}"]["lines"]
     s_ = sorted(bl, key=lambda x: -x["omega"]); w = o = 0.0
     for x in s_:
         w += x["weight"]; o += x["weight"] * x["omega"]
         if w >= 0.4:
             break
     U = o / w
-    d = load().get("learn2", {"evals": [], "U_bare": U})
+    d = load().get(key, {"evals": [], "U_bare": U})
     cache = {tuple(e["s"]): e["obj"] for e in d["evals"]}
 
     def f(s):
@@ -340,13 +367,13 @@ def part_learn2():
         if not (0 <= s[0] <= 2.5 and 0 <= s[1] <= 2.5):
             return 1.0
         col = make_colour(n, a, Za, s=s)
-        C = listen_ck(col, start_1s(col, a), nt, "learn2", chunk_s=1e9)
+        C = listen_ck(col, start_1s(col, a), nt, key, chunk_s=1e9)
         L = [x for x in lines(C[0], a, 0.80, 0.95) if x["weight"] >= 0.03]
         qq = quartet(L)
         obj = qq["std"]**2 + (qq["centroid"] - U)**2
         cache[s] = obj
         d["evals"].append(dict(s=list(s), obj=obj, std=qq["std"], centroid=qq["centroid"], lines=L))
-        save("learn2", d)
+        save(key, d)
         log("eval", s, qq, "obj", obj)
         return obj
     from scipy.optimize import minimize
@@ -357,8 +384,8 @@ def part_learn2():
         log("time budget: run again"); return
     best = min(d["evals"], key=lambda e: e["obj"])
     d.update(s=best["s"], std=best["std"], centroid=best["centroid"], dU=best["centroid"] - U, done=True)
-    log("learned2", d["s"], d["std"], d["dU"])
-    save("learn2", d)
+    log("learned" + key[-1], d["s"], d["std"], d["dU"])
+    save(key, d)
 
 
 def part_glue():
@@ -381,6 +408,8 @@ if __name__ == "__main__":
         part_centre(float(sys.argv[2]))
     elif p == "learn2":
         part_learn2()
+    elif p == "learn3":
+        part_learn3()
     elif p == "glue":
         part_glue()
     log("done", p)
