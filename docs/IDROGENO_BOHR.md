@@ -624,3 +624,179 @@ python3 lab/idro_regola_P4.py; IDRO_ASSET=assets/atomo/agglomerato_zz_P4_v1.json
 ```
 
 **Video.** Nessun nuovo dato: i fotogrammi della fase 2 restano validi, perché l'ibrido filtrato è uguale entro 10⁻⁵.
+
+## 13. Fase 4: la cucitura, la massa del maestro, il grosso di default (13/10)
+
+Pre-registrazione: `lab/out/idrogeno_bohr_fase4_prereg.json`, committata **prima** delle corse di produzione
+(commit 9be2ca3), con le corse di sviluppo già fatte scritte dentro. Emendamento 1 (commit 9bf3421): solo il salvataggio e
+la ripresa delle corse lunghe, per stare nei 10 minuti per script; soglie invariate.
+
+Tre lavori:
+1. **la cucitura** fra il blocco fine (zig-zag) e la regola grossa;
+2. **la massa del maestro** (il +0,034 % del 2p), da sistemare con l'agglomeratore e non a mano;
+3. **il grosso di default**: regola T + bordi ritorti (0, π) + coda di Born sulla cella del nucleo, come emendamento
+   dichiarato (i numeri del filone debiti, rifatti con la regola nuova).
+
+Figura: `lab/out/idrogeno_bohr_fase4_figura.png`.
+
+### 13.1 La cucitura
+
+**Il bug trovato.** Il blocco fine prende il suo bordo (l'alone) dalla regola grossa. Per la componente piccola del
+campo (χ = Σ G_j(−i∂_j)φ) serve una derivata. All'ultima cella grossa del patch il codice faceva la differenza centrata
+con l'indice "bloccato" al bordo: in pratica **metà derivata**. Quindi al bordo dell'alone la corrente era sbagliata.
+- Effetto: il blocco **perdeva carica** di ~5·10⁻⁶ per passo, sempre nello stesso verso. È proprio la perdita che in
+  fase 2 avevamo tappato col reflux.
+- Correzione: al bordo una differenza unilatera del secondo ordine, (−3, 4, −1)/2. Zero parametri.
+  (Il vecchio comportamento resta con `IDRO_BORDO_VECCHIO=1`.)
+- Con la correzione la perdita scende a **3·10⁻⁸ per passo** (mediana). Il reflux resta acceso ma non ha quasi più niente
+  da fare.
+
+**La partenza.** Partire dall'1s grosso vuol dire partire con un po' di stati eccitati mescolati, perché l'ibrido è
+più legato dell'1s grosso. Questi battono su tempi di ~1 unità atomica, cioè migliaia di passi: un filtro corto non può
+toglierli (il filtro della fase 3 toglieva solo roba a centinaia di Hartree).
+Nuova partenza (`IDRO_PARTENZA=veff:M:R`), **senza regola fittata**:
+- si fanno M passi dell'ibrido;
+- su ogni cella coperta dal blocco si misura quanta fase l'ibrido aggiunge rispetto al passo grosso semplice: è un
+  potenziale locale V_c (sul nucleo +50 eV, cioè una cella sola che "spinge" diversamente);
+- si prende lo stato più basso della regola grossa + V + V_c, e si ripete R volte (converge in 2 giri: 1−|⟨prima|dopo⟩|² = 3·10⁻¹⁴).
+Cambia **solo lo stato di partenza**: dopo, la dinamica è l'ibrido senza aggiunte. M = 32, R = 2–3, dichiarati.
+
+**Esami della cucitura** (N = 128, ±4 a0, blocco 7, 240 passi; pavimento = la stessa misura con la sola regola grossa):
+
+| esame | fase 3 | fase 4 | pavimento | soglia | esito |
+|---|---|---|---|---|---|
+| C1 perdita di carica per passo (mediana) | ~5·10⁻⁶ | **3,1·10⁻⁸** | 0 | ≤ 2·10⁻⁷ | PASS |
+| C2 stazionarietà delle celle grosse fuori dal blocco | 3·10⁻⁴ (tutte) | **1,7·10⁻⁵** | 1,9·10⁻⁶ | ≤ 10 × pavimento | PASS (8,9 ×) |
+| C2b stazionarietà grosso (tutte le celle) | 3,0·10⁻⁴ | **1,1·10⁻⁵** | | ≤ 1·10⁻⁴ | PASS |
+| C3 corrente fuori dal blocco (α c/a0³) | 2,7·10⁻⁴ | **1,24·10⁻⁴** | 7,1·10⁻⁷ | ≤ 10 × pavimento | **FAIL** (175 ×, previsto) |
+| corrente sulle celle coperte | 1,66·10⁻³ | 1,48·10⁻³ | | descrittivo | |
+| stazionarietà del blocco fine | 5,3·10⁻⁴ | 3,0·10⁻⁴ | | descrittivo | |
+
+- **Stazionarietà: 30 volte meglio**, ora a 9 volte il pavimento.
+- **Corrente: non risolta.** Fuori dal blocco resta 1,2·10⁻⁴ ed è **costante** nel tempo, quindi non è un transitorio.
+  È un flusso fermo della cucitura: il grosso "vede" le celle coperte (che sono solo la media del campo fine) con una
+  fase un po' diversa dalla sua, e la legge come una corrente.
+  - In velocità vale j/ρ ≈ 4·10⁻⁴ α c, cioè 4 decimillesimi della velocità dell'elettrone nell'1s.
+  - Previsione scritta prima: FAIL. Giusta.
+
+**Convergenza nel blocco** (N = 128, 144 passi, finestra [72,144], partenza veff; ibrido/grosso − 1 in 10⁻⁴):
+
+| blocco | 3 | 5 | 7 | 9 | 11 |
+|---|---|---|---|---|---|
+| fase 4 (bordo giusto) | 0,18 | 2,05 | **5,58** | **5,30** | **5,56** |
+| sviluppo, bordo vecchio (48 passi) | 0,72 | 2,37 | 4,88 | 3,44 | 2,60 |
+
+- **V2 plateau: PASS.** 7, 9 e 11 stanno dentro ±1,5·10⁻⁵ (|E11−E9| = 2,6·10⁻⁵, soglia 3·10⁻⁵; |E9−E7| = 2,8·10⁻⁵, soglia
+  1·10⁻⁴). In fase 3 i blocchi 7 e 9 differivano di 1,7·10⁻⁴ e la serie col bordo vecchio **scende** dopo il 7 invece
+  di fermarsi.
+- **V1 monotona: FAIL.** Dal 7 al 9 l'energia risale di 2,8·10⁻⁵ (soglia 1·10⁻⁵). Il residuo della cucitura è sceso
+  da ~2·10⁻⁴ a ~3·10⁻⁵, ma non è zero.
+- **V3 "picco": FAIL** (1,9·10⁻⁴). Questo esame però misura la curvatura: una serie che sale e poi si ferma al 7 lo
+  sbaglia per costruzione. La previsione "V3 PASS" era sbagliata e lo dico.
+- Detto semplice: con il bordo giusto **il blocco converge** (plateau a 5,5·10⁻⁴ sopra il grosso). La bolla al 7 è
+  rimasta ma è 6 volte più piccola.
+
+**Energia a N = 256 (C4/R)** (±8 a0, blocco 9, 120 passi, partenza veff, regola nuova): **−13,591198 eV, −0,0535 % da
+Dirac×μ**, PASS (soglia 0,10 %). Lettura stabile fra le finestre entro 2·10⁻⁶.
+- Il grosso da solo (motore Rust, potenziale come media di cella) sta a −0,1116 %; il blocco fine porta +0,058 %.
+- In fase 3 l'ibrido stava a −0,021 %, ma lì aiutava la massa sbagliata del maestro (+0,037 %). Tolta quella, il numero
+  è **più onesto e un po' più lontano**: il −0,05 % che resta è il potenziale "media di cella" del grosso del Rust fuori
+  dal blocco (vedi §13.3: nel Rust non c'è ancora il campo di Galerkin).
+
+### 13.2 La massa del maestro
+
+Il maestro è il cammino zig-zag fine da cui l'agglomeratore impara la regola grossa. Con cella θ = a0/4096 la sua massa
+cinetica è tan θ/θ = 1 + θ²/3 = **1,000373**. La regola la eredita, e si vede da sola nel 2p (+0,034 %).
+
+Non ho corretto la massa a mano. Ho dato all'agglomeratore **un controllo in più**: "il maestro è abbastanza fine?".
+- Rifà la catena con maestri sempre più fini, θ_j = θ_A/2^j. Stessa regola zig-zag, stessa cella grossa, stesso learner
+  della fase 3 (c2, c4, c6 fissati, parità esatta, kcheck a tempo fisico fisso).
+- Si ferma al primo j in cui la massa della regola a0/16 cambia meno di **1·10⁻⁵** (budget pre-registrato).
+
+| maestro | a0/4096 | a0/8192 | a0/16384 | a0/32768 | **a0/65536** |
+|---|---|---|---|---|---|
+| m − 1 della regola | 3,73·10⁻⁴ | 9,33·10⁻⁵ | 2,33·10⁻⁵ | 5,83·10⁻⁶ | **1,46·10⁻⁶** |
+| \|Δm\| | | 2,8·10⁻⁴ | 7,0·10⁻⁵ | 1,7·10⁻⁵ | **4,4·10⁻⁶** |
+
+| esame | valore | soglia | esito |
+|---|---|---|---|
+| M1 il controllo si ferma | a j = 4 (a0/65536), \|Δm\| = 4,4·10⁻⁶ | < 1·10⁻⁵ entro j ≤ 4 | PASS |
+| M2 massa della regola | m − 1 = 1,46·10⁻⁶ (a0/16), 1,47·10⁻⁶ (a0/8) | ≤ 2·10⁻⁵ | PASS |
+| M3 2p nel motore Rust (a0/8, ±16 a0, media bordi 0 e π) | **+0,0004 %** (prima +0,0338 %) | ±0,005 % | PASS |
+| M4 kcheck su ogni livello | packet ≤ 4·10⁻²¹, energia ≤ 3,4·10⁻⁵ | come fase 3 | PASS |
+
+- Il passo da 1,000373 a 1,0000015 è esattamente θ²/3 che scala come 4⁻ʲ, come previsto. È **validazione**.
+- Costa poco: ogni maestro è un conto in k, ~6 s. Il cammino più fine non costa niente a run-time, perché la regola
+  grossa ha la stessa forma.
+- Nuovo asset: `lab/out/idrogeno_bohr_fase4_regola.json` (stesso formato degli `agglomerato_zz_*.json`; livelli con
+  B_fine_cells = 4096 per a0/16 e 8192 per a0/8).
+
+### 13.3 Il grosso di default (emendamento)
+
+Da ora il livello grosso di default è:
+- la regola T (quella nuova del maestro a0/65536);
+- i **bordi ritorti**: media degli stati con θ = 0 e θ = π su tutti e tre gli assi (toglie i "vicini" della scatola);
+- la **coda di Born** sulla cella del nucleo: ΔE_B = −2m(4πZα)²ρ_c J e ρ_B = ρ_c/(1 − 8πmZα I)², con I e J costanti
+  del cubo di Brillouin. **0 parametri.**
+
+Motore: `lab/agg2s_core.py` in sola lettura (campo di Galerkin, a0/8, N = 256, L = 32 a0), più il dV del primo ordine
+dell'accoppiamento come in AGGLOMERATO_2S. Script: `lab/idrogeno_bohr_fase4_grosso.py`.
+
+| livello | prima (maestro a0/4096) | fase 4 | senza Born | soglia | esito |
+|---|---|---|---|---|---|
+| 1s1/2 | +0,026 % (+0,028 % T) | **+0,0029 %** | −0,0089 % | ±0,005 % | PASS |
+| 2s1/2 | +0,0347 % | **+0,0034 %** | −0,0025 % | ±0,005 % | PASS |
+| 2p1/2 | +0,038 % | **+0,0006 %** | | ±0,005 % | PASS |
+| 2p3/2 | +0,038 % | **+0,0006 %** | | ±0,005 % | PASS |
+| densità sul nucleo, 1s | 0,916 → 0,998 | grezza 0,918 → Born **1,0007** | | entro 0,5 % | PASS (G2) |
+
+- **G1 e G2 PASS.** I quattro livelli n = 1, 2 stanno entro **0,0034 %** da Dirac. Prima stavano a +0,026…+0,038 %,
+  e quasi tutto era la massa del maestro.
+- Quello che resta sugli s (+0,003 %) è la coda di Born che corregge un po' troppo: senza Born gli s stanno a
+  −0,009 % (1s) e −0,0025 % (2s).
+- **Nell'ibrido** la coda di Born non si usa: lì il nucleo lo risolve il blocco fine (dichiarato).
+- **Debito:** il motore Rust ha i bordi ritorti (`IDRO_TORSIONE`), ma non il campo di Galerkin. Quindi Born nel Rust
+  non c'è ancora, e il grosso del Rust (media di cella del potenziale) resta più "basso" sugli s di ~0,1 %. È per questo
+  che il blocco fine nell'ibrido guadagna 5,5·10⁻⁴ (in gran parte è questo).
+
+### 13.4 Conto della fase 4
+
+**Esami.**
+- **PASS (11):** C1, C2, C2b, C4 (energia N = 256), V2, M1, M2, M3, M4, G1, G2.
+- **FAIL (3):** C3 corrente fuori dal blocco (175 × il pavimento, previsto), V1 monotonia (+2,8·10⁻⁵ dal 7 al 9),
+  V3 picco (esame di curvatura, previsione sbagliata).
+- G3 è descrittivo.
+
+**Manopole.** Nessuna fittata. Impostazioni dichiarate: M = 32 e R della partenza veff (solo lo stato iniziale), budget
+del maestro 1·10⁻⁵ e JMAX = 4.
+
+**Che cosa non ha funzionato.**
+- **Il Δ imparato sulle celle coperte** (comando `impara`: una correzione della regola grossa con le classi di simmetria
+  del cubo, dal passo del blocco fine). Il fit non regge: residuo 0,65–1,26, e l'energia salta di 1,1·10⁻³. Scartato.
+- Le varianti di cucitura "fase" (reflux complesso) e "cella" (ampiezza grossa e fase fine) **non** tolgono
+  la corrente delle celle coperte (1,5–1,7·10⁻³). La causa vera della perdita era il bug del bordo.
+- La corrente ferma al bordo del blocco resta.
+
+**Debiti aperti.**
+- **Corrente della cucitura**: ~1·10⁻⁴ fuori dal blocco, ferma. Serve una restrizione che consegni al grosso anche la
+  fase "giusta per lui", non solo la media. Candidato: restringere il campo fine **dopo** averlo portato nella base
+  della regola grossa (oggi la media di blocco è quella della componente grande).
+- **Bolla di 3·10⁻⁵** al blocco 7.
+- **Born e campo di Galerkin nel Rust** (vedi §13.3).
+- Il dV del primo ordine dell'accoppiamento è ancora quello imparato in AGGLOMERATO_COMPLETO col maestro vecchio. Pesa
+  ~10⁻⁵ eV, letto e non rifatto.
+
+**Come rifarlo.**
+```
+python3 lab/idrogeno_bohr_fase4_regola.py J        # J = 0..4, poi:
+python3 lab/idrogeno_bohr_fase4_regola.py scegli   # -> lab/out/idrogeno_bohr_fase4_regola.json
+A=lab/out/idrogeno_bohr_fase4_regola.json
+IDRO_ASSET=$A IDRO_TORSIONE=000 target/release/idrogeno livello 8192 256 2p     # e 111
+for j in 1s_000 1s_111 2s_000 2s_111 2p_000 2p_111; do python3 lab/idrogeno_bohr_fase4_grosso.py $j; done
+python3 lab/idrogeno_bohr_fase4_grosso.py esame
+export IDRO_ASSET=$A IDRO_ORD=9 IDRO_B=16 IDRO_REFLUX=1
+IDRO_DIAG=48 target/release/idrogeno esame_ibrido 4096 128 0 240                          # pavimento
+IDRO_DIAG=48 IDRO_PARTENZA=veff:32:3 target/release/idrogeno esame_ibrido 4096 128 7 240  # cucitura
+IDRO_PARTENZA=veff:32:2 IDRO_CKPT=<file> IDRO_TEMPO=540 target/release/idrogeno esame_ibrido 4096 128 <blocco> 144
+python3 lab/idrogeno_bohr_fase4_esame.py <cartella dei log>; python3 lab/idrogeno_bohr_fase4_figura.py
+```
