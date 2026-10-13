@@ -39,6 +39,8 @@ def initial(n=N, a=A):
 
 
 def run(name):
+    if name.startswith("FW1"):
+        import senzadoppi_r5  # noqa: F401  (registers FW1 in REAL, amendment A3)
     ticks, mode, h, vecs = REAL[name]
     psi0, r = initial()
     V = -ZA / r * A                          # lattice units (energy x a): the phase per tick is V a
@@ -68,7 +70,7 @@ def lines(c, T, Emin=0.6, Emax=1.05, dE=2e-5):
 
 def summary():
     res = {}
-    for name in ("F0", "PA", "PAW"):
+    for name in ("F0", "PA", "PAW", "FW1"):
         fn = os.path.join(SCR, f"senzadoppi_r4_{name}.npy")
         if not os.path.exists(fn):
             continue
@@ -88,6 +90,9 @@ def summary():
     if "PAW" in res:
         r = res["PAW"]
         res["E7_PASS"] = bool(r["max_p_exc"] <= 0.15 and r["main_weight_with_doublet"] >= 0.8)
+    if "FW1" in res:
+        r = res["FW1"]
+        res["E7_PASS_FW1"] = bool(r["max_p_exc"] <= 0.15 and r["main_weight_with_doublet"] >= 0.8)
     json.dump(res, open(os.path.join(OUTD, "senzadoppi_r4.json"), "w"), indent=1)
     print("E7", res.get("E7_PASS"))
 

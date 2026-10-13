@@ -23,6 +23,7 @@ BUDGET = 540
 THETA = 0.1
 NPERP = 160
 CHUNK = 6400
+SWEEP = 2 * np.pi        # total k_x displacement (amendment A4: pi = one period of the copies, used by r6)
 KX0 = -0.75 * np.pi - 0.3   # start/end far from every valley (amendment A2)
 
 SPEC = {  # name -> (ticks, mode, h, vecs, n_copies)
@@ -41,19 +42,21 @@ def coin_block(K, theta_c, h, vecs, mirror):
 
 
 RAMP = 120          # ticks of the smooth (sin^2) switch-on and switch-off of the field (amendment A2)
+RAMP_K = None       # amendment A4 (r6): if set, the ramp lasts 2 RAMP_K / E ticks (k_x displacement RAMP_K per ramp)
 
 
 def kx_profile(E, nticks):
     """k_x displacement A(t) at half-integer and integer times: field E f(t), f = sin^2 ramps of RAMP ticks,
     total displacement exactly 2 pi (E is rescaled for that)"""
     t = np.arange(2 * nticks + 1) / 2.0
+    RAMP = globals()["RAMP"] if RAMP_K is None else int(round(2 * RAMP_K / E))
     f = np.ones_like(t)
     up = t < RAMP
     dn = t > nticks - RAMP
     f[up] = np.sin(np.pi * t[up] / (2 * RAMP))**2
     f[dn] = np.sin(np.pi * (nticks - t[dn]) / (2 * RAMP))**2
     A = np.concatenate([[0], np.cumsum((f[1:] + f[:-1]) / 2 * 0.5)])
-    return A * (2 * np.pi / A[-1])
+    return A * (SWEEP / A[-1])
 
 
 def evolve(name, K0, E, nticks):
@@ -97,7 +100,8 @@ def run_chunk(name, E, idx):
     ky, kz = KY.ravel()[idx], KZ.ravel()[idx]
     K0 = np.stack([np.full_like(ky, KX0), ky, kz], 1)
     T = len(SPEC[name][0])
-    nper = int(round((2 * np.pi / E + RAMP) / T))     # plateau field = E (ramps of RAMP ticks lose RAMP/2 each)
+    ramp = RAMP if RAMP_K is None else int(round(2 * RAMP_K / E))
+    nper = int(round((SWEEP / E + ramp) / T))     # plateau field = E (ramps of RAMP ticks lose RAMP/2 each)
     A = kx_profile(E, nper * T)
     Eeff = float(np.max(np.diff(A)) * 2)               # plateau field actually used
     W0 = period_matrix(name, K0)

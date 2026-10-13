@@ -47,12 +47,15 @@ class RealRule:
         YCHI = np.kron(zz.SY, zz.I2)
         self.G = YCHI
         XCHI = np.kron(zz.SX, zz.I2)
-        ang = theta if mode == "each" else self.T * theta
+        ang = self.T * theta if mode == "once" else theta
         self.C = np.cos(ang) * np.eye(4) - 1j * np.sin(ang) * XCHI
-        dt = 1 if mode == "each" else self.T
+        dt = self.T if mode == "once" else 1
         self.ph = None if V is None else np.exp(-1j * V * dt)
 
     def _coin_block(self, psi, n):
+        if self.mode == "each_w0" and n % 2 == 1:      # FW1: Wilson only around the coin of even ticks
+            psi = rot4(psi, self.C)
+            return psi if self.ph is None else psi * self.ph[None]
         if self.h:
             v = self.vecs if n % 2 == 0 or self.mode == "once" else self.vecs[::-1]
             for w in v:
@@ -75,7 +78,7 @@ class RealRule:
             for j in oL:
                 L = axis_shift(L, j, -1)
             psi = np.concatenate([L, R])
-            if self.mode == "each":
+            if self.mode in ("each", "each_w0"):
                 psi = self._coin_block(psi, n)
         if self.mode == "once":
             psi = self._coin_block(psi, 0)

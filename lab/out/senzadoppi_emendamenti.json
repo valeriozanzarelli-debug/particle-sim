@@ -43,5 +43,34 @@
    "E6": "R = 1 +- 0,1",
    "E7_theta0.5": "PASS o vicino (massa cinetica come la congelata)"
   }
+ },
+ "A4": {
+  "when": "dopo r5 (E6 di FW1 = 0,43 / 0,39), prima di r6",
+  "what": "Due errori di metodo nella conta delle coppie di r3/r5: (1) la spazzata di 2 pi fa attraversare a ogni modo DUE volte la stessa valle (k e k + pi sono copie esatte): le due transizioni interferiscono (Stueckelberg, due cicli di Bloch) e il totale non e' la somma; (2) a 2 E_c le rampe di 120 tick coprivano 1,2 in k e la valle cadeva dentro la rampa. Corretto in r6: spazzata di pi (un periodo delle copie), partenza a -3 pi/4 (a pi/4 da ogni valle), rampe di 0,3 in k; riferimento = 4 attraversamenti di Gamma. Soglia invariata (|R - 1| <= 0,1). I numeri di r3 e r5 restano nei loro file ma sono superati da r6.",
+  "superseded": {
+   "r3": {
+    "PAW": [
+     1.025,
+     0.977
+    ],
+    "PA": [
+     4.8,
+     6.55
+    ],
+    "F0": [
+     54.8,
+     8.32
+    ]
+   },
+   "r5": {
+    "FW1": [
+     0.431,
+     0.394
+    ]
+   }
+  },
+  "r6": "PAW 0,980 / 0,988; FW1 0,994 / 0,995 (PASS); PA 3,17 / 9,48; F0 81,0 / 17,4",
+  "C5_note": "C5 di FW1 fallisce alla lettera (rapporto 14,45 < 15) esattamente come la congelata (14,45): la misura della massa cinetica con dk = theta/50 ha un errore sistematico +1e-4 (termine k^4/8m^3), che a theta = 0,02 pesa quanto il segnale. Non e' un difetto di FW1 (differenza dalla congelata 2,5e-8). Il verdetto resta FAIL alla lettera; nel documento la misura corretta.",
+  "E7_theta0.5": "FW1 a theta = 0,5: righe 0,8844 (0,38) e 0,8719 (0,20): FAIL alla lettera; diagnosi a theta = 0,25 in r7 (gia' dichiarata in A3)"
  }
 }
