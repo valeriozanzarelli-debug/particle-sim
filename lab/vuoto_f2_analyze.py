@@ -129,6 +129,8 @@ if NR:
     L_grade(load("vuoto_f2_bethe.json"), "")
     if load("vuoto_f2_bethe_A.json"):
         L_grade(load("vuoto_f2_bethe_A.json"), "_A")
+    if load("vuoto_f2_bethe_A2.json"):
+        L_grade(load("vuoto_f2_bethe_A2.json"), "_A2")
     MC2_MHZ = 510998.95 * 2.417989242e14 / 1e6
     R["L_MHz_per_unit_lnk0"] = {n: 4 * ALPHA**5 / (3 * PI * n**3) * MC2_MHZ for n in (1, 2)}
 

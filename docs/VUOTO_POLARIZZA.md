@@ -33,8 +33,22 @@ quantizzati. Nella natura dà il potenziale di **Uehling** e sposta il 2S dell'i
    proiettore**, a dare Uehling (0,03–0,3 %) e una carica rinormalizzata **finita**, Π(0) = (2α/3π) ln(M/m) (0,5 %).
    Le soglie pre-registrate di B però erano per μ grandi e sono **fallite**; il successo è a posteriori.
 
-**Quello che NON è uscito e non poteva uscire:** l'autoenergia (≈ +1085 MHz del Lamb 2S–2P, quasi tutti i 7,1 GHz
-dell'1S–2S), g−2, i 25 MHz della struttura fine: servono la luce quantizzata e il loop elettrone–fotone (piano al §8).
+**Quello che in fase 1 NON era uscito:** l'autoenergia (≈ +1084 MHz del Lamb 2S–2P, quasi tutti i 7,3 GHz
+dell'1S–2S), g−2, i 25 MHz della struttura fine: servono la luce quantizzata e il loop elettrone–fotone (piano al §8;
+fatto in parte nella fase 2, §13: δm e g−2 sì, il Lamb completo non ancora).
+
+**Fase 2 (§13), in cinque righe.**
+1. **Autoenergia dalla regola** (elettrone-walk × luce-walk, loop in k): la massa vestita cresce come
+   (3α/2π) m ln(1/ma), il coefficiente di Weisskopf, entro lo **0,06 % (PASS)**.
+2. **g−2 della regola = α/2π entro il 2,4 % (PASS)**, ma dipende dall'orientazione (0,94–0,99, non converge: G3
+   FAIL) perché il "c" dell'elettrone vestito è **anisotropo** (nuovo: viene dall'ordine dei passi xyz/zyx).
+3. **Logaritmo di Bethe** dalla regola radiale: 1S uguale alla QM fino a 300 Ry entro 0,006 (ibrido ln k₀ = 2,978
+   contro 2,984), ma **FAIL pre-registrato** (2S a θ = 0,05 rotto, due emendamenti dichiarati non lo curano).
+4. **Moneta che respira** con μ = √θ (principio): il **mare intero, senza correzioni**, dà carica finita e Uehling
+   (B5–B8 **PASS**), ma l'elettrone rallenta a c·cos μ (rottura di Lorentz θ/2, trovata anche da REGOLA_LOCALE):
+   esplorazione, la regola **non** è cambiata.
+5. **Idrogeno col proiettore anche sull'elettrone: PASS**, 1S–2S di vuoto +188,57 MHz contro +188,21 (+0,19 %).
+Le 4 specie massive di questo studio sono **le 4 valli** di BATTIMENTO_1S; i 4 coni sono in più.
 
 **Validazione, non scoperta.** Uehling è del 1935: qui la regola lo **ritrova**. Le cose nuove sono sulla regola: il
 teorema "il mare intero 1-D non polarizza", i 32 coni senza massa del 3-D, l'anisotropia del vuoto del reticolo, e il
@@ -172,12 +186,17 @@ volte** (θ = 0,025) quella vera. È l'errore di contatto degli stati s (debito 
 
 ## 6. Bilancio del Lamb (onesto)
 
-Numeri di riferimento della QED (solo esame, arrotondati, Eides–Grotch–Shelyuto, Phys. Rep. 342, 63 (2001)):
+Numeri di riferimento della QED (solo esame, arrotondati). **Verificati sulla fonte in fase 2** (tabella dei
+contributi CODATA-2018 nel materiale supplementare di arXiv:2211.05411, in kHz): autoenergia a un loop 1S
+**8 383 339**, 2S **1 071 281**; polarizzazione del vuoto 1S **−215 168**, 2S **−26 897**; dimensione del protone
+(termine di testa) 1S 1 107, 2S 138; Lamb totale 1S 8 172 847, 2S 1 045 009. **Non verificati** (scritti a
+memoria, restano approssimati): Lamb 2S–2P ≈ 1057,8 MHz, autoenergia del 2P₁/₂ ≈ −12,8 MHz, parte del momento
+anomalo ≈ +68 MHz. Le righe sotto usano i valori verificati dove ci sono:
 
 | pezzo | 2S–2P (Lamb, 1057,8 MHz) | 1S–2S (la regola/Dirac sta +7,11 GHz sopra la misura, `NUCLEO_1S.md`) | chi lo può dare |
 |---|---|---|---|
 | **polarizzazione del vuoto (Uehling)** | **−27,1 MHz** | 1S −215,1, 2S −26,9 → **+188 MHz** (va nel verso opposto) | **la regola, col mare di Dirac: fatto qui** (2S −26,85, 1S −214,9 → +188,0 MHz, a posteriori sui reticoli fini; Nd⁵⁹⁺ PASS) |
-| **autoenergia** (elettrone che emette e riassorbe un fotone, compreso il momento magnetico anomalo ≈ +68 MHz) | ≈ **+1085 MHz** | ≈ **−7,3 GHz** (quasi tutto) | serve la **luce quantizzata** + il loop elettrone–fotone: **non c'è** (piano al §8) |
+| **autoenergia** (elettrone che emette e riassorbe un fotone, compreso il momento magnetico anomalo ≈ +68 MHz, non verificato) | ≈ **+1084 MHz** (2S: +1071,28 verificato; 2P₁/₂ ≈ −12,8 non verificato) | 1S +8383,34, 2S +1071,28 → **−7312,06 MHz** (verificato) | serve la **luce quantizzata** + il loop elettrone–fotone: **non c'è** (piano al §8) |
 | rinculo oltre la massa ridotta, due loop, ordini alti | qualche MHz | qualche decina di MHz | rinculo: serve il protone dinamico; due loop: dopo l'autoenergia |
 | dimensione del protone (0,84 fm) | +0,14 MHz (sul 2S) | 1S +1,1, 2S +0,14 → −1,0 MHz | dal nodo del protone (studi COLLA/NUCLEO): non qui |
 
@@ -232,6 +251,21 @@ nuovi coni. *Regole:* cambia la regola (l'ordine degli assi): decisione di Valer
 Celle più fini vicino al nucleo (gusci) o lo stesso proiettore di specie anche sull'elettrone (provato a posteriori:
 −0,7 %) tolgono il picco. *Cosa si vedrebbe:* la nube dell'1s senza la "spina" luminosa al centro.
 
+**7.7 (fase 2) Il cono di luce vestito, schiacciato.** *Cosa si vedrebbe:* un elettrone fermo che emette palline di
+luce; il suo "fronte" di velocità massima non è una sfera ma un ellissoide leggermente schiacciato lungo x e allungato
+lungo z, che si gira di 90° (x ↔ z) a ogni tick. *Perché:* G4, i δv_j misurati (−0,005; 0,044; 0,072) α. È piccolo
+(~5·10⁻⁴), quindi andrebbe esagerato ×1000 e dichiarato come tale. *Costo:* nullo (una forma da densità). *Regole:* sì,
+è una proprietà della regola. Solo proposta per il thread del motore grafico.
+
+**7.8 (fase 2) Un solo rimedio per due birifrangenze.** Il vuoto (§4) e l'elettrone vestito (G4) sono anisotropi per
+la stessa ragione: l'ordine dei passi. L'ordine "a giro" del §7.5 (6 permutazioni) li curerebbe tutti e due; la prova
+più economica è il g−2 con le 6 permutazioni (lo stesso codice di `vuoto_f2_core.g2_all`, periodo 6 invece di 2).
+Non provato: cambia la regola.
+
+**7.9 (fase 2) Lo specchio dello spettro.** La regola radiale ha ogni livello ripetuto a fase +π (lo stesso fenomeno
+delle valli): si potrebbe disegnare l'atomo con due "piani" sovrapposti, quello fisico e il suo gemello capovolto,
+che lampeggiano in controfase. Utile per far vedere da dove vengono i problemi del logaritmo di Bethe (§13.2).
+
 ---
 
 ## 8. Piano per l'autoenergia dentro la regola (con fattibilità)
@@ -280,6 +314,10 @@ RETICOLO_UNIVERSO servirebbero ~16 livelli). Il loop in k e il risolvente radial
    anche sull'elettrone. Pre-registrato FAIL.
 7. Il metodo in spazio q ha un pavimento ~0,005 MHz (stati p).
 8. **Parametri liberi: 0 adattati.** Ingressi: θ (= mₑ), α, Z. K1, K2: regolatore dichiarato (variato).
+9. **Fase 2** (dettagli al §13.5): θ_nudo ≠ θ_fisico (δm/m ≈ 1,55 α); controtermine di velocità δv_j anisotropo;
+   massa del fotone λ → 0; nucleo di Coulomb come ingresso nella parte istantanea; filtro di banda e due emendamenti
+   numerici nel logaritmo di Bethe (2S a θ = 0,05 FAIL aperto); g−2 su una sola fetta di tempo. Il debito #6
+   (picco di contatto dell'idrogeno) è **pagato** dal proiettore sull'elettrone (§13.4, nessuna manopola nuova).
 
 ---
 
@@ -292,6 +330,12 @@ RETICOLO_UNIVERSO servirebbero ~16 livelli). Il loop in k e il risolvente radial
 * `docs/PIANO.md` §3: riga "Vuoto che polarizza (Uehling dal mare di Dirac): fatto, idrogeno solo a posteriori".
 * `src/atomo/` (Laboratorio Atomo, altro thread): proposta di aggiungere a Nd⁵⁹⁺ lo spostamento di Uehling della
   regola (−11,6 eV sull'1s) e, come vista, l'alone del §7.4.
+* (fase 2) `docs/CONTESTO_CLOUD.md`: debito #2 → aggiungere "autoenergia nella regola: δm (3α/2π) ln, 0,06 %; g−2 =
+  α/2π −2,4 % con dipendenza dall'orientazione; Bethe 1S ok fino a 300 Ry, 2S aperto". Nuovo debito: c vestito
+  anisotropo (G4). `docs/PIANO.md`: riga "Vuoto fase 2: δm, g−2 PASS; Bethe FAIL; moneta che respira esplorata
+  (non adottata: rompe Lorentz di θ/2)".
+* (fase 2) `src/atomo/`: l'idrogeno col proiettore sull'elettrone dà il pezzo di vuoto del 1S–2S (+188,6 MHz):
+  si può mostrare come numero accanto alla riga 1S–2S.
 * Ponte: nessuna richiesta necessaria. Se si volesse una foto dell'alone: richiesta `foto` della scena Nd⁵⁹⁺ dopo che
   il thread di rendering avesse aggiunto il profilo.
 
@@ -310,6 +354,16 @@ RETICOLO_UNIVERSO servirebbero ~16 livelli). Il loop in k e il risolvente radial
 4. **L'autoenergia.** Per il Lamb vero l'elettrone deve emettere e riassorbire palline di luce. Preferisci provarlo
    "a conti" (loop in k, §8.1, veloce) o "a palline" nello spazio (più bello da vedere, ma ~5·10⁴ di scala da coprire)?
 
+5. **(fase 2) La moneta che respira, il verdetto.** Con μ = √θ il vuoto intero viene giusto **da solo** (B5–B7
+   PASS), ma l'elettrone corre a c·cos μ mentre la luce va a c. Accetteresti una regola dove luce ed elettrone hanno
+   "c" diversi di θ/2 (che spariscono solo nel continuo)? O aspettiamo la variante in cui respira anche la luce
+   (REGOLA_LOCALE fase 5)? Io voterei per aspettare.
+6. **(fase 2) Il controtermine di velocità.** Per avere g−2 giusto devo dire all'elettrone vestito "corri a c". È
+   un'aggiunta a mano, fissata da una condizione fisica. Ti sembra accettabile, o pensi che la regola dovrebbe
+   garantirlo da sola (cioè: luce ed elettrone sullo stesso reticolo dovrebbero vestirsi senza cambiare c)?
+7. **(fase 2) L'ordine dei passi.** Due anisotropie (vuoto e vestito) vengono dall'ordine xyz/zyx. Vale la pena
+   provare l'ordine a giro (6 permutazioni)? Costa poco nei conti, ma è un cambio di regola.
+
 ---
 
 ## 12. Come rieseguire
@@ -321,4 +375,264 @@ RETICOLO_UNIVERSO servirebbero ~16 livelli). Il loop in k e il risolvente radial
     python lab/vuoto_analyze3d.py            # V2
     timeout 590 python lab/vuoto_levels.py   # V3, V4 (~5 min)
     sh lab/vuoto_driveB.sh; sh lab/vuoto_drivePH.sh                     # esplorazione B e sguardo a posteriori
+    # fase 2 (pre-registrazioni lab/out/vuoto_f2_prereg.json e vuoto_f2_prereg_L.json)
+    python lab/vuoto_f2_nrref.py             # riferimento d'esame (QM non relativistica, ~5 min)
+    sh lab/vuoto_f2_drive_se.sh              # δm e g−2 (~1 h 30)
+    sh lab/vuoto_f2_drive_bethe.sh           # logaritmo di Bethe pre-registrato (~15 min)
+    VUOTO_AMEND_L=1 sh lab/vuoto_f2_drive_bethe.sh   # emendamento A-L1;  VUOTO_AMEND_L=2 → A-L2
+    sh lab/vuoto_f2_drive_breath.sh          # moneta che respira (~2 h)
+    sh lab/vuoto_f2_drive_hproj.sh           # idrogeno col proiettore
+    python lab/vuoto_f2_analyze.py           # → lab/out/vuoto_f2_exams.json
     python lab/vuoto_figure.py
+
+---
+
+## 13. Fase 2: il loop dell'autoenergia, la moneta che respira, l'idrogeno col proiettore
+
+Pre-registrazioni: `lab/out/vuoto_f2_prereg.json` (commit 4be9feb, **prima** delle corse S, G, B, H) e
+`lab/out/vuoto_f2_prereg_L.json` (commit d892181, **prima** del logaritmo di Bethe sull'idrogeno). Codice:
+`lab/vuoto_f2_core.py` (motori), `lab/vuoto_f2_se.py`, `vuoto_f2_bethe.py`, `vuoto_f2_breath.py`, `vuoto_f2_hproj.py`
+(corse a pezzi da ≤ 10 min, con i driver `lab/vuoto_f2_drive_*.sh`), `lab/vuoto_f2_nrref.py` (riferimento solo
+d'esame), `lab/vuoto_f2_analyze.py` → `lab/out/vuoto_f2_exams.json`. Figura: pannelli (e), (f) di
+`lab/out/vuoto_figure.png`.
+
+**Le 4 valli di BATTIMENTO_1S sono le mie 4 specie massive.** Le 4 specie pesanti che il §2 trova in ogni cella π
+del 3-D (k = 0 e k = (π/2, π/2, 0) con le permutazioni) sono **esattamente** le 4 valli di `docs/BATTIMENTO_1S.md`:
+il nucleo puntiforme le mescola, quindi l'1s del Laboratorio si apre in un multipletto e ogni livello esatto sta
+25/25/25/25 sulle 4 valli. I 4 coni senza massa a quasi-energia π (§2) sono **in più**: non entrano nel multipletto
+dell'1s, ma sono loro che rovinano il vuoto intero (§3). La moneta che respira (sotto) lascia le 4 valli a massa θ
+**esatta** (B8) e dà massa μ solo ai coni: quindi **non** cura il battimento, cura solo il vuoto.
+
+### 13.1 Il loop dell'autoenergia nella regola (spazio k)
+
+**Che cosa si calcola (semplice).** Un elettrone fermo emette una pallina di luce e la riprende. Nel frattempo
+l'elettrone vola con impulso −k e la luce con +k. Si sommano tutti i k. Gli ingredienti sono **tutti della
+regola**: le bande e gli spinori dell'elettrone sono quelli di Floquet della zig-zag 3-D (due tick); i fotoni, la
+loro velocità e le loro due polarizzazioni vengono dal **cammino della luce** (`bloch_batch(spin=1)`), anche lui a
+due tick; il vertice è "l'elettrone sente il potenziale vettore sullo spigolo" (Peierls: dH_eff/dk a metà strada,
+H_eff = i log W / 2). Il taglio a grande k è lo stesso proiettore di specie della fase 1 (K1 = 0,6, K2 = 1,05).
+Il nucleo di Coulomb 4πα/k² è un ingresso (come in fase 1). Formule nel gauge di Coulomb, forma di Feynman
+(teoria dei buchi): parte di Coulomb istantanea + parte trasversa con i fotoni veri. **Prima** le stesse formule
+sono state provate sul Dirac del continuo (devono dare il risultato del libro, 3α/2π · ln).
+
+**δm (S1, S2): PASS.** δm/m = A + B ln(1/θ) + Cθ su θ = 0,05 … 0,003125:
+
+| | B_Coulomb/(α/π) | B_trasv/(α/2π) | B_tot/(3α/2π) | soglia | esito |
+|---|---|---|---|---|---|
+| S1 continuo (controllo delle formule) | 1,0002 | 1,0003 | 1,0003 | 0,5 % | PASS |
+| **S2 regola (elettrone-walk × luce-walk)** | **1,0004** | **1,0010** | **1,0006** | 2 / 3 / 2 % | **PASS** |
+
+Cioè: la massa dell'elettrone della regola, vestita dalla sua luce, cresce come **(3α/2π) m ln(1/(m a))**, il
+risultato di Weisskopf (1939), con 1/π dalla parte di Coulomb e 1/2π dai fotoni trasversi. **È una validazione**:
+il coefficiente del logaritmo nasce tra m e 1/a, dove la regola è già il Dirac del continuo. La costante A
+dipende dal taglio (proiettore) e non ha significato fisico: è il **debito θ_nudo ≠ θ_fisico** (δm/m ≈ 1,55 α a
+θ = 0,05, cioè l'1,1 %: per avere la massa vera bisogna partire da un θ nudo un po' più piccolo).
+
+
+**g−2 (G0–G4).** Stesso loop, ma l'elettrone viene **colpito** da un fotone esterno di impulso Q molto piccolo
+(sistema di Breit, p = ∓Q/2). La parte "magnetica" del vertice dà F₂(0), il momento anomalo. Il libro dice
+F₂ = α/2π (Schwinger 1948). Massa del fotone λ come regolatore infrarosso (λ/m = 10⁻³ e 3·10⁻⁴, poi λ → 0
+lineare), poi θ → 0 con a + bθ + cθ².
+
+*Due lezioni prima di arrivarci (sul continuo, prima della pre-registrazione).* Nel gauge di Coulomb con un taglio
+sull'impulso a 3 dimensioni il vertice da solo **non** basta: dà 0,664. Servono altri due pezzi che di solito non si
+vedono: (1) le **gambe esterne** (l'autoenergia sul guscio mescola l'elettrone con gli stati a energia negativa allo
+stesso impulso, dopo aver tolto δm): +1,00; (2) un **controtermine di velocità** δv: il taglio rompe Lorentz, e
+l'elettrone vestito correrebbe con un "c" un po' diverso. Lo fisso chiedendo che il vestito abbia E² − p² = m²: −0,33.
+Con i tre pezzi il continuo dà **1,0000**.
+
+| | θ = 0,05 | 0,025 | 0,0125 | θ → 0 | soglia | esito |
+|---|---|---|---|---|---|---|
+| G0 continuo (controllo) | 1,0034 | 1,0009 | 1,0002 | **0,99999** | 0,5 % | PASS |
+| **G1 regola** (media delle 6 coppie asse-Q / asse-corrente) | 0,943 | 0,965 | 0,972 | **0,976** | 3 % | **PASS** |
+| G2 regola a θ = 0,0125 | | | 0,972 | | 6 % | PASS |
+| G3 dispersione fra le 6 orientazioni | 0,063 | 0,056 | 0,054 | | deve dimezzare | **FAIL** |
+
+(valori in unità di α/2π, dopo λ → 0). Controllo di griglia (θ = 0,025, griglia più fine): 0,961004 contro
+0,961002, cioè le somme su k sono convergenti a 2·10⁻⁶.
+
+**Cosa vuol dire.** In media il **momento magnetico anomalo dell'elettrone della regola è α/2π entro il 2,4 %**:
+l'elettrone-walk vestito dalla luce-walk ha il g−2 di Schwinger. È una **validazione** (numero del 1948), non una
+scoperta. **Ma** la media nasconde una cosa: le orientazioni non sono uguali. A θ = 0,0125 le 4 coppie con la
+corrente lungo x o z danno 0,983–0,994 (quasi giuste), le 2 con la corrente lungo y danno 0,94. E questa differenza
+**non cala** quando θ → 0 (G3 FAIL): non è un errore del reticolo che sparisce, è una proprietà del loop della regola
+vicino al taglio.
+
+**G4, la scoperta collegata: il "c" vestito della regola è anisotropo.** Il controtermine di velocità che serve sulla
+regola è diverso lungo i tre assi: δv/α = (−0,005; 0,044; 0,072) sulla fetta di tempo 0 (contro 0,053 uguale in
+tutte le direzioni sul continuo), quasi indipendente da θ. Sulla fetta 1 x e z si scambiano: (0,074; 0,053; 0,007).
+Cioè: **la luce della regola veste l'elettrone in modo diverso lungo gli assi, perché i passi vanno in ordine xyz e
+poi zyx.** È lo stesso tipo di birifrangenza già trovato nel vuoto (fase 1, §4), ma qui l'anisotropia è grande quanto
+l'effetto stesso (δv cambia di ~150 % fra gli assi, mentre nel vuoto era 7·10⁻⁴ in relativo); in assoluto resta
+piccola: ~5·10⁻⁴ sulla velocità dell'elettrone. La media sulle due fette, (0,035; 0,049; 0,040), è molto più isotropa; il g−2 è
+stato calcolato solo sulla fetta 0 (debito, sotto). La cura naturale è la stessa del §7.5: l'ordine degli assi a giro
+(6 permutazioni), che renderebbe isotropi sia il vuoto sia il vestito.
+
+### 13.2 Il logaritmo di Bethe dal risolvente della regola radiale (L1–L3: FAIL pre-registrato)
+
+**Che cosa si calcola (semplice).** La parte grossa del Lamb è "a bassa energia": l'elettrone legato emette un
+fotone morbido e passa per un momento su un altro stato. Quanto costa dipende da una media logaritmica delle energie
+di salto, pesata con quanto è facile saltare: il **logaritmo di Bethe** ln k₀ (1947). Qui lo prendo dal
+**risolvente della regola radiale**: si parte dallo stato s della regola, si dà un calcio di dipolo (canali p,
+κ' = +1 e −2), si tengono solo gli stati a energia positiva della banda fisica, e si somma su tutte le energie del
+fotone fino a un taglio K.
+
+**Come si giudica.** Il valore dei libri (2,984 per l'1S, 2,812 per il 2S, K → ∞) **non** è un esame pulito per un
+Dirac sul reticolo (sopra ~m la teoria non relativistica non vale più, e il reticolo ha la sua coda). Quindi
+l'esame pre-registrato confronta la regola con la **meccanica quantistica non relativistica allo stesso taglio K**
+(`lab/vuoto_f2_nrref.py`, Schrödinger a differenze finite, due griglie + Richardson; solo esame). Soglie: L1
+|Δ| ≤ 0,02 a 100 e 300 Ry (1S e 2S, θ = 0,05); L2 |L(0,05) − L(0,1)| ≤ 0,01; L3 la "forza di dipolo" D_K entro 1 %.
+
+| ln k₀(K) regola − QM | 30 Ry | 100 Ry | 300 Ry | 1000 Ry | 3000 Ry | D_K regola/QM a 300 Ry |
+|---|---|---|---|---|---|---|
+| **1S, θ = 0,05** | +0,0003 | −0,0015 | −0,0063 | −0,019 | −0,041 | 0,968 |
+| 1S, θ = 0,1 | +0,008 | +0,012 | +0,014 | +0,011 | −0,002 | 0,986 |
+| 2S, θ = 0,1 | +0,011 | +0,017 | +0,026 | +0,051 | +0,13 | 0,990 |
+| 2S, θ = 0,05 | +0,11 | +0,37 | **+1,00** | +2,3 | +3,8 | 1,47 (rotto) |
+
+**Esito: L1, L2, L3 FAIL.** Il pre-registrato resta questo.
+* L'**1S** a θ = 0,05 segue la QM fino a 300 Ry entro 0,006 (sotto la soglia), ma D_K è basso del 3 % (L3 FAIL) e la
+  differenza fra θ = 0,05 e 0,1 a 300 Ry è 0,020 (L2 FAIL). Non so perché D_K peggiori col reticolo più fine: lo
+  dichiaro come non capito.
+* Il **2S a θ = 0,05 è rotto**: a grandi K la somma esplode (D_K cresce come ~K^0,6). Le regole dicono che il
+  risultato pre-registrato non si tocca; ho provato due emendamenti **dichiarati, scritti prima di ciascuna corsa e
+  non valutati**:
+  - **A-L1** (`lab/out/vuoto_f2_amend_L.json`): quadratura più stretta del proiettore sulle energie positive
+    (ipotesi: una perdita verso il mare). Il 2S a θ = 0,1 migliora (+0,13 → +0,045 a 3000 Ry), il 2S a θ = 0,05
+    **peggiora** (+1,91 a 300 Ry). Ipotesi sbagliata o incompleta.
+  - **A-L2** (`lab/out/vuoto_f2_amend_L2.json`): misurando lo spettro ho trovato che la regola radiale ha uno
+    **spettro a specchio**: lo stato degenere col 2S (il 2P₁/₂, distanza 1,6·10⁻¹⁰) ha un gemello a fase +π, che
+    cade proprio sul polo della trasformata di Cayley usata nel risolvente (amplificazione ~10¹⁰). Tolti
+    esplicitamente i 6 stati più vicini al polo: **non basta** (+1,54 a 300 Ry). Il gemello è vero (ed è lo stesso
+    fenomeno delle valli/doppioni), ma non è l'unico colpevole.
+  Mi fermo qui: un terzo emendamento sarebbe "pescare" il risultato. Il 2S a θ = 0,05 resta **un FAIL aperto**.
+
+**Cosa resta di buono (a posteriori, non valutato).** Unendo la regola sotto K = 300 Ry con la teoria dei libri
+sopra K ("ibrido"): **ln k₀(1S) = 2,978** contro 2,984 (−0,006, cioè −6,5 MHz sul Lamb dell'1S, che vale ~1085 MHz
+per unità di ln k₀) e ln k₀(2S) = 2,836 (θ = 0,1) contro 2,812 (+3,4 MHz). Quindi la **fisica a bassa energia del
+Lamb dell'1S c'è nella regola**, al livello dello 0,2 %. Onestà: la parte ad alta energia (sopra K) qui è presa dai
+libri, non dalla regola; per chiudere il conto serve unire questo pezzo al loop in k del §13.1 (stesso taglio), lavoro
+non fatto.
+
+### 13.3 La moneta che respira con μ scelto da un principio (esplorazione, la regola NON cambia)
+
+**Il principio (pre-registrato): μ = √θ.** La massa dei regolatori M = μ/a è la **media geometrica** fra la massa
+dell'elettrone m = θ/a e il taglio del reticolo 1/a: il regolatore sta "a metà strada" (in scala logaritmica) fra
+la fisica e i quadretti. Così si bilanciano i due errori della moneta che respira, tutti e due di ordine θ: il
+termine di Uehling del regolatore stesso, (m/M)² = θ, e la deformazione della specie fisica, di ordine μ² = θ. Non
+è stato scelto guardando le soglie.
+
+**Che cosa fa alle bande (B8: PASS, errore 4·10⁻¹⁷).** Le 4 valli pesanti restano a massa θ **esatta**; i 4 coni
+prendono massa μ esatta (0,1581 a θ = 0,025; 0,1118 a θ = 0,0125). Ma c'è un prezzo che in fase 1 non avevo visto:
+**l'elettrone rallenta.** La velocità limite della specie fisica diventa **cos μ** (misurata: v² = 0,98918 con
+μ = 0,1, cos²μ = 0,99003 a meno dell'errore θ² del reticolo), uguale in tutte le direzioni, mentre la luce resta a c
+(il cammino della luce non ha moneta). Con μ = √θ: 1 − v ≈ θ/2.
+**Questo è una rottura di Lorentz** (l'elettrone e la luce non hanno più lo stesso c, differenza μ²/2): lo studio
+REGOLA_LOCALE (fase 4, `docs/REGOLA_LOCALE.md` §13) l'ha trovata in modo indipendente (μ = 0,1 → elettrone a
+0,995 c). Con μ **fisso** non sparisce raffinando il reticolo. Con il principio di questo studio, μ = √θ, invece
+1 − v ≈ θ/2 va a zero come la massa in unità di reticolo, cioè **sparisce nel limite del continuo**, ma lentamente
+(O(θ), non O(θ²) come gli altri errori della regola). La variante in cui anche la luce "respira" dello stesso cos μ
+(così i due c tornano uguali) la prova REGOLA_LOCALE in fase 5; se funziona, il prezzo sugli atomi qui sotto andrebbe
+rifatto.
+
+**Risultati pre-registrati (B5, B6, B7: tutti PASS).** Mare intero, **senza proiettore**, μ = √θ, media su x, y, z:
+
+| θ | μ = √θ | B5: Π(0) / (1/6π²) ln(μ/θ) | B6: Π_R / Uehling-PV, q = 1 m | q = 3 m | B7: specie fisica con/senza respiro, q = 1 m | q = 3 m |
+|---|---|---|---|---|---|---|
+| 0,025 | 0,158 | 1,0104 | 0,9925 | 0,9995 | 0,9946 | 1,0020 |
+| 0,0125 | 0,112 | 1,0050 | 0,9960 | 0,9995 | 0,9966 | 1,0003 |
+| soglia | | 3 % | 2 % | 2 % | 1 % | 1 % |
+
+Cioè: con la moneta che respira e μ scelto **prima** dal principio, il vuoto intero della regola dà da solo una
+carica rinormalizzata **finita** (errore 1,0 % → 0,5 %: cala come θ, come detto dal principio) e la forma di Uehling
+regolata alla Pauli–Villars entro lo 0,4–0,8 % a q = m, 0,05 % a 3 m. Il prezzo sulla specie fisica (B7) è lo
+0,3–0,5 % a q = m, come previsto dalla fase di sviluppo. In fase 1 le soglie B erano fallite perché i μ erano troppo
+grandi (0,3–0,6); con il principio μ = √θ passano. **Questo è il primo vuoto sano della regola senza correzioni a
+mano**, ma a una condizione: cambiare la regola (sotto, il prezzo).
+
+**Attenzione: la deformazione non è solo "velocità".** Ho provato a spiegare B7 come Uehling con c → cos μ
+(predizione Π_R(q cos μ)/cos μ): **sbagliato**, non torna con i numeri misurati (sviluppo, a θ = 0,05). La specie fisica con il respiro è un
+Dirac deformato in modo più complicato (anche gli spinori cambiano). Lo dichiaro: il numero B7 è misurato, non capito
+fino in fondo.
+
+**Cosa cambierebbe per gli altri studi se diventasse regola** (non l'ho cambiata; un cambio di regola si coordina
+con tutti i thread):
+* **Vuoto (questo studio):** niente proiettore di specie; la carica rinormalizzata esce finita da sola,
+  Π(0) = (2α/3π) ln(M/m) con M/m = 1/√θ (a θ = 0,0125: ln 8,9 = 2,19). Prezzo: errore O(θ) invece di O(θ²).
+* **Atomi (ATOMO, NUCLEO_1S, BATTIMENTO, Laboratorio):** con velocità v = cos μ la massa cinetica diventa m/v²
+  e le energie di legame crescono di 1/v² − 1 ≈ μ² = **θ in relativo** (a θ = 0,05: **+5 %** sui legami!). Andrebbe compensato (per esempio ritoccando la regola) o si perde la precisione attuale degli
+  atomi. **Le 4 valli restano** (massa θ esatta): il multipletto dell'1s di BATTIMENTO non cambia.
+* **Regola radiale e 1-D:** in 1-D il doppione a k = π **non** prende massa (a k = π le due monete commutano:
+  C(θ+μ)C(θ−μ) = C(2θ)); cambia solo la velocità (cos μ). Nessun guadagno, solo il prezzo.
+* **Simulazioni in spazio reale (EMISSIONE, LOCALE, motore):** i modi spuri senza massa a quasi-energia π (i coni)
+  diventano massivi: meno "sfarfallio" stroboscopico a lunga distanza. Costo zero (un numero per tick).
+* **Luce:** nessun cambiamento.
+
+**Verdetto onesto.** La moneta che respira è un'idea bella e funziona sul vuoto, ma rallenta l'elettrone di
+1 − cos μ: per i conti di precisione sugli atomi costa più di quanto rende. Il proiettore dichiarato resta la scelta
+migliore finché non si trova una "respirazione" che lasci intatta la velocità.
+
+### 13.4 Idrogeno col proiettore anche sull'elettrone (H1–H4: tutti PASS)
+
+**Che cosa cambia rispetto alla fase 1.** In fase 1 il FAIL dell'idrogeno (+14 %) veniva dal "picco di contatto":
+la funzione d'onda della regola radiale ha una spina sul primo sito vicino al nucleo, e lo spostamento di Uehling
+(che vive proprio lì, entro un λ_C) la sente tutta. Ora lo **stesso** proiettore di specie del vuoto (K1, K2: nessun
+numero nuovo) si applica anche allo stato dell'elettrone prima di calcolare ⟨V_Uehling⟩. Pre-registrato (H1–H4)
+prima della corsa.
+
+| | θ_atom = 0,05 | 0,025 | 0,0125 | estrapolato (E₀ + cθ + dθ²) | riferimento | esito |
+|---|---|---|---|---|---|---|
+| 1S (MHz) | −211,65 | −213,13 | −214,20 (−0,42 %) | **−215,50 (+0,19 %)** | −215,10 | H1, H3 PASS |
+| 2S (MHz) | −26,456 | −26,639 | −26,772 (−0,43 %) | **−26,934 (+0,17 %)** | −26,887 | H2, H3 PASS |
+| 1S–2S (MHz) | | | | **+188,57 (+0,19 %)** | +188,21 | H4 PASS |
+
+Soglie: 1 % sul reticolo più fine (H1, H2), 0,5 % sull'estrapolato (H3), 1 % sull'1S–2S (H4). I riferimenti sono la
+parte di polarizzazione del vuoto di CODATA-2018 (arXiv:2211.05411, verificati in tabella: −215,168 e −26,897 MHz;
+il valore usato è l'Uehling puro a nucleo puntiforme, la differenza è < 0,04 %).
+
+**Onestà sulla convergenza.** Le differenze fra un reticolo e il successivo calano di un fattore ~1,37 per ogni
+dimezzamento di θ_atom, cioè come **θ^0,46** (non θ, non θ²). Il fit E₀ + cθ + dθ² su tre punti quindi è un po'
+ottimista: se le differenze continuassero a calare di 1,37 (serie geometrica) l'1S arriverebbe a −217,1 MHz, cioè
++0,9 % oltre il riferimento. La verità sta fra i due estrapolati. Il risultato robusto è il punto più fine (−0,42 %),
+già entro la soglia; l'estrapolato va preso con un'incertezza di ±0,7 %. Lo dichiaro come avvertenza, non cambia il PASS
+pre-registrato. Il debito #6 del §9 (il picco di contatto) è **pagato** con un correttivo già dichiarato (nessuna
+manopola nuova).
+
+### 13.5 Riassunto fase 2, debiti, manopole
+
+| esame | che cosa | esito |
+|---|---|---|
+| S1, S2 | δm: pendenza del logaritmo 3α/2π (Weisskopf), continuo e regola | PASS (0,03 % e 0,06 %) |
+| G0 | g−2 sul continuo (controllo delle formule) | PASS (0,001 %) |
+| G1, G2 | g−2 della regola, θ → 0 e a θ = 0,0125 | PASS (−2,4 % e −2,8 %) |
+| G3 | le orientazioni convergono | **FAIL** (dispersione 0,063 → 0,054) |
+| G4 | c vestito anisotropo | trovato (nuovo debito) |
+| L1, L2, L3 | logaritmo di Bethe contro QM allo stesso taglio | **FAIL** (2S a θ = 0,05 rotto; 1S buono fino a 300 Ry) |
+| B5–B8 | moneta che respira, μ = √θ | PASS (ma rallenta l'elettrone: rottura di Lorentz θ/2) |
+| H1–H4 | idrogeno col proiettore anche sull'elettrone | PASS (1S–2S +188,57 contro +188,21 MHz) |
+
+**Debiti nuovi della fase 2** (anche nel §9):
+* **θ_nudo ≠ θ_fisico**: la massa vestita è più grande di δm/m ≈ 1,55 α (a θ = 0,05); controtermine di massa.
+* **Controtermine di velocità δv_j** (uno per asse): serve perché il taglio rompe Lorentz; sulla regola è anisotropo
+  (G4). Il g−2 è calcolato sulla sola fetta di tempo 0.
+* **Massa del fotone λ** come regolatore infrarosso (estrapolata a zero; dichiarata).
+* Il **nucleo di Coulomb 4πα/k²** della parte istantanea è un ingresso (come in fase 1), non viene dalla luce-walk.
+* Logaritmo di Bethe: **filtro di banda** (Ω < Ω_n + 0,6) e proiettore di specie sulla sorgente; due emendamenti
+  numerici dichiarati; il pezzo sopra K dei libri nell'ibrido.
+* Moneta che respira: **un numero μ in più** se diventasse regola (scelto da un principio, non adattato).
+
+**Manopole adattate: 0.** Ingressi: θ (= mₑ in unità del reticolo), α, Z. Regolatori dichiarati: K1, K2 (ereditati),
+δm e δv_j (fissati da condizioni fisiche: massa e dispersione del vestito), λ → 0, μ = √θ (solo esplorazione).
+
+**Cosa resta da fare.**
+1. Il 2S del logaritmo di Bethe a θ = 0,05 (un FAIL aperto: lo specchio del 2P non basta a spiegarlo).
+2. Unire il pezzo a bassa energia (§13.2) e quello ad alta energia (§13.1) con lo stesso taglio → il Lamb 2S–2P
+   (≈ +1058 MHz, valore non riverificato) tutto dalla regola. È il passo che manca per dire "Lamb emerso".
+3. Il g−2 su tutte e due le fette di tempo (e con l'ordine degli assi a giro, §7.5) per vedere se G3 si chiude.
+4. Coordinare con REGOLA_LOCALE la variante "respira anche la luce" (fase 5 di quello studio).
+
+**Valori di autoenergia verificati sulla fonte** (CODATA-2018, arXiv:2211.05411, tabelle in kHz): autoenergia 1S
+8 383 339,47 e 2S 1 071 281,00; polarizzazione del vuoto 1S −215 167,77 e 2S −26 897,00; raggio del nucleo 1S
+1107,15 e 2S 138,39; Lamb totale 1S 8 172 847 e 2S 1 045 009,1. **Non riverificati** (scritti a memoria e quindi
+dichiarati tali): Lamb 2S–2P 1057,8 MHz, autoenergia del 2P₁/₂ −12,8 MHz, parte del momento anomalo +68 MHz, e i
+valori dei libri di ln k₀ (2,984; 2,812).
