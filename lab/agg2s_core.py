@@ -180,22 +180,22 @@ class TwistAtom:
         return v
 
     def apply_field_k(self, F, out, coef=1.0):
-        """out += coef * FFT(V_G psi) given F = FFT(u) (twisted interpolation phases); one complex64 temporary
-        (the field itself is float32 at N > 192, as in aggfull_core; rounding ~1e-7 of the field term)"""
+        """out += coef * FFT(V_G psi) given F = FFT(u) (twisted interpolation phases); one complex128 temporary
+        (a complex64 temporary was tried in development: it shifts the 1s by +3e-6 eV, i.e. 2e-7 relative; not used)"""
         one = np.ones(self.N)
         c = coef / 8
-        tmp = np.empty(F.shape, np.complex64)
+        tmp = np.empty_like(F)
         for sub in self.f.subs:
             p = [self.ph[i] if sub[i] else one for i in range(3)]
-            np.multiply(F, p[0][:, None, None], out=tmp, casting="same_kind")
-            tmp *= p[1][None, :, None].astype(np.complex64)
-            tmp *= p[2][None, None, :].astype(np.complex64)
+            np.multiply(F, p[0][:, None, None], out=tmp)
+            tmp *= p[1][None, :, None]
+            tmp *= p[2][None, None, :]
             tmp = sfft.ifftn(tmp, overwrite_x=True, workers=1)
             tmp *= self.f.Vsub(sub) if hasattr(self.f, "Vsub") else self.f.V[sub]
             tmp = sfft.fftn(tmp, overwrite_x=True, workers=1)
-            tmp *= (c * np.conj(p[0]))[:, None, None].astype(np.complex64)
-            tmp *= np.conj(p[1])[None, :, None].astype(np.complex64)
-            tmp *= np.conj(p[2])[None, None, :].astype(np.complex64)
+            tmp *= (c * np.conj(p[0]))[:, None, None]
+            tmp *= np.conj(p[1])[None, :, None]
+            tmp *= np.conj(p[2])[None, None, :]
             out += tmp
         del tmp
         return out
@@ -346,3 +346,21 @@ def lobpcg1(atom, x0, Y=None, tol_res=2e-8, budget=480, maxit=400, log=None, eve
     del Ax, p, Ap
     E, res = atom.energy(x)
     return x, E, res, it, res < tol_res
+
+
+# ------------------------------------------------------------------ geometry of the Brillouin cube (Born tail)
+def born_constants():
+    """I = int_{outside cube [-pi/h, pi/h]^3} d^3k/((2pi)^3 k^4) = I_coef h,  J = int d^3k/((2pi)^3 k^6) = J_coef h^3.
+    Spherical coordinates: the cube surface is at k = (pi/h)/max|n_i|, so I = (h/pi)(2pi)^-3 int dOmega max|n_i| and
+    J = (h/pi)^3 (2pi)^-3 int dOmega max|n_i|^3 / 3. The angular averages by quadrature on the 1/48 wedge of the sphere."""
+    from scipy import integrate
+    # wedge: z >= x >= y >= 0 ; n = (sin t cos p, sin t sin p, cos t), 0 <= p <= pi/4, cos t >= sin t cos p
+    def wedge(power):
+        f = lambda t, p: np.cos(t) ** power * np.sin(t)
+        tmax = lambda p: np.arctan(1 / np.cos(p))       # z >= x = sin t cos p
+        val, err = integrate.dblquad(f, 0, np.pi / 4, 0, tmax, epsabs=1e-13, epsrel=1e-12)
+        return 48 * val / (4 * np.pi)        # average over the sphere
+    m1, m3 = wedge(1), wedge(3)
+    I_coef = m1 * 4 * np.pi / (np.pi * (2 * np.pi) ** 3)
+    J_coef = m3 * 4 * np.pi / (3 * np.pi ** 3 * (2 * np.pi) ** 3)
+    return dict(mean_max=m1, mean_max3=m3, I_coef=I_coef, J_coef=J_coef)

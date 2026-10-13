@@ -1,0 +1,6 @@
+[2m2026-10-13T20:24:47.281438Z[0m [32m INFO[0m [2mbevy_diagnostic::system_information_diagnostics_plugin::internal[0m[2m:[0m SystemInfo { os: "Windows 11 Home", kernel: "26300", cpu: "Intel(R) Core(TM) i5-10300H CPU @ 2.50GHz", core_count: "4", memory: "15.8 GiB" }
+[2m2026-10-13T20:24:47.558543Z[0m [32m INFO[0m [2mbevy_render::renderer[0m[2m:[0m AdapterInfo { name: "Intel(R) UHD Graphics", vendor: 32902, device: 39876, device_type: IntegratedGpu, driver: "Intel Corporation", driver_info: "Intel driver", backend: Vulkan }
+[2m2026-10-13T20:24:47.794334Z[0m [33m WARN[0m [2mbevy_audio::audio_output[0m[2m:[0m No audio device found.
+[2m2026-10-13T20:24:47.915677Z[0m [32m INFO[0m [2mbevy_winit::system[0m[2m:[0m Creating new window "Laboratorio Atomo — la regola zig-zag" (0v1#4294967296)
+foto al frame 6997: scena Atomo, 43521 palline, 60 fps tick 503 p1s 0.248 dip +0.006 42 ms/tick p_exc 0.753 t_dal_impulso Some(251.5) luce_diffusa_x Some(76.68596533443275) e_diffusa 6.859e-3
+[2m2026-10-13T20:26:53.766782Z[0m [32m INFO[0m [2mbevy_render::view::window::screenshot[0m[2m:[0m Screenshot saved to C:\Users\valer\Desktop\Programma di simulazione\ponte_lab\ponte\risultati\2026-10-13_foto_diffusa3\foto.png

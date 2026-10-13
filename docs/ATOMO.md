@@ -427,6 +427,41 @@ una scatola di 6,5 λ non tiene un impulso più lungo (debito).
   spugna o dove u è quasi zero (e lo 0,5 % per tick a caso). Niente scie: il moto è delle palline stesse.
   Controllo senza finestra (`diffusa_vista`, non pre-registrato): dopo 400 ħ/(mc²) dall'impulso π/2 le palline di flusso vanno via dall'atomo con velocità radiale media **0,977 c**, A = 199 in quel momento (la luce diffusa lontana è già più debole del suo picco). Le palline di luce diffusa sono al massimo 30 000 per scatola (sottoinsieme fisso a caso: il portatile).
 
+**Leggibilità (v2, dopo la prima foto dal ponte).** La foto `2026-10-13_foto_diffusa` (tick 632, p_exc 0,749, ×105) era
+un campo uniforme di puntini: le palline nascevano su tutta la scatola 3-D con soglia fissa su |E| e un sottoinsieme a caso,
+così i gusci proiettati si riempivano e i nodi scuri sparivano. Ora (default della vista diffusa, scelte di disegno dichiarate
+in alto sullo schermo):
+- **fetta**: si disegnano solo le celle con |y| ≤ 2 celle (10 ħ/mc) attorno all'atomo, il piano x–z che contiene l'asse
+  dell'impulso (x) e del dipolo (z); vale per luce diffusa, impulso libero e palline di flusso (che rinascono nella fetta
+  quando ne escono);
+- **legge di campionamento**: ogni cella si accende con probabilità min(1; 1,5 w/w_max) e luminosità ∝ √(w/w_max), con
+  w = u·r², u = |E|² + |B|² la densità d'energia della luce diffusa e r la distanza dall'atomo: il fattore r² **toglie la
+  caduta 1/r² dell'onda che si allarga** (dichiarato), così gli anelli lontani si vedono come i vicini e i nodi fra gli anelli
+  restano scuri; per l'impulso libero w = u;
+- **atomo ingrandito ×6**: 5 000 palline estratte da |ψ|² disegnate a 6 volte la distanza dal nucleo, luminosità ∝ √(ρ/ρ_max):
+  è la sorgente del dipolo, si vede oscillare su e giù;
+- inquadratura per le foto: camera sull'asse −y (yaw 0, pitch 0) a 460 ħ/mc, così si vede la fetta di fronte.
+Anteprima fatta nel cloud con i dati veri della scena (matplotlib, non il renderer): `lab/out/diffusa_anteprima.png`,
+t = 400 dopo l'impulso π/2: anelli rosa/verdi alternati, più forti lungo x e spenti lungo z (sin²θ del dipolo), palline di
+flusso a v_r = 0,97 c. Debiti in più: la fetta, il fattore r², la soglia della probabilità e l'ingrandimento dell'atomo sono
+scelte di disegno.
+
+**v3, dopo la seconda foto** (`2026-10-13_foto_diffusa2`, t = 500, A ≈ 115, p_exc 0,741): gli anelli si vedevano ma
+deboli, al centro c'era una **linea bianca verticale** e l'impulso libero faceva bande verticali in alto e in basso. Cause e
+cure (solo disegno, la fisica non cambia):
+- la linea: la nuvola ×6 era fatta con i **surfisti** (traiettorie di Bohm), che dopo l'impulso forte si ammucchiano sull'asse
+  dello spin; ora è fatta con **campioni nuovi di |ψ|² a ogni fotogramma** (4 000), bagliori grandi (raggio ~2 ħ/mc nella
+  scala ×6), luminosità ∝ √(ρ/ρ_max);
+- la debolezza: il renderer dà alle palline d'onda della scena atomo un raggio di 0,096 ħ/mc per unità quando la camera è
+  lontana (pensato per l'atomo, non per la luce a 500 ħ/mc); ora ogni pallina di luce diffusa ha raggio 2,4–4,8 ħ/mc,
+  **crescente con l'energia** (25 + 25 √(w/w_max) unità), alpha 0,12 + 0,55 √(w/w_max); palline di flusso raggio ~1,4 ħ/mc;
+  stesso disegno a bagliori del Laboratorio (`onde`, sfumate), nessuno stile parallelo;
+- le bande: l'impulso libero era disegnato sulla **sua** scala, quindi anche il resto che esce nella spugna si accendeva
+  tutto; ora è sulla scala **fissa della partenza** (u_ref = 2 e_ref²), alpha ×0,2: sparisce man mano che esce.
+- la scritta in alto (egui) **non compare in nessuna foto del ponte** (neanche nelle vecchie): lo screenshot prende la scena
+  senza il pannello; il fattore A e p_exc sono nel `log.txt` della foto (riga "foto al frame ...").
+Anteprima aggiornata `lab/out/diffusa_anteprima.png` (dati veri, matplotlib senza bagliore).
+
 Il fotone sparato aspetta l'atomo pronto (prima, se si premeva F durante la preparazione, andava all'atomo non
 accoppiato con la frequenza sbagliata). Per le foto dal ponte: `spara-al` ora aspetta la preparazione e la foto si fa
 (`frames` − `spara-al`) fotogrammi dopo lo sparo vero; flag nuovi (validati in `ponte/ponte.py`): `spara-pronto`,

@@ -20,7 +20,7 @@ import aggmol_core as mc
 import aggmol_exact as ex
 
 PFX = "dev_" if mc.DEV else ""
-JS = os.path.join(mc.OUT, PFX + "aggmol_h2p.json")
+JS = os.path.join(mc.OUT, PFX + ("aggmol_h2p_posthoc_box8.json" if os.environ.get("AGGMOL_BOX16") == "8" else "aggmol_h2p.json"))
 res = json.load(open(JS)) if os.path.exists(JS) else {}
 FRAC_B = {16: 256, 8: 512, 4: 1024, 2: 2048}
 RS = (1.0, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 3.0, 4.0)
@@ -47,8 +47,11 @@ def run(mol, X0, tag, budget=520, rtol=2e-8, Y=None):
     return X, [e / EH for e in E], r, conv, its
 
 
+BOX = {16: int(os.environ.get("AGGMOL_BOX16", "6")), 8: 8, 4: 8, 2: 8}
+
+
 def job_atom(f):
-    B, h, N, T, g0 = setup(f, 8)
+    B, h, N, T, g0 = setup(f, BOX[f])
     fld = mc.MultiField(N, h, [(0, 0, 0)], dtype=np.float32 if N > 192 else np.float64)
     m = mc.Mol(T, fld, gamma0=g0, sym=(1, 1, 1))
     X, E, r, conv, its = run(m, mc.guess_mol(N, h, [(0, 0, 0)], "1s")[:, None], f"atom a0/{f}")
@@ -62,7 +65,7 @@ def centres(R, h, axis=(0, 0, 1), shift=(0, 0, 0)):
 
 
 def job_curve(f, R):
-    B, h, N, T, g0 = setup(f, 8)
+    B, h, N, T, g0 = setup(f, BOX[f])
     cs = centres(R, h)
     fld = mc.MultiField(N, h, cs, dtype=np.float32 if N > 192 else np.float64)
     m = mc.Mol(T, fld, gamma0=g0, sym=(1, 1, 1))
@@ -155,7 +158,28 @@ def job_rot(f):
     return dict(f=f, R=R, axis="111", E_el_Eh=E[0], residual=r[0], converged=conv, its=its)
 
 
+def job_gap(f, R):
+    """C9: sigma_g and sigma_u at separation R, box +-10 a0: the hop period of the electron between the protons"""
+    B, h, N, T, g0 = setup(f, 10)
+    cs = centres(R, h)
+    fld = mc.MultiField(N, h, cs)
+    out = dict(f=f, R=R, N=N)
+    conv_all = True
+    for st, sym in (("1sg", (1, 1, 1)), ("1su", (1, 1, -1))):
+        m = mc.Mol(T, fld, gamma0=g0, sym=sym)
+        X, E, r, conv, its = run(m, mc.guess_mol(N, h, cs, st)[:, None], f"{st} R={R}", budget=250)
+        out[st] = E[0]
+        conv_all &= conv
+    gx = ex.energy(R, 0, 1)[0] - ex.energy(R)[0]
+    out.update(gap_Eh=out["1su"] - out["1sg"], gap_exact_Eh=gx, rel=(out["1su"] - out["1sg"]) / gx - 1,
+               period_au=2 * np.pi / (out["1su"] - out["1sg"]), period_exact_au=2 * np.pi / gx, converged=conv_all)
+    return out
+
+
 def dispatch(job):
+    if job.startswith("gap"):
+        p = job.split("_")
+        return job_gap(int(p[1]), float(p[2][1:]))
     p = job.split("_")
     if p[0] == "atom":
         return job_atom(int(p[1]))
