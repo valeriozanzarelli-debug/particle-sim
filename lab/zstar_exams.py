@@ -8,16 +8,27 @@ from zz_core import ALPHA
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 PRE = json.load(open(os.path.join(HERE, "out", "zstar_prereg.json")))
-RUN = json.load(open(os.path.join(HERE, "out", "zstar_runs.json")))
+RUN = json.load(open(os.path.join(HERE, "out", "zstar_runs.json")))            # pre-registered tracker
+SGN = json.load(open(os.path.join(HERE, "out", "zstar_runs_sign.json")))       # amendment A3 (sign method)
 C1 = json.load(open(os.path.join(HERE, "out", "supercrit_c1.json")))
 PR = PRE["predictions"]
 
 
-def walk(v, a):
+def walk(v, a, method="sign"):
+    """Z_cr of the walk. method 'sign' (A3, used for the exams), 'tracker' (pre-registered; base = giro-1 C1)"""
+    if method == "sign":
+        x = SGN.get(f"{v}|{a:.6g}")
+        if x is not None:
+            return x["Zcr"]
     if v == "base":
-        return C1[f"{a:.6g}"]["Zcr"]
+        k = f"{a:.6g}"
+        return C1[k]["Zcr"] if k in C1 else None
     k = f"{v}|{a:.6g}"
     return RUN[k]["Zcr"] if k in RUN else None
+
+
+def tracker(v, a):
+    return walk(v, a, method="tracker")
 
 
 def match(v, a):
@@ -49,7 +60,7 @@ for v in ("R+1", "R+i", "R-i", "S0.25", "K+1", "K+1R+1"):
     d4 = walk(v, 1e-4) - match(v, 1e-4) if walk(v, 1e-4) is not None else None
     d3 = walk(v, 1e-3) - match(v, 1e-3)
     f2[v] = dict(Z_star=PR[v]["Z_roots"], walk={f"{a:.6g}": walk(v, a) for a in PRE["configs"]["a"]},
-                 match={f"{a:.6g}": match(v, a) for a in PRE["configs"]["a"]}, d_1e-4=d4, d_1e-3=d3,
+                 match={f"{a:.6g}": match(v, a) for a in PRE["configs"]["a"]}, d_1em4=d4, d_1em3=d3,
                  PASS=(d4 is not None and abs(d4) <= 0.05 and abs(d3) <= 0.2))
 ex["F2"] = dict(per_variant=f2, PASS=all(x["PASS"] for x in f2.values()))
 # F3
@@ -75,29 +86,40 @@ for v in ("S1", "S0.866"):
     Zw = [walk(v, a) for a in PRE["configs"]["a"]]
     ok = all(z is not None and z >= 137.036 for z in Zw) and all(Zw[i] > Zw[i + 1] for i in range(len(Zw) - 1))
     d4 = Zw[-1] - match(v, 1e-4) if Zw[-1] is not None else None
-    r1[v] = dict(walk=Zw, match=[match(v, a) for a in PRE["configs"]["a"]], match_1e-6=match(v, 1e-6),
-                 match_1e-9=match(v, 1e-9), d_1e-4=d4, PASS=ok and d4 is not None and abs(d4) <= 0.2)
+    r1[v] = dict(walk=Zw, match=[match(v, a) for a in PRE["configs"]["a"]], match_1em6=match(v, 1e-6),
+                 match_1em9=match(v, 1e-9), d_1em4=d4, PASS=ok and d4 is not None and abs(d4) <= 0.2)
 r1["S0.75 (not an exam)"] = dict(walk=[walk("S0.75", a) for a in PRE["configs"]["a"]],
                                  match=[match("S0.75", a) for a in PRE["configs"]["a"]])
 ex["R1"] = dict(per_variant=r1, PASS=all(r1[v]["PASS"] for v in ("S1", "S0.866")))
 # K2
 zk2 = [walk("K-2", a) for a in PRE["configs"]["a"]]
 ex["K2"] = dict(walk=zk2, Z_star=PR["K-2"]["Z_roots"], PASS=zk2[-1] is not None and abs(zk2[-1] - 206.0207) <= 0.3)
-# K3
-zx = {f"{a:.6g}": RUN.get(f"K+2|{a:.6g}", {}).get("Zx") for a in (1e-3, 3e-4, 1e-4)}
-ex["K3"] = dict(Z_x=zx, Z_star=PR["K+2"]["Z_roots"], PASS=zx["0.0001"] is not None and abs(zx["0.0001"] - 42.0531) <= 0.1)
+# K3 (A3: crossing of omega = 0 and omega = -1 by the contact state, sign method)
+AK = (1e-3, 3e-4, 1e-4, 3e-5, 1e-5)
+zx0 = {f"{a:.6g}": SGN.get(f"K+2|{a:.6g}|omega=0", {}).get("Zcr") for a in AK}
+zx1 = {f"{a:.6g}": SGN.get(f"K+2|{a:.6g}", {}).get("Zcr") for a in AK}
+zx_pre = {f"{a:.6g}": RUN.get(f"K+2|{a:.6g}", {}).get("Zx") for a in (1e-3, 3e-4, 1e-4)}
+ex["K3"] = dict(Z_x_omega0=zx0, Z_x_omega_minus1=zx1, tracker_grid_prereg=zx_pre, Z_star=PR["K+2"]["Z_roots"],
+                PASS=zx0["0.0001"] is not None and abs(zx0["0.0001"] - 42.0531) <= 0.1)
 # O1-O3
 ex["O1"] = dict(**RUN["order"], PASS=RUN["order"]["max_dlambda"] < 1e-10)
 ds = walk("split", 1e-4) - walk("base", 1e-4) if walk("split", 1e-4) else None
 ex["O2"] = dict(split={f"{a:.6g}": walk("split", a) for a in PRE["configs"]["a"]},
-                base={f"{a:.6g}": walk("base", a) for a in PRE["configs"]["a"]}, d_1e-4=ds,
+                base={f"{a:.6g}": walk("base", a) for a in PRE["configs"]["a"]}, d_1em4=ds,
                 PASS=ds is not None and abs(ds) <= 0.05)
 dr = walk("refl1", 1e-3) - walk("base", 1e-3) if walk("refl1", 1e-3) else None
 ex["O3"] = dict(refl1=walk("refl1", 1e-3), base=walk("base", 1e-3), diff=dr, PASS=dr is not None and abs(dr) <= 1e-3)
+ex["A3_validation"] = {v: {f"{a:.6g}": dict(sign=walk(v, a), tracker=tracker(v, a)) for a in PRE["configs"]["a"]}
+                       for v in ("base", "R+1", "K+1", "K+1R+1", "R-i", "R+i", "S0.25", "S1", "S0.866", "S0.75", "split", "K-2")}
+ex["fine_a"] = {v: {f"{a:.6g}": walk(v, a) for a in (1e-4, 3e-5, 1e-5)} for v in
+                ("base", "R+1", "K+1", "K+1R+1", "R-i", "R+i", "S0.25", "S1", "S0.866", "S0.75", "split", "K-2")}
+ex["fine_a_Zinf"] = {v: zinf(v, (1e-4, 3e-5, 1e-5)) for v in ("base", "R+1", "K+1", "K+1R+1", "R-i", "R+i", "S0.25")}
 json.dump(ex, open(os.path.join(HERE, "out", "zstar_exams.json"), "w"), indent=1, default=float)
 for k, v in ex.items():
     print(k, "PASS" if v.get("PASS", v.get("PASS_prediction_not_universal")) else "FAIL",
           {kk: vv for kk, vv in v.items() if kk not in ("per_variant", "table")} if k not in ("F2", "R1", "F3") else "")
+print("A3 validation", json.dumps(ex["A3_validation"], indent=0)[:3000])
+print("fine a", ex["fine_a"], ex["fine_a_Zinf"])
 for k in ("F2", "F3", "R1"):
     for v, x in ex[k]["per_variant"].items():
         print("  ", k, v, {kk: vv for kk, vv in x.items() if kk not in ("walk", "match")})

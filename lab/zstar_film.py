@@ -100,6 +100,7 @@ if __name__ == "__main__":
     rho0 = np.zeros(nb)
     np.add.at(rho0, bin_of[bin_of >= 0], (np.abs(chip)**2 + np.abs(chim)**2)[bin_of >= 0])
     _film(chip, chim, w.M, w.refl0, w.refl1, mask, nticks, every, bin_of, nb, edge_link.astype(np.int64), nb, rho, jj)
+    jj /= A                                          # per tick -> per unit time (tick = a / c)
     rho = np.vstack([rho0[None], rho])
     jj = np.vstack([np.zeros((1, nb)), jj])
     dt_frame = every * A

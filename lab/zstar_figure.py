@@ -13,7 +13,7 @@ from zz_core import ALPHA
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 PRE = json.load(open(os.path.join(HERE, "out", "zstar_prereg.json")))
-RUN = json.load(open(os.path.join(HERE, "out", "zstar_runs.json")))
+SGN = json.load(open(os.path.join(HERE, "out", "zstar_runs_sign.json")))
 C1 = json.load(open(os.path.join(HERE, "out", "supercrit_c1.json")))
 PR = PRE["predictions"]
 ZS = PR["base"]["zeta_roots"][0]
@@ -25,7 +25,8 @@ for z, col, lab in [(0.93, "#7f8c8d", "ζ = 0,93 (Z = 127)"), (ZS, "#c0392b", f"
     rho, M = scale_free_coins(z, -1, 0.5, 200000)
     cp, cm, lsc = _fwd(M, -1.0 + 0j, 1.0 + 0j)
     g = np.abs(cp + cm) / np.sqrt(2) * np.exp(lsc)
-    ax[0].loglog(rho[::50], g[::50], color=col, label=lab)
+    ii = np.unique(np.logspace(0, np.log10(len(rho) - 1), 400).astype(int)); ii = np.concatenate([[0], ii])
+    ax[0].loglog(rho[ii], g[ii], color=col, label=lab)
     gam = np.sqrt(1 - z * z)
     if abs(z - ZS) < 1e-9:
         c0 = g[1000] * rho[1000]**gam
@@ -42,13 +43,10 @@ for v, col in cols.items():
     aa = A + [1e-6, 1e-9]
     zm = [PR[v]["Zcr_matching"][f"{a:.6g}"] for a in aa]
     ax[1].semilogx(aa, zm, "-", color=col, lw=1)
-    if v == "base":
-        zw = [C1[f"{a:.6g}"]["Zcr"] for a in [3e-3, 1e-3, 3e-4, 1e-4, 3e-5]]
-        ax[1].semilogx([3e-3, 1e-3, 3e-4, 1e-4, 3e-5], zw, "o", color=col, label="base (s = ½, refl0 = −1)")
-    else:
-        key = v + ":fine" if f"{v}:fine|0.0001" in RUN else v
-        zw = [RUN.get(f"{key}|{a:.6g}", {}).get("Zcr") for a in A]
-        ax[1].semilogx(A, zw, "o", color=col, label=v + (" (A1)" if key != v else ""))
+    AW = [3e-3, 1e-3, 3e-4, 1e-4, 3e-5, 1e-5]
+    zw = [SGN.get(f"{v}|{a:.6g}", {}).get("Zcr") for a in AW]
+    zw = [np.nan if z is None else z for z in zw]
+    ax[1].semilogx(AW, zw, "o", color=col, ms=5, label=v if v != "base" else "base (s = ½, refl0 = −1)")
 ax[1].axhline(1 / ALPHA, color="k", lw=0.8, ls="--")
 ax[1].text(2e-9, 137.6, "Z = 1/α = 137,04", fontsize=8)
 ax[1].set_xlabel("passo a [ħ/mc]")

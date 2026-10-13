@@ -20,6 +20,16 @@ A = {
         "change": "K-2:fine = same tracker with DZMAX = 0.002 from Z*-0.3; K+2:fine = grid step 0.002 in [41.85, 42.35]. "
                   "Pre-registered results kept and reported",
     },
+    "A3": {
+        "when": "after A1 failed: the fine tracker at a = 3e-4 hit the 10-minute limit (S0.25:fine killed, no result)",
+        "change": "new method lab/zstar_run_sign.py: at omega = -1 the walk's own regular solution from r = 0 (same rule, "
+                  "exact recursion) changes the sign of Im g(r_end = 20) exactly when a level crosses -mc^2; scan in Z "
+                  "with step h + bisection to 1e-7. Validated BEFORE use on the base rule: 132.7834570, 132.0840766, "
+                  "131.7123161, 131.5451387 vs the giro-1 tracker 132.7834570, 132.0840766, 131.7123161, 131.5451387 "
+                  "(a = 3e-3 ... 1e-4). Applied to every variant (validation where the tracker worked) and extended to "
+                  "a = 3e-5, 1e-5. K+2 (A2 replaced): crossing of omega = -1 and of omega = 0 by the same method. "
+                  "Exams F2/F3/F4/K2/K3 are judged on these values; the pre-registered tracker values are reported too",
+    },
 }
 json.dump(A, open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "out", "zstar_amend.json"), "w"), indent=1)
 print(json.dumps(A, indent=1))
