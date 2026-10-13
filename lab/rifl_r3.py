@@ -89,6 +89,26 @@ elif part == "Q2":
         save()
         print("Q2", th, N, lp, lf, "%.0fs" % (time.time() - t0), flush=True)
     part = f"Q2_{th:g}"
+elif part == "Q2long":
+    # N piu' grandi col metodo del nucleo (matrice M x M, M ~ v_g N): solo theta grandi dove M resta <= ~6000
+    th = float(sys.argv[2])
+    win = sys.argv[3]                     # "fisica" o "intera"
+    kmax = np.pi / 2 if win == "fisica" else np.pi
+    rows = res.setdefault("Q2long_theta", {}).setdefault(f"{th:g}", {}).setdefault(win, {})
+    for N in [2000, 2560, 3200, 4000, 5000, 6400, 8000, 10000, 12800, 16000, 20000]:
+        if str(N) in rows:
+            continue
+        k, wq = walk_grid(th, N, kmax, 6.0)
+        if len(k) > 6000:
+            print("M troppo grande", N, len(k), flush=True)
+            break
+        if time.time() - t0 > 360:
+            print("tempo: riprendere", flush=True)
+            break
+        rows[str(N)] = {"lambda": walk_backflow(th, N, kmax, cosc=6.0), "M": len(k), "eps": float(eps_of(th, N))}
+        save()
+        print("Q2long", th, win, N, len(k), rows[str(N)]["lambda"], "%.0fs" % (time.time() - t0), flush=True)
+    part = f"Q2long_{th:g}_{win}"
 elif part == "Q2sum":
     d = res["Q2_theta"]
     best_p = max(((float(t), int(N), v["fisica"]) for t, r in d.items() for N, v in r.items()), key=lambda z: z[2])
