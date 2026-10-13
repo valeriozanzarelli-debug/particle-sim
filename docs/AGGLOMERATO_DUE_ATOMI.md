@@ -19,9 +19,15 @@ produzione**. Esiti: `lab/out/aggmol_verdict.json`, `aggmol_learn.json`, `aggmol
 
 ![figura H2](../lab/out/aggmol_h2_figure.png)
 
+![figura H2-H2](../lab/out/aggmol_h2h2_figure.png)
+
 ---
 
 ## 0. In breve
+
+**Fase 3, la forza fra due molecole H₂ (§15): 4 PASS / 0 FAIL.** Buca isotropa **0,106 mEh (33,4 K) a 6,53 a₀
+(3,46 Å)** contro ~0,110 mEh a 6,45 a₀; C6 = 10,86 contro ~12 (−9,5 %). Fatto con un metodo ridotto (perturbativo, non
+variazionale a 4 elettroni), dichiarato prima; l'accordo sulla buca è in parte fortuna di errori che si compensano (§15.4).
 
 **Fase 2, H₂ con due elettroni (§12): 6 PASS / 1 FAIL** (6 esami di fisica tutti PASS; FAIL il cancello G1 della
 macchina, soglia troppo stretta, §12.4).
@@ -458,4 +464,90 @@ python aggmol_h2.py curve       # ripetere finché scrive CURVE DONE (checkpoint
 python aggmol_h2.py hf          # ripetere finché non scrive più "checkpoint" (~12 iterazioni SCF)
 python aggmol_h2.py vib         # R_e, D_e, omega_e, livelli, verdetti H0-H4
 python aggmol_h2_gate_posthoc.py; python aggmol_h2_figure.py
+```
+
+## 15. Fase 3: la forza fra due molecole H₂ (primo passo verso l'idrogeno liquido)
+
+File: `lab/aggmol_h2h2.py` (lavori `mono`, `geom H|X|T|L`, `analyze`), figura `lab/aggmol_h2h2_figure.py` →
+`lab/out/aggmol_h2h2_figure.png`. Pre-registrazione `lab/aggmol_h2h2_prereg.py` → `lab/out/aggmol_h2h2_prereg.json`,
+**commit e9cbf86, prima delle corse**. Esiti `lab/out/aggmol_h2h2.json`.
+
+### 15.1 Cosa si è fatto, e la riduzione di scala (dichiarata prima)
+
+Due molecole H₂ rigide (r = 1,4 a₀), centri a distanza R = 5…12 a₀, **4 orientazioni** (H: parallele affiancate; X:
+incrociate; T; L: in fila), 40 geometrie. Stessa regola di §12 (operatore del thread principale così com'è).
+
+Un calcolo variazionale **completo** a 4 elettroni con precisione di μEh (la buca è 0,1 mEh, mille volte più piccola
+dell'energia di legame di H₂) non entra in questo container (un core, pezzi da 10 minuti). Ho usato la strada da manuale
+per le forze deboli, la teoria delle perturbazioni adattata alla simmetria:
+
+- **ripulsione + elettrostatica (E1_HL)**: il prodotto delle due molecole ECG, **antisimmetrizzato su tutti e 4 gli
+  elettroni** (24 permutazioni con i fattori di spin singoletto × singoletto). Questo è un vero calcolo a 4 elettroni:
+  dà la **ripulsione di Pauli** (gli elettroni di una molecola non possono entrare dove stanno già quelli dell'altra);
+- **dispersione (van der Waals) e induzione** al secondo ordine, con il Coulomb **intero** (non sviluppato in multipoli),
+  dagli stati eccitati "di prova" di una molecola (ECG a 2 elettroni: 36 funzioni del fondamentale + 225 funzioni di
+  polarizzazione scelte dalla macchina stocastica su dipolo, quadrupolo, ottupolo).
+
+**Manca** (scritto prima delle corse): lo scambio-dispersione e lo scambio-induzione (repulsivi), il terzo ordine in su;
+molecole rigide a 1,4 a₀ (i potenziali di letteratura usano 1,449, che lega un po' di più); Born–Oppenheimer.
+
+### 15.2 Esiti
+
+| esame | cosa | risultato | soglia | esito |
+|---|---|---|---|---|
+| M0 | parte diretta di HL = 2E_A + E_elst; ripulsione positiva per R ≤ 10 | 1,4·10⁻¹⁵; sì | 10⁻¹⁰ | **PASS** |
+| W1 | C6 isotropo (Casimir–Polder) contro 12,0 | **10,86** (−9,5 %) | 10 % | **PASS** (di poco) |
+| W2 | profondità della buca isotropa contro 0,110 mEh | **0,1059 mEh = 33,4 K** (−3,7 %) | 20 % | **PASS** |
+| W3 | posizione della buca contro 6,45 a₀ (3,41 Å) | **6,533 a₀ = 3,457 Å** (+1,3 %) | 5 % | **PASS** |
+
+W4 (solo riportato), buca per orientazione: **T 0,168 mEh a 6,35 a₀** (la più profonda: l'elettrostatica quadrupolo-
+quadrupolo attira), X 0,081 a 6,54, H 0,060 a 6,67, **L 0,039 a 7,10** (in fila il quadrupolo respinge).
+
+I pezzi della media isotropa a 6,5 a₀ (mEh): ripulsione di Pauli +0,146; elettrostatica −0,026; induzione −0,004;
+dispersione −0,222; totale −0,106. **La buca è la piccola differenza fra due cose grandi**: la ripulsione di Pauli
+(4 elettroni) e la dispersione. Controllo della coda: −E_disp·R⁶ su R = 10, 12 dà C6 = 10,46 + C8 = 261/R² (C8 noto ~215:
+la coda contiene anche C10 e lo smorzamento).
+
+Monomero: E = −1,887451 Eh (1,3 mEh sopra l'esatto, 18 gaussiane), polarizzabilità α∥ = 6,26 (noto 6,38), α⊥ = 4,37 (4,58),
+quadrupolo elettronico 0,512 (Θ = 0,98 − 0,512 = 0,47; noto ~0,46–0,48).
+
+### 15.3 Cosa vuol dire, detto semplice
+
+Due palline-molecola H₂: da lontano si attirano debolmente (dispersione: le nubi "si sincronizzano", 1/R⁶), da vicino si
+respingono forte (Pauli). In mezzo c'è una buca di **33 K**, a **3,46 Å**: è quella che a 20 K tiene insieme l'idrogeno
+liquido. È uscita da due protoni e due elettroni per molecola, la regola del thread principale e nessuna tabella. È una
+**validazione** (la forza H₂–H₂ è nota), non una scoperta.
+
+### 15.4 Onestà sui numeri
+
+- **Errori che si compensano.** La dispersione non è convergita (C6 −9,5 %: buca troppo poco profonda); manca lo
+  scambio-dispersione (repulsivo, di solito ~10 % della dispersione vicino alla buca: buca troppo profonda). I due effetti
+  vanno in versi opposti e hanno taglia simile: **il −3,7 % della buca è in parte fortuna**. Prima delle corse avevo
+  scritto che tutti gli errori avrebbero reso la buca meno profonda: lo scambio-dispersione no, sbagliavo il verso di
+  quel pezzo (dichiaro la svista). W1 passa di poco (−9,5 % contro 10 %).
+- In sviluppo: un errore nel primo codice HL (energia di riferimento sottratta due volte, repulsione dei nuclei mancante
+  nei termini di scambio: "scambio" attrattivo); trovato con un confronto a forza bruta e con il controllo della parte
+  diretta, corretto prima della pre-registrazione.
+- Tempo: ~110 s per geometria, 40 geometrie, ~75 minuti su un core; memoria < 0,5 GB.
+
+### 15.5 Debiti e prossimi passi
+
+**Debiti:** scambio-dispersione/induzione e ordini alti mancanti; molecole rigide (r = 1,4, J = 0 trattato come media su
+4 orientazioni); dispersione non convergita (base di polarizzazione 225 funzioni); Born–Oppenheimer; regola del thread
+principale con i suoi debiti. **Parametri liberi di fisica: zero.** Iper-parametri del risolutore: K0 = 18, KPOL = 15,
+semi 1 e 3.
+
+**Prossimi passi verso il liquido (§13):** (1) scambio-dispersione (stessa macchina a 4 elettroni, con le coppie di stati
+eccitati) o un calcolo variazionale a 4 elettroni in un punto vicino alla buca come controllo; (2) base di polarizzazione
+più grande (C6 entro 3 %); (3) la **pallina-molecola**: V₀(R) di qui come forza fra palline, esame sul secondo
+coefficiente del viriale B(T) del gas; (4) i nuclei quantistici (integrali di cammino) per il liquido.
+
+### 15.6 Come rieseguire
+
+```
+cd lab
+python aggmol_h2h2_prereg.py          # (già committato, e9cbf86)
+python aggmol_h2h2.py mono            # monomero e pseudo-stati, ~20 s
+python aggmol_h2h2.py geom H          # ripetere finché scrive "ORIENT H DONE" (~110 s per geometria); poi X, T, L
+python aggmol_h2h2.py analyze; python aggmol_h2h2_figure.py
 ```
