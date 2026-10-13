@@ -1,0 +1,279 @@
+{
+ "study": "arrivo_ - tempi di arrivo di particelle di spin 1/2 (Das-Duerr vs rivelatore assorbente) sulla regola zig-zag",
+ "date": "2026-10-13",
+ "rule": "lab/zz_core.py frozen: 'dirac1' (1+1 D) and 'dirac' with axes (y, z) (2+1 D); theta = m c a / hbar = a",
+ "units": "rule: hbar = c = m_e = 1; DD: hbar = m = d = 1. Box length d = D lambda_C; c_DD = D.",
+ "free_parameters": 0,
+ "setup_parameters": "d, L, omega of Das-Duerr (set-up, not fitted); kappa of the rule's detector is NOT free (= 2 m c / hbar)",
+ "numerical_choices": {
+  "a": [
+   0.5,
+   0.25,
+   0.125,
+   0.0625
+  ],
+  "D_1d": [
+   20,
+   40,
+   80
+  ],
+  "D_2d": 30,
+  "edge": "light cone (exact) where affordable, else complex absorbing ramp z_c = 3 L, length L, W0 = 0.05 (numerical only), checked against the light cone at D = 20",
+  "extrapolation_primary": "Richardson in a^2 from the two smallest a: f0 = (4 f(a/2) - f(a)) / 3",
+  "extrapolation_secondary": "quadratic fit c0 + c1 a + c2 a^2 on the three smallest a (reported, not judged)",
+  "traj_samples": "the SAME initial (X, Y, Z) samples (fixed seed) for the NR reference and the rule",
+  "lattice_current": "bond-centred conserved current (mean of the two bond fluxes) for the surfers",
+  "NR_schedule": "RK4, dt = 2e-4 (tau < 0.05), 2e-3 (tau < 2), 1e-2 after (checked with dt/2)"
+ },
+ "configs": {
+  "NR_A": {
+   "L": 100,
+   "omega": 1000,
+   "alpha": [
+    "pi/2",
+    "0"
+   ],
+   "N": 20000,
+   "seed": 20261013,
+   "tau_end": 60
+  },
+  "NR_B": {
+   "L": 10,
+   "omega": 1000,
+   "alpha": [
+    "pi/2",
+    "0"
+   ],
+   "N": 4000,
+   "seed": 20261014,
+   "tau_end": 40
+  },
+  "NR_C": {
+   "L": 10,
+   "omega": 20,
+   "alpha": [
+    "pi/2",
+    "0",
+    "pi/4",
+    "3pi/4",
+    "pi"
+   ],
+   "N": 2000,
+   "seed": 20261015,
+   "tau_end": 40
+  },
+  "R1D_flux_L10": {
+   "L": 10,
+   "D": [
+    20,
+    40,
+    80
+   ],
+   "a": "all",
+   "tau_end": "40 (D = 20, 40), 10 (D = 80)"
+  },
+  "R1D_hyb_L10": {
+   "L": 10,
+   "omega": 1000,
+   "alpha": [
+    "pi/2",
+    "0"
+   ],
+   "D": [
+    20,
+    40
+   ],
+   "a": "all",
+   "samples": "NR_B (first 4000)"
+  },
+  "R1D_hyb_L100": {
+   "L": 100,
+   "omega": 1000,
+   "alpha": [
+    "pi/2"
+   ],
+   "D": [
+    20,
+    40
+   ],
+   "a": "D=20: all; D=40: 0.5, 0.25, 0.125",
+   "samples": "NR_A first 5000"
+  },
+  "R1D_det": {
+   "L": 10,
+   "D": [
+    20,
+    40,
+    80
+   ],
+   "a": "all",
+   "tau_end": "100 (60 for D = 80)",
+   "detector": "rule cell at z = L"
+  },
+  "R2D_free": {
+   "L": 10,
+   "omega": 20,
+   "D": 30,
+   "a": [
+    0.5,
+    0.25,
+    0.125
+   ],
+   "spin": [
+    "x",
+    "z",
+    "y"
+   ],
+   "N": 2000,
+   "samples": "NR_C first 2000",
+   "ymax_DD": 0.8,
+   "ramp": "z_c = 2 L, length 0.6 L",
+   "tau_end": 8,
+   "currents": "exact lattice bond fluxes accumulated over a palindromic pair of ticks (the y and z sub-steps measured on the state each sub-step really moves)"
+  },
+  "R2D_det": {
+   "L": 10,
+   "omega": 20,
+   "D": 30,
+   "a": "0.5, 0.25 (x, y, z, tau_end 60); 0.125 (x, z, tau_end 10)"
+  },
+  "ABR": {
+   "L": [
+    10,
+    100
+   ],
+   "kappa": [
+    "pi/2",
+    "pi",
+    "2 pi",
+    "10 pi",
+    "2 D (= 2 m c/hbar) for D = 20, 40, 80"
+   ],
+   "solver": "Crank-Nicolson h = 0.005, dt = 5e-4 (checked with h, dt doubled); modal formula for kappa >> k"
+  },
+  "PRED": {
+   "particle": "electron",
+   "d_m": 5e-05,
+   "L_over_d": 100,
+   "omega_DD": 1000,
+   "kappa_DD": "2 d / lambda_C = 2.59e8",
+   "what": "rule detector = ABR(kappa = 2mc/hbar) modal formula"
+  }
+ },
+ "exams": [
+  {
+   "id": "E1",
+   "kind": "validation",
+   "what": "NR tau_max(L=100, omega=1000, alpha=pi/2) vs Das-Duerr 42.9 (JT 2026: ~43)",
+   "threshold": "|rel| < 0.02"
+  },
+  {
+   "id": "E2",
+   "kind": "validation",
+   "what": "NR spin-up Bohm arrivals = flux: KS distance (L = 100, N = 20000)",
+   "threshold": "< 0.015"
+  },
+  {
+   "id": "E3",
+   "kind": "validation",
+   "what": "spin dependence (DD effect) in NR Bohm: P(T_up > tau_max,x) at L = 100",
+   "threshold": "> 0.05"
+  },
+  {
+   "id": "E4",
+   "kind": "validation",
+   "what": "rule flux at L = 10 vs Pi_qf: L1 distance on tau in [0, 10], a -> 0 (primary), D = 80; and L1 decreasing with D (20 > 40 > 80)",
+   "threshold": "< 0.01 and monotone"
+  },
+  {
+   "id": "E5",
+   "kind": "validation",
+   "what": "rule flux at L = 100 vs Pi_qf: L1 on [0, 50], D = 40, a -> 0 (from 0.25, 0.125)",
+   "threshold": "< 0.01"
+  },
+  {
+   "id": "E6",
+   "kind": "validation",
+   "what": "tail at L = 10: mean ratio Pi_rule / Pi_qf on tau in [20, 40], a -> 0, D = 20 and 40",
+   "threshold": "|ratio - 1| < 0.01"
+  },
+  {
+   "id": "E7",
+   "kind": "validation",
+   "what": "hybrid surfers (rule longitudinal + NR spin term) L = 10, omega = 1000, alpha = pi/2: mean, q50, q90, tau_max vs NR, D = 40, a -> 0",
+   "threshold": "each |rel| < 0.015"
+  },
+  {
+   "id": "E8",
+   "kind": "validation",
+   "what": "hybrid L = 100, omega = 1000, alpha = pi/2: tau_max and mean vs NR, D = 40, a -> 0 (0.25, 0.125)",
+   "threshold": "each |rel| < 0.02"
+  },
+  {
+   "id": "E9",
+   "kind": "validation",
+   "what": "hybrid alpha = 0, L = 10: KS vs NR alpha = 0 (D = 40, a = 0.0625)",
+   "threshold": "< 0.02"
+  },
+  {
+   "id": "E10",
+   "kind": "validation (rule only, no spin term by hand)",
+   "what": "2-D surfers spin x: tau_max and mean vs NR (omega = 20, L = 10), a -> 0 from 0.25, 0.125",
+   "threshold": "each |rel| < 0.03"
+  },
+  {
+   "id": "E11",
+   "kind": "validation (rule only)",
+   "what": "2-D surfers spin z and spin y (in-plane): KS vs NR alpha = 0 on tau <= 8 (a = 0.125)",
+   "threshold": "< 0.03"
+  },
+  {
+   "id": "E12",
+   "kind": "validation (rule only)",
+   "what": "DD effect born from the rule: fraction of spin-z surfers with T > tau_max(x, rule) (a = 0.125); spin x surfers with T > 1.03 tau_max,NR",
+   "threshold": "> 0.03 ; = 0"
+  },
+  {
+   "id": "E13",
+   "kind": "validation",
+   "what": "rule detector reflection of a stationary NR wave (lattice, a = 0.025) vs (1 - v)/(1 + v), v = 0.05, 0.1, 0.3",
+   "threshold": "|rel| < 1e-3"
+  },
+  {
+   "id": "E14",
+   "kind": "new (correspondence)",
+   "what": "rule cell detector (1-D, L = 10) vs NR ABR with kappa = 2 m c/hbar: max_tau<=100 |F_rule - F_ABR|, a -> 0; at D = 80 and decreasing with D",
+   "threshold": "< 0.01 at D = 80; D20 > D40 > D80"
+  },
+  {
+   "id": "E15",
+   "kind": "new (prediction)",
+   "what": "rule detector is not the flux: max |F_rule - F_flux| (D = 80, a -> 0)",
+   "threshold": "> 0.1"
+  },
+  {
+   "id": "E16",
+   "kind": "new (GTZ on the rule)",
+   "what": "2-D rule detector: spin independence max_tau |F_x - F_z|, |F_y - F_z|, every a",
+   "threshold": "< 1e-3"
+  },
+  {
+   "id": "E17",
+   "kind": "consistency",
+   "what": "2-D rule detector vs 1-D rule detector (same D, a): max |dF|",
+   "threshold": "< 0.02"
+  },
+  {
+   "id": "E18",
+   "kind": "validation (soft)",
+   "what": "ABR kappa = pi, L = 10: F(20) vs Jozani-Tumulka 96 %",
+   "threshold": "|dF| < 0.02"
+  }
+ ],
+ "predictions_before_data": {
+  "P1": "the rule reproduces the DD curves (flux, tau_max) in the limit a -> 0, d >> lambda_C (errors O(a^2) via the lattice mass tan(a)/a, and O((lambda_C/d)^2))",
+  "P2": "the 2-D rule surfers show the DD cut-off for spin x and none for spin z, y: the Pauli spin term emerges from the Dirac current",
+  "P3": "the rule detector = Tumulka ideal ABCD = NR ABR with kappa = 2mc/hbar: absorbs ~ 2 v/c per hit; spin independent (any linear, mirror-symmetric detector: GTZ)",
+  "P4": "for the proposed experiment (electron, d = 50 um, L = 5 mm) the rule detector would be a mirror: detection times of order 10^3-10^4 s instead of ~1 ms, no spin dependence"
+ }
+}

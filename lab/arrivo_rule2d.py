@@ -310,3 +310,169 @@ class Guide2D:
         Jz = np.zeros_like(rho)
         _fields2(self.P, rho, Jy, Jz)
         return rho, Jy, Jz
+
+
+# ------------------------------------------------------------------ drivers with checkpoints
+SCHED2 = ((0.05, 2e-4), (2.0, 1e-3), (1e9, 2e-3))
+
+
+def _stride_at(tick, a, D, sched):
+    tau = tick * a / D**2
+    for until, h in sched:
+        if tau < until - 1e-12:
+            return max(1, int(round(h * D**2 / a))), until
+    return max(1, int(round(sched[-1][1] * D**2 / a))), 1e18
+
+
+def run_2d(cfg, ckpt, budget_s=540.0, verbose=True):
+    """cfg: dict(D, a, omega, Lz, ymax, mode ('free'|'detector'), spinor, tau_end, zc, ell, YZ0 (2, N) DD units
+    or None). Saves/loads the checkpoint ckpt (.npz). returns (done, result dict or None)."""
+    import os
+    import time
+    t0 = time.time()
+    D, a = cfg["D"], cfg["a"]
+    g = Guide2D(D, a, cfg["omega"], cfg["Lz"], cfg["ymax"], cfg["mode"], zc_dd=cfg.get("zc"), ell_dd=cfg.get("ell"))
+    n_end = int(np.ceil(cfg["tau_end"] * D**2 / a))
+    traj = cfg.get("YZ0") is not None and cfg["mode"] == "free"
+    if os.path.exists(ckpt):
+        ck = np.load(ckpt)
+        g.P = ck["P"]
+        g.Q = np.zeros_like(g.P)
+        g.tick = int(ck["tick"])
+        fl, ab = list(ck["fl"]), list(ck["ab"])
+        prep = dict(resid=float(ck["prep_resid"]), Om=float(ck["prep_Om"]), spin=ck["spin0"])
+        if traj:
+            Y, Z, T, alive = ck["Y"], ck["Z"], ck["T"], ck["alive"].astype(np.bool_)
+            tsnap = float(ck["tsnap"])
+            r0, y0f, z0f = ck["r0"], ck["y0f"], ck["z0f"]
+    else:
+        g.prepare(cfg["spinor"], Tf_factor=24.0, verbose=verbose)
+        prep = dict(resid=g.prep_resid, Om=g.prep_Om, spin=g.spin_expect())
+        fl, ab = [], []
+        if traj:
+            Y = cfg["YZ0"][0] * D
+            Z = cfg["YZ0"][1] * D
+            T = np.full(Y.shape[0], np.nan)
+            alive = np.ones(Y.shape[0], np.bool_)
+            tsnap = 0.0
+            r0, y0f, z0f = g.fields()      # t = 0: the box state is stationary (exact currents ~ site currents)
+    while g.tick < n_end and time.time() - t0 < budget_s:
+        if traj:
+            stride, _ = _stride_at(g.tick, a, D, SCHED2)
+            stride = max(2, 2 * (stride // 2))
+            nt = min(stride - 2, n_end - g.tick)
+        else:
+            nt = min(2000, n_end - g.tick)
+        if nt > 0:
+            f_, b_ = g.advance(nt)
+            fl.extend(f_.tolist())
+            ab.extend(b_.tolist())
+        if traj and g.tick + 2 <= n_end:
+            # snapshot with the exact lattice fluxes of the next two ticks (flux record: not needed in free
+            # runs with trajectories beyond the bond at L, which is recomputed from the flux of these ticks)
+            r1, y1f, z1f, tmid = exact_fields(g, 1)
+            # the bond flux through z_L during these two ticks (exact, split equally between the two ticks)
+            fl.extend([0.5 * g.last_flux_L, 0.5 * g.last_flux_L])
+            ab.extend([0.0, 0.0])
+            _traj2(Y, Z, T, alive, tsnap, tmid - tsnap, a, g.y0, g.zL, r0, y0f, z0f, r1, y1f, z1f)
+            r0, y0f, z0f = r1, y1f, z1f
+            tsnap = tmid
+        elif traj:
+            break
+            if not alive.any() and cfg.get("stop_when_arrived", False):
+                break
+    done = g.tick >= n_end or (traj and not alive.any() and cfg.get("stop_when_arrived", False))
+    save = dict(P=g.P, tick=g.tick, fl=np.array(fl), ab=np.array(ab), prep_resid=prep["resid"],
+                prep_Om=prep["Om"], spin0=np.asarray(prep["spin"]))
+    if traj:
+        save.update(Y=Y, Z=Z, T=T, alive=alive, tsnap=tsnap, r0=r0, y0f=y0f, z0f=z0f)
+    np.savez(ckpt, **save)
+    if verbose:
+        print("  2D %s a=%g tick %d/%d (%.0f s)%s" % (cfg["mode"], a, g.tick, n_end, time.time() - t0,
+                                                      "  alive %d" % alive.sum() if traj else ""), flush=True)
+    if not done:
+        return False, None
+    res = dict(tau=(np.arange(len(fl)) + 0.5) * a / D**2, flux=np.array(fl) / a * D**2,
+               absorbed=np.array(ab), norm=float(np.sum(np.abs(g.P)**2)), prep=prep, Ny=g.Ny, Nz=g.Nz)
+    if traj:
+        res["T"] = T / D**2
+    return True, res
+
+
+# ------------------------------------------------------------------ exact lattice fluxes (fix, see doc)
+@nb.njit(cache=True)
+def _bond_fluxes_y(P, Fy):
+    """accumulate what crosses each y bond (i | i+1, periodic) in the coming y translation of state P"""
+    Ny, Nz = P.shape[1], P.shape[2]
+    for i in range(Ny):
+        ip = (i + 1) % Ny
+        for j in range(Nz):
+            pl = 0.5 * (abs(P[2, i, j] - 1j * P[3, i, j])**2 + abs(P[0, i, j] + 1j * P[1, i, j])**2)
+            mn = 0.5 * (abs(P[2, ip, j] + 1j * P[3, ip, j])**2 + abs(P[0, ip, j] - 1j * P[1, ip, j])**2)
+            Fy[i, j] += pl - mn
+
+
+@nb.njit(cache=True)
+def _bond_fluxes_z(P, Fz):
+    """accumulate what crosses each z bond (j | j+1) in the coming z translation (wall at 0: no bond)"""
+    Ny, Nz = P.shape[1], P.shape[2]
+    for i in range(Ny):
+        for j in range(Nz - 1):
+            pl = abs(P[2, i, j])**2 + abs(P[1, i, j])**2
+            mn = abs(P[3, i, j + 1])**2 + abs(P[0, i, j + 1])**2
+            Fz[i, j] += pl - mn
+
+
+@nb.njit(cache=True)
+def _ticks_flux(P, Q, n0, nticks, c, s, ph, damp, top_mode, jL, Fy, Fz, rho_mid, imid):
+    """like _ticks, accumulating the exact bond fluxes of every sub-step, and storing rho after tick imid."""
+    A, B = P, Q
+    for k in range(nticks):
+        n = n0 + k
+        if n % 2 == 0:
+            _bond_fluxes_y(A, Fy)
+            _shift_y(A, B)
+            _bond_fluxes_z(B, Fz)
+            _shift_z(B, A, top_mode, jL)
+        else:
+            _bond_fluxes_z(A, Fz)
+            _shift_z(A, B, top_mode, jL)
+            _bond_fluxes_y(B, Fy)
+            _shift_y(B, A)
+        _coin(A, c, s, ph, damp)
+        if k == imid:
+            Ny, Nz = A.shape[1], A.shape[2]
+            for i in range(Ny):
+                for j in range(Nz):
+                    rho_mid[i, j] = (abs(A[0, i, j])**2 + abs(A[1, i, j])**2
+                                     + abs(A[2, i, j])**2 + abs(A[3, i, j])**2)
+    return 0
+
+
+@nb.njit(cache=True)
+def _site_currents(Fy, Fz, nt, Jy, Jz):
+    """site currents = mean of the two adjacent bond fluxes, per tick"""
+    Ny, Nz = Fy.shape
+    for i in range(Ny):
+        im = (i - 1) % Ny
+        for j in range(Nz):
+            Jy[i, j] = 0.5 * (Fy[i, j] + Fy[im, j]) / nt
+            fz_lo = Fz[i, j - 1] if j >= 1 else 0.0
+            Jz[i, j] = 0.5 * (Fz[i, j] + fz_lo) / nt
+
+
+def exact_fields(g, npair=1):
+    """advance g by 2*npair ticks measuring the exact lattice fluxes; returns rho (middle), Jy, Jz and the
+    time of the middle (rule units)."""
+    Fy = np.zeros((g.Ny, g.Nz))
+    Fz = np.zeros((g.Ny, g.Nz))
+    rho = np.zeros((g.Ny, g.Nz))
+    nt = 2 * npair
+    _ticks_flux(g.P, g.Q, g.tick, nt, g.c, g.s, g.ph, g.damp, g.top, g.jL, Fy, Fz, rho, nt // 2 - 1)
+    tmid = (g.tick + nt // 2) * g.a
+    g.tick += nt
+    Jy = np.zeros_like(rho)
+    Jz = np.zeros_like(rho)
+    _site_currents(Fy, Fz, nt, Jy, Jz)
+    g.last_flux_L = float(Fz[:, g.jL - 1].sum()) if 0 < g.jL <= g.Nz else 0.0
+    return rho, Jy, Jz, tmid
