@@ -1,0 +1,182 @@
+{
+ "rows": [
+  {
+   "frac": 2,
+   "box_a0": 8,
+   "N": 32,
+   "cells": 32768,
+   "cell_lambdaC": 68.5179995418479,
+   "tau_hbar_over_mc2": 68.5179995418479,
+   "steps_per_au": 274.0719981673916,
+   "mem_eigen_GB": 0.005505024,
+   "mem_dynamics_GB": 0.002752512,
+   "bytes_per_step_free_GB": 0.006815744,
+   "bytes_per_step_field_GB": 0.061341696,
+   "est_ms_per_step_field": {
+    "Intel UHD (~25 GB/s, catalogue)": 2.45366784,
+    "16 GB mid (288 GB/s)": 0.212992,
+    "16 GB high (717 GB/s)": 0.08555327196652719
+   },
+   "two_electron_exact_numbers": 1073741824.0,
+   "two_electron_singlet_GB_c64": 4.295098368,
+   "t_field_build_s": 0.2651102542877197,
+   "t_H_apply_s": 0.0057362715403238935,
+   "t_free_step_s": 0.000881195068359375
+  },
+  {
+   "frac": 2,
+   "box_a0": 12,
+   "N": 48,
+   "cells": 110592,
+   "cell_lambdaC": 68.5179995418479,
+   "tau_hbar_over_mc2": 68.5179995418479,
+   "steps_per_au": 274.0719981673916,
+   "mem_eigen_GB": 0.018579456,
+   "mem_dynamics_GB": 0.009289728,
+   "bytes_per_step_free_GB": 0.023003136,
+   "bytes_per_step_field_GB": 0.207028224,
+   "est_ms_per_step_field": {
+    "Intel UHD (~25 GB/s, catalogue)": 8.28112896,
+    "16 GB mid (288 GB/s)": 0.718848,
+    "16 GB high (717 GB/s)": 0.2887422928870293
+   },
+   "two_electron_exact_numbers": 12230590464.0,
+   "two_electron_singlet_GB_c64": 48.922804224,
+   "t_field_build_s": 0.831932783126831,
+   "t_H_apply_s": 0.02587588628133138,
+   "t_free_step_s": 0.0033533573150634766
+  },
+  {
+   "frac": 4,
+   "box_a0": 8,
+   "N": 64,
+   "cells": 262144,
+   "cell_lambdaC": 34.25899977092395,
+   "tau_hbar_over_mc2": 34.25899977092395,
+   "steps_per_au": 548.1439963347832,
+   "mem_eigen_GB": 0.044040192,
+   "mem_dynamics_GB": 0.022020096,
+   "bytes_per_step_free_GB": 0.054525952,
+   "bytes_per_step_field_GB": 0.490733568,
+   "est_ms_per_step_field": {
+    "Intel UHD (~25 GB/s, catalogue)": 19.62934272,
+    "16 GB mid (288 GB/s)": 1.703936,
+    "16 GB high (717 GB/s)": 0.6844261757322175
+   },
+   "two_electron_exact_numbers": 68719476736.0,
+   "two_electron_singlet_GB_c64": 274.87895552,
+   "t_field_build_s": 1.8420357704162598,
+   "t_H_apply_s": 0.06034445762634277,
+   "t_free_step_s": 0.007966200510660807
+  },
+  {
+   "frac": 4,
+   "box_a0": 12,
+   "N": 96,
+   "cells": 884736,
+   "cell_lambdaC": 34.25899977092395,
+   "tau_hbar_over_mc2": 34.25899977092395,
+   "steps_per_au": 548.1439963347832,
+   "mem_eigen_GB": 0.148635648,
+   "mem_dynamics_GB": 0.074317824,
+   "bytes_per_step_free_GB": 0.184025088,
+   "bytes_per_step_field_GB": 1.656225792,
+   "est_ms_per_step_field": {
+    "Intel UHD (~25 GB/s, catalogue)": 66.24903168,
+    "16 GB mid (288 GB/s)": 5.750784,
+    "16 GB high (717 GB/s)": 2.3099383430962344
+   },
+   "two_electron_exact_numbers": 782757789696.0,
+   "two_electron_singlet_GB_c64": 3131.034697728,
+   "t_field_build_s": 6.214283466339111,
+   "t_H_apply_s": 0.23801231384277344,
+   "t_free_step_s": 0.033820152282714844
+  },
+  {
+   "frac": 8,
+   "box_a0": 8,
+   "N": 128,
+   "cells": 2097152,
+   "cell_lambdaC": 17.129499885461975,
+   "tau_hbar_over_mc2": 17.129499885461975,
+   "steps_per_au": 1096.2879926695664,
+   "mem_eigen_GB": 0.352321536,
+   "mem_dynamics_GB": 0.176160768,
+   "bytes_per_step_free_GB": 0.436207616,
+   "bytes_per_step_field_GB": 3.925868544,
+   "est_ms_per_step_field": {
+    "Intel UHD (~25 GB/s, catalogue)": 157.03474176,
+    "16 GB mid (288 GB/s)": 13.631488,
+    "16 GB high (717 GB/s)": 5.47540940585774
+   },
+   "two_electron_exact_numbers": 4398046511104.0,
+   "two_electron_singlet_GB_c64": 17592.194433024,
+   "t_field_build_s": 19.848473072052002,
+   "t_H_apply_s": 0.6136473814646403,
+   "t_free_step_s": 0.09443020820617676
+  },
+  {
+   "frac": 8,
+   "box_a0": 12,
+   "N": 192,
+   "cells": 7077888,
+   "cell_lambdaC": 17.129499885461975,
+   "tau_hbar_over_mc2": 17.129499885461975,
+   "steps_per_au": 1096.2879926695664,
+   "mem_eigen_GB": 1.189085184,
+   "mem_dynamics_GB": 0.594542592,
+   "bytes_per_step_free_GB": 1.472200704,
+   "bytes_per_step_field_GB": 13.249806336,
+   "est_ms_per_step_field": {
+    "Intel UHD (~25 GB/s, catalogue)": 529.99225344,
+    "16 GB mid (288 GB/s)": 46.006272,
+    "16 GB high (717 GB/s)": 18.479506744769875
+   },
+   "two_electron_exact_numbers": 50096498540544.0,
+   "two_electron_singlet_GB_c64": 200386.022473728,
+   "t_field_build_s": 102.60895228385925,
+   "t_H_apply_s": 3.131755272547404,
+   "t_free_step_s": 0.5337618986765543
+  },
+  {
+   "frac": 16,
+   "box_a0": 8,
+   "N": 256,
+   "cells": 16777216,
+   "cell_lambdaC": 8.564749942730987,
+   "tau_hbar_over_mc2": 8.564749942730987,
+   "steps_per_au": 2192.575985339133,
+   "mem_eigen_GB": 2.818572288,
+   "mem_dynamics_GB": 1.409286144,
+   "bytes_per_step_free_GB": 3.489660928,
+   "bytes_per_step_field_GB": 31.406948352,
+   "est_ms_per_step_field": {
+    "Intel UHD (~25 GB/s, catalogue)": 1256.27793408,
+    "16 GB mid (288 GB/s)": 109.051904,
+    "16 GB high (717 GB/s)": 43.80327524686192
+   },
+   "two_electron_exact_numbers": 281474976710656.0,
+   "two_electron_singlet_GB_c64": 1125899.973951488
+  },
+  {
+   "frac": 16,
+   "box_a0": 12,
+   "N": 384,
+   "cells": 56623104,
+   "cell_lambdaC": 8.564749942730987,
+   "tau_hbar_over_mc2": 8.564749942730987,
+   "steps_per_au": 2192.575985339133,
+   "mem_eigen_GB": 9.512681472,
+   "mem_dynamics_GB": 4.756340736,
+   "bytes_per_step_free_GB": 11.777605632,
+   "bytes_per_step_field_GB": 105.998450688,
+   "est_ms_per_step_field": {
+    "Intel UHD (~25 GB/s, catalogue)": 4239.93802752,
+    "16 GB mid (288 GB/s)": 368.050176,
+    "16 GB high (717 GB/s)": 147.836053958159
+   },
+   "two_electron_exact_numbers": 3206175906594816.0,
+   "two_electron_singlet_GB_c64": 12824703.85287168
+  }
+ ]
+}
