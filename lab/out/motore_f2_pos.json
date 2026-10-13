@@ -1,0 +1,25 @@
+{
+ "atomic_packet": {
+  "negative_weight_after_block": 3.5847579353319158e-12,
+  "alias_omega": 0.04370694635797487,
+  "fake_beat_amp_unprojected": 1.2802456273533272e-06,
+  "fake_beat_amp_projected": 2.5228012693778397e-16,
+  "leak_per_step_projected": 1.8920047968353825e-29,
+  "d_centroid_rel": 2.7651668804386713e-08,
+  "d_width_rel": 1.46689623781171e-08
+ },
+ "pure_R": {
+  "negative_weight": 0.4999998732443409,
+  "flagged": true,
+  "fake_beat_amp_unprojected": 0.494863803418298,
+  "beat_peak_omega": 0.043710922917314,
+  "zb_alias_omega": 0.04370694635797487,
+  "valley_alias_omegas": [
+   0.0,
+   0.043706946358
+  ],
+  "weight_near_coarse_pi": 1.2766337784619879e-33,
+  "verdict_valley": "ZB aliasata"
+ },
+ "G4": "PASS"
+}
