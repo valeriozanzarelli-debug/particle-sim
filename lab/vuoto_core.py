@@ -81,12 +81,13 @@ def U3d(K, th, nt):
     return Wt
 
 
-def floquet_seq(dim, th, period, start=0):
+def floquet_seq(dim, th, period, start=0, mu=0.0):
     """list of one-tick Bloch functions U_t(k) for the Floquet period; start = 1 measures the density at the
-    other time slice (3-D: period begins with the z,y,x tick)"""
+    other time slice (3-D: period begins with the z,y,x tick). mu != 0: EXPLORATION B (not the rule): flip angle
+    th - mu on even ticks, th + mu on odd ticks (gives the quasi-energy-pi cones a mass mu)."""
     if dim == 1:
         return [lambda k: U1d(k, th)] * period
-    return [(lambda K, nt=nt: U3d(K, th, (nt + start) % 2)) for nt in range(period)]
+    return [(lambda K, nt=nt: U3d(K, th + mu * (1 if (nt + start) % 2 else -1), (nt + start) % 2)) for nt in range(period)]
 
 
 # ------------------------------------------------------------------ robust eigen-decomposition of a unitary
@@ -108,11 +109,11 @@ def ueig(W):
 
 
 # ------------------------------------------------------------------ the Floquet linear response kernel
-def lr_terms(Ks, q, dim, th, period, weight=None, start=0):
+def lr_terms(Ks, q, dim, th, period, weight=None, start=0, mu=0.0):
     """integrand F(k) of chi(q) = sum_k F(k) / N (lattice units). Ks: (N,) in 1-D or (N,3) in 3-D; q scalar (1-D)
     or 3-vector. weight: None (whole sea) or function k -> w(k) in [0,1] (species projector, sqrt(w(k) w(k+q))).
     Returns complex array F (N,); chi(q) = mean(F) * (BZ volume factor handled by the caller)."""
-    seq = floquet_seq(dim, th, period, start)
+    seq = floquet_seq(dim, th, period, start, mu)
     Kq = Ks + q
     Ua = [f(Ks) for f in seq]          # U_t(k)
     Ub = [f(Kq) for f in seq]          # U_t(k+q)
@@ -320,7 +321,7 @@ def special_rule(nseg):
     return np.concatenate(nodes), np.concatenate(wts)
 
 
-def chi_full_3d(q, th, nseg=16, chunk=60000):
+def chi_full_3d(q, th, nseg=16, chunk=60000, mu=0.0):
     """chi per site of the WHOLE two-tick sea (all 32 massive species + 32 massless cones), divided by 32 (= per
     massive species). Integral over one pi-cell (W is pi-periodic): chi_site = 8 int_cell F / (2pi)^3."""
     q = np.asarray(q, float)
@@ -330,6 +331,6 @@ def chi_full_3d(q, th, nseg=16, chunk=60000):
     Ks = np.stack([KX.ravel(), KY.ravel(), KZ.ravel()], 1) - 0.5 * q[None, :]
     tot = 0.0 + 0.0j
     for s in range(0, len(Ks), chunk):
-        F = lr_terms(Ks[s:s + chunk], q, 3, th, 2, None)
+        F = lr_terms(Ks[s:s + chunk], q, 3, th, 2, None, 0, mu)
         tot += np.sum(F * WW[s:s + chunk])
     return 8 * tot / (2 * PI) ** 3 / 32
