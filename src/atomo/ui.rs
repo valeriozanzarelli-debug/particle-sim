@@ -536,7 +536,7 @@ fn pannello_orbitali(ctx: &egui::Context, lab: &mut Lab) {
     let o = lab.orb.as_ref().map(|z| z.lock().unwrap().out.clone());
     egui::Window::new("Orbitali di un elettrone (regola zig-zag)").open(&mut open).default_pos([12.0, 80.0]).default_width(480.0).vscroll(true).show(ctx, |ui| {
         ui.label(RichText::new("Un solo elettrone attorno al nucleo di neodimio (Z = 60): gli stati sono quelli che dà la regola zig-zag \
-            nella sua forma radiale (stessa cella, stessa fase di Coulomb), messi in 3-D con le funzioni d'angolo di Dirac. \
+            nella sua forma radiale (stessa fase di Coulomb, celle a cipolla: fini al nucleo, 0,5 ħ/mc lontano), messi in 3-D con le funzioni d'angolo di Dirac. \
             Una sovrapposizione evolve con le frequenze della regola: la nuvola batte.").color(GOLD));
         ui.label(RichText::new("Da lontano: gusci morbidi a tre livelli di densità (colore = fase dell'onda: gira nel tempo e attorno a z \
             come e^{imφ}). Da vicino: palline-surfista portate dalla corrente dell'onda (v = j/ρ ≤ c), sei con la scia.").small().color(GREY));
@@ -571,21 +571,21 @@ fn pannello_orbitali(ctx: &egui::Context, lab: &mut Lab) {
         }
         ui.separator();
         if let Some(o) = &o {
-            ui.label(RichText::new("LIVELLI (dalla regola radiale, cella 0,5 ħ/mc)").strong().color(GOLD));
+            ui.label(RichText::new("LIVELLI (regola radiale, celle dello zoom automatico 2⁻⁹…0,5 ħ/mc)").strong().color(GOLD));
             egui::Grid::new("liv").striped(true).show(ui, |ui| {
                 ui.label("stato"); ui.label("legame, regola"); ui.label("Dirac esatto"); ui.end_row();
                 for (s, w, d) in &o.livelli {
                     ui.label(s.nome());
                     ui.label(format!("{:.2} keV", (1.0 - w) * zz::MC2_KEV));
-                    ui.label(format!("{:.2} keV ({:+.0} %)", (1.0 - d) * zz::MC2_KEV, 100.0 * ((1.0 - w) / (1.0 - d) - 1.0)));
+                    ui.label(format!("{:.2} keV ({:+.2} %)", (1.0 - d) * zz::MC2_KEV, 100.0 * ((1.0 - w) / (1.0 - d) - 1.0)));
                     ui.end_row();
                 }
             });
             ui.label(RichText::new(format!("raggio mostrato {:.0} ħ/mc = {} · {:.0} ms per passo", o.r, fmt_len(o.r * zz::LAMBDA_C_M), o.ms)).small().color(GREY));
         }
         pannello_misura(ui, lab);
-        ui.label(RichText::new("DEBITI: le celle grosse (0,5 ħ/mc) legano troppo (1s +40 % rispetto a Dirac; gli stati alti meno). \
-            Gli orbitali n = 3, 4 non stanno nella scatola dal vivo (48³): la forma viene dalla regola radiale, esatta per un \
+        ui.label(RichText::new("DEBITI: con celle uguali da 0,5 ħ/mc l'1s legava +40 % (la prima cella faceva da specchio sbagliato); con lo zoom al \
+            nucleo tutti i livelli stanno entro 0,4 % (NUCLEO_1S). L'atomo 3-D dal vivo ha ancora le celle cubiche da 0,5. Gli orbitali n = 3, 4 non stanno nella scatola dal vivo (48³): la forma viene dalla regola radiale, esatta per un \
             elettrone in un campo centrale; qui niente fotone e niente tremolio di Zitterbewegung (stati di sola energia positiva). \
             Gli atomi con più elettroni aspettano la regola a molti elettroni degli agglomerati: non li fingiamo con orbitali \
             di tabella.").small());

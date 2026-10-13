@@ -207,7 +207,9 @@ fn bench_fotone() {
 }
 
 /// Orbitals: the radial form of the rule finds every state n = 1..4, l = 0..3 (j = l + ½) in the right order,
-/// each one bound, less bound as n grows; printed against the exact Dirac levels (informative: cells of 0.5 λ_C).
+/// each one bound, less bound as n grows; printed against the exact Dirac levels. Since 2026-10-13 on the graded
+/// mesh of the automatic zoom (docs/NUCLEO_1S.md §8): 1s, 2p3/2, 3d5/2 within 1 % of exact Dirac (threshold written
+/// in NUCLEO_1S §8 before the run; with equal cells of 0.5 λ_C they were +39.9 %, +3.5 %, +1.8 %).
 #[test]
 fn orbitali_livelli() {
     use crate::orbitali::{dirac_esatto, radiale, raggio, Stato};
@@ -218,12 +220,15 @@ fn orbitali_livelli() {
             let r = radiale(s.kappa(), n, l);
             let b = 1.0 - r.omega;
             let d = 1.0 - dirac_esatto(n, s.kappa());
-            eprintln!("{}: binding {:.5} mc² (Dirac {:.5}, {:+.1} %), radius {:.1} λ_C", s.nome(), b, d, 100.0 * (b / d - 1.0), raggio(&r));
+            eprintln!("{}: binding {:.6} mc² (Dirac {:.6}, {:+.4} %), radius {:.1} λ_C", s.nome(), b, d, 100.0 * (b / d - 1.0), raggio(&r));
             assert!(b > 0.0);
             if n > l + 1 { assert!(b < ultimo_per_l[l as usize], "{}", s.nome()); }
             ultimo_per_l[l as usize] = b;
             // the same order as Dirac within a factor 2
             assert!(b / d > 0.5 && b / d < 2.0, "{}", s.nome());
+            if (n, l) == (1, 0) || (n, l) == (2, 1) || (n, l) == (3, 2) {
+                assert!((b / d - 1.0).abs() < 0.01, "{}: {:+.3} % vs exact Dirac", s.nome(), 100.0 * (b / d - 1.0));
+            }
         }
     }
 }

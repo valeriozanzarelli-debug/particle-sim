@@ -93,6 +93,11 @@ Tolto dal laboratorio in questa versione (resta nella storia di git, commit `a84
 * **Partenza**: l'1s della forma radiale della stessa regola messo sul reticolo cubico (solo ~60 % l'1s della
   regola 3-D: il resto si vede come tremolio in più). Legame 1s della regola radiale con a = 0,5: 0,141 mc²
   (Dirac esatto 0,101: +40 %, celle grosse).
+* **Debito (13/10/2026): l'atomo 3-D dal vivo resta con le celle cubiche da 0,5 ħ/mc.** La causa del +40 % è la
+  prima cella attorno al nucleo, che fa da specchio sbagliato (`NUCLEO_1S.md` §3); la cura (celle fini vicino al
+  nucleo) è applicata agli **orbitali** (§3.3), non qui: `zz.rs` e `accoppiato.rs` non sono stati toccati (un'esportazione
+  dati gira su di loro). Nel 3-D serve un pezzo fine annidato attorno al nucleo o una cipolla di gusci
+  (debito 12 di `NUCLEO_1S.md`, idee 7.3–7.4).
 * **Ogni pallina si muove a ogni tick**: 20 000 surfisti trasportati dalla corrente dell'onda (v = j/ρ ≤ c).
   Colore = fase dell'onda (tolta la rotazione della massa a riposo).
 * **Il fotone**: un impulso con l'energia scelta (keV), che entra nella fase come e E·r (dipolo: λ ≈ 55 ħ/mc è
@@ -112,30 +117,45 @@ Tolto dal laboratorio in questa versione (resta nella storia di git, commit `a84
 ### 3.3 Gli orbitali: n = 1..4, s p d f, e sovrapposizioni (scena "orbitali", `orbitali.rs`)
 
 * **Da dove vengono.** Sono gli stati di UN elettrone che dà la regola zig-zag nella sua **forma radiale** (la
-  stessa regola scritta per un'onda parziale κ: stessa cella a = 0,5 ħ/mc, stessa fase di Coulomb,
-  `src/zigzag/walk.rs` `Radial`). La regola viene "ascoltata" a 48 frequenze; ogni stato trovato viene ripreso
-  alla sua frequenza; gli stati distinti, dal più legato, sono n = l+1, l+2, ... Poi in 3-D:
+  stessa regola scritta per un'onda parziale κ, stessa fase di Coulomb, `src/zigzag/walk.rs` `Radial::graded`).
+  **Dal 13/10/2026 le celle non sono più tutte uguali**: è la "cipolla" dello **zoom automatico** di
+  `NUCLEO_1S.md` §4.2 guidato da tutti e dieci i livelli (1 292 celle, da 2⁻⁹ ħ/mc al nucleo a 0,5 ħ/mc lontano,
+  fino a 359 ħ/mc; esportata in `orbitali.rs` `MESH_ZOOM` da `lab/out/nucleo1s_results.json`). La regola è la stessa:
+  ogni cella gira per dt = la sua larghezza, la pallina corre a c fra i centri. La regola viene "ascoltata con una
+  fase per collegamento" (`Radial::ascolta`: U(ω) = M·S·diag(e^{iωl}), Newton su arg μ) a 48 frequenze; gli stati
+  distinti, dal più legato, sono n = l+1, l+2, ... Poi in 3-D:
   ψ = (g/r Ω_{κm}, i f/r Ω_{−κm}) con le funzioni d'angolo di Dirac (armoniche sferiche). Una sovrapposizione
   evolve con le frequenze della regola, ψ(t) = Σ c_k ψ_k e^{−i(ω_k − 1)t}: la nuvola **batte** a ω₁ − ω₂.
 * **Perché non sul reticolo dal vivo.** La scatola dal vivo (48³ celle da 0,5 ħ/mc, 24 ħ/mc di lato) tiene l'1s;
-  il 3d di Nd⁵⁹⁺ arriva a ~52 ħ/mc e il 4f a ~82 (99,5 % della probabilità): servirebbero ~350³ celle. Per un
+  il 3d di Nd⁵⁹⁺ arriva a ~53 ħ/mc e il 4f a ~84 (99,5 % della probabilità): servirebbero ~350³ celle. Per un
   elettrone in un campo centrale la forma radiale è la stessa regola, senza approssimazioni in più.
-* **Livelli della regola contro Dirac esatto** (test `orbitali_livelli`; tutti trovati, nell'ordine giusto):
+* **Livelli della regola contro Dirac esatto** (test `orbitali_livelli`; tutti trovati, nell'ordine giusto).
+  Prima: celle uguali da 0,5 ħ/mc. Dopo: mesh dello zoom (13/10/2026).
 
-| stato | legame, regola (mc²) | Dirac esatto | scarto |
-|---|---|---|---|
-| 1s½ | 0,14124 | 0,10095 | +39,9 % |
-| 2s½ | 0,03298 | 0,02556 | +29,0 % |
-| 2p3/2 | 0,02510 | 0,02426 | +3,5 % |
-| 3s½ | 0,01374 | 0,01121 | +22,5 % |
-| 3p3/2 | 0,01142 | 0,01082 | +5,5 % |
-| 3d5/2 | 0,01090 | 0,01071 | +1,8 % |
-| 4s½ | 0,00744 | 0,00625 | +19,1 % |
-| 4p3/2 | 0,00648 | 0,00608 | +6,5 % |
-| 4d5/2 | 0,00625 | 0,00603 | +3,7 % |
-| 4f7/2 | 0,00609 | 0,00601 | +1,3 % |
+| stato | legame prima (mc²) | scarto prima | legame dopo (mc²) | Dirac esatto | scarto dopo |
+|---|---|---|---|---|---|
+| 1s½ | 0,14124 | +39,9 % | 0,101002 | 0,100948 | **+0,053 %** |
+| 2s½ | 0,03298 | +29,0 % | 0,025595 | 0,025564 | +0,122 % |
+| 2p3/2 | 0,02510 | +3,5 % | 0,024271 | 0,024257 | **+0,057 %** |
+| 3s½ | 0,01374 | +22,5 % | 0,011236 | 0,011213 | +0,200 % |
+| 3p3/2 | 0,01142 | +5,5 % | 0,010842 | 0,010825 | +0,157 % |
+| 3d5/2 | 0,01090 | +1,8 % | 0,010716 | 0,010708 | **+0,075 %** |
+| 4s½ | 0,00744 | +19,1 % | 0,006269 | 0,006246 | +0,361 % |
+| 4p3/2 | 0,00648 | +6,5 % | 0,006103 | 0,006083 | +0,334 % |
+| 4d5/2 | 0,00625 | +3,7 % | 0,006049 | 0,006033 | +0,269 % |
+| 4f7/2 | 0,00609 | +1,3 % | 0,006017 | 0,006009 | **+0,130 %** |
 
-  Le celle grosse legano troppo gli stati che vanno vicino al nucleo (s); quelli lontani (d, f) sono quasi giusti.
+  **Esame** (soglia scritta in `NUCLEO_1S.md` §8 prima di questa corsa): 1s, 2p3/2, 3d5/2 entro 1 % di Dirac esatto
+  → **PASS** tutti e tre (+0,053 %, +0,057 %, +0,075 %); ora sono `assert` nel test. Il 4f7/2 (non nella soglia) va
+  a +0,130 %. I numeri coincidono con quelli di Python per la stessa mesh (NUCLEO_1S §4.2, post hoc) a tutte le cifre
+  stampate; il test `walk::test_graded::graded_1s_come_python` ritrova l'1s di Python `GradedWalk` sulla mesh da 353
+  celle (budget 0,1 %) a 2·10⁻¹⁵ relativo, e `ascolta_uguale_eigen_su_celle_uguali` controlla che su celle uguali il
+  nuovo ascolto dia lo stesso ω del vecchio (10⁻¹¹).
+  Prima le celle grosse legavano troppo gli stati che vanno vicino al nucleo (s); la causa era la prima cella attorno
+  al nucleo, uno specchio con la fase sbagliata (NUCLEO_1S §3). Restano errori di reticolo positivi di 0,05–0,36 %,
+  più grandi per gli s alti (4s +0,36 %): la mesh è stata scelta dall'algoritmo con budget 0,5 % sulla somma
+  stimata; un budget più stretto li abbassa (NUCLEO_1S §4.2). La mesh è un'impostazione di risoluzione (come a),
+  non fisica: zero parametri fisici nuovi.
 * **Come si vede.** Da lontano: **gusci morbidi** a tre livelli di densità |ψ|² (50 %, 18 %, 5 % del massimo),
   colore = **fase dell'onda** (gira nel tempo; attorno all'asse z si avvolge come e^{imφ}). Da vicino: 5 000
   **palline-surfista** portate dalla corrente dell'onda, v = j/ρ (≤ c), con il colore della fase dove sono; sei con
@@ -371,14 +391,16 @@ Debiti:
    in (1,1,0), 0,88 c in diagonale con 8 celle per λ). F3 fallisce per questo; serve ≥ 24 celle per λ, o una
    regola corretta (non ancora trovata dentro la regola zig-zag).
 3. **Risoluzione**: ≥ 24 celle per λ a ≥ 30 tick/s non ci stanno su questo PC (qualità massima ~5 tick/s).
-4. Atomo: impulso forte (come un laser), niente emissione spontanea, celle grosse (legame 1s +40 %), Nd⁵⁹⁺
+4. Atomo: impulso forte (come un laser), niente emissione spontanea, celle cubiche grosse (legame 1s +40 % nell'atomo
+   3-D dal vivo; curato solo negli orbitali radiali, vedi §3.1 e debito 12 di `NUCLEO_1S.md`), Nd⁵⁹⁺
    invece dell'idrogeno; il nucleo di Nd ha 144 barioni, si vede un protone; i due numeri di Skyrme da
    Adkins–Nappi–Witten.
 5. La doppia fenditura è tolta (§5): tornerà con le fenditure fatte di atomi.
 6. **Scena futura: il geone** (luce tenuta insieme dalla sua gravità). Fuori portata ora: abbiamo già visto che
    senza gravità la luce non si intrappola da sola.
 7. **Orbitali** (§3.3): dalla forma radiale della regola, non dal reticolo 3-D dal vivo (troppo piccolo per
-   n ≥ 3); celle grosse (1s +40 %, 4f +1,3 %); niente fotone e niente Zitterbewegung in quella vista; atomi con
+   n ≥ 3); dal 13/10/2026 sulla mesh dello zoom automatico (tutti i livelli entro 0,36 %; prima, celle uguali da
+   0,5: 1s +40 %, 4f +1,3 %); niente fotone e niente Zitterbewegung in quella vista; atomi con
    più elettroni rimandati alla regola degli agglomerati.
 
 ## 7. Come si usa
@@ -395,6 +417,7 @@ Debiti:
   (t palline che corrono, f fronti d'onda, l elica di E, E e B tratti, s Poynting, o spin, x sezione).
 * Prove senza mani: `--foto file.png --frames N [--spara-al F] [--yaw a --pitch b] [--ritmo r]` salva
   un'immagine ed esce.
-* Test: `cargo test --bin atomo` (7 veloci: F1a, F2, F4, la regressione dell'apertura, i livelli degli orbitali, l'atomo, il nodo; F1b e F3 sono
+* Test: `cargo test --bin atomo` (9 veloci: F1a, F2, F4, la regressione dell'apertura, i livelli degli orbitali (ora con
+  soglia 1 % per 1s, 2p3/2, 3d5/2), l'atomo, il nodo, e i due della mesh graduata in `walk.rs`; F1b e F3 sono
   segnati "ignored" perché registrati come FAIL) e `cargo test --bin atomo -- --ignored` (lunghi e i FAIL registrati:
   risonanza dell'atomo, direzioni oblique del fotone, `bench_fotone`).

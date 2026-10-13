@@ -47,7 +47,7 @@ dove le impostazioni grafiche sono i livelli di agglomerato e il motore scala co
 | Fotone (regola a due ruoli, 96 esperimenti) | fatto, storico | `ESPERIMENTI_FOTONE.md`, `REGOLA_BASE.md`, `MULTIFOTONE.md` |
 | Regola zig-zag: luce, elettrone, idrogeno 13,60575 eV, struttura fine | fatto | `ZIGZAG.md` |
 | Fotone libero 3D zig-zag nel Laboratorio Atomo (E, B, elica, Poynting) | fatto, grafica rifatta | `ATOMO.md` |
-| Atomo vivo zig-zag (ione a 1 elettrone Nd⁵⁹⁺, risonanza 1s→2p dalla regola) | fatto | `ATOMO.md` |
+| Atomo vivo zig-zag (ione a 1 elettrone Nd⁵⁹⁺, risonanza 1s→2p dalla regola); orbitali n ≤ 4 sulla mesh a cipolla dello zoom (13/10): tutti entro 0,36 % di Dirac (1s +0,05 %, prima +39,9 %) | fatto; l'atomo 3-D dal vivo resta con celle cubiche da 0,5 (1s +40 %, debito 12 di `NUCLEO_1S.md`) | `ATOMO.md`, `NUCLEO_1S.md` |
 | Vuoto di coppie (Schwinger 0,3%, Sauter 0,5%, scatola stretta) | fatto | `IDEE_RIPRESE.md`, `COPPIE_IN_SCATOLA.md` |
 | Molecole dalla regola DMC: H, He, H₂ (vibrazione ora −0,2%) | fatto, storico | `MOLECOLE.md`, `H2_VIBRAZIONE.md` |
 | Relatività da un fluido di palline (Lorentz 1,5%) | fatto | `FLUIDO_IN_NEGATIVO.md` |
