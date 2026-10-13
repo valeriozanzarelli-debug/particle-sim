@@ -94,10 +94,18 @@ stessi colori, scie e allungamenti, del codice Rust.
 
 *Il fotone circolare ad alta (192³, 250 000 palline), tick 24, regola e palline sulla GPU (llvmpipe nel cloud).*
 
-### 2.3 Ponte
+### 2.3 Ponte: la Intel UHD del portatile ad alta
 
-Richiesta `ponte/richieste/2026-10-13_mg_gpu_alta.json` (foto ad alta col pannello: il pannello mostra ms per tick,
-palline e "regola sulla gpu"). Esito: vedi §5.
+Richiesta `ponte/richieste/2026-10-13_mg_gpu_alta.json` (foto ad alta, 900 fotogrammi, pannello), eseguita sul
+commit 7901945 (`ponte/risultati/2026-10-13_mg_gpu_alta/`). **Gira**: log "fotone: regola sulla gpu (192³, 250 000
+palline)", 1 251 164 palline disegnate, **60 fps** (tetto del vsync), elicità +1,021 (uguale al cloud: 1,0212), foto
+giusta. **Ma il tempo per tick non migliora**: al fotogramma 900 il contatore segna **500 ms per tick**, che è il
+tetto della media mobile del Laboratorio (prima, con la regola sulla CPU, alta faceva 258 ms per tick). Il fotone era
+al tick 1 (appena rilanciato). Detto onesto: **sulla Intel la regola GPU collegata non è (ancora) più veloce della
+CPU**; il numero vero è "almeno 500 ms" o un picco del rilancio che la media non ha smaltito. Cause possibili, non
+verificate: il thread del fotone aspetta la GPU e rilegge le somme a ogni tick (`device.poll(Wait)` mentre Bevy
+disegna a 60 fps sulla stessa scheda), il rilancio del fotone (campo lanciato sulla CPU e ricaricato: 170 MB), le tre
+letture per componente con `switch` nel kernel della regola. Serve una misura col tempo di ogni pezzo (debito 9).
 
 ## 3. Manopole
 
@@ -124,6 +132,12 @@ l'ordine delle somme).
 7. **Ultra non è provato** (nessuna GPU da 16 GB); i limiti si controllano, ma nessuno l'ha visto girare.
 8. **Il thread del fotone aspetta la GPU a ogni tick** (rilegge 36 KB): sulla scheda vera si potrebbe leggere un tick
    in ritardo senza aspettare.
+9. **Sulla Intel UHD ad alta il cammino GPU non è più veloce** (≥ 500 ms per tick contro 258 della CPU, §2.3): da
+   misurare pezzo per pezzo (regola, misure, palline, attesa, rilancio) prima di dire che la GPU "serve".
+10. **Due test vecchi ora falliscono per la nuova tabella dei preset** (non per questo studio): `fotone_f2_elicita`
+    (qual 2 = 20 celle per λ: elicità 1,0204, soglia 0,02) e `fotone_divergenza_come_la_regola` (qual 0 = 12 celle
+    per λ: −2,5 % contro la previsione del reticolo, soglia 2 %). Erano legati agli indici di qualità (lo diceva già
+    `mg_amend.json`): vanno riscritti sui valori in celle per λ, non sugli indici.
 
 ## 5. Sottoreticoli (domanda del coordinatore, solo lettura)
 
