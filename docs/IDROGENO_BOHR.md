@@ -492,7 +492,7 @@ Celle fini a0/256, reflux, scatola ±8 a0. L'1s contro Dirac × μ (%):
 
 Pre-registrazione: `lab/out/idrogeno_bohr_fase3_prereg.json`, committata **prima** delle corse (commit 79fa535).
 Emendamento 1 (commit ce8660f) committato prima della corsa di controllo: aggiunge la diagnostica della corrente e il
-controllo con la sola regola grosso. Il criterio di convergenza è quello della fase 2, **non allentato**.
+controllo con la sola regola grossa. Il criterio di convergenza è quello della fase 2, **non allentato**.
 
 Codice nuovo:
 - `IDRO_NH`: lo spessore dell'alone, in celle grosse.
