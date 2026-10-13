@@ -41,6 +41,26 @@ def gl_composite(lo, hi, nint, npt):
     return X.ravel(), W.ravel()
 
 
+def gl_adaptive(lo, hi, rate, cosc=6.0, npt=24, hmax=None):
+    """Gauss-Legendre a pannelli: lunghezza del pannello h(x) = cosc / rate(x) (rate = fase per unita' di x
+    del nucleo oscillante), cosi' ogni pannello contiene ~cosc/(2 pi) oscillazioni. Raddoppiare la
+    risoluzione = dimezzare cosc."""
+    edges = [lo]
+    x = lo
+    while x < hi:
+        h = cosc / max(rate(x), 1e-300)
+        if hmax is not None:
+            h = min(h, hmax)
+        x = min(hi, x + h)
+        edges.append(x)
+    edges = np.array(edges)
+    xg, wg = np.polynomial.legendre.leggauss(npt)
+    a, b = edges[:-1, None], edges[1:, None]
+    X = (a + b) / 2 + (b - a) / 2 * xg[None, :]
+    W = (b - a) / 2 * wg[None, :]
+    return X.ravel(), W.ravel()
+
+
 def top_eig(A, vec=False):
     """autovalore piu' grande (e autovettore) di una matrice hermitiana densa"""
     M = A.shape[0]
@@ -55,7 +75,8 @@ def top_eig(A, vec=False):
 def walk_modes(k, theta):
     """banda positiva della regola: w(k), uR(k), uL(k) (autovettore di U(k) con autovalore e^{-iw})"""
     c, s = np.cos(theta), np.sin(theta)
-    w = np.arccos(np.clip(c * np.cos(k), -1, 1))
+    # w = arccos(c cos k) in forma stabile per theta, k piccoli: 1 - c cos k = 2 sin^2(th/2) + 2 c sin^2(k/2)
+    w = 2 * np.arcsin(np.sqrt(np.clip(np.sin(theta / 2)**2 + c * np.sin(k / 2)**2, 0, 1)))
     lam = np.exp(-1j * w)
     # (U - lam) u = 0. Due scelte di riga; uso quella con norma maggiore (stabile)
     a1 = 1j * s * np.exp(1j * k)                     # uR da riga 1
@@ -81,19 +102,40 @@ def S_N(d, N):
     return np.where(small, N + 0j, r)
 
 
-def walk_kernel(k, wq, theta, N):
+def walk_kernel(k, wq, theta, N, chunk=512):
+    """matrice A = sqrt(w) K sqrt(w), costruita a blocchi di righe (memoria: una sola M x M complessa)"""
     w, uR, uL = walk_modes(k, theta)
-    d = w[:, None] - w[None, :]
-    g = (np.conj(uL)[:, None] * uL[None, :] * np.exp(-1j * (k[:, None] - k[None, :]))
-         - np.conj(uR)[:, None] * uR[None, :])
-    K = S_N(d, N) * g / (2 * np.pi)
+    M = len(k)
     sw = np.sqrt(wq)
-    A = sw[:, None] * K * sw[None, :]
-    return (A + A.conj().T) / 2
+    aL = uL * np.exp(1j * k) * sw          # conj(uL_k) e^{-ik} ... : g = conj(aL_k) aL_k' - conj(aR_k) aR_k'
+    aR = uR * sw
+    A = np.empty((M, M), complex)
+    for i0 in range(0, M, chunk):
+        i1 = min(M, i0 + chunk)
+        d = w[i0:i1, None] - w[None, :]
+        A[i0:i1] = S_N(d, N) * (np.conj(aL[i0:i1, None]) * aL[None, :] - np.conj(aR[i0:i1, None]) * aR[None, :])
+    A /= 2 * np.pi
+    A += A.conj().T
+    A /= 2
+    return A
 
 
-def walk_backflow(theta, N, kmax, nint, npt=24, kmin=0.0, vec=False):
-    k, wq = gl_composite(kmin, kmax, nint, npt)
+def walk_grid(theta, N, kmax, cosc=6.0, kmin=0.0, npt=24):
+    """griglia adattiva in k: fase del nucleo = v_g(k) N / 2 per unita' di k (v_g = dw/dk)"""
+    c = np.cos(theta)
+    def rate(k):
+        w = np.arccos(np.clip(c * np.cos(k), -1, 1))
+        vg = c * np.sin(k) / max(np.sin(w), 1e-300)
+        return max(vg * N / 2, 1.0, np.sqrt(N / (2 * np.tan(max(theta, 1e-12)))) * 0.5)
+    return gl_adaptive(kmin, kmax, rate, cosc, npt, hmax=(kmax - kmin) / 4)
+
+
+def walk_backflow(theta, N, kmax, nint=None, npt=24, kmin=0.0, vec=False, cosc=6.0):
+    """nint = None: griglia adattiva (cosc); altrimenti Gauss-Legendre composta uniforme"""
+    if nint is None:
+        k, wq = walk_grid(theta, N, kmax, cosc, kmin, npt)
+    else:
+        k, wq = gl_composite(kmin, kmax, nint, npt)
     A = walk_kernel(k, wq, theta, N)
     r = top_eig(A, vec)
     if vec:
@@ -103,8 +145,11 @@ def walk_backflow(theta, N, kmax, nint, npt=24, kmin=0.0, vec=False):
 
 
 # ---------------------------------------------------------------- continuo (solo esami)
-def nr_backflow(U, nint, npt=24):
-    u, w = gl_composite(0, U, nint, npt)
+def nr_backflow(U, nint=None, npt=24, cosc=6.0):
+    if nint is None:
+        u, w = gl_adaptive(0, U, lambda x: max(x, 1.0), cosc, npt)
+    else:
+        u, w = gl_composite(0, U, nint, npt)
     d = u[:, None] - u[None, :]
     s = (u[:, None]**2 - u[None, :]**2) / 2
     with np.errstate(all="ignore"):
@@ -121,16 +166,33 @@ def dirac_modes(p, m=1.0):
     return E, R, L
 
 
-def dirac_backflow(T, pmax, nint, npt=24, m=1.0, pmin=0.0):
-    p, w = gl_composite(pmin, pmax, nint, npt)
+def dirac_grid(T, pmax, cosc=6.0, m=1.0, pmin=0.0, npt=24):
+    def rate(p):
+        v = p / np.sqrt(p * p + m * m)
+        return max(v * T / 2, 1.0, 0.5 * np.sqrt(T / (2 * m)))
+    return gl_adaptive(pmin, pmax, rate, cosc, npt, hmax=(pmax - pmin) / 4)
+
+
+def dirac_backflow(T, pmax, nint=None, npt=24, m=1.0, pmin=0.0, cosc=6.0):
+    if nint is None:
+        p, w = dirac_grid(T, pmax, cosc, m, pmin, npt)
+    else:
+        p, w = gl_composite(pmin, pmax, nint, npt)
     E, R, L = dirac_modes(p, m)
-    d = E[:, None] - E[None, :]
-    with np.errstate(all="ignore"):
-        F = np.sin(d * T / 2) / d
-    F[np.abs(d) < 1e-14] = T / 2
-    K = F * (L[:, None] * L[None, :] - R[:, None] * R[None, :]) / np.pi
-    sw = np.sqrt(w)
-    return top_eig(sw[:, None] * K * sw[None, :])
+    # memoria: una sola matrice M x M costruita sul posto
+    K = E[:, None] - E[None, :]                      # d
+    small = np.abs(K) < 1e-14
+    K[small] = 1.0
+    F = np.sin(K * (T / 2))
+    F /= K
+    del K
+    F[small] = T / 2
+    del small
+    F *= L[:, None] * L[None, :] - R[:, None] * R[None, :]
+    sw = np.sqrt(w) / np.sqrt(np.pi)
+    F *= sw[:, None]
+    F *= sw[None, :]
+    return top_eig(F)
 
 
 def eps_of(theta, N):
@@ -160,3 +222,37 @@ def lattice_check(theta, N, f_k, k, Lring):
         back += abs(psi[1, i0 + 1])**2 - abs(psi[0, i0])**2
         psi = W.tick(psi)
     return back
+
+
+# ---------------------------------------------------------------- forma "di posizione" (Gram), per N grandi
+def walk_backflow_gram(theta, N, kmax, cosc=6.0, kmin=0.0, vec=False):
+    """Stesso massimo di walk_backflow, ma come problema 2N x 2N.
+    B = sum_n U^-n J U^n con J = |L,1><L,1| - |R,0><R,0|  =>  P B P = X D X^dag, X = [P U^-n |a>].
+    Autovalori non nulli = quelli di G^1/2 D G^1/2, G = X^dag X (Toeplitz nel ritardo n - n'):
+    G_(n a),(n' b) = int_W dk/2pi e^{-i w (n-n')} c_a(k) conj(c_b(k)), c_R = uR, c_L = uL e^{ik}.
+    La dimensione non dipende dalla finestra: utile per la banda intera e N fino a ~2000."""
+    k, wq = walk_grid(theta, max(N, 2), kmax, cosc, kmin)
+    w, uR, uL = walk_modes(k, theta)
+    cR, cL = uR, uL * np.exp(1j * k)
+    lags = np.arange(-(N - 1), N)
+    E = np.exp(-1j * np.outer(lags, w)) * (wq / (2 * np.pi))[None, :]       # (2N-1, M)
+    I = {}
+    for na, ca in (("R", cR), ("L", cL)):
+        for nb, cb in (("R", cR), ("L", cL)):
+            I[na + nb] = E @ (ca * np.conj(cb))
+    n = np.arange(N)
+    idx = (n[:, None] - n[None, :]) + (N - 1)
+    G = np.empty((2 * N, 2 * N), complex)
+    G[:N, :N] = I["LL"][idx]
+    G[:N, N:] = I["LR"][idx]
+    G[N:, :N] = I["RL"][idx]
+    G[N:, N:] = I["RR"][idx]
+    G = (G + G.conj().T) / 2
+    s, V = sl.eigh(G)
+    s = np.clip(s, 0, None)
+    Gh = (V * np.sqrt(s)[None, :]) @ V.conj().T
+    D = np.concatenate([np.ones(N), -np.ones(N)])
+    H = Gh @ (D[:, None] * Gh)
+    H = (H + H.conj().T) / 2
+    lam, v = sl.eigh(H, subset_by_index=[2 * N - 1, 2 * N - 1])
+    return (lam[0], v[:, 0]) if vec else lam[0]
