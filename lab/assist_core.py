@@ -65,7 +65,7 @@ class Field:
 
     def T(self):
         """half time window: strong pulse tails down to ~e^-24"""
-        if self.E1_shape == "sauter" and self.E1 != 0:
+        if (self.E1_shape == "sauter" and self.E1 != 0) or self.shape == "cos":
             return 12.0 / self.Om
         return 14.0 / self.w
 

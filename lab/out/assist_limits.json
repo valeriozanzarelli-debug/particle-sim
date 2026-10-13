@@ -1,0 +1,334 @@
+{
+ "mperp_rows": [
+  {
+   "m_perp2": 1.0,
+   "both_dirac": 1.754077725366459e-10,
+   "both_rule": 1.753495771558566e-10,
+   "strong_dirac": 7.833750065289375e-15,
+   "strong_rule": 7.808557537875039e-15,
+   "weak_dirac": 3.417601986122893e-11,
+   "weak_rule": 3.417961616588753e-11
+  },
+  {
+   "m_perp2": 1.02,
+   "both_dirac": 1.406469556923377e-10,
+   "both_rule": 1.4060109280821894e-10,
+   "strong_dirac": 4.1935457494323046e-15,
+   "strong_rule": 4.179802222689518e-15,
+   "weak_dirac": 2.789429151424182e-11,
+   "weak_rule": 2.7897223776453097e-11
+  },
+  {
+   "m_perp2": 1.04,
+   "both_dirac": 1.1306307478282732e-10,
+   "both_rule": 1.1302682121055432e-10,
+   "strong_dirac": 2.2458062465151012e-15,
+   "strong_rule": 2.238308322767535e-15,
+   "weak_dirac": 2.2811100898176308e-11,
+   "weak_rule": 2.2813496408910298e-11
+  },
+  {
+   "m_perp2": 1.06,
+   "both_dirac": 9.111280239484397e-11,
+   "both_rule": 9.10840617124093e-11,
+   "strong_dirac": 1.203204647096317e-15,
+   "strong_rule": 1.1991138575104338e-15,
+   "weak_dirac": 1.8689197221540747e-11,
+   "weak_rule": 1.8691157959726458e-11
+  },
+  {
+   "m_perp2": 1.08,
+   "both_dirac": 7.359837831118946e-11,
+   "both_rule": 7.357553038697784e-11,
+   "strong_dirac": 6.448819018170722e-16,
+   "strong_rule": 6.426498761196434e-16,
+   "weak_dirac": 1.5340024812678324e-11,
+   "weak_rule": 1.534163265542643e-11
+  },
+  {
+   "m_perp2": 1.1,
+   "both_dirac": 5.958705229036848e-11,
+   "both_rule": 5.956884057314464e-11,
+   "strong_dirac": 3.4577359812418924e-16,
+   "strong_rule": 3.445556268112213e-16,
+   "weak_dirac": 1.2613367008065516e-11,
+   "weak_rule": 1.2614687837489786e-11
+  },
+  {
+   "m_perp2": 1.12,
+   "both_dirac": 4.835007985134068e-11,
+   "both_rule": 4.833552640711559e-11,
+   "strong_dirac": 1.854693732067565e-16,
+   "strong_rule": 1.848048264471397e-16,
+   "weak_dirac": 1.0389270541886188e-11,
+   "weak_rule": 1.0390357490973581e-11
+  },
+  {
+   "m_perp2": 1.1400000000000001,
+   "both_dirac": 3.931632743444525e-11,
+   "both_rule": 3.9304668738247545e-11,
+   "strong_dirac": 9.952183551507675e-17,
+   "strong_rule": 9.915907711553058e-17,
+   "weak_dirac": 8.571730858843948e-12,
+   "weak_rule": 8.572626868058941e-12
+  },
+  {
+   "m_perp2": 1.1600000000000001,
+   "both_dirac": 3.203684653780422e-11,
+   "both_rule": 3.202748463964498e-11,
+   "strong_dirac": 5.3423042615242787e-17,
+   "strong_rule": 5.3225133465634014e-17,
+   "weak_dirac": 7.083741131250167e-12,
+   "weak_rule": 7.084480966818151e-12
+  },
+  {
+   "m_perp2": 1.1800000000000002,
+   "both_dirac": 2.6157720624464964e-11,
+   "both_rule": 2.6150185612266648e-11,
+   "strong_dirac": 2.8688002857196224e-17,
+   "strong_rule": 2.8579931306853015e-17,
+   "weak_dirac": 5.863400408268779e-12,
+   "weak_rule": 5.864012280886558e-12
+  },
+  {
+   "m_perp2": 1.2000000000000002,
+   "both_dirac": 2.139917789294205e-11,
+   "both_rule": 2.1393099925649297e-11,
+   "strong_dirac": 1.5410947368715687e-17,
+   "strong_rule": 1.5352001334738778e-17,
+   "weak_dirac": 4.8608466073269864e-12,
+   "weak_rule": 4.861353445218383e-12
+  },
+  {
+   "m_perp2": 1.2200000000000002,
+   "both_dirac": 1.753946883943149e-11,
+   "both_rule": 1.7534555577198633e-11,
+   "strong_dirac": 8.281647911622548e-18,
+   "strong_rule": 8.2494647352866e-18,
+   "weak_dirac": 4.035833620780929e-12,
+   "weak_rule": 4.036254098975275e-12
+  },
+  {
+   "m_perp2": 1.2400000000000002,
+   "both_dirac": 1.440238128597517e-11,
+   "both_rule": 1.4398401273143696e-11,
+   "strong_dirac": 4.452075118716893e-18,
+   "strong_rule": 4.434507837527547e-18,
+   "weak_dirac": 3.3558126889860053e-12,
+   "weak_rule": 3.356162045018219e-12
+  },
+  {
+   "m_perp2": 1.2600000000000002,
+   "both_dirac": 1.1847540807139522e-11,
+   "both_rule": 1.1844310243889875e-11,
+   "strong_dirac": 2.3942130091855277e-18,
+   "strong_rule": 2.3846129732841753e-18,
+   "weak_dirac": 2.794409589947945e-12,
+   "weak_rule": 2.7947002828043056e-12
+  },
+  {
+   "m_perp2": 1.2800000000000002,
+   "both_dirac": 9.762853259589823e-12,
+   "both_rule": 9.760225876399949e-12,
+   "strong_dirac": 1.2879824832109394e-18,
+   "strong_rule": 1.2827435714677216e-18,
+   "weak_dirac": 2.3302132926350556e-12,
+   "weak_rule": 2.3304555151480075e-12
+  },
+  {
+   "m_perp2": 1.3000000000000003,
+   "both_dirac": 8.058599100680207e-12,
+   "both_rule": 8.056458199926465e-12,
+   "strong_dirac": 6.931253340163586e-19,
+   "strong_rule": 6.902623456104587e-19,
+   "weak_dirac": 1.9458101996273837e-12,
+   "weak_rule": 1.9460123186526864e-12
+  },
+  {
+   "m_perp2": 1.3200000000000003,
+   "both_dirac": 6.662805179579356e-12,
+   "both_rule": 6.6610574542249236e-12,
+   "strong_dirac": 3.7313342601016456e-19,
+   "strong_rule": 3.715700640277319e-19,
+   "weak_dirac": 1.6270126248163886e-12,
+   "weak_rule": 1.627181509135577e-12
+  },
+  {
+   "m_perp2": 1.3400000000000003,
+   "both_dirac": 5.517608193062503e-12,
+   "both_rule": 5.51617886331556e-12,
+   "strong_dirac": 2.0093822596045397e-19,
+   "strong_rule": 2.000843975492674e-19,
+   "weak_dirac": 1.3622411023525637e-12,
+   "weak_rule": 1.3623824048302663e-12
+  },
+  {
+   "m_perp2": 1.3600000000000003,
+   "both_dirac": 4.576389716829428e-12,
+   "both_rule": 4.575218727474126e-12,
+   "strong_dirac": 1.0824474672863961e-19,
+   "strong_rule": 1.0777838280614786e-19,
+   "weak_dirac": 1.142028881638469e-12,
+   "weak_rule": 1.1421472619495822e-12
+  },
+  {
+   "m_perp2": 1.3800000000000003,
+   "both_dirac": 3.801513425136413e-12,
+   "both_rule": 3.800552445123455e-12,
+   "strong_dirac": 5.833087555452182e-20,
+   "strong_rule": 5.807607017807092e-20,
+   "weak_dirac": 9.5862365280896e-13,
+   "weak_rule": 9.58722954864952e-13
+  },
+  {
+   "m_perp2": 1.4000000000000004,
+   "both_dirac": 3.1625335552800173e-12,
+   "both_rule": 3.161743608106182e-12,
+   "strong_dirac": 3.1443942225687486e-20,
+   "strong_rule": 3.130454512996064e-20,
+   "weak_dirac": 8.056667941852742e-13,
+   "weak_rule": 8.057501974404673e-13
+  }
+ ],
+ "3D": {
+  "n3D_both_dirac": 2.5997091880537404e-12,
+  "n3D_both_rule": 2.5989045082721183e-12,
+  "N1D_both": 1.753495771558566e-10,
+  "n3D_strong_dirac": 4.12226129173581e-17,
+  "n3D_strong_rule": 4.1086244527618717e-17,
+  "N1D_strong": 7.808557537875039e-15,
+  "n3D_weak_dirac": 5.448185645201364e-13,
+  "n3D_weak_rule": 5.448756415552654e-13,
+  "N1D_weak": 3.417961616588753e-11,
+  "enh_1D": 5.129066566856852,
+  "enh_3D": 4.769360850355429,
+  "tail_check_last_over_first_both": 0.018031087724243087,
+  "config": {
+   "E1": 0.1,
+   "gs": 0.2,
+   "eps": 0.1,
+   "gamma": 3.0
+  }
+ },
+ "lasers": [
+  {
+   "name": "10 PW class today (ELI-NP / Apollon), 1e23 W/cm^2",
+   "I_Wcm2": 1e+23,
+   "E_Vm": 868021098438131.0,
+   "E_over_ES": 0.0006559617756167485,
+   "schwinger_exponent": 4789.2922581289195
+  },
+  {
+   "name": "next generation (~100 PW), 1e24 W/cm^2",
+   "I_Wcm2": 1e+24,
+   "E_Vm": 2744923728145719.5,
+   "E_over_ES": 0.002074333268957227,
+   "schwinger_exponent": 1514.5071915898452
+  },
+  {
+   "name": "1e25 W/cm^2 (beyond plans)",
+   "I_Wcm2": 1e+25,
+   "E_Vm": 8680210984381311.0,
+   "E_over_ES": 0.0065596177561674865,
+   "schwinger_exponent": 478.9292258128919
+  }
+ ],
+ "assisted_table": [
+  {
+   "strong": "10 PW class today (ELI-NP / Apollon), 1e23 W/cm^2",
+   "fast": "XFEL 10 keV",
+   "omega_over_m": 0.019569511835591833,
+   "gamma": 29.83331127365186,
+   "exponent_WI": 320.9216984252811,
+   "large_gamma_limit_2pi_m_over_omega": 321.0701094624196
+  },
+  {
+   "strong": "10 PW class today (ELI-NP / Apollon), 1e23 W/cm^2",
+   "fast": "XFEL 25 keV",
+   "omega_over_m": 0.04892377958897959,
+   "gamma": 74.58327818412965,
+   "exponent_WI": 128.4185487988503,
+   "large_gamma_limit_2pi_m_over_omega": 128.42804378496783
+  },
+  {
+   "strong": "10 PW class today (ELI-NP / Apollon), 1e23 W/cm^2",
+   "fast": "gamma 100 keV",
+   "omega_over_m": 0.19569511835591835,
+   "gamma": 298.3331127365186,
+   "exponent_WI": 32.1068625963389,
+   "large_gamma_limit_2pi_m_over_omega": 32.10701094624196
+  },
+  {
+   "strong": "10 PW class today (ELI-NP / Apollon), 1e23 W/cm^2",
+   "fast": "gamma 300 keV",
+   "omega_over_m": 0.587085355067755,
+   "gamma": 894.9993382095558,
+   "exponent_WI": 10.702331487660109,
+   "large_gamma_limit_2pi_m_over_omega": 10.702336982080652
+  },
+  {
+   "strong": "next generation (~100 PW), 1e24 W/cm^2",
+   "fast": "XFEL 10 keV",
+   "omega_over_m": 0.019569511835591833,
+   "gamma": 9.434121376951872,
+   "exponent_WI": 319.5803857026958,
+   "large_gamma_limit_2pi_m_over_omega": 321.0701094624196
+  },
+  {
+   "strong": "next generation (~100 PW), 1e24 W/cm^2",
+   "fast": "XFEL 25 keV",
+   "omega_over_m": 0.04892377958897959,
+   "gamma": 23.585303442379683,
+   "exponent_WI": 128.33303697116054,
+   "large_gamma_limit_2pi_m_over_omega": 128.42804378496783
+  },
+  {
+   "strong": "next generation (~100 PW), 1e24 W/cm^2",
+   "fast": "gamma 100 keV",
+   "omega_over_m": 0.19569511835591835,
+   "gamma": 94.34121376951873,
+   "exponent_WI": 32.10552739168453,
+   "large_gamma_limit_2pi_m_over_omega": 32.10701094624196
+  },
+  {
+   "strong": "next generation (~100 PW), 1e24 W/cm^2",
+   "fast": "gamma 300 keV",
+   "omega_over_m": 0.587085355067755,
+   "gamma": 283.0236413085562,
+   "exponent_WI": 10.70228203764673,
+   "large_gamma_limit_2pi_m_over_omega": 10.702336982080652
+  },
+  {
+   "strong": "1e25 W/cm^2 (beyond plans)",
+   "fast": "XFEL 10 keV",
+   "omega_over_m": 0.019569511835591833,
+   "gamma": 2.9833311273651852,
+   "exponent_WI": 305.5473811260915,
+   "large_gamma_limit_2pi_m_over_omega": 321.0701094624196
+  },
+  {
+   "strong": "1e25 W/cm^2 (beyond plans)",
+   "fast": "XFEL 25 keV",
+   "omega_over_m": 0.04892377958897959,
+   "gamma": 7.458327818412964,
+   "exponent_WI": 127.47218902917557,
+   "large_gamma_limit_2pi_m_over_omega": 128.42804378496783
+  },
+  {
+   "strong": "1e25 W/cm^2 (beyond plans)",
+   "fast": "gamma 100 keV",
+   "omega_over_m": 0.19569511835591835,
+   "gamma": 29.833311273651855,
+   "exponent_WI": 32.0921698425281,
+   "large_gamma_limit_2pi_m_over_omega": 32.10701094624196
+  },
+  {
+   "strong": "1e25 W/cm^2 (beyond plans)",
+   "fast": "gamma 300 keV",
+   "omega_over_m": 0.587085355067755,
+   "gamma": 89.49993382095556,
+   "exponent_WI": 10.701787514890547,
+   "large_gamma_limit_2pi_m_over_omega": 10.702336982080652
+  }
+ ]
+}
