@@ -487,7 +487,8 @@ impl FotoneGpu {
             let v = Vista { traccianti: false, ..vista };
             crate::fotdisegno::palline(f, l, centro, tr, None, v, false).0
         } else { bordi(f.n) };
-        if vista.traccianti && surfisti { disegna_surfisti(&mut out, tr); }
+        // no separate surfers with trails (Valerio, 13/10): the energy balls already ride the flow
+        if vista.traccianti && surfisti && false { disegna_surfisti(&mut out, tr); }
         if !vista.traccianti { return (out, vec![], vec![], None); }
         let (d, q) = (self.dev.0.clone(), self.dev.1.clone());
         let l_max = if vista.allunga { (0.35 * l.lambda) as f32 } else { 0.0 };

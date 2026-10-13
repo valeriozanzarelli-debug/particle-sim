@@ -37,7 +37,7 @@ pub const QUALITA: [(f64, usize, &str); 5] = [
 /// Energy balls drawn for each quality (docs/MOTORE_GRAFICO.md; each ball is drawn with a 2-ball tail).
 pub const PALLINE_QUAL: [usize; 5] = [20_000, 60_000, 120_000, 250_000, 1_000_000];
 /// Tail balls per energy ball (one every 2 ticks) for each quality.
-pub const SCIA_QUAL: [usize; 5] = [2, 3, 3, 3, 4];
+pub const SCIA_QUAL: [usize; 5] = [0, 0, 0, 0, 0];
 
 /// The named presets (`--qualita`): index into QUALITA.
 pub fn preset(nome: &str) -> Option<usize> {

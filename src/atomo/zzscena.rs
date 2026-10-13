@@ -143,12 +143,9 @@ fn palline(m: &Mondo, surfisti: bool) -> Vec<Ball> {
         let a = (0.03 + 0.30 * (rho / rho_max).powf(0.35)) as f32;
         (schermo(*p).to_array(), 1.0, tinta(ph, a))
     }).collect();
-    for s in m.scie.iter().filter(|_| surfisti) {
-        for (j, p) in s.iter().enumerate() {
-            let a = (j + 1) as f32 / s.len() as f32;
-            out.push((schermo(*p).to_array(), 0.5 + 0.9 * a, [1.0, 0.97, 0.9, 0.15 + 0.85 * a * a]));
-        }
-    }
+    // no separate surfer with a trail of balls (Valerio, 13/10): every ball above is a glow riding the current,
+    // and the moving glows together make the shapes
+    let _ = surfisti;
     // incoming photon packets: a drawn packet (phase colours) arriving along +x at c, centred on the atom at
     // the peak of its pulse. Its true wavelength (≈ 55 λ_C) is drawn 6 times shorter.
     for &(w, t0) in m.fotoni.iter().filter(|_| m.esp.is_none()) {

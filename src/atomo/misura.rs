@@ -25,7 +25,7 @@ pub struct Opzioni {
     pub collassa: bool,
 }
 
-impl Default for Opzioni { fn default() -> Self { Opzioni { surfisti: false, mostra_clic: true, collassa: false } } }
+impl Default for Opzioni { fn default() -> Self { Opzioni { surfisti: true, mostra_clic: true, collassa: false } } }
 
 /// Steps of the click animation.
 pub const DURATA: u32 = 45;

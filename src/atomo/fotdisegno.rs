@@ -48,7 +48,7 @@ pub struct Vista {
 
 impl Default for Vista {
     fn default() -> Self {
-        Vista { traccianti: true, fronti: false, allunga: true, e_vettori: false, b_vettori: false, poynting: false, spin: false, sezione: false }
+        Vista { traccianti: true, fronti: false, allunga: false, e_vettori: false, b_vettori: false, poynting: false, spin: false, sezione: false }
     }
 }
 
@@ -292,7 +292,8 @@ pub fn palline(f: &Fotone3D, l: &Lancio, centro: [f64; 3], tr: &Traccianti, e_pr
             v
         }).collect();
         for t in parti { for (ball, st) in t { onde.push(ball); allunga.push(st); } }
-        for s in tr.surf.iter().filter(|_| surfisti) {
+        // no separate surfers with trails (Valerio, 13/10): the energy balls already ride the flow
+        for s in tr.surf.iter().filter(|_| surfisti && false) {
             let k = s.len();
             for (j, p) in s.iter().enumerate() {
                 let x = (j + 1) as f32 / k as f32;

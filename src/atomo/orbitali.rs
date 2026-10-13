@@ -391,7 +391,8 @@ fn disegna(m: &Mondo, v: &[[C; 4]], surfisti: bool) -> (Vec<Ball>, Vec<Ball>) {
     // three density levels: inner bright shell, middle, faint outer
     const LIV: [(f32, f32, f32); 3] = [(0.50, 0.30, 1.3), (0.18, 0.16, 1.15), (0.05, 0.08, 1.0)];
     let h = g.passo();
-    let palline: Vec<Ball> = (0..G * G * G).into_par_iter().flat_map_iter(|q| {
+    // the density shells only when the surfers are off: with them on, the orbital is drawn by the moving glows
+    let palline: Vec<Ball> = if surfisti { vec![] } else { (0..G * G * G).into_par_iter().flat_map_iter(|q| {
         let mut out = Vec::new();
         let x = rho[q] / rmax;
         for (li, (lv, alfa, sz)) in LIV.iter().enumerate() {
@@ -406,19 +407,9 @@ fn disegna(m: &Mondo, v: &[[C; 4]], surfisti: bool) -> (Vec<Ball>, Vec<Ball>) {
             }
         }
         out
-    }).collect();
-    let mut palline = palline;
-    // surfers with trails (bright, glowing)
-    for s in m.scie.iter().filter(|_| surfisti) {
-        let k = s.len();
-        for (j, p) in s.iter().enumerate() {
-            let x = (j + 1) as f32 / k as f32;
-            palline.push((schermo(*p).to_array(), 0.5 + 0.8 * x, [1.0, 0.96, 0.88, 0.1 + 0.7 * x * x]));
-        }
-        if let Some(p) = s.last() { palline.push((schermo(*p).to_array(), 2.2, [1.0, 0.97, 0.9, 1.0])); }
-    }
-    // the other surfers: wave balls with the phase colour where they are
-    let onde: Vec<Ball> = m.surf.par_iter().skip(if surfisti { N_SCIE } else { 0 }).map(|p| {
+    }).collect() };
+    // the surfers: soft glows with the phase colour where they are, no trails (Valerio, 13/10)
+    let onde: Vec<Ball> = m.surf.par_iter().map(|p| {
         let s = campiona(g, v, *p);
         let r: f64 = s.iter().map(|c| c.norm2()).sum();
         let a = (0.12 + 0.4 * (r as f32 / rmax).powf(0.35)).min(0.6);
