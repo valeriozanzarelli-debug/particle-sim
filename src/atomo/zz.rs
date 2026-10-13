@@ -676,3 +676,42 @@ impl Atomo {
         (s, sel)
     }
 }
+
+/// ⟨a| r |b⟩ on the lattice (λ_C): the dipole matrix element, three complex components.
+pub fn dipolo_tra(a: &[[C; 4]], b: &[[C; 4]], col: Colore) -> [C; 3] {
+    a.par_iter().zip(b.par_iter()).enumerate().map(|(s, (x, y))| {
+        let mut o = C::ZERO;
+        for q in 0..4 { o += x[q].conj() * y[q]; }
+        let c = sito(s, col);
+        [o.scale(x_of(c[0])), o.scale(x_of(c[1])), o.scale(x_of(c[2]))]
+    }).reduce(|| [C::ZERO; 3], |u, v| [u[0] + v[0], u[1] + v[1], u[2] + v[2]])
+}
+
+/// An exact level reached from a lower one by the dipole: the level and ⟨lower| r |level⟩.
+pub struct LivelloDipolo { pub lv: Livello3D, pub d: [C; 3] }
+impl LivelloDipolo {
+    pub fn d2(&self) -> f64 { self.d.iter().map(|c| c.norm2()).sum() }
+}
+
+impl Atomo {
+    /// THE 2p LEVELS THE 1s TALKS TO, exact (docs/EMISSIONE.md §7, docs/ATOMO.md §3.7): the start state is
+    /// r_axis · φ (the 1s pushed by a field along `asse`, which contains exactly the levels the light along that axis
+    /// can reach), then the same filter diagonalisation as `uno_s_esatto` in [lo, hi]. Levels with residual < `tol` and
+    /// weight > 1e-3 in the start are returned with their dipole ⟨φ| r |level⟩, the strongest |d_asse|² first.
+    pub fn livelli_di_dipolo(&self, phi: &[[C; 4]], asse: usize, lo: f64, hi: f64, dw: f64, ticks: usize, tol: f64) -> Vec<LivelloDipolo> {
+        let col = self.colore;
+        let mut start = self.clone();
+        let mut v: Vec<[C; 4]> = phi.par_iter().enumerate().map(|(s, p)| {
+            let x = x_of(sito(s, col)[asse]);
+            [p[0].scale(x), p[1].scale(x), p[2].scale(x), p[3].scale(x)]
+        }).collect();
+        let nv = norma(&v);
+        v.par_iter_mut().for_each(|p| for c in p.iter_mut() { *c = c.scale(1.0 / nv); });
+        start.imposta(v.clone());
+        let lv = start.livelli_esatti(lo, hi, dw, ticks);
+        let mut out: Vec<LivelloDipolo> = lv.into_iter().filter(|l| l.resid < tol && sovrapp(&l.v, &v).norm2() > 1e-3)
+            .map(|l| { let d = dipolo_tra(phi, &l.v, col); LivelloDipolo { lv: l, d } }).collect();
+        out.sort_by(|a, b| b.d[asse].norm2().total_cmp(&a.d[asse].norm2()));
+        out
+    }
+}

@@ -13,6 +13,11 @@
 //!   state would not decay (true spontaneous emission needs the quantized light field): a debt.
 //! • The coupling is made K times stronger (e → K e, both ways) so that the decay is seen in about a minute
 //!   instead of hours; the decay rate scales as K². The checks compare with formulas that use the same K.
+//! • Timing of the coupling (docs/EMISSIONE.md §3.2, docs/ATOMO.md §3.7): `Accoppiamento::RITARDATO` (the original
+//!   one) reads the field BEFORE the light tick and deposits AFTER it, non-transverse: the electron's own near field
+//!   comes back half a tick late, a fake friction. `Accoppiamento::CENTRATO` reads the centred field ½(U F_n + F_{n+1})
+//!   (predictor of the current + corrector) and deposits only the TRANSVERSE part of the source, P_⊥(k) = 1 − n nᵀ with
+//!   n(k) the axis of the light rule's two-tick Bloch rotation (its exact longitudinal mode), computed once by FFT.
 
 #![allow(dead_code)]
 
@@ -31,6 +36,31 @@ pub const SUB: usize = 8;
 /// Backward probe (cells from the centre, along −x).
 pub const SONDA: usize = 40;
 
+/// How the atom and the light exchange field and current within one light tick.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Accoppiamento {
+    /// the atom sees ½(U F_n + F_{n+1}) (predictor of the current, then a corrector phase) instead of F_n
+    pub centrato: bool,
+    /// the deposit is projected with P_⊥(k) = 1 − n(k) n(k)ᵀ (Coulomb gauge of the lattice light)
+    pub trasverso: bool,
+}
+impl Accoppiamento {
+    /// the original coupling (until 2026-10-14): field before the light tick, deposit after, not transverse
+    pub const RITARDATO: Accoppiamento = Accoppiamento { centrato: false, trasverso: false };
+    /// the patch of docs/EMISSIONE.md §7
+    pub const CENTRATO: Accoppiamento = Accoppiamento { centrato: true, trasverso: true };
+    pub fn nome(self) -> &'static str {
+        match (self.centrato, self.trasverso) {
+            (false, false) => "ritardato",
+            (true, false) => "centrato",
+            (false, true) => "trasverso",
+            (true, true) => "centrato+trasverso",
+        }
+    }
+}
+/// The coupling used by `Esperimento::new` / `nuovo` (the Laboratorio and the export).
+pub const ACCOPPIAMENTO: Accoppiamento = Accoppiamento::RITARDATO;
+
 pub fn alpha() -> f64 { crate::zz::ALPHA }
 /// The coupling charge e = K √(4πα) (Heaviside–Lorentz, ħ = c = m = 1).
 pub fn e_eff() -> f64 { K_ACC * (4.0 * std::f64::consts::PI * alpha()).sqrt() }
@@ -46,6 +76,8 @@ pub struct LuceAtomo {
     pub assorbita: f64,
     pub serie_e: Vec<(f64, f64)>,
     pub t: f64,
+    /// transverse deposit patterns (None: the plain Gaussian deposit)
+    pub trasv: Option<std::sync::Arc<Trasverso>>,
 }
 
 impl LuceAtomo {
@@ -72,26 +104,55 @@ impl LuceAtomo {
         }}}
         let tot: f64 = pesi.iter().map(|p| p.1).sum();
         for p in pesi.iter_mut() { p.1 /= tot; }
-        LuceAtomo { f, maschera, pesi, sonda: vec![], assorbita: 0.0, serie_e: vec![], t: 0.0 }
+        LuceAtomo { f, maschera, pesi, sonda: vec![], assorbita: 0.0, serie_e: vec![], t: 0.0, trasv: None }
     }
 
-    /// Fourier factor of the Gaussian average at wave number k (λ_C⁻¹): the radiated power is reduced by W².
-    pub fn fattore_forma(k: f64) -> f64 { (-0.5 * (k * SIGMA_S * B_LUCE).powi(2)).exp() }
-
-    /// Electric field of the light at the atom (Gaussian average).
-    pub fn campo_atomo(&self) -> [f64; 3] {
-        let mut e = [0.0; 3];
-        for &(s, w) in &self.pesi { for c in 0..3 { e[c] += w * self.f.f[s][c].re as f64; } }
-        e
+    /// The same box with the transverse deposit (patterns computed once per process, then shared).
+    pub fn new_trasversa() -> Self {
+        let mut l = Self::new();
+        l.trasv = Some(Trasverso::condiviso(&l.pesi));
+        l
     }
 
-    /// One light tick with the source current I (charge × velocity, summed over the atom, averaged over the tick).
-    pub fn passo(&mut self, corrente: [f64; 3]) {
-        self.f.tick();
-        let b2 = (B_LUCE * B_LUCE) as f32;
-        for &(s, w) in &self.pesi {
-            for c in 0..3 { self.f.f[s][c].re -= (corrente[c] * w) as f32 / b2; }
+    /// The Gaussian weights (cell, weight) of the average around the atom.
+    pub fn pesi_pub(&self) -> Vec<(usize, f64)> { self.pesi.clone() }
+
+    /// Field at the atom made by the deposit of the source I of one light tick: −M I / b² (M = ⟨w|pattern⟩).
+    pub fn campo_proprio(&self, corrente: [f64; 3]) -> [f64; 3] {
+        let b2 = B_LUCE * B_LUCE;
+        match &self.trasv {
+            Some(t) => [0, 1, 2].map(|c| -(0..3).map(|q| t.m[c][q] * corrente[q]).sum::<f64>() / b2),
+            None => {
+                let w2: f64 = self.pesi.iter().map(|p| p.1 * p.1).sum();
+                [0, 1, 2].map(|c| -w2 * corrente[c] / b2)
+            }
         }
+    }
+
+    /// Free propagation of the light by one tick (no source, no sponge).
+    pub fn propaga(&mut self) { self.f.tick(); }
+
+    /// The source of one light tick: F −= I w / b² (Gaussian) or F −= Σ_c I_c T_c / b² (transverse).
+    pub fn deposita(&mut self, corrente: [f64; 3]) {
+        let b2 = B_LUCE * B_LUCE;
+        match &self.trasv {
+            None => {
+                let b2 = b2 as f32;
+                for &(s, w) in &self.pesi {
+                    for c in 0..3 { self.f.f[s][c].re -= (corrente[c] * w) as f32 / b2; }
+                }
+            }
+            Some(t) => {
+                let k = [0, 1, 2].map(|c| (corrente[c] / b2) as f32);
+                self.f.f.par_iter_mut().zip(t.t.par_iter()).for_each(|(p, tt)| {
+                    for q in 0..3 { p[q].re -= k[0] * tt[0][q] + k[1] * tt[1][q] + k[2] * tt[2][q]; }
+                });
+            }
+        }
+    }
+
+    /// Sponge, energy bookkeeping, probe: the end of a light tick.
+    pub fn chiudi_tick(&mut self) {
         let m = &self.maschera;
         let (tolta, resta): (f64, f64) = self.f.f.par_iter_mut().zip(m.par_iter()).map(|(p, &w)| {
             let e = p.iter().map(|c| c.norm2() as f64).sum::<f64>();
@@ -106,6 +167,24 @@ impl LuceAtomo {
         let n = N_LUCE;
         let s = (((n / 2 - SONDA) * n + n / 2) * n) + n / 2;
         self.sonda.push((self.t, self.f.f[s][2].re as f64));
+    }
+
+    /// Fourier factor of the Gaussian average at wave number k (λ_C⁻¹): the radiated power is reduced by W².
+    pub fn fattore_forma(k: f64) -> f64 { (-0.5 * (k * SIGMA_S * B_LUCE).powi(2)).exp() }
+
+    /// Electric field of the light at the atom (Gaussian average).
+    pub fn campo_atomo(&self) -> [f64; 3] {
+        let mut e = [0.0; 3];
+        for &(s, w) in &self.pesi { for c in 0..3 { e[c] += w * self.f.f[s][c].re as f64; } }
+        e
+    }
+
+    /// One light tick with the source current I (charge × velocity, summed over the atom, averaged over the tick):
+    /// propagate, deposit, sponge (the original order).
+    pub fn passo(&mut self, corrente: [f64; 3]) {
+        self.propaga();
+        self.deposita(corrente);
+        self.chiudi_tick();
     }
 
     /// A photon pulse of frequency ω (mc²/ħ) arriving along +x, polarised along z, with e·E ≈ `e0` at its peak.
@@ -179,6 +258,14 @@ pub struct Esperimento {
     /// ⟨r⟩ at the start of the current light tick
     r0: Option<[f64; 3]>,
     sub: usize,
+    /// how field and current are exchanged (`ACCOPPIAMENTO` by default)
+    pub acc: Accoppiamento,
+    /// sources of the past light ticks (for the predictor), the predicted one and the field of the current tick
+    jstoria: Vec<[f64; 3]>,
+    jpred: [f64; 3],
+    campo_tick: [f64; 3],
+    /// coupling boost actually used by `passo` (K_ACC by default; 1 = the true charge)
+    pub k_acc: f64,
 }
 
 impl Esperimento {
@@ -199,8 +286,27 @@ impl Esperimento {
         let a2 = crate::zz::Atomo::con_stato_in(1, 2, col);
         let (phi2, om2) = a2.ascolta(0.96, 0.99, ascolto / 3);
         at.imposta(phi.clone());
-        Esperimento { at, luce: LuceAtomo::new(), phi1s: phi, omega1s: om, phi2p: phi2, omega2p: om2, serie_p: vec![], serie_d: vec![], serie_j: vec![],
-                      t_impulso: None, r0: None, sub: 0 }
+        let mut x = Esperimento { at, luce: LuceAtomo::new(), phi1s: phi, omega1s: om, phi2p: phi2, omega2p: om2, serie_p: vec![], serie_d: vec![], serie_j: vec![],
+                      t_impulso: None, r0: None, sub: 0, acc: ACCOPPIAMENTO, jstoria: vec![], jpred: [0.0; 3], campo_tick: [0.0; 3], k_acc: K_ACC };
+        x.ricomincia();
+        x
+    }
+
+    /// From states already found (whole cube): the 1s and a 2p with their frequencies; no listening.
+    pub fn da_stati(phi1s: Vec<[crate::cplx::C; 4]>, omega1s: f64, phi2p: Vec<[crate::cplx::C; 4]>, omega2p: f64) -> Self {
+        let mut at = crate::zz::Atomo::new_in(None);
+        at.imposta(phi1s.clone());
+        let mut x = Esperimento { at, luce: LuceAtomo::new(), phi1s, omega1s, phi2p, omega2p, serie_p: vec![], serie_d: vec![], serie_j: vec![],
+                      t_impulso: None, r0: None, sub: 0, acc: ACCOPPIAMENTO, jstoria: vec![], jpred: [0.0; 3], campo_tick: [0.0; 3], k_acc: K_ACC };
+        x.ricomincia();
+        x
+    }
+
+    /// Change the coupling and start again from the 1s (empty light box).
+    pub fn con_accoppiamento(mut self, acc: Accoppiamento) -> Self {
+        self.acc = acc;
+        self.ricomincia();
+        self
     }
 
     /// The 1s → 2p level difference of the 3-D rule (listened).
@@ -212,7 +318,10 @@ impl Esperimento {
     /// Start again from the listened 1s with an empty light box.
     pub fn ricomincia(&mut self) {
         self.at.imposta(self.phi1s.clone());
-        self.luce = LuceAtomo::new();
+        self.luce = if self.acc.trasverso { LuceAtomo::new_trasversa() } else { LuceAtomo::new() };
+        self.jstoria.clear();
+        self.jpred = [0.0; 3];
+        self.campo_tick = [0.0; 3];
         self.serie_p.clear();
         self.serie_d.clear();
         self.serie_j.clear();
@@ -226,12 +335,48 @@ impl Esperimento {
         self.t_impulso = Some(self.at.t());
     }
 
+    /// Start from an arbitrary atom state (same lattice), empty light box, clean history.
+    pub fn parti_da(&mut self, psi: Vec<[crate::cplx::C; 4]>) {
+        self.ricomincia();
+        self.at.imposta(psi);
+    }
+
+    /// Predicted source of the coming light tick (linear prediction, as lab/emiss_run.py `sc_predict`).
+    fn predici(&self) -> [f64; 3] {
+        let h = &self.jstoria;
+        let d = |a: [f64; 3], b: [f64; 3]| a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+        match h.len() {
+            0 => [0.0; 3],
+            1 => h[0],
+            _ => {
+                let (y, z) = (h[h.len() - 2], h[h.len() - 1]);
+                if d(y, y) <= 0.0 { return z; }
+                if h.len() == 2 { return [0, 1, 2].map(|c| 2.0 * z[c] - y[c]); }
+                let x = h[h.len() - 3];
+                let c = (d([x[0] + z[0], x[1] + z[1], x[2] + z[2]], y) / (2.0 * d(y, y))).clamp(-1.0, 1.0);
+                [0, 1, 2].map(|q| 2.0 * c * z[q] - y[q])
+            }
+        }
+    }
+
     /// One atom tick (and a light tick every SUB atom ticks).
     pub fn passo(&mut self) {
-        let e = e_eff();
-        let ea = self.luce.campo_atomo();
+        let e = e_eff() * self.k_acc / K_ACC;
+        if self.sub == 0 {
+            self.r0 = Some(self.at.posizione());
+            if self.acc.centrato {
+                // F' = U F_n first; the atom sees ½(F' + F_{n+1}) = field(F') + ½ (self field of the predicted source)
+                self.luce.propaga();
+                self.jpred = self.predici();
+                let ea = self.luce.campo_atomo();
+                let sp = self.luce.campo_proprio(self.jpred);
+                self.campo_tick = [0, 1, 2].map(|c| ea[c] + 0.5 * sp[c]);
+            } else {
+                self.campo_tick = self.luce.campo_atomo();
+            }
+        }
+        let ea = self.campo_tick;
         self.at.campo_est = [e * ea[0], e * ea[1], e * ea[2]];
-        if self.r0.is_none() { self.r0 = Some(self.at.posizione()); }
         self.at.avanti();
         self.sub += 1;
         let r = self.at.posizione();
@@ -243,7 +388,19 @@ impl Esperimento {
             let dt = SUB as f64 * crate::zz::A;
             let i = [-e * (r[0] - r0[0]) / dt, -e * (r[1] - r0[1]) / dt, -e * (r[2] - r0[2]) / dt];
             self.serie_j.push((self.at.t(), (r[2] - r0[2]) / dt));
-            self.luce.passo(i);
+            if self.acc.centrato {
+                // corrector: the atom felt ½ selffield(I_pred) but the true source was I: a phase e ½ ΔE·r over the tick
+                let sp = self.luce.campo_proprio([0, 1, 2].map(|c| i[c] - self.jpred[c]));
+                let v = [0, 1, 2].map(|c| e * 0.5 * sp[c] * dt);
+                kick(&mut self.at, v);
+                self.luce.deposita(i);
+            } else {
+                self.luce.propaga();
+                self.luce.deposita(i);
+            }
+            self.luce.chiudi_tick();
+            self.jstoria.push(i);
+            if self.jstoria.len() > 3 { self.jstoria.remove(0); }
             self.sub = 0;
             let p = 1.0 - self.at.proiezione(&self.phi1s);
             self.serie_p.push((self.at.t(), p));
@@ -258,6 +415,17 @@ impl Esperimento {
         let m = v.iter().sum::<f64>() / v.len() as f64;
         (2.0 * v.iter().map(|x| (x - m).powi(2)).sum::<f64>() / v.len() as f64).sqrt()
     }
+}
+
+/// ψ ← e^{−i v·r} ψ (a uniform-field kick, v = e E Δt).
+pub fn kick(at: &mut crate::zz::Atomo, v: [f64; 3]) {
+    use crate::zz::{sito, x_of};
+    let col = at.colore;
+    at.psi.par_iter_mut().enumerate().for_each(|(s, p)| {
+        let c = sito(s, col);
+        let ph = crate::cplx::C::expi(-(v[0] * x_of(c[0]) + v[1] * x_of(c[1]) + v[2] * x_of(c[2])));
+        for q in p.iter_mut() { *q = *q * ph; }
+    });
 }
 
 /// Amplitude of the component at frequency ω of a series after time `da` (Hann-weighted projection).
@@ -278,4 +446,141 @@ pub fn ampiezza_a(serie: &[(f64, f64)], omega: f64, da: f64, a: f64) -> f64 {
 /// Larmor power of an oscillating dipole −e·D cos ωt seen through the Gaussian average: e² ω⁴ D² W² / (12π).
 pub fn potenza_larmor(omega: f64, d: f64) -> f64 {
     e_eff().powi(2) * omega.powi(4) * d * d * LuceAtomo::fattore_forma(omega).powi(2) / (12.0 * std::f64::consts::PI)
+}
+
+/// TRANSVERSE DEPOSIT (docs/EMISSIONE.md §3.2). The two-tick light walk at wave vector k is a real rotation R(k)
+/// (one translation along j is exp(−k_j G_j), (G_j)_ab = ε_jab, a rotation by k_j about axis j; ticks alternate the
+/// axis order x,y,z / z,y,x). Its axis n(k) is the lattice's longitudinal (static, Coulomb) mode exactly, so the light
+/// part of a source is P_⊥(k) = 1 − n nᵀ applied to it. The Gaussian deposit w e_c is projected once by FFT:
+/// pattern T_c = IFFT[P_⊥(k) e_c W(k)] (real and even, it fills the box: the longitudinal tail goes as 1/r³).
+/// M_ab = Σ_s w_s T_b(s)_a is the instantaneous self field at the atom per unit source.
+pub struct Trasverso {
+    /// per light cell: t[s][c][q] = component q of the pattern of the source along c
+    pub t: Vec<[[f32; 3]; 3]>,
+    pub m: [[f64; 3]; 3],
+    /// largest |imaginary part| / largest |real part| of the patterns (should be round-off)
+    pub immaginaria: f64,
+}
+
+/// Two-tick rotation of the light rule at wave vector k (cells⁻¹), starting from an even tick.
+pub fn rotazione_luce(k: [f64; 3]) -> [[f64; 3]; 3] {
+    fn rot(j: usize, a: f64) -> [[f64; 3]; 3] {
+        // exp(−a G_j) = 1 − sin a G_j + (1 − cos a) G_j²
+        let mut g = [[0.0; 3]; 3];
+        let (p, q) = ((j + 1) % 3, (j + 2) % 3);
+        g[p][q] = 1.0;
+        g[q][p] = -1.0;
+        let mut g2 = [[0.0; 3]; 3];
+        for i in 0..3 { for l in 0..3 { for m in 0..3 { g2[i][l] += g[i][m] * g[m][l]; } } }
+        let (s, c) = a.sin_cos();
+        let mut r = [[0.0; 3]; 3];
+        for i in 0..3 { for l in 0..3 { r[i][l] = if i == l { 1.0 } else { 0.0 } - s * g[i][l] + (1.0 - c) * g2[i][l]; } }
+        r
+    }
+    fn mul(a: [[f64; 3]; 3], b: [[f64; 3]; 3]) -> [[f64; 3]; 3] {
+        let mut r = [[0.0; 3]; 3];
+        for i in 0..3 { for l in 0..3 { for m in 0..3 { r[i][l] += a[i][m] * b[m][l]; } } }
+        r
+    }
+    let mut r = [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]];
+    for t in 0..2u64 { for j in crate::walk::order(t) { r = mul(rot(j, k[j]), r); } }
+    r
+}
+
+/// P_⊥(k) = 1 − n nᵀ of the light rule (2/3·1 where the rotation is the identity, e.g. k = 0).
+pub fn proiettore_trasverso(k: [f64; 3]) -> [[f64; 3]; 3] {
+    let r = rotazione_luce(k);
+    let mut ax = [r[2][1] - r[1][2], r[0][2] - r[2][0], r[1][0] - r[0][1]];
+    let mut nr = (ax[0] * ax[0] + ax[1] * ax[1] + ax[2] * ax[2]).sqrt();
+    if nr < 1e-9 {
+        let tr = r[0][0] + r[1][1] + r[2][2];
+        if tr > 2.9 { return [[2.0 / 3.0, 0.0, 0.0], [0.0, 2.0 / 3.0, 0.0], [0.0, 0.0, 2.0 / 3.0]]; }
+        // rotation by π: R = 2 n nᵀ − 1, take the largest column of (R + 1)/2
+        let c = (0..3).max_by(|&a, &b| r[a][a].total_cmp(&r[b][b])).unwrap();
+        ax = [0.5 * (r[0][c] + if c == 0 { 1.0 } else { 0.0 }), 0.5 * (r[1][c] + if c == 1 { 1.0 } else { 0.0 }), 0.5 * (r[2][c] + if c == 2 { 1.0 } else { 0.0 })];
+        nr = (ax[0] * ax[0] + ax[1] * ax[1] + ax[2] * ax[2]).sqrt();
+    }
+    let n = [ax[0] / nr, ax[1] / nr, ax[2] / nr];
+    let mut p = [[0.0; 3]; 3];
+    for i in 0..3 { for l in 0..3 { p[i][l] = if i == l { 1.0 } else { 0.0 } - n[i] * n[l]; } }
+    p
+}
+
+/// In-place radix-2 FFT of one line (sign −1 forward, +1 inverse, no normalisation).
+fn fft_riga(v: &mut [crate::cplx::C], segno: f64) {
+    use crate::cplx::C;
+    let n = v.len();
+    let mut j = 0;
+    for i in 1..n {
+        let mut bit = n >> 1;
+        while j & bit != 0 { j ^= bit; bit >>= 1; }
+        j |= bit;
+        if i < j { v.swap(i, j); }
+    }
+    let mut len = 2;
+    while len <= n {
+        let w = C::expi(segno * std::f64::consts::TAU / len as f64);
+        for i in (0..n).step_by(len) {
+            let mut wk = C::ONE;
+            for k in 0..len / 2 {
+                let (a, b) = (v[i + k], v[i + k + len / 2] * wk);
+                v[i + k] = a + b;
+                v[i + k + len / 2] = a - b;
+                wk = wk * w;
+            }
+        }
+        len <<= 1;
+    }
+}
+
+/// 3-D FFT of an n³ array (C order), sign as `fft_riga`.
+fn fft3(a: &mut [crate::cplx::C], n: usize, segno: f64) {
+    use crate::cplx::C;
+    a.par_chunks_mut(n).for_each(|r| fft_riga(r, segno));
+    for ax in 0..2 {
+        // lines along x (ax 0, stride n²) or y (ax 1, stride n)
+        let stride = if ax == 0 { n * n } else { n };
+        let starts: Vec<usize> = (0..n * n).map(|q| if ax == 0 { q } else { (q / n) * n * n + q % n }).collect();
+        let lines: Vec<Vec<C>> = starts.par_iter().map(|&s0| {
+            let mut l: Vec<C> = (0..n).map(|i| a[s0 + i * stride]).collect();
+            fft_riga(&mut l, segno);
+            l
+        }).collect();
+        for (s0, l) in starts.iter().zip(lines) { for i in 0..n { a[s0 + i * stride] = l[i]; } }
+    }
+}
+
+impl Trasverso {
+    pub fn calcola(pesi: &[(usize, f64)]) -> Trasverso {
+        use crate::cplx::C;
+        let n = N_LUCE;
+        let nn = n * n * n;
+        let mut w = vec![C::ZERO; nn];
+        for &(s, p) in pesi { w[s] = C::real(p); }
+        fft3(&mut w, n, -1.0);
+        let kk = |i: usize| std::f64::consts::TAU * (if i < n / 2 { i as f64 } else { i as f64 - n as f64 });
+        let p: Vec<[[f64; 3]; 3]> = (0..nn).into_par_iter().map(|s| proiettore_trasverso([kk(s / (n * n)) / n as f64 * 1.0, kk((s / n) % n) / n as f64, kk(s % n) / n as f64])).collect();
+        let mut t = vec![[[0.0f32; 3]; 3]; nn];
+        let mut imm: f64 = 0.0;
+        let mut re_max: f64 = 0.0;
+        for c in 0..3 { for q in 0..3 {
+            let mut a: Vec<C> = w.par_iter().zip(p.par_iter()).map(|(wk, pk)| wk.scale(pk[q][c])).collect();
+            fft3(&mut a, n, 1.0);
+            let k = 1.0 / nn as f64;
+            for s in 0..nn {
+                t[s][c][q] = (a[s].re * k) as f32;
+                imm = imm.max((a[s].im * k).abs());
+                re_max = re_max.max((a[s].re * k).abs());
+            }
+        }}
+        let mut m = [[0.0; 3]; 3];
+        for a in 0..3 { for b in 0..3 { m[a][b] = pesi.iter().map(|&(s, ww)| ww * t[s][b][a] as f64).sum(); } }
+        Trasverso { t, m, immaginaria: imm / re_max.max(1e-300) }
+    }
+
+    /// Computed once per process (the Gaussian weights depend only on the constants of this file).
+    pub fn condiviso(pesi: &[(usize, f64)]) -> std::sync::Arc<Trasverso> {
+        static T: std::sync::OnceLock<std::sync::Arc<Trasverso>> = std::sync::OnceLock::new();
+        T.get_or_init(|| std::sync::Arc::new(Trasverso::calcola(pesi))).clone()
+    }
 }
