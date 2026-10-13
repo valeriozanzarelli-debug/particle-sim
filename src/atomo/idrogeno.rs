@@ -1152,6 +1152,11 @@ impl Fine {
     /// b ticks = one coarse step
     pub fn passo(&mut self) { for t in 1..=self.b { self.tick(t); } }
 
+    /// multiply the whole patch (all four components) by a real factor (reflux)
+    pub fn scala_interno(&mut self, k: f64) {
+        for c in 0..4 { self.psi[c].par_iter_mut().for_each(|x| *x = x.scale(k)); }
+    }
+
     /// probability in the interior (fine), and the scalar density ψ†βψ = 2 Re(L†R) summed over the interior
     pub fn interno_norma_beta(&self) -> (f64, f64) {
         let p = self.p;
@@ -1184,6 +1189,9 @@ pub struct Atomo {
     /// second-order covariance of the cell mean, mean(Vψ) − V̄ψ̄ ≈ (h²/12) ∇V·∇ψ, on the cells not covered by the
     /// fine block (derived from the descriptor = block mean; off by default)
     pub covarianza: bool,
+    /// charge balance at the seam (IDRO_REFLUX=1) and the last correction factor − 1 (diagnostic)
+    pub reflux: bool,
+    pub ultimo_reflux: f64,
 }
 
 /// (h²/12) Σ_j ∂_jV ∂_jf with central differences, f ← f − i (τ/2) (that), skipping masked cells
@@ -1210,7 +1218,8 @@ pub fn calcio_covarianza(lv: &Livello, f: &mut [C], coperte: &[usize]) {
 
 impl Atomo {
     pub fn new(lv: Livello, psi: Vec<C>, fine: Option<Fine>, calcio: Calcio) -> Self {
-        let mut a = Atomo { lv, psi, fine, passi: 0, calcio, covarianza: false };
+        let reflux = std::env::var("IDRO_REFLUX").map(|v| v != "0").unwrap_or(false);
+        let mut a = Atomo { lv, psi, fine, passi: 0, calcio, covarianza: false, reflux, ultimo_reflux: 0.0 };
         if let Some(f) = a.fine.as_mut() {
             f.prolunga(&a.psi, true);
             for (s, v) in f.restringi(false) { a.psi[s] = v; }
@@ -1237,9 +1246,24 @@ impl Atomo {
         self.lv.fft.tre(&mut g, true);
         g.par_iter_mut().zip(self.lv.calcio.par_iter()).for_each(|(a, k)| *a = *a * *k);
         if self.covarianza { calcio_covarianza(&self.lv, &mut g, &coperte); }
+        // reflux: the charge that crosses the interface is the one the coarse rule moves. The covered cells get, in total,
+        // exactly the charge Q(before) − Q(uncovered, after); the fine block is rescaled by the same factor, so the
+        // fine region keeps its own shape (cusp, jitter) but cannot create or lose charge at the seam
+        let q_prima = if self.reflux { norm2(&self.psi) } else { 0.0 };
         if let Some(f) = self.fine.as_mut() {
             for t in 1..=f.b { f.tick(t); oss(f, t); }
-            for (s, v) in f.restringi(false) { g[s] = v; }
+            let r = f.restringi(false);
+            if self.reflux {
+                let q_cov_g: f64 = r.iter().map(|(s, _)| g[*s].norm2()).sum();
+                let q_unc = norm2(&g) - q_cov_g;
+                let q_r: f64 = r.iter().map(|(_, v)| v.norm2()).sum();
+                let fatt = ((q_prima - q_unc).max(0.0) / q_r).sqrt();
+                self.ultimo_reflux = fatt - 1.0;
+                for (s, v) in r { g[s] = v.scale(fatt); }
+                f.scala_interno(fatt);
+            } else {
+                for (s, v) in r { g[s] = v; }
+            }
         }
         self.psi = g;
         self.passi += 1;

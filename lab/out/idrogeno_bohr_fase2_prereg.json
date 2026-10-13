@@ -1,0 +1,32 @@
+{
+  "studio": "idrogeno_bohr fase 2 — togliere le imprecisioni della fase 1 (docs/IDROGENO_BOHR.md §8, §10 punti 1-3), su richiesta del coordinatore (cancello di qualità di Valerio)",
+  "scritto": "2026-10-13, prima delle corse R1-R3",
+  "cambi_al_codice": {
+    "reflux": "IDRO_REFLUX=1: a ogni passo grosso le celle coperte ricevono in totale esattamente la carica Q(prima) − Q(celle scoperte, dopo il passo della regola grossa); il blocco fine è riscalato dello stesso fattore reale. Così la carica che attraversa la cucitura è quella mossa dalla regola grossa (una sola porta, contata da una parte sola); dentro il blocco la zig-zag decide la forma. Nessun parametro.",
+    "blocco_a0_256": "IDRO_B=16: celle fini a0/256 (32 → 16 per cella grossa), angolo del cammino derivato come in fase 1",
+    "regola_simmetrica": "assets/atomo/agglomerato_zz_simm_v1.json (nuovo, versionato; agglomerato_zz.json NON toccato) da lab/idro_simm_regola.py: g = (G00+G11)/2 mediato sulle 48 operazioni di O_h (parità inclusa). Nessun altro thread ha toccato l'agglomeratore dopo 177c87b (git log). Parte dispari tolta: 3.2e-3 (B=256), 1.8e-3 (B=512)."
+  },
+  "sviluppo_prima_del_commit": [
+    "pacchetto fermo libero, blocco 3^3, reflux, 8 passi: carica -7e-15 in totale, fedeltà 1-6e-10, fase -2e-6 (la fase non è toccata dal reflux)",
+    "la regola simmetrica ha G(k) uguale lungo x e y (l'originale differiva di 2.7e-4 a k = 2π/64); la 'dispersione 4 volte la relativistica' scritta in fase 1 §5 era in gran parte la parte dispari: da correggere nel documento"
+  ],
+  "esami": {
+    "R1_reflux": {
+      "R1a": {"corsa": "IDRO_REFLUX=1 IDRO_ORD=9 attraversa 64 3 0 3 0 16 (pacchetto fermo, blocco 3^3)", "soglia": "|ΔQ| per passo <= 1e-11 (su un periodo di Lyman-alfa, 36 900 passi a0/16: <= 4e-7 << 1e-4)"},
+      "R1b": {"corsa": "IDRO_REFLUX=1 IDRO_ORD=9 esame_ibrido 256 256 3 24", "soglia": "deriva di carica <= 1e-11 per passo; E1 <= 0.10 %; E3 come fase 1"},
+      "R1c": {"corsa": "IDRO_REFLUX=1 IDRO_ORD=9 attraversa 64 3 0.5 3 -20 80", "soglia": "fedeltà >= 0.99, riflesso <= 1e-2, |ΔQ| <= 1e-9 sull'intera corsa"},
+      "R1d": {"corsa": "IDRO_REFLUX=1 IDRO_ORD=9 IDRO_POT=gauss esame_ibrido 256 128 3 16", "soglia": "|E_ibrido/E_grosso − 1| <= 1e-4"}
+    },
+    "R2_convergenza_nel_blocco": {
+      "corse": "IDRO_REFLUX=1 IDRO_ORD=9 IDRO_B=16 esame_ibrido 256 256 {3,5,7,9} 24 (celle fini a0/256); più R1b (a0/512, blocco 3) per la risoluzione",
+      "criterio": "PASS se |E(5)−E(3)|/|E| < 1e-4 e |E(7)−E(5)|/|E| < 1e-4 (blocchi 3/5/7 come chiesto); il blocco 9 è riportato; controllo di risoluzione |E(a0/256, 3) − E(a0/512, 3)|/|E| < 1e-4",
+      "attesa_onesta": "in fase 1 i passi fra blocchi erano 3e-4 e 2.3e-4: un FAIL è possibile"
+    },
+    "R3_regola_simmetrica": {
+      "R3a": {"corsa": "IDRO_ASSET=assets/atomo/agglomerato_zz_simm_v1.json spettro 512 288 0", "soglia": "parità |P| >= 1 − 1e-8 per 1s, 2p×3, 2s; tripletto 2p aperto <= 1e-7; 2s e 2p entro 0.25 % di Dirac × mu"},
+      "R3b": {"corsa": "regola simmetrica + reflux + blocco migliore di R2 (a0/256), esame_ibrido 256 256 ni 24 con export", "soglia": "E1 <= 0.10 %; corrente spuria max|j| <= 1e-6 alpha c/a0^3 (fase 1: 6.5e-3)"},
+      "R3c": {"corsa": "esame_risonanza 512 288 con gli stati di R3a", "soglia": "coerenza <= 1e-4; contro Dirac × mu <= 0.6 %"}
+    }
+  },
+  "manopole": "nessuna nuova: reflux e simmetrizzazione senza parametri; a0/256 e grandezze del blocco sono scelte di configurazione (dichiarate)"
+}

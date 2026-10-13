@@ -10,7 +10,9 @@ use idrogeno::*;
 use std::time::Instant;
 use rayon::prelude::*;
 
-const ASSET: &str = "assets/atomo/agglomerato_zz.json";
+const ASSET_BASE: &str = "assets/atomo/agglomerato_zz.json";
+/// the learned rule: IDRO_ASSET overrides (e.g. the parity/cubic-symmetric assets/atomo/agglomerato_zz_simm_v1.json)
+fn asset() -> String { std::env::var("IDRO_ASSET").unwrap_or_else(|_| ASSET_BASE.to_string()) }
 
 fn main() {
     let args: Vec<String> = std::env::args().collect();
@@ -76,7 +78,7 @@ fn test_fft() {
 
 fn dev_livello(b: usize, n: usize, kind: &str, off: f64) {
     let t = Instant::now();
-    let reg = carica_regola(ASSET, "chain_A_3d", b);
+    let reg = carica_regola(&asset(), "chain_A_3d", b);
     let lv = Livello::con_nucleo(&reg, n, 1.0, off);
     eprintln!("level B = {b}: h = {:.4} (a0/{:.2}), phi0 = {:.6}, box ±{:.2} a0, max|Im g| = {:.2e}, spin = {:.1e} ({:.1} s)",
               lv.h, a0() / lv.h, lv.phi0, n as f64 / 2.0 * lv.h / a0(), lv.im_g, lv.spin, t.elapsed().as_secs_f64());
@@ -108,7 +110,7 @@ pub fn permuta(v: &[C], n: usize, ax: usize) -> Vec<C> {
 
 #[allow(dead_code)]
 pub fn dev_debug() {
-    let reg = carica_regola(ASSET, "chain_A_3d", 256);
+    let reg = carica_regola(&asset(), "chain_A_3d", 256);
     let n = 64;
     let lv = Livello::con_nucleo(&reg, n, 1.0, 0.5);
     for m in [(1usize, 0usize, 0usize), (0, 1, 0), (2, 0, 0), (1, 1, 1)] {
@@ -127,7 +129,7 @@ pub fn dev_debug() {
 
 /// checks of the fine block: G_j, R∘P = I, walk vs Bloch matrix on a plane wave, reconstruction accuracy
 pub fn dev_test_fine() {
-    let reg = carica_regola(ASSET, "chain_A_3d", 256);
+    let reg = carica_regola(&asset(), "chain_A_3d", 256);
     let lv = Livello::new(&reg, 16, 0.0);
     let th = lv.h / 32.0;
     let g = g_positiva(th);
@@ -188,7 +190,7 @@ pub fn energia_da_fase(cs: &[C], from: usize, phi0: f64, tau: f64) -> f64 {
 
 pub fn dev_ibrido(n: usize, ni: usize, passi: usize, calcio: &str) {
     let t0 = Instant::now();
-    let reg = carica_regola(ASSET, "chain_A_3d", 256);
+    let reg = carica_regola(&asset(), "chain_A_3d", 256);
     let off = if ni % 2 == 1 || ni == 0 { 0.0 } else { 0.5 };
     let lv = Livello::con_nucleo(&reg, n, 1.0, off);
     let s1 = lobpcg(&lv, lv.guess("1s"), &[], 0.5 * ALPHA * ALPHA, 1e-10, 200, false);
@@ -251,7 +253,7 @@ pub fn dev_ibrido(n: usize, ni: usize, passi: usize, calcio: &str) {
 /// returns (fidelity |<c|h>|^2, reflected fraction (k_x < 0 part of h − c), norm change)
 pub fn dev_attraversa(n: usize, ni: usize, kcell: f64, sig: f64, x0: f64, passi: usize) -> (f64, f64, f64) {
     let t0 = Instant::now();
-    let reg = carica_regola(ASSET, "chain_A_3d", 256);
+    let reg = carica_regola(&asset(), "chain_A_3d", 256);
     let off = if ni % 2 == 1 { 0.0 } else { 0.5 };
     let lv = Livello::con_nucleo(&reg, n, 0.0, off);
     let mut c: Vec<C> = (0..n * n * n).map(|s| {
@@ -290,7 +292,7 @@ pub fn dev_attraversa(n: usize, ni: usize, kcell: f64, sig: f64, x0: f64, passi:
 
 /// time blocking: m steps at once, e^{−iV mτ/2} e^{−i m G} e^{−iV mτ/2}; energy of the 1s (and 2p) read from it
 pub fn dev_blocco(b: usize, n: usize, off: f64) {
-    let reg = carica_regola(ASSET, "chain_A_3d", b);
+    let reg = carica_regola(&asset(), "chain_A_3d", b);
     let lv = Livello::con_nucleo(&reg, n, 1.0, off);
     let s1 = lobpcg(&lv, lv.guess("1s"), &[], 0.5 * ALPHA * ALPHA, 1e-10, 200, false);
     let s2 = lobpcg(&lv, lv.guess("2p"), &[&s1.v], ALPHA * ALPHA / 8.0, 1e-10, 400, false);
@@ -317,7 +319,7 @@ pub fn dev_blocco(b: usize, n: usize, off: f64) {
 /// lower states already found), with parity and the 2p triplet splitting; optionally saves the states (f32) in dir
 fn esame_spettro(b: usize, n: usize, off: f64, dir: Option<String>) {
     let t = Instant::now();
-    let reg = carica_regola(ASSET, "chain_A_3d", b);
+    let reg = carica_regola(&asset(), "chain_A_3d", b);
     let lv = Livello::con_nucleo(&reg, n, 1.0, off);
     println!("level B = {b}: h = {:.4} (a0/{:.2}), tau = {:.4}, phi0 = {:.6}, box ±{:.2} a0, N = {n}, off = {off}, max|Im g| = {:.2e}",
              lv.h, a0() / lv.h, lv.tau, lv.phi0, n as f64 / 2.0 * lv.h / a0(), lv.im_g);
@@ -374,7 +376,7 @@ fn h_media(lv: &Livello, f: &[C]) -> f64 { let mut o = vec![C::ZERO; f.len()]; l
 /// esame_ibrido B N ni passi [export dir]   (B = 256: h = a0/16; B = 512: h = a0/8)
 fn esame_ibrido(bl: usize, n: usize, ni: usize, passi: usize, esporta: Option<String>) {
     let t0 = Instant::now();
-    let reg = carica_regola(ASSET, "chain_A_3d", bl);
+    let reg = carica_regola(&asset(), "chain_A_3d", bl);
     let off = if ni % 2 == 1 || ni == 0 { 0.0 } else { 0.5 };
     let lv = Livello::con_nucleo(&reg, n, 1.0, off);
     let s1 = lobpcg(&lv, lv.guess("1s"), &[], 0.5 * ALPHA * ALPHA, 3e-9, 300, false);
@@ -451,6 +453,7 @@ fn esame_ibrido(bl: usize, n: usize, ni: usize, passi: usize, esporta: Option<St
              eh * ev(), 100.0 * (eh * ev() / e1 - 1.0), ec * ev(), 100.0 * (ec * ev() / e1 - 1.0), eh / ec - 1.0);
     println!("RISULTATO conservazione: charge drift per step {:+.3e} (whole run), {:+.3e} (2nd half); <H_coarse> drift {:+.3e} (whole), {:+.3e} (2nd half)",
              (q1 - q0) / passi as f64, (q1 - q_meta) / (passi - meta) as f64, (h1 - h0) / h0.abs(), (h1 - h_meta) / h0.abs());
+    println!("reflux: {} (last factor-1 {:+.3e}), asset {}", at.reflux, at.ultimo_reflux, asset());
     println!("RISULTATO stazionarieta: coarse density max|drho|/max rho {:.3e}, fine block {:.3e} (step {meta} -> {passi})", staz_g, staz_f);
     println!("RISULTATO costo: {:.3} s per coarse step ({} fine ticks inside), 2 threads; coarse-only step {:.3} s",
              tm, ticks, { let t = Instant::now(); lv.passo(&mut co); t.elapsed().as_secs_f64() });
@@ -461,6 +464,8 @@ fn esame_ibrido(bl: usize, n: usize, ni: usize, passi: usize, esporta: Option<St
         let mut jj = vec![];
         for a in 0..3 { jj.extend(ritaglio(&lv, &j[a], m_g).iter().map(|x| x * a0c / ALPHA)); }
         scrivi(&format!("{d}/j_grosso.f16"), &jj, 1.0, false);
+        println!("RISULTATO corrente spuria (1s vero: 0): max|j| = {:.3e} alpha c/a0^3 (max rho {:.4} a0^-3)",
+                 jj.iter().fold(0.0f64, |m, x| m.max(x.abs())), r.iter().cloned().fold(0.0, f64::max));
         println!("export: coarse crop {m_g}^3 (h = a0/{:.0}), fine interior {}^3 x {} ticks (a_f = a0/{:.0})", a0() / lv.h,
                  at.fine.as_ref().map(|f| f.ni * f.b).unwrap_or(0), ticks, at.fine.as_ref().map(|f| a0() / f.th).unwrap_or(0.0));
     }
@@ -473,7 +478,7 @@ fn esame_ibrido(bl: usize, n: usize, ni: usize, passi: usize, esporta: Option<St
 /// energies (the "postcard" evolution — exact for the rule up to the eigen residuals; checked against the true steps).
 fn esame_risonanza(b: usize, n: usize, dir: &str, passi: usize, _m: usize, fot: usize, esporta: Option<String>) {
     let t0 = Instant::now();
-    let reg = carica_regola(ASSET, "chain_A_3d", b);
+    let reg = carica_regola(&asset(), "chain_A_3d", b);
     let lv = Livello::con_nucleo(&reg, n, 1.0, 0.0);
     let s1 = carica_stato(&format!("{dir}/1s_B{b}_N{n}.c32"));
     let p2 = carica_stato(&format!("{dir}/2pz_B{b}_N{n}.c32"));
