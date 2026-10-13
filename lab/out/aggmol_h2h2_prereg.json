@@ -1,0 +1,46 @@
+{
+ "written": "2026-10-13T21:42:44",
+ "git_head": "ca6f82fd9af093b36c1115fa3fffde0f830e6922",
+ "asked": "ECG with 4 electrons for the H2-H2 curve, >= 2 orientations, R = 5..12 a0; extract C6 and the well; scale down honestly if 4 electrons do not fit",
+ "scale-down (declared)": [
+  "a full variational 4-electron ECG of the dimer at the uEh level needed for a 0.1 mEh well does not fit in this container (one core, 10-minute pieces): the development shows ~1 minute per geometry already for the cheaper method",
+  "method used instead (symmetry-adapted perturbation theory with ECG monomers, the textbook route for weak forces): E_int = E1_HL + E2_ind + E2_disp",
+  "E1_HL: Heitler-London energy of the antisymmetrised product of the two 2-electron ECG monomers = a true 4-electron ECG calculation (24 permutations, singlet x singlet spin factor): electrostatics + Pauli exchange repulsion to all orders in the overlap",
+  "E2_ind, E2_disp: second order with the full Coulomb operator (no multipole expansion), sum over monomer pseudo-states (2-electron ECG: ground primitives + polarisation primitives chosen by the stochastic variational method on the dipole, quadrupole and octupole polarisabilities)",
+  "MISSING (debts, declared before the runs): exchange-dispersion and exchange-induction (repulsive, typically ~10 % of the dispersion near the well), third and higher orders; monomers rigid at r = 1.4 a0 (the literature potentials use the vibrationally averaged r0 = 1.449, whose larger polarisability deepens the well by a few per cent); Born-Oppenheimer; the main thread's rule as it is (m_kin = v3 m0, DEBT-1/2/4 there)",
+  "expected direction of the errors (written before the runs): all of them make our well SHALLOWER than the reference"
+ ],
+ "development (declared)": [
+  "first HL code: E1 had the reference energy 2E_A subtracted twice and no inter-molecular nuclear repulsion in the exchange terms (attractive 'exchange'); found by brute-force comparison and by the direct-part check, fixed",
+  "Pauli check: identical monomers on top of each other give 1 + X_S = 0.07 (antisymmetriser works)",
+  "direct part of HL = 2 E_A + E_elst to 9e-15",
+  "polarisation sets tried: fixed shifts (C6 8.9-11.0), SVM per operator; K0 = 15 / 20 ground functions",
+  "dev numbers (H orientation, R = 6.5): E1_HL +1.33e-4, E2_disp -1.86e-4 (K0 15, KPOL 15) / -1.90e-4 (K0 20, KPOL 20); C6 (Casimir-Polder) 10.65 / 11.02; a pseudo-state energy cut changes E2_disp by < 2e-4 relative (not used)"
+ ],
+ "production config": {
+  "monomer": "K0 = 18 ECG functions (SVM, 40 trials, 6 refinement sweeps, seed 1) + inversion images; polarisation functions KPOL = 15 per operator (x, z, xz, zz, xy, zzz, xzz, xyz, x3-3xy2; y, yz, x2-y2, yzz, z(x2-y2), 3x2y-y3 by rotation about the axis), seed 3",
+  "orientations": "H (parallel, side by side), X (crossed), T, L (collinear); centres at 0 and R on z",
+  "R grid (a0)": [
+   5.0,
+   5.5,
+   6.0,
+   6.5,
+   7.0,
+   7.5,
+   8.0,
+   9.0,
+   10.0,
+   12.0
+  ],
+  "isotropic potential": "V0 = (2 V_H + V_L + 4 V_T + 2 V_X) / 9 (exact for the anisotropy up to rank 2 in each molecule; checked algebraically before the runs)",
+  "well": "cubic spline of V0 on the R grid; minimum position and depth",
+  "C6": "Casimir-Polder sum over the pseudo-states, C6 = 6 sum F_m F_n / (dE_m + dE_n), F = |<0|r1+r2|m>|^2 / 3 (primary); cross-check (reported, not an exam): fit of E2_disp R^6 = -(C6 + C8/R^2) on R = 10, 12"
+ },
+ "exams": {
+  "M0": "machine gate: direct part of HL equals 2 E_A + E_elst within 1e-10 Eh (one geometry) and the HL curve is repulsive (E1_exch > 0) at all R <= 10 a0",
+  "W1": "C6 (isotropic, Casimir-Polder) within 10 % of 12.0 a.u. (literature ~12.06 for v = 0; value at r = 1.4 is a few per cent smaller)",
+  "W2": "isotropic well depth within 20 % of 0.110 mEh (~34-37 K in the empirical and ab initio potentials; exam only)",
+  "W3": "isotropic well position within 5 % of 6.45 a0 (3.41 A)",
+  "W4": "anisotropy (reported, not an exam): well of each orientation"
+ }
+}
