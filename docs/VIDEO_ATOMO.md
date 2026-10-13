@@ -1,4 +1,12 @@
-# Video atomo: l'atomo che assorbe la luce e si svuota, al rallentatore
+# Video atomo: l'atomo che assorbe la luce e si svuota, al rallentatore (BOZZA)
+
+> **Questo taglio è una BOZZA** (scritto anche a schermo). I dati sono l'esportazione con impronta
+> `12322e1817` (sha256 di manifest.json + fotogrammi.csv, manifest del 13/10/2026 01:46 UTC). Il gruppo Debiti ha
+> trovato uno smorzamento finto ×2,2 in `accoppiato.rs` (docs/EMISSIONE.md §7): la corsa verrà rifatta e lo
+> svuotamento che si vede (velocità del calo di p_exc) **può cambiare**. Tutti i numeri di p_exc qui sotto sono di
+> questa esportazione; il video li legge sempre dal file, non sono scritti a mano nel codice. Per rifare tutto con
+> la nuova esportazione: `lab/vl_tutto.sh` (riconosce l'impronta nuova, cancella gli intermedi e rifà campi,
+> palline, esami, fotogrammi, video, figura; `VL_ETICHETTA=""` toglie la scritta BOZZA).
 
 Studio `vl_` del 13/10/2026. Il primo video lento della corsa accoppiata luce + atomo (1s esatto della regola
 3-D, dati del commit addffd7, `/mnt/project-files/ripresa/dati/atomo_accoppiato/`).
@@ -135,7 +143,7 @@ fuori dall'1s, **dal calcolo**, fotogrammi.csv) e il dipolo **⟨z⟩** (punti =
 | E4 B ricostruito coerente con la radiazione | media ≥ 0,90, min ≥ 0,80 | 0,963 / 0,832 | PASS (controllo già visto) |
 | E5 bilancio di energia: luce uscita da R₀ / energia persa dall'atomo | in [0,67; 1,5] | **0,906** (3,69·10⁻³ contro 4,08·10⁻³ mc²) | PASS (controllo già visto) |
 | E6 palline dell'impulso fedeli a u (fot. 10, 20, 30) | Pearson ≥ 0,90 | 0,985 / 0,984 / 0,980 | **PASS** |
-| E7 dichiarazioni a schermo | leggibili nei fermo-immagine | smussamento, ×1000, K = 10, rallentatore, "dal calcolo" | PASS |
+| E7 dichiarazioni a schermo | leggibili nei fermo-immagine | smussamento, ×1000, K = 10, rallentatore, "dal calcolo", BOZZA, impronta dei dati, giro non validato | PASS |
 
 Note oneste sugli esami:
 
@@ -156,11 +164,16 @@ Note oneste sugli esami:
    della regola (quella dei surfisti esatti): debito 1.
 2. **B non c'è nell'esportazione**: ricostruito con Faraday + un residuo fermo tolto (§2.2). Funziona (0,96) ma è
    una ricostruzione; esportare B è facile: debito 2.
-3. **Il giro dell'1s.** Ci si aspettava che nell'1s le palline stessero ferme come in Bohm per la parte radiale, e
+3. **Il giro dell'1s (debito aperto, scritto a schermo).** Ci si aspettava che nell'1s le palline stessero ferme come in Bohm per la parte radiale, e
    così è in media; ma il flusso dell'1s di Dirac **gira** attorno all'asse dello spin (corrente di spin). Qui le
    palline fanno ~4 giri in tutta la corsa (ω ≈ 0,016, v_φ ≈ 0,04 c a r ≈ 3,4 λ_C): **0,12 volte** la velocità di
    Bohm–Dirac Zα c sinθ. Il reticolo da solo dava 0,21 (SURFISTI_ESATTI E5, FAIL); lo smussamento toglie un altro
-   pezzo. **Non è validato**, ed è scritto a schermo.
+   pezzo. **Non è validato**, ed è scritto a schermo. In più (SURFISTI_ESATTI, emendamento B5, in verifica da Debiti):
+   nella valle k = 0 l'elettrone gira a 0,87–0,97 di Zα c sinθ, ma sul livello 1s esatto le altre 3 valli lo
+   cancellano e la rotazione netta *vera* dovrebbe essere ~0. Il giro che si vede qui viene dalla corrente
+   esportata smussata (somma dei 4 colori) ed è quindi **una lettura da non credere**: nessuna rotazione è stata
+   disegnata o aggiunta. Scritta a schermo: "la rotazione vera dell'1s esatto tra le 4 copie del reticolo è in
+   verifica: debito aperto".
 4. Le palline si rimescolano in raggio (spostamento radiale rms 2,7 λ_C su tutta la corsa): la nuvola resta giusta
    (E1), ma le singole palline non sono "orbite" ferme: l'eccitazione spinge e tira.
 5. Le palline della luce dell'atomo nascono solo fuori da R₀ = 40 λ_C: dentro (zona vicina) non ci sono palline di
@@ -170,6 +183,8 @@ Note oneste sugli esami:
 
 ## 6. Debiti
 
+0. **Taglio BOZZA**: la corsa sotto ha uno smorzamento finto ×2,2 (EMISSIONE §7); da rifare con `lab/vl_tutto.sh`
+   sulla nuova esportazione.
 1. Corrente dell'elettrone ricostruita (84 % corretto): servono i **flussi sulle facce** nell'esportazione.
 2. B ricostruito con Faraday: esportare B (o F complesso) dal Laboratorio.
 3. Smussamento σ = 1 λ_C per la scacchiera delle 4 valli: è un debito della regola 3-D (raddoppio dei fermioni),
@@ -187,6 +202,8 @@ Note oneste sugli esami:
 camere (2 percorsi), più la palette e lo spessore della fetta tagliata.
 
 ## 7. Come rifarlo
+
+Un comando solo: `lab/vl_tutto.sh` (passi sotto, uno per uno).
 
 ```
 python3 lab/vl_campi.py                  # ~6 min: campi in SCR (non in git) + lab/out/vl_campi.json
