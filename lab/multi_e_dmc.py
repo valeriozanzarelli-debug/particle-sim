@@ -219,8 +219,8 @@ if __name__ == "__main__":
     cu = {"Hb": 0.0, "H": 0.0, "He": m_kin / 2, "He_u0": 0.0, "He3S": m_kin / 4}[state]
     bu = 1.0
     ne = 1 if kind == 0 else 2
-    NT = 4000
-    key = f"{state}_{mode}_tau{tau:g}"
+    NT = int(os.environ.get("DMC_NW", "4000"))                 # 4000 = pre-registrato; altro solo per la diagnosi del bias di popolazione
+    key = f"{state}_{mode}_tau{tau:g}" + ("" if NT == 4000 else f"_NW{NT}")
     ck = os.path.join(OUT, f"multi_e_dmc_{key}.npz")
     hbin = 0.01 if state == "He_u0" else 0.0
     nbins = 200
@@ -228,12 +228,13 @@ if __name__ == "__main__":
         z = np.load(ck, allow_pickle=True)
         Pw, Et, Wt_, Nt = z["P"], list(z["Et"]), list(z["Wt"]), list(z["Nt"]); Eref, Ebest = float(z["Eref"]), float(z["Ebest"])
         hist = z["hist"]; nstep_done = int(z["nstep"]); stt = z["state"].item()
+        HB = [list(r) for r in z["HB"]] if "HB" in z.files else []          # istogrammi per pezzo (errori di D6)
     else:
         rng0 = np.random.default_rng(11)
         Pw = rng0.normal(size=(NT, 6)) * (1.0 / Z)
         Et, Wt_, Nt = [], [], []
         Eref = Ebest = {"Hb": -0.5, "H": -0.5, "He": -2.9, "He_u0": -2.9, "He3S": -2.17}[state] * m_kin
-        hist = np.zeros(nbins); nstep_done = 0
+        hist = np.zeros(nbins); nstep_done = 0; HB = []
         stt = dict(acc2=0.0, prop2=0.0, cn=0.0, cd=0.0)
     neq = int(round(20.0 / tau))                               # 20 a.u. di equilibratura scartati
     t0 = time.time()
@@ -246,9 +247,12 @@ if __name__ == "__main__":
                                                 mode == "dmc", rng, hb, hbin, stt)
         if nstep_done >= neq:
             hist += hb
+            if hbin:
+                HB.append(list(hb) + [float(np.sum(W_ * N_))])          # ultimo elemento: peso totale del pezzo
         Et += list(E_); Wt_ += list(W_); Nt += list(N_)
         nstep_done += nchunk
-        np.savez(ck, P=Pw, Et=Et, Wt=Wt_, Nt=Nt, Eref=Eref, Ebest=Ebest, hist=hist, nstep=nstep_done, state=np.array(stt, dtype=object))
+        np.savez(ck, P=Pw, Et=Et, Wt=Wt_, Nt=Nt, Eref=Eref, Ebest=Ebest, hist=hist, nstep=nstep_done, state=np.array(stt, dtype=object),
+                 HB=np.array(HB if HB else np.zeros((0, nbins + 1))))
         Ea = np.array(Et[neq:]); Wa = np.array(Wt_[neq:]) if mode == "dmc" else np.ones(len(Et[neq:]))
         if len(Ea) > 32 * 50:
             E, s = blocking(Ea, Wa)

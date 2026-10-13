@@ -1,7 +1,8 @@
 # Molti elettroni: elio (e oltre) dalla regola zig-zag agglomerata
 
 **Stato: M0 (la regola e i controlli) fatto quasi tutto; M1 (elio) a metà: la parte "esatta" ECG è FERMA per un gate
-fallito (G1), la parte a camminatori (DMC) è partita.** Brief: `docs/MOLTI_ELETTRONI_PIANO.md`.
+fallito (G1); la parte a camminatori (DMC) è fatta: elio −2,903757 ± 0,000071 Eh contro −2,903724 (0,46 σ), prima
+ionizzazione 24,5884 ± 0,0019 eV contro 24,5874 (0,5 σ), solo riportati.** Brief: `docs/MOLTI_ELETTRONI_PIANO.md`.
 Pre-registrazione: `lab/out/multi_e_prereg.json` (committata in `9b1e4d0` **prima di ogni corsa**).
 Giudizio automatico: `python lab/multi_e_summary.py` → `lab/out/multi_e_results.json`. Figura: `lab/out/multi_e_figure.png`.
 
@@ -38,7 +39,9 @@ controllo esatto, non il metodo**. Non è "la vecchia DMC con un nome nuovo", ma
 | G5 | rapporto 2s/1s monotono (nodo esatto r₁ = r₂ per He 2³S) | non monotono in 778 punti, **tutti a r < 4,2·10⁻⁷ a₀, salti ≤ 1,4·10⁻¹⁵** | **FAIL** come scritto; causa: arrotondamento (§2.7) |
 | G4 | cucitura della banda oltre la zona | non valutabile senza le basi ECG | — |
 | M1–M3, R5, R6, E1, E2, D1, D2 | elio con l'ECG | **fermi** per G1 (e D2 anche per G5) | — |
-| He DMC | elio con i camminatori (solo riportato) | vedi §4 | in corso |
+| He DMC | elio 1¹S con i camminatori (solo riportato: M1/E1 erano sulla strada ECG) | **−2,903757 ± 0,000071 Eh** contro −2,903724 (−0,033 mEh, 0,46 σ); ionizzazione **24,5884 ± 0,0019 eV** contro 24,587389 (+1,0 meV) | riportato |
+| D7 | sanità variazionale della DMC | E ≥ E_esatta − 3σ | **PASS** |
+| D6 | cuspide di Kato dai camminatori (guida senza cuspide) | c = 87 ± 62 contro m = 1,0004 ± 0,10 | **FAIL** — quattro cause trovate (§4.1, tre sono errori miei nella pre-registrazione); post hoc il misto dà la cuspide giusta: 0,51 ± 0,05 contro 0,50 |
 
 ---
 
@@ -165,14 +168,95 @@ da 10⁻⁹/Z a 60 a₀, derivata seconda al 4° ordine, integrali col trapezio.
 
 Vedi G1. Quello che serve per ripartire è una decisione di Valerio (§8), non un'altra corsa.
 
-## 4. Elio con i camminatori (in corso, solo riportato)
+## 4. Elio con i camminatori (energia: riportata; esami D7 e D6)
 
-*(sezione aggiornata alla fine della corsa)*
+**Come.** Due palline-elettrone (spin opposti) nel continuo, nucleo fisso Z = 2. Ogni passo: ogni elettrone salta con il
+nucleo gaussiano di larghezza D = 0,4998084 **letto dalla curvatura del livello 1** (R2, non 1/2 scritto a mano) più la
+spinta della guida; accetta/rifiuta; poi pesi e^{−τ(E_L − E_ref)} e copie/eliminazioni (4000 camminatori, T_pop = 1 a.u.,
+20 a.u. di riscaldamento buttati, errori a blocchi). Guida = orbitale del campo medio × e^{u(r₁₂)}, u = c r/(1 + b r),
+c = m_kin/2 (cuspide di Kato **derivata**), b = 1 fisso e non ottimizzato (DV7). L'elio 1¹S non ha nodi: la guida cambia
+solo il rumore, non il valore. Tutto alla massa del livello, m_kin(θ_A) = 1,0003833; poi θ → 0 con la scala esatta E ∝ m.
+
+| τ [a.u.] | E [Eh] (alla massa m_kin(θ_A)) | produzione |
+|---|---|---|
+| 0,02 | −2,904793 ± 0,000057 | 1566 a.u. |
+| 0,01 | −2,904788 ± 0,000057 | 1170 a.u. |
+| 0,005 | −2,904834 ± 0,000058 | 1498 a.u. |
+
+Regola pre-registrata: retta in τ, la parabola solo se la retta è rifiutata (p < 0,05). Qui p = 0,65 → **retta**
+(pendenza 0,002 ± 0,005 Eh/a.u.: con la guida buona l'errore di passo è sotto il rumore).
+
+- **τ → 0, alla massa del livello: −2,904830 ± 0,000071 Eh**, contro il valore esatto non relativistico alla stessa
+  massa −2,903724377 × 1,0003833 = −2,904837: scarto **+0,007 mEh (0,1 σ)**.
+- **θ → 0: E = −2,903757 ± 0,000071 Eh contro −2,903724 (esatto, massa infinita, nucleo puntiforme): −0,033 mEh,
+  0,46 σ.** È dentro la tolleranza che M1 avrebbe (0,29 mEh), ma M1 era pre-registrato sulla strada ECG, che è ferma:
+  quindi lo **riportiamo, non lo giudichiamo come M1**.
+- **D7 (sanità variazionale): PASS** (E ≥ E_esatta − 3σ).
+- **Prima ionizzazione** (He⁺ = −2 m₀ esatto, massa ridotta μ = M/(M+1) su tutti e due): **24,5884 ± 0,0019 eV contro
+  24,587389 (esperimento): +1,0 meV, 0,5 σ.** Anche questo solo riportato (E1 va con l'ECG). Per onestà: con l'energia
+  esatta non relativistica e la stessa massa ridotta verrebbe 24,58822 eV; i 0,83 meV che restano fino all'esperimento
+  sono la fisica che **non** c'è in questo calcolo (polarizzazione di massa, relatività, QED, nucleo finito). Sono
+  sotto la nostra barra d'errore (1,9 meV): non li vediamo e non ne diamo i pezzi.
+
+**Bilancio d'errore, voce per voce** (in mEh, sull'energia a θ → 0):
+
+| voce | quanto | come lo sappiamo |
+|---|---|---|
+| statistica + estrapolazione in τ | ± 0,071 | blocchi, fit pesato a 3 punti |
+| m_kin(0) dai semi | ± 0,008 | \|E\| × 2,6·10⁻⁶ (R3) |
+| m_kin(0) sistematico dell'agglomeratore (+1,4·10⁻⁵) | −0,040 (se la massa vera è 1) | R3 §2.3: E/m₀ = −2,903717, scarto da −2,903724 di +0,007 |
+| bias di popolazione (4000 camminatori) | −0,004 ± 0,007 | **diagnosi post hoc**: 250 camminatori a τ = 0,02 danno −0,059 ± 0,115 mEh rispetto a 4000; il bias va come 1/N, quindi /16 |
+| guida (b = 1 fisso, orbitale HF) | 0 sul valore | niente nodi: la guida entra solo nel rumore e nella pendenza in τ (che si estrapola) |
+| **DEBT-9 / DEBT-4**: nucleo gaussiano = solo k²/2m | ≈ −0,28 **non incluso** | vedi sotto |
+| DEBT-1, DEBT-3 (Coulomb istantaneo, nucleo fermo e puntiforme) | 0 rispetto al bersaglio | il bersaglio −2,903724 ha gli stessi debiti: è lo stesso problema |
+| **totale (barra)** | **± 0,072** | la statistica domina |
+
+**Il pezzo grosso che non c'è (DEBT-9 = DEBT-4).** I camminatori del continuo saltano con una gaussiana, cioè usano solo
+la parte k²/2m della banda. La banda imparata ha anche una parte non quadratica (il suo pezzo di relatività, §2.4: in
+media il 40 % del −α²k⁴/8 di Dirac). Quanto pesa sull'elio lo stimiamo coi nostri numeri: con l'orbitale del campo medio
+⟨p⁴⟩ = 52,89 per elettrone, quindi −α²Σ⟨p⁴⟩/8 = −0,70 mEh, e la banda ne porterebbe circa il 40 %: **≈ −0,28 mEh**.
+È grande quanto la tolleranza di M1. Non è un errore del calcolo (confrontiamo apposta con il valore non relativistico),
+ma dice una cosa importante: **i camminatori sul reticolo imparato (D0b) darebbero un elio più basso di ~0,3 mEh**, e
+quella differenza non sarebbe "la relatività vera" (manca Darwin, e il k⁴ è anisotropo). Per questo DEBT-4 resta il
+debito più importante per andare sotto 0,1 mEh.
+
+### 4.1 D6 — la cuspide di Kato vista dalle palline (FAIL come scritto; causa trovata)
+Prova: guida **senza** cuspide (u = 0), si misura come la densità di coppia h(r₁₂) sale da r₁₂ = 0. Kato dice
+h ∝ 1 + m r₁₂. Pre-registrato: τ = 0,01, stimatore estrapolato 2 I_mix − I_VMC, fit h₀(1 + c r + d r²) su r < 0,25 a₀,
+PASS se c = m ± 0,10. Lunghezza decisa prima: 400 a.u. per la DMC e per la VMC.
+**Risultato: c = 87 ± 62 → FAIL** (c del misto 6,0; della VMC −0,24). L'energia della stessa corsa invece va bene
+(−2,904947 ± 0,00034 contro −2,904837).
+
+**Le cause (diagnosi post hoc, `lab/multi_e_d6_diag.py` e `lab/multi_e_d6_model.py`, non rigiudicano D6)** — sono
+quattro, e le abbiamo separate una per una:
+1. **Un buco a τ finito.** Con u = 0 l'energia locale contiene +1/r₁₂ senza niente che la compensi, e il peso
+   e^{−τE_L} svuota la zona entro la lunghezza di diffusione √(2Dτ) — proprio la finestra del fit. Nel primo guscio il
+   misto vale il **51 %** del suo plateau a τ = 0,01 (lunghezza 0,10 a₀), l'**86 %** a τ = 0,0025 (0,05 a₀), il **94 %** a
+   τ = 0,000625 (0,025 a₀): il buco si chiude scendendo in τ, come previsto.
+2. **Il fit non pesato** (scritto così prima dei dati): i primi gusci hanno volume ~r² e pochissimi conteggi ma
+   pesano come gli altri. Pesando con l'inverso della varianza di Poisson il rumore su c scende da 62 a 0,55.
+3. **Lo stimatore estrapolato è sbagliato qui, per costruzione.** 2 I_mix − I_VMC corregge solo al primo ordine in
+   (φ − ψ_T); al contatto la guida senza cuspide ha h(0) = 0,192, quasi il doppio del vero. Se il misto ha la cuspide
+   giusta m/2 e la VMC ~0, allora **c_est = m h_mix(0)/(2h_mix(0) − h_VMC(0))**, non m. A τ = 0,0025 l'identità prevede
+   1,79 e il fit pesato dà **1,79 ± 0,37**: spiegato del tutto. Errore mio nella pre-registrazione.
+4. **Il modello del fit h₀(1 + cr + dr²) su r < 0,25 a₀ è troppo corto.** Provato su una funzione che ha c = 0 *esatto*
+   (la densità di coppia del campo medio, calcolata per convoluzione dagli orbitali): il fit dà **c = −0,125**. I dati
+   VMC (che campionano proprio quella funzione) danno −0,127: il campionamento è giusto, il modello no. Nell'elio la
+   densità di coppia cambia forma già su 1/(2Z) = 0,25 a₀, quindi un termine cubico conta. Anche questo era nella
+   pre-registrazione: con un bias di −0,12 la tolleranza ±0,10 era quasi esaurita in partenza.
+
+**Cosa invece funziona:** il **misto** ψ_T·φ, con ψ_T senza cuspide, deve avere esattamente metà della cuspide di φ²,
+cioè m/2 = 0,5002. Fit pesato: **1,17 ± 0,10** (τ = 0,01, buco), **0,50 ± 0,06** (τ = 0,0025), **0,39 ± 0,05**
+(τ = 0,000625). Togliendo il bias del modello misurato al punto 4 (+0,12) l'ultimo diventa **0,51 ± 0,05 contro 0,50**.
+Le palline costruiscono da sole la cuspide di Kato che nella guida non c'è: questo è il senso fisico di D6, e c'è —
+ma è una diagnosi post hoc, non un PASS. (Correzione di bias presa da un'altra funzione: è una stima, non una misura.)
 
 ## 5. Validazione e scoperta
 
 - **Validazione** (ritrovare numeri noti): G3 (valori HF della letteratura), R3 (m → 1), il controllo su H e Li/Be non
-  interagenti, R4b, e — quando ci sarà — l'energia dell'elio. Nessuno di questi è una scoperta.
+  interagenti, R4b, e l'energia e la ionizzazione dell'elio con i camminatori (§4). Nessuno di questi è una scoperta:
+  la DMC dell'elio senza nodi è un metodo noto e il suo risultato giusto è atteso. La parte nostra è la catena: la
+  massa e la larghezza dei salti vengono dalla regola, non da una tabella.
 - **Cose che non sapevamo e che abbiamo visto**: (i) la regola fine affonda in tempo immaginario e il livello Pauli no:
   il "permesso" del tempo immaginario nasce dall'agglomerazione (R1, R2); (ii) il nucleo è una probabilità solo sopra
   β_min = 5·10⁻⁵ a.u. (circa 1,75 tick grossi): sotto, la regola imparata *non* è un processo di palline; (iii) il
@@ -192,7 +276,7 @@ Vedi G1. Quello che serve per ripartire è una decisione di Valerio (§8), non u
 | DEBT-6 | famiglia di J | non ancora (M2) |
 | DEBT-7 | nodo fisso | per l'elio 1¹S nessun nodo; per 2³S il nodo è esatto per simmetria |
 | DEBT-8 | simmetrizzazione dello stencil | ora giustificata da G0 (la regola fine è pari a 10⁻¹⁵) |
-| DEBT-9 | camminatori col nucleo gaussiano continuo D = 1/(2m_kin) | R4b fa la versione sul reticolo; D0b (elio) non fatto |
+| DEBT-9 | camminatori col nucleo gaussiano continuo D = 1/(2m_kin) | R4b fa la versione sul reticolo; D0b (elio) non fatto; sull'elio vale ≈ −0,28 mEh (la parte non quadratica della banda, §4) |
 | DEBT-10 | configurazioni | non ancora (Be) |
 
 ## 7. Idee geometriche e visive per togliere debiti (con la prova che le decide)
@@ -227,6 +311,14 @@ Vedi G1. Quello che serve per ripartire è una decisione di Valerio (§8), non u
    devono restare da una sola parte della diagonale, che è il nodo; per il litio si può fare lo stesso con la coppia di
    spin uguali e vedere *quanto* il nodo vero si scosta dalla diagonale.
 
+8. **La cuspide è un cono nello spazio di coppia (D6).** Il buco di §4.1 nasce perché il peso e^{−τ/r₁₂} tratta il
+   Coulomb come costante su un salto lungo √(2Dτ). Geometricamente due elettroni vicini vivono in un cono attorno a
+   r₁₂ = 0, e lì il propagatore esatto di *due* palline (problema a due corpi di Coulomb, risolvibile una volta per
+   tutte con la regola stessa) sostituisce il peso primitivo ("pair product"). **Prova**: rifare D6 a τ = 0,01 con il
+   peso di coppia: il buco nel primo guscio deve sparire (misto/plateau > 0,95) e il misto deve dare c = m/2 ± 0,05
+   senza scendere in τ. Bonus: lo stesso propagatore di coppia si può *imparare* dall'agglomeratore come livello a
+   2 palline, che è il primo mattone della regola a molti elettroni.
+
 ## 8. Dove Valerio può aiutare
 
 1. **G1 (decisione necessaria).** Il gate è fallito per due motivi che ora conosciamo (Monte Carlo sottodimensionato da
@@ -239,7 +331,10 @@ Vedi G1. Quello che serve per ripartire è una decisione di Valerio (§8), non u
 3. **Il campo medio (DEBT-5).** Il brief chiede di usare un Hartree–Fock "ascoltato" come portatore dei nodi, ma
    `MOLECOLE.md` diceva "niente Hartree–Fock". L'idea §7.1 potrebbe toglierlo almeno per il litio: vale la pena provarla
    prima di decidere.
-4. **La massa dell'agglomeratore.** Ti torna l'idea di imparare la massa a parte (§7.4)? È un cambio
+4. **D6 (decisione).** L'esame era scritto male da me (stimatore estrapolato che al contatto non può funzionare con
+   una guida senza cuspide). Proposta: emendamento dichiarato "D6' = cuspide del **misto** c = m/2 ± 0,05, fit pesato,
+   modello col termine cubico (o finestra r < 0,1 a₀), τ → 0 con almeno 3 τ", da pre-registrare e correre con semi nuovi. Lo corro solo se dici sì.
+5. **La massa dell'agglomeratore.** Ti torna l'idea di imparare la massa a parte (§7.4)? È un cambio
    dell'algoritmo, quindi va pre-registrato.
 
 ## 9. Cambi dopo la pre-registrazione (tutti dichiarati)
@@ -252,6 +347,9 @@ Vedi G1. Quello che serve per ripartire è una decisione di Valerio (§8), non u
   ε/(k²/2) e sotto k = 1 a.u. si usa la serie della curvatura. Nessun esame era stato corso con le tabelle vecchie.
 - Il controllo della popolazione dei camminatori del reticolo: prima versione con un controllo integrale (oscilla) e
   un vettore di pesi di taglia fissa (si rompeva); corretta prima della corsa buona.
+- D6: la lunghezza delle corse (400 a.u. DMC e VMC) e il salvataggio degli istogrammi per pezzi da 2 a.u. (per gli
+  errori jackknife) decisi prima di guardare l'istogramma. Corse a τ = 0,0025 e 0,000625 e fit pesato: diagnosi post hoc.
+- Bias di popolazione: corsa post hoc con 250 camminatori (variabile `DMC_NW`, il valore pre-registrato resta 4000).
 - Il motore DMC: riscritto senza allocazioni e in parallelo (2 thread) prima delle corse di produzione dell'elio
   (prova: idrogeno con guida sbagliata −0,50027 ± 0,00036 contro −0,500192).
 
@@ -273,4 +371,7 @@ Vedi G1. Quello che serve per ripartire è una decisione di Valerio (§8), non u
     python lab/multi_e_meanfield.py g3 ; ... starts ; ... carrier
     python lab/multi_e_lattice.py det ; ... diag ; ... walk 2e-4 40000 ; ... walk 1e-4 60000
     python lab/multi_e_dmc.py He 0.02 dmc 6000 6e-5   (ripetere finché 'done'; poi 0.01 e 0.005)
+    python lab/multi_e_dmc.py He_u0 0.01 vmc 400 1e-9 ; python lab/multi_e_dmc.py He_u0 0.01 dmc 400 1e-9 ; python lab/multi_e_d6.py
+    DMC_NW=250 python lab/multi_e_dmc.py He 0.02 dmc 10000 1e-4        (diagnosi del bias di popolazione)
+    python lab/multi_e_dmc.py He_u0 0.0025 dmc 400 1e-9 ; ... 0.000625 ; python lab/multi_e_d6_diag.py 0.01 0.0025 0.000625 ; python lab/multi_e_d6_model.py
     python lab/multi_e_summary.py ; python lab/multi_e_figure.py

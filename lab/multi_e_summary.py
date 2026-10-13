@@ -41,21 +41,30 @@ put("R4b", "PASS" if all(w and w.get("PASS_b") for w in wk.values()) else "FAIL"
     **{f"beta{b}": dict(E=w["E_mixed_walkers"], sigma=w["sigma"], det=w["E_mixed_det"], z=w["z"]) for b, w in wk.items() if w})
 put("relearned_level", "IL RISCHIO 4 SI E' AVVERATO: nessun livello Pauli passa il controllo a 3e-5; la macchina sceglie dirac4 B=2",
     chosen=D["relearn"]["A"]["chosen"], best_pauli_check=D["relearn"]["A"]["best_pauli_rejected_check"])
-for ex in ("R5", "R6", "M1 He 1^1S", "M2 He 2^3S", "M3 H-", "E1", "E2", "D1", "D2", "D6"):
+for ex in ("R5", "R6", "M1 He 1^1S", "M2 He 2^3S", "M3 H-", "E1", "E2", "D1", "D2"):
     put(ex, "FERMO (G1 FAIL: produzione ECG sospesa)" if ex[0] in "RME" or ex == "D1" or ex == "D2" else "NON FATTO")
 
 # DMC dell'elio (riportato, non giudicato: D1 confronta con l'ECG, ferma)
-he = {k: v for k, v in Q.items() if k.startswith("He_dmc")}
+he = {k: v for k, v in Q.items() if k.startswith("He_dmc") and "_NW" not in k}
 if he:
     taus = sorted(v["tau"] for v in he.values())
     pts = [(he[f"He_dmc_tau{t:g}"]["tau"], he[f"He_dmc_tau{t:g}"]["E"], he[f"He_dmc_tau{t:g}"]["sigma"]) for t in taus]
     rep = dict(points=pts)
     if len(pts) >= 3:
+        from scipy.stats import chi2 as chi2d
         t, e, s = map(np.array, zip(*pts))
         Wm = np.diag(1 / s ** 2)
         A = np.stack([np.ones_like(t), t], 1)
         cov = np.linalg.inv(A.T @ Wm @ A); c = cov @ A.T @ Wm @ e
         chi2 = float(np.sum((e - A @ c) ** 2 / s ** 2))
+        p_lin = float(chi2d.sf(chi2, len(t) - 2))
+        rep.update(chi2_p_linear=p_lin, slope_Eh_per_au=float(c[1]), sigma_slope=float(np.sqrt(cov[1, 1])))
+        if p_lin < 0.05:                                    # regola pre-registrata: quadratico solo se il lineare e' rifiutato
+            A = np.stack([np.ones_like(t), t, t * t], 1)
+            cov = np.linalg.inv(A.T @ Wm @ A); c = cov @ A.T @ Wm @ e
+            rep.update(fit="quadratico (lineare rifiutato, p < 0.05)")
+        else:
+            rep.update(fit="lineare (pre-registrato)")
         m0, mA = K["R3"]["m0"], K["R3"]["m_kin_theta_A_used"]
         E0 = c[0] * m0 / mA
         sE0 = np.sqrt(cov[0, 0]) * m0 / mA
@@ -66,7 +75,40 @@ if he:
         rep.update(E_tau0_thetaA=float(c[0]), sigma_tau0=float(np.sqrt(cov[0, 0])), chi2_linear=chi2,
                    E_theta0=float(E0), sigma_theta0=float(np.hypot(sE0, sm)), target=-2.903724377,
                    diff_mEh=float((E0 + 2.903724377) * 1e3), IE_eV=float(IE), sigma_IE_eV=float(sIE), IE_target=24.587389)
+    if "E_theta0" in rep:
+        ex = -2.903724377
+        put("D7", "PASS" if rep["E_theta0"] >= ex - 3 * rep["sigma_theta0"] else "FAIL",
+            E=rep["E_theta0"], sigma=rep["sigma_theta0"], bound=ex)
+    pb = {k: v for k, v in Q.items() if k.startswith("He_dmc_tau0.02_NW")}
+    if pb and "He_dmc_tau0.02" in Q:
+        b = Q["He_dmc_tau0.02"]
+        rep.update(population_bias_posthoc={k: dict(E=v["E"], sigma=v["sigma"], diff_vs_4000=v["E"] - b["E"],
+                                                    sigma_diff=float(np.hypot(v["sigma"], b["sigma"]))) for k, v in pb.items()})
     put("He_DMC_report_only", "RIPORTATO (non pre-registrato come esame: D1 e E1 vanno con l'ECG)", **rep)
+# He 2^3S con il nodo esatto per simmetria (solo riportato: D2 e M2 sono fermi per G1 e G5)
+h3 = {k: v for k, v in Q.items() if k.startswith("He3S_dmc") and v.get("done")}
+if len(h3) >= 3:
+    from scipy.stats import chi2 as chi2d
+    t, e, s_ = map(np.array, zip(*sorted((v["tau"], v["E"], v["sigma"]) for v in h3.values())))
+    Wm = np.diag(1 / s_ ** 2); A = np.stack([np.ones_like(t), t], 1)
+    cov = np.linalg.inv(A.T @ Wm @ A); c = cov @ A.T @ Wm @ e
+    chi2 = float(np.sum((e - A @ c) ** 2 / s_ ** 2)); p_lin = float(chi2d.sf(chi2, len(t) - 2))
+    fit = "lineare (pre-registrato)"
+    if p_lin < 0.05:
+        A = np.stack([np.ones_like(t), t, t * t], 1); cov = np.linalg.inv(A.T @ Wm @ A); c = cov @ A.T @ Wm @ e
+        fit = "quadratico (lineare rifiutato)"
+    m0, mA = K["R3"]["m0"], K["R3"]["m_kin_theta_A_used"]
+    E0 = c[0] * m0 / mA; sE0 = float(np.hypot(np.sqrt(cov[0, 0]) * m0 / mA, abs(c[0]) * K["R3"]["sigma_seeds"]))
+    put("He3S_DMC_report_only", "RIPORTATO (D2/M2 fermi per G1 e G5)", points=[list(x) for x in zip(t, e, s_)], fit=fit,
+        chi2_p_linear=p_lin, E_tau0_thetaA=float(c[0]), sigma_tau0=float(np.sqrt(cov[0, 0])), E_theta0=float(E0),
+        sigma_theta0=sE0, target=-2.175229378, diff_mEh=float((E0 + 2.175229378) * 1e3),
+        D7="PASS" if E0 >= -2.175229378 - 3 * sE0 else "FAIL")
+if "D6" in Q:
+    d6 = Q["D6"]
+    put("D6", "PASS" if d6["PASS"] else "FAIL", c=d6["c_extrapolated"], sigma_c=d6["sigma_c"], target=d6["target"],
+        c_mixed=d6["c_mixed"], c_vmc=d6["c_vmc"])
+else:
+    put("D6", "NON FATTO")
 save_json("multi_e_results.json", R)
 for k, v in R.items():
     print(f"{k:22s} {v['verdict']}")

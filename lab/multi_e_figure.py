@@ -8,7 +8,7 @@ from multi_e_core import OUT, THETA, load_json, Band, chain_levels, A0, ALPHA, d
 
 K = load_json("multi_e_kernel.json"); L = load_json("multi_e_lattice.json"); E = load_json("multi_e_ecg.json")
 M = load_json("multi_e_mf.json"); Dd = load_json("multi_e_disp.json"); Q = load_json("multi_e_dmc.json")
-fig, ax = plt.subplots(2, 3, figsize=(16, 9.5))
+fig, ax = plt.subplots(2, 4, figsize=(21, 9.5))
 C1, C2, C3, C4 = "#2a6fdb", "#d9532b", "#2e9d5b", "#7a4fc4"
 
 # (a) R4: stessa regola, due direzioni del tempo
@@ -86,6 +86,42 @@ for nm, c in zip(("He", "H-", "Li", "Be", "Ne"), (C1, C2, C3, C4, "#888")):
 a.axhline(2e-5, c="k", ls="--", lw=0.8)
 a.set_xlabel("punti della griglia"); a.set_ylabel("|E(n) - E_Richardson| / |E|"); a.set_title("G3: campo medio radiale", fontsize=10)
 a.legend(fontsize=7)
+# (g) elio con i camminatori: estrapolazione in tau
+a = ax[0, 3]
+R = load_json("multi_e_results.json").get("He_DMC_report_only", {})
+mA = K["R3"]["m_kin_theta_A_used"]
+pts = [v for k, v in Q.items() if k.startswith("He_dmc_tau") and "_NW" not in k]
+if pts:
+    t = np.array([p["tau"] for p in pts]); e = np.array([p["E"] for p in pts]); sg = np.array([p["sigma"] for p in pts])
+    ex = -2.903724377 * mA
+    a.errorbar(t, (e - ex) * 1e3, sg * 1e3, fmt="o", c=C1, capsize=3, label="DMC (guida HF x Jastrow, 4000 camminatori)")
+    if "E_tau0_thetaA" in R:
+        tt = np.linspace(0, 0.022, 20)
+        a.plot(tt, (R["E_tau0_thetaA"] + R["slope_Eh_per_au"] * tt - ex) * 1e3, "--", c=C1)
+        a.errorbar([0], [(R["E_tau0_thetaA"] - ex) * 1e3], [R["sigma_tau0"] * 1e3], fmt="s", c=C2, capsize=3, label="tau -> 0")
+    a.axhline(0, c="k", lw=0.8)
+    a.axhspan(-0.29, 0.29, color="#ddd", alpha=0.5, label="tolleranza M1 (0,29 mEh)")
+    a.set_xlabel("tau [a.u.]"); a.set_ylabel("E - E_esatta(m_kin)  [mEh]"); a.legend(fontsize=7)
+    a.set_title("Elio 1^1S con i camminatori (riportato)", fontsize=10)
+
+# (h) D6: la cuspide elettrone-elettrone dai camminatori (misto, guida senza cuspide)
+a = ax[1, 3]
+dg = Q.get("D6_diag_posthoc", {})
+if dg:
+    hb = 0.01; nb = 25; e_ = np.arange(nb + 1) * hb
+    rc = 0.5 * (e_[1:] + e_[:-1]); vol = 4 * np.pi * (e_[1:] ** 3 - e_[:-1] ** 3) / 3
+    for (tk, src), c in zip((("tau0.01", "D6"), ("tau0.0025", "D6_diag_posthoc_tau0.0025"), ("tau0.000625", "D6_diag_posthoc_tau0.000625")), (C2, C4, C1)):
+        if tk not in dg or src not in Q:
+            continue
+        r_ = dg[tk]
+        h = np.array(Q[src]["I_mix_first_bins"]) * hb / vol
+        a.plot(rc, h / r_["h0_mix"], "o-", c=c, ms=3,
+               label=f"misto, tau = {r_['tau']:g}: c = {r_['c_mix_weighted']:.2f} +- {r_['sigma_c_mix']:.2f}")
+    hv = np.array(Q["D6"]["I_vmc_first_bins"]) * hb / vol
+    a.plot(rc, hv / dg["tau0.01"]["h0_vmc"], "s:", c=C3, ms=3, label="VMC (guida senza cuspide)")
+    a.plot(rc, 1 + 0.5 * Q["D6"]["target"] * rc, "k--", lw=0.8, label="Kato per il misto: 1 + (m/2) r")
+    a.set_xlabel("r12 [a0]"); a.set_ylabel("h(r12) / h0 (fit pesato)"); a.legend(fontsize=7); a.set_ylim(0.4, 1.25)
+    a.set_title("D6 (FAIL) e diagnosi: la cuspide emerge, il buco va via con tau", fontsize=10)
 plt.tight_layout()
 plt.savefig(os.path.join(OUT, "multi_e_figure.png"), dpi=110)
 print("figura scritta")
