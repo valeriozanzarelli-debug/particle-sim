@@ -19,6 +19,22 @@ em = [
                                            "sinistro: primo pannello troppo lungo). Visto in E2 a U = 40 (0,0320 invece di "
                                            "0,0373). Corretto (ritmo al bordo destro) e RIFATTE tutte le corse r1, r2"),
      "quando": "dopo la prima corsa E2", "effetto_sulle_soglie": "nessuno"},
+    {"id": "A7", "esame": "tutti", "cambio": ("Lanczos (eigsh) usato per matrici > 3000 ha dato a eps = 1e4 un autovalore "
+                                           "negativo (sbagliato). Sostituito con eigh denso ovunque e RIFATTE tutte le corse "
+                                           "(r1, r2, Q1, Q2long; Q2 usava gia' eigh)"),
+     "quando": "durante Q1b", "effetto_sulle_soglie": "nessuno"},
+    {"id": "A8", "esame": "Q1/Q1b", "cambio": ("piccola componente di Dirac L = m/sqrt(2E(E+p)) invece di sqrt((1-p/E)/2) "
+                                              "(cancellazione numerica a p >> m)"), "quando": "durante Q1b",
+     "effetto_sulle_soglie": "nessuno"},
+    {"id": "A9", "esame": "E2, E3, Q2", "cambio": ("griglia in k della regola senza pannelli fini vicino a k = 0: per N piccoli e "
+                                                 "theta piccoli lo spinore (scala ~theta) era sotto-risolto (visto in r5 a "
+                                                 "theta = 1e-4). Aggiunto ritmo 2/(k+theta); RIFATTE E2, E3 e Q2 (N <= 400, "
+                                                 "piu' controlli a N grandi)"), "quando": "dopo r5",
+     "effetto_sulle_soglie": "nessuno"},
+    {"id": "A10", "esame": "Q2", "cambio": ("corsa esplorativa in piu' (Q2osc): la banda intera a theta = 1.5 oscilla con N "
+                                          "e a N = 20000 arriva a 0.038423 (0.07% sotto c_bm); scansione fitta in N per "
+                                          "vedere se supera c_bm. Nessuna soglia: domanda aperta"), "quando": "dopo Q2long",
+     "effetto_sulle_soglie": "nessuna"},
 ]
 out = os.path.join(os.path.dirname(os.path.abspath(__file__)), "out", "rifl_emendamenti.json")
 json.dump(em, open(out, "w"), indent=1, ensure_ascii=False)

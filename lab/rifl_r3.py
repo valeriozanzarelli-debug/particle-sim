@@ -29,8 +29,6 @@ t0 = time.time()
 part = sys.argv[1]
 if part == "Q1":
     # griglia geometrica (geo=True) e taglio P = X/T (prereg2); la prima versione aveva P troppo basso
-    if "Q1_eps" in res and "Q1_vecchio_taglio_basso" not in res:
-        res["Q1_vecchio_taglio_basso"] = {"Q1_eps": res.pop("Q1_eps"), "Q1": res.pop("Q1", None)}
     eps = float(sys.argv[2])
     T = 4 / eps**2
     COSC = 4.0
@@ -109,6 +107,40 @@ elif part == "Q2long":
         save()
         print("Q2long", th, win, N, len(k), rows[str(N)]["lambda"], "%.0fs" % (time.time() - t0), flush=True)
     part = f"Q2long_{th:g}_{win}"
+elif part == "Q2redo":
+    # emendamento A9: rifare N <= 400 con la griglia corretta; controllo a N = 1000 (valore vecchio conservato)
+    th = float(sys.argv[2])
+    rows = res["Q2_theta"][f"{th:g}"]
+    chk = res.setdefault("Q2redo_controllo", {})
+    for N in [n for n in NS if n <= 400] + [1000]:
+        lp = walk_backflow_gram(th, N, np.pi / 2)
+        lf = walk_backflow_gram(th, N, np.pi)
+        old = rows.get(str(N), {})
+        chk[f"{th:g}_{N}"] = {"fisica_vecchio": old.get("fisica"), "fisica_nuovo": lp,
+                              "intera_vecchio": old.get("intera"), "intera_nuovo": lf}
+        rows[str(N)] = {"fisica": lp, "intera": lf, "eps": float(eps_of(th, N))}
+    save()
+    d = [abs(v["fisica_nuovo"] - v["fisica_vecchio"]) for k_, v in chk.items() if k_.startswith(f"{th:g}_")]
+    print("Q2redo", th, "max |nuovo - vecchio| =", max(d), flush=True)
+    part = f"Q2redo_{th:g}"
+elif part == "Q2osc":
+    # esplorazione (emendamento A10): banda intera a theta grande oscilla con N (periodo ~2 pi/(pi - 2 theta) tick,
+    # interferenza tra i due bordi della banda k~0 e k~pi). Scansione fitta di N per trovare il massimo vero.
+    th = float(sys.argv[2])
+    N0 = int(sys.argv[3])
+    step = int(sys.argv[4])
+    per = 2 * np.pi / (np.pi - 2 * th)
+    rows = res.setdefault("Q2osc", {}).setdefault(f"{th:g}", {}).setdefault(str(N0), {})
+    for N in range(N0, N0 + int(np.ceil(per)) + step, step):
+        if str(N) in rows:
+            continue
+        if time.time() - t0 > 450:
+            print("tempo: riprendere", flush=True)
+            break
+        rows[str(N)] = walk_backflow(th, N, np.pi, cosc=6.0)
+        save()
+        print("Q2osc", th, N, rows[str(N)], "%.0fs" % (time.time() - t0), flush=True)
+    part = f"Q2osc_{th:g}_{N0}"
 elif part == "Q2sum":
     d = res["Q2_theta"]
     best_p = max(((float(t), int(N), v["fisica"]) for t, r in d.items() for N, v in r.items()), key=lambda z: z[2])

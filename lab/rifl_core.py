@@ -66,12 +66,11 @@ def gl_adaptive(lo, hi, rate, cosc=6.0, npt=24, hmax=None):
 
 
 def top_eig(A, vec=False):
-    """autovalore piu' grande (e autovettore) di una matrice hermitiana densa"""
+    """autovalore piu' grande (e autovettore) di una matrice hermitiana densa.
+    Sempre eigh denso (LAPACK, sottoinsieme): eigsh (Lanczos) ha dato un valore sbagliato e negativo a eps = 1e4,
+    dove l'autovalore cercato (3e-9) e' minuscolo rispetto alla parte negativa dello spettro (emendamento A7)."""
     M = A.shape[0]
-    if M <= 3000:
-        w, v = sl.eigh(A, subset_by_index=[M - 1, M - 1])
-        return (w[0], v[:, 0]) if vec else w[0]
-    w, v = spl.eigsh(A, k=1, which="LA", tol=1e-13, maxiter=20000)
+    w, v = sl.eigh(A, subset_by_index=[M - 1, M - 1], overwrite_a=True, check_finite=False)
     return (w[0], v[:, 0]) if vec else w[0]
 
 
@@ -130,7 +129,9 @@ def walk_grid(theta, N, kmax, cosc=6.0, kmin=0.0, npt=24):
     def rate(k):
         w = np.arccos(np.clip(c * np.cos(k), -1, 1))
         vg = c * np.sin(k) / max(np.sin(w), 1e-300)
-        return max(vg * N / 2, 1.0, np.sqrt(N / (2 * np.tan(max(theta, 1e-12)))) * 0.5)
+        # 2/(k+theta): pannelli geometrici vicino a k = 0, dove lo spinore cambia su una scala ~theta
+        # (aggiunto dopo aver visto Lambda_1 sotto-risolto a theta = 1e-4: emendamento A9)
+        return max(vg * N / 2, 1.0, np.sqrt(N / (2 * np.tan(max(theta, 1e-12)))) * 0.5, 2.0 / (k + theta))
     return gl_adaptive(kmin, kmax, rate, cosc, npt, hmax=(kmax - kmin) / 4)
 
 
@@ -165,8 +166,8 @@ def nr_backflow(U, nint=None, npt=24, cosc=6.0):
 
 def dirac_modes(p, m=1.0):
     E = np.sqrt(p**2 + m**2)
-    R = np.sqrt((1 + p / E) / 2)
-    L = np.sqrt((1 - p / E) / 2)
+    R = np.sqrt((E + p) / (2 * E))
+    L = m / np.sqrt(2 * E * (E + p))          # = sqrt((1 - p/E)/2) senza cancellazione a p >> m
     return E, R, L
 
 
