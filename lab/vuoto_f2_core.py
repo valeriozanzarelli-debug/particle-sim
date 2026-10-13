@@ -170,6 +170,7 @@ class RadialResolvent:
         return spl.splu(A.tocsc())
 
     def project_positive(self, x, h=0.5, smin=None, smax=None, tail=19.0):
+        # (amendment A-L1: h = 0.35, tail = 28 -> quadrature error ~1e-12 instead of ~6e-9)
         """P_+ x = (x - sign(K) x)/2, sign(K) = (1/pi) int ds e^s [(K + i t)^{-1} + (K - i t)^{-1}], t = e^s.
         (K + i t)^{-1} = (W - 1) [ i(W + 1) + i t (W - 1) ]^{-1} = -i (W - 1)[(1 + t) W + (1 - t)]^{-1};
         (K - i t)^{-1} = [(K + i t)^{-1}]^dagger (K Hermitian) -> adjoint solve with the same LU."""
@@ -207,7 +208,7 @@ class RadialResolvent:
         return 0.5 * (x + acc * h / PI), len(ss)
 
 
-def bethe_log(n, l_kappa, th, Z=1, rmax_bohr=50.0, Ks=None, h=0.5, nk=240, verbose=False, return_raw=False, species=True, omega_cut=0.6):
+def bethe_log(n, l_kappa, th, Z=1, rmax_bohr=50.0, Ks=None, h=0.5, nk=240, verbose=False, return_raw=False, species=True, omega_cut=0.6, tail=19.0):
     """ln k0 for the s state n (kappa = -1) with intermediate channel kappa' (= +1 or -2). Physical units (m = 1).
     Returns dict with K list, lnk0(K), D, and the reference sum-rule value."""
     import scipy.sparse.linalg as spl
@@ -237,7 +238,7 @@ def bethe_log(n, l_kappa, th, Z=1, rmax_bohr=50.0, Ks=None, h=0.5, nk=240, verbo
     v[1::2] = Mh[:, 1, 0] * cp + Mh[:, 1, 1] * cm
     v *= np.sqrt(th)                                               # normalization of sum |.|^2 a
     RR = RadialResolvent(rw_p)
-    up, nlu = RR.project_positive(v, h=h)
+    up, nlu = RR.project_positive(v, h=h, tail=tail)
     if omega_cut is not None:
         # keep only the physical band (quasi-energy below Omega_n + omega_cut): the band-top states of the 1-D walk
         # (doubler side, k a ~ pi) would otherwise dominate the dE^3-weighted sums

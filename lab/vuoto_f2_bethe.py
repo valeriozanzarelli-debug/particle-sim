@@ -9,7 +9,8 @@ import numpy as np
 from vuoto_f2_core import bethe_log
 
 OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "out")
-FN = os.path.join(OUT, "vuoto_f2_bethe.json")
+AMEND = os.environ.get("VUOTO_AMEND_L") == "1"      # amendment A-L1 (lab/out/vuoto_f2_amend_L.json)
+FN = os.path.join(OUT, "vuoto_f2_bethe_A.json" if AMEND else "vuoto_f2_bethe.json")
 T0 = time.time()
 RMAX = {1: 40.0, 2: 30.0}                 # box in units of n a_B (n a_B x RMAX)
 TASKS = [(n, kp, th) for th in (0.1, 0.05) for n in (1, 2) for kp in (1, -2)]
@@ -31,7 +32,8 @@ for t in TASKS:
         sys.exit(3)
     n, kp, th = t
     t1 = time.time()
-    r = bethe_log(n, kp, th, Z=1, rmax_bohr=RMAX[n], Ks=KS, nk=200, h=0.5, species=True, omega_cut=0.6)
+    r = bethe_log(n, kp, th, Z=1, rmax_bohr=RMAX[n], Ks=KS, nk=200, h=0.35 if AMEND else 0.5, species=True, omega_cut=0.6,
+                  tail=28.0 if AMEND else 19.0)
     r["time_s"] = time.time() - t1
     D[k] = r
     json.dump(D, open(FN, "w"), indent=1)
