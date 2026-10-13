@@ -9,7 +9,7 @@ Data: /mnt/project-files/ripresa/dati/idrogeno_bohr/ (docs/IDROGENO_BOHR.md). Pr
     python3 lab/vl_idro.py video      # mp4s + stills
 
 Parts: A far view (1s + 2p_z swinging, balls moved by the rule's current minimally corrected for continuity),
-B cross-fade to the still 1s and zoom from 6 a0 to 0.11 a0 (cells a0/8 -> a0/16 -> a0/512), C the 32 fine ticks
+B cross-fade to the still 1s and zoom from 6 a0 to 0.22 a0 (cells a0/8 -> a0/16 -> a0/256), C the 16 fine ticks
 on the proton (colour = |R|^2 - |L|^2, amplified and declared). Every pixel of the scene is a soft ball.
 """
 import hashlib
@@ -26,17 +26,25 @@ from scipy.ndimage import gaussian_filter
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from vl_comune import SCR as SCR0, OUT  # noqa: E402
 
-DIR = "/mnt/project-files/ripresa/dati/idrogeno_bohr"
-SCR = os.path.join(SCR0, "idro")
-MAN = json.load(open(os.path.join(DIR, "manifest.json")))
+BASE = "/mnt/project-files/ripresa/dati/idrogeno_bohr"
+DIR = os.path.join(BASE, "fase2")          # amendment 1: phase-2 data (manifest -> fase2, commit 056007a)
+SCR = os.path.join(SCR0, "idro2")
+MAN = json.load(open(os.path.join(BASE, "manifest.json")))
+M2 = MAN["fase2"]
 LO = MAN["lontano"]
 NA, AA = LO["griglia"]["n"], LO["griglia"]["passo_a0"]        # 96, a0/8
 NF = LO["fotogrammi"]                                         # 24
-DT = LO["dt_fotogramma_au"]
-T = LO["periodo_au"]
+_DIP = np.loadtxt(os.path.join(DIR, "dipolo_lontano.txt"))
+DT = float(_DIP[1, 0] - _DIP[0, 0])                           # 0.701804 (phase 2)
+T = NF * DT                                                   # 16.8433 a.u.
+PER_S = T * LO["periodo_s"] / LO["periodo_au"]                # seconds per period
 NG, AG = MAN["zoom"]["griglia_grossa"]["n"], MAN["zoom"]["griglia_grossa"]["passo_a0"]   # 64, a0/16
-NFI, AF = MAN["zoom"]["griglia_fine"]["n"], MAN["zoom"]["griglia_fine"]["passo_a0"]      # 96, a0/512
-NT = MAN["zoom"]["tick"]
+NFI, AF = M2["zoom"]["rho_fine.f16"][1], M2["zoom"]["passo_a0"]      # 112, a0/256
+NT = M2["zoom"]["rho_fine.f16"][0]                                    # 16
+HB = NFI / 2 * AF                                                     # half side of the fine block, 0.21875 a0
+NB = int(round(2 * HB / AG))                                          # 7 coarse cells
+R_CUT = 0.21                                                          # drawn sphere
+CHIR_FULL = 4e-3
 N_A = N_G = N_F = 100000
 SEED = 20261014
 PER = 3                 # periods shown
@@ -44,7 +52,7 @@ VPP = 96                # video frames per period
 NV_A = PER * VPP
 NV_X = 48               # cross-fade
 NV_Z = 192              # zoom
-TPF = 6                 # video frames per fine tick
+TPF = 12                # video frames per fine tick
 NV_C = NT * TPF
 NV = NV_A + NV_X + NV_Z + NV_C
 W, H = 1920, 1080
@@ -52,8 +60,8 @@ W, H = 1920, 1080
 
 def impronta():
     h = hashlib.sha256()
-    for f in ("manifest.json", "dipolo_lontano.txt"):
-        h.update(open(os.path.join(DIR, f), "rb").read())
+    h.update(open(os.path.join(BASE, "manifest.json"), "rb").read())
+    h.update(open(os.path.join(DIR, "dipolo_lontano.txt"), "rb").read())
     return h.hexdigest()[:10]
 
 
@@ -225,7 +233,8 @@ def palline():
     # the still 1s: coarse balls outside the fine block, fine balls inside
     rg = load("rho_grosso.f16", (NG, NG, NG)).astype(np.float64)
     rg_cut = rg.copy()
-    rg_cut[31:34, 31:34, 31:34] = 0
+    c0 = NG // 2 - NB // 2
+    rg_cut[c0:c0 + NB, c0:c0 + NB, c0:c0 + NB] = 0
     pg = semina(rg_cut, N_G, rng, AG, NG / 2 + 0.5)
     rf = load("rho_fine.f16", (NT, NFI, NFI, NFI))[0].astype(np.float64)
     pf = semina(rf, N_F, rng, AF, NFI / 2)
@@ -285,21 +294,30 @@ def esami():
     rr = np.sqrt((pf ** 2).sum(0))
     R4 = 4 * AF
     dens_c = float(fz["mf"] * (rr < R4).sum() / N_F / (4 / 3 * np.pi * R4 ** 3))
+    xf = (np.arange(NFI) - NFI / 2 + 0.5) * AF
+    XX, YY, ZZ = np.meshgrid(xf, xf, xf, indexing="ij")
+    rc = np.sqrt(XX ** 2 + YY ** 2 + ZZ ** 2)
+    edges = np.linspace(0, R_CUT, 10)
+    nb_ = np.histogram(rr, edges)[0] * fz["mf"] / N_F
+    ng_ = np.histogram(rc, edges, weights=rf)[0] * AF ** 3
+    prof = [[float(a_), float(b_)] for a_, b_ in zip(nb_, ng_)]
+    dmax = float(np.max(np.abs(nb_ / ng_ - 1)))
     cf = load("chir_fine.f16", (NT, NFI, NFI, NFI)).astype(np.float32)
     s = np.sign(cf)
     flips = [float((s[t] != s[t + 1]).mean()) for t in range(NT - 1)]
     ci = json.load(open(os.path.join(SCR, "campi.json")))
     res = {
-        "impronta": impronta(), "manifest_commit": MAN.get("commit"),
+        "impronta": impronta(), "manifest_commit": M2.get("commit"),
         "H1": {"corr_min": min(cors), "TV0": tvs[0], "TV_max": max(tvs), "PASS": bool(min(cors) >= 0.97 and max(tvs) <= tvs[0] + 0.05)},
         "H2": {"pearson": float(np.corrcoef(dzb, dzg)[0, 1]), "ampiezza_palline": float(np.abs(dzb).max()),
-               "ampiezza_griglia": float(np.abs(dzg).max()), "ampiezza_file": 0.7489,
+               "ampiezza_griglia": float(np.abs(dzg).max()), "ampiezza_file": float(np.abs(_DIP[:, 1]).max()),
                "PASS": bool(np.corrcoef(dzb, dzg)[0, 1] >= 0.99 and abs(np.abs(dzb).max() / np.abs(dzg).max() - 1) <= 0.03)},
         "H3": {"correzione_mediana": ci["correzione_su_j_mediana"], "correzione_max": ci["correzione_max"],
                "rotazione_netta": ci["rotazione_netta_attorno_a_z_media"], "PASS": bool(ci["correzione_su_j_mediana"] <= 0.25)},
         "H4": {"spostamento_rms_dopo_1_2_3_periodi_a0": ret},
-        "H5": {"pearson_fine": c5, "densita_nucleo_palline": dens_c, "densita_nucleo_dati": float(rf[46:50, 46:50, 46:50].mean()),
-               "PASS": bool(c5 >= 0.97 and abs(dens_c / 0.3174 - 1) <= 0.10)},
+        "H5": {"pearson_fine": c5, "densita_nucleo_palline": dens_c, "densita_nucleo_dati": float(rf[NFI // 2 - 2:NFI // 2 + 2, NFI // 2 - 2:NFI // 2 + 2, NFI // 2 - 2:NFI // 2 + 2].mean()),
+               "vecchio_H5_PASS": bool(c5 >= 0.97), "profilo": prof, "scarto_max_profilo": dmax, "PASS": bool(dmax <= 0.05),
+               "nota": "emendamento 1: esame = profilo radiale in 9 gusci (r < 0.21 a0), scarto massimo <= 5 %"},
         "H6": {"frazione_cambio_segno": [min(flips), max(flips)], "PASS": bool(min(flips) >= 0.5), "previsto": "FAIL"},
         "serie": {"corr": cors, "tv": tvs, "dip_palline": list(dzb), "dip_griglia": list(dzg)},
     }
@@ -320,10 +338,10 @@ def cam(iv):
     elif iv < NV_A + NV_X + NV_Z:
         u = (iv - NV_A - NV_X) / (NV_Z - 1)
         e = 0.5 - 0.5 * np.cos(np.pi * u)                       # ease in-out
-        hw = 6.0 * (0.11 / 6.0) ** e
+        hw = 6.0 * (0.22 / 6.0) ** e
         az = np.radians(-35 + 20 * e)
     else:
-        hw = 0.11
+        hw = 0.22
         u = (iv - NV_A - NV_X - NV_Z) / NV_C
         az = np.radians(-15 + 40 * u)
     fov = 36.0
@@ -374,7 +392,7 @@ class Rend:
     def chirrel(self, p, tick):
         c = self.cf[tick] / np.maximum(self.rf[tick], 1e-6)
         x = np.clip(np.floor(p / AF + NFI / 2).astype(int), 0, NFI - 1)
-        return c[x[0], x[1], x[2]] / 2e-3
+        return c[x[0], x[1], x[2]] / CHIR_FULL
 
     def frame(self, iv):
         camv, hw, D = cam(iv)
@@ -398,13 +416,13 @@ class Rend:
             pf = self.fz["pf"].astype(np.float64)
             wg = self.fz["mg"] / N_G
             wf = self.fz["mf"] / N_F
-            fade_g = np.clip((np.log(hw) - np.log(0.14)) / (np.log(0.6) - np.log(0.14)), 0, 1)
+            fade_g = np.clip((np.log(hw) - np.log(0.35)) / (np.log(1.2) - np.log(0.35)), 0, 1)
             if fade_g > 0:
                 draw_balls(layers, pg, np.full(pg.shape[1], be * fade_g * wg / wf), np.tile(C_BASE, (pg.shape[1], 1)), 0.6 * AG, camv)
             if iv >= NV_A + NV_X + NV_Z:
                 tick = (iv - NV_A - NV_X - NV_Z) // TPF
                 rr = np.sqrt((pf ** 2).sum(0))
-                m = rr < 0.094                          # sphere cut inside the fine block (a view)
+                m = rr < R_CUT                          # sphere cut inside the fine block (a view)
                 s = self.chirrel(pf[:, m], tick)
                 draw_balls(layers, pf[:, m], np.ones(m.sum()), colour(s), 0.6 * AF, camv)
                 txt["tick"] = tick
@@ -435,34 +453,36 @@ class Rend:
         d.text((28, 58), "Z = 1, α vera · lontano la regola imparata dall'agglomeratore, vicino al protone la zig-zag", fill=(170, 175, 205), font=F(15))
         pm = 2 * hw * 52.9465
         d.text((28, 86), f"campo visivo {2 * hw:.3g} a0 = {pm:.3g} pm", fill=(230, 232, 245), font=F(17))
-        y = H - 150
+        y = H - 176
         if iv <= NV_A:
             t = txt["t"]
             zt = float(np.interp(t % T, self.dip[:, 0], self.dip[:, 1], period=T))
-            ps = LO["periodo_s"]
+            ps = PER_S
             slow = 1.0 / (24.0 / VPP * ps)
             ex = int(np.floor(np.log10(slow)))
             if slow / 10 ** ex >= 9.5:
                 ex += 1
             sup = str(ex).translate(str.maketrans("0123456789", "⁰¹²³⁴⁵⁶⁷⁸⁹"))
-            lines = [(f"1s + 2p_z insieme: la nuvola oscilla su e giù · un periodo di Lyman-α = {ps * 1e15:.2f} fs (riga a 122 nm)", (255, 214, 140)),
+            lines = [(f"1s + 2p_z insieme: la nuvola oscilla su e giù · un periodo di Lyman-α = {ps * 1e15:.2f} fs (riga a 122,21 nm)", (255, 214, 140)),
                      (f"t = {t / T:.2f} periodi   ·   <z> = {zt:+.2f} a0 (dal calcolo)   ·   rallentato {slow / 10 ** ex:.0f}·10{sup} volte", (230, 232, 245)),
                      ("palline mosse dalla corrente della regola (corretta al minimo per la continuità) · oro = più densità della media, blu = meno", (180, 185, 210)),
-                     ("celle a0/8 (6,6 pm) · nessuno smussamento", (150, 155, 180))]
+                     ("regola con parità esatta (mescolamento s–p 2·10⁻⁹) · celle a0/8 (6,6 pm) · nessuno smussamento", (150, 155, 180))]
         elif iv < NV_A + NV_X + NV_Z:
             lines = [("ora lo stato fermo 1s: in un livello puro non c'è corrente, le palline stanno ferme (debito: le copie del reticolo)", (255, 214, 140)),
-                     ("zoom: celle a0/16 (3,3 pm) fuori, blocco fine a0/512 (0,10 pm) attorno al protone · esposizione automatica", (230, 232, 245)),
+                     ("la corrente residua 1,7·10⁻³ dei dati è un transitorio (si parte dallo stato della griglia grossa), non fisica: non usata", (255, 160, 140)),
+                     ("zoom: celle a0/16 (3,3 pm) fuori, blocco fine a0/256 (0,21 pm) attorno al protone · esposizione automatica", (230, 232, 245)),
                      ("le palline grosse svaniscono quando sono più grandi del campo visivo; dentro il blocco quelle fini", (180, 185, 210))]
         else:
             tk = txt["tick"]
-            lines = [(f"sul protone · tick {tk + 1}/32 (1 tick = 3,4·10⁻²² s: un passo di una cella a c, poi la rotazione)", (255, 214, 140)),
-                     ("colore = |R|² − |L|² sulla densità (chi corre in un verso o nell'altro), pieno a 2·10⁻³: amplificato ~500 volte", (230, 232, 245)),
-                     ("nei dati è un dipolo quasi fermo lungo z (±10⁻³), NON un tremolio che cambia segno a ogni tick (esame H6 fallito)", (255, 160, 140)),
-                     ("si disegna solo la sfera r < 0,094 a0 dentro il blocco fine (vista tagliata) · cuspide al centro: 0,317 a0⁻³ ≈ 1/π", (150, 155, 180))]
+            lines = [(f"sul protone · tick {tk + 1}/{NT} (1 tick = 6,9·10⁻²² s: un passo di una cella a c, poi la rotazione)", (255, 214, 140)),
+                     ("colore = |R|² − |L|² sulla densità (chi corre in un verso o nell'altro), pieno a 4·10⁻³: amplificato ~250 volte", (230, 232, 245)),
+                     ("nei dati è un dipolo quasi fermo lungo z (±2·10⁻³), NON un tremolio che cambia segno a ogni tick (esame H6 fallito)", (255, 160, 140)),
+                     ("energia dell'1s non ancora convergente con la grandezza del blocco: −0,043 ± 0,004 % (fallimento dichiarato)", (255, 160, 140)),
+                     ("si disegna solo la sfera r < 0,21 a0 dentro il blocco fine (vista tagliata) · al centro 0,314 a0⁻³ (1/π = 0,318)", (150, 155, 180))]
         for txt_, col in lines:
             d.text((28, y), txt_, fill=col, font=F(16))
             y += 26
-        d.text((W - 300, H - 40), f"dati {impronta()} · bozza", fill=(110, 115, 140), font=F(13))
+        d.text((W - 300, H - 40), f"dati fase 2 · {impronta()}", fill=(110, 115, 140), font=F(13))
 
 
 def render(a, b):
