@@ -136,7 +136,16 @@ class SVM:
         return S, H, Sd, Hd
 
     def _eig(self, Hm, Sm):
-        Ev, U = sla.eigh(Hm, Sm)
+        try:
+            Ev, U = sla.eigh(Hm, Sm)
+        except np.linalg.LinAlgError:
+            # S numericamente non definita (funzioni quasi dipendenti, visto nei bassi K a 1 elettrone): ortogonalizzazione
+            # canonica, si tolgono le direzioni con autovalore di S < 1e-13 (aggiunto in v2, dichiarato)
+            w, V = np.linalg.eigh(Sm)
+            keep = w > 1e-13 * w.max()
+            X = V[:, keep] / np.sqrt(w[keep])
+            Ev, Y = np.linalg.eigh(X.T @ Hm @ X)
+            U = X @ Y
         return Ev, U
 
     def _lowest_with(self, Ev, U, s, h, sd, hd):
@@ -193,7 +202,7 @@ class SVM:
         Sm[K, K] = sd; Hm[K, K] = hd
         self.A = np.concatenate([self.A, A[None]])
         self.Smat, self.Hmat = Sm, Hm
-        self.E = float(sla.eigh(Hm, Sm, eigvals_only=True, subset_by_index=[0, 0])[0])
+        self.E = float(self._eig(Hm, Sm)[0][0])
         return self.E
 
     def refine_sweep(self):
@@ -209,11 +218,11 @@ class SVM:
             # riscrivo riga/colonna k (le righe s, h sono rispetto a keep)
             self.Smat[k, keep] = self.Smat[keep, k] = s; self.Hmat[k, keep] = self.Hmat[keep, k] = h
             self.Smat[k, k] = sd; self.Hmat[k, k] = hd
-        self.E = float(sla.eigh(self.Hmat, self.Smat, eigvals_only=True, subset_by_index=[0, 0])[0])
+        self.E = float(self._eig(self.Hmat, self.Smat)[0][0])
         return self.E
 
     def energy_subset(self, K):
-        return float(sla.eigh(self.Hmat[:K, :K], self.Smat[:K, :K], eigvals_only=True, subset_by_index=[0, 0])[0])
+        return float(self._eig(self.Hmat[:K, :K], self.Smat[:K, :K])[0][0])
 
     def rebuild(self, sys_new=None):
         """recompute S, H for the current basis (optionally with another operator, e.g. the full band)"""
@@ -227,12 +236,12 @@ class SVM:
         nr = 1 / np.sqrt(np.diag(Sd))
         self.nset = nr
         self.Smat = Sd * np.outer(nr, nr); self.Hmat = Hd * np.outer(nr, nr)
-        self.E = float(sla.eigh(self.Hmat, self.Smat, eigvals_only=True, subset_by_index=[0, 0])[0])
+        self.E = float(self._eig(self.Hmat, self.Smat)[0][0])
         return self.E
 
     def state(self):
         """coefficients (for normalized functions) of the lowest state"""
-        Ev, U = sla.eigh(self.Hmat, self.Smat, subset_by_index=[0, 0])
+        Ev, U = self._eig(self.Hmat, self.Smat)
         return Ev[0], U[:, 0]
 
     def expect_parts(self):

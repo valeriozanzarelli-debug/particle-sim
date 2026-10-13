@@ -219,6 +219,7 @@ if __name__ == "__main__":
     cu = {"Hb": 0.0, "H": 0.0, "He": m_kin / 2, "He_u0": 0.0, "He3S": m_kin / 4}[state]
     bu = 1.0
     ne = 1 if kind == 0 else 2
+    S0 = int(os.environ.get("DMC_SEED", "0"))                  # 0 = semi della v1; D6' (v2) usa 1
     NT = int(os.environ.get("DMC_NW", "4000"))                 # 4000 = pre-registrato; altro solo per la diagnosi del bias di popolazione
     key = f"{state}_{mode}_tau{tau:g}" + ("" if NT == 4000 else f"_NW{NT}") + os.environ.get("DMC_TAG", "")   # TAG: corse diagnostiche post hoc
     ck = os.path.join(OUT, f"multi_e_dmc_{key}.npz")
@@ -230,7 +231,7 @@ if __name__ == "__main__":
         hist = z["hist"]; nstep_done = int(z["nstep"]); stt = z["state"].item()
         HB = [list(r) for r in z["HB"]] if "HB" in z.files else []          # istogrammi per pezzo (errori di D6)
     else:
-        rng0 = np.random.default_rng(11)
+        rng0 = np.random.default_rng(11 + S0)
         Pw = rng0.normal(size=(NT, 6)) * (1.0 / Z)
         Et, Wt_, Nt = [], [], []
         Eref = Ebest = {"Hb": -0.5, "H": -0.5, "He": -2.9, "He_u0": -2.9, "He3S": -2.17}[state] * m_kin
@@ -238,8 +239,8 @@ if __name__ == "__main__":
         stt = dict(acc2=0.0, prop2=0.0, cn=0.0, cd=0.0)
     neq = int(round(20.0 / tau))                               # 20 a.u. di equilibratura scartati
     t0 = time.time()
-    rng = np.random.default_rng(1000 + nstep_done)
-    seed_all(1000 + nstep_done)
+    rng = np.random.default_rng(1000 + nstep_done + 7919 * S0)
+    seed_all(1000 + nstep_done + 7919 * S0)
     while time.time() - t0 < budget:
         nchunk = int(round(2.0 / tau))
         hb = np.zeros(nbins)

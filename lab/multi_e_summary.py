@@ -124,6 +124,69 @@ if "D6" in Q:
         c_mixed=d6["c_mixed"], c_vmc=d6["c_vmc"])
 else:
     put("D6", "NON FATTO")
+# ---------------------------------------------------------------- pre-registrazione v2 (lab/out/multi_e_prereg_v2.json)
+g1v2 = E.get("G1_v2")
+if g1v2:
+    put("G1'", "PASS" if g1v2.get("PASS") else "FAIL", Hooke_err=g1v2["Hooke"]["err"], MC_quad_rel=g1v2["MC"]["max_quad_rel"],
+        MC_max_z=g1v2["MC"]["max_abs_z"], note="riproduce la ricetta della diagnosi post hoc (esito gia' noto, dichiarato)")
+PR = E.get("prod", {})
+if g1v2 and g1v2.get("PASS") and PR.get("nr"):
+    nr = PR["nr"]; m0, mA, sm = K["R3"]["m0"], K["R3"]["m_kin_theta_A_used"], K["R3"]["sigma_seeds"]
+    th0 = lambda e: e * m0 / mA
+    def bar(job):
+        e = nr[job]["E"]; return float(np.hypot(nr[job]["conv_err"], abs(e) * sm))
+    for ex, job, tgt, tol in (("M1 He 1^1S", "he1S_Z2", -2.903724377, 2.9e-4), ("M2 He 2^3S", "he3S_Z2", -2.175229378, 2.2e-4),
+                              ("M3 H-", "he1S_Z1", -0.527751017, 5e-5)):
+        e = th0(nr[job]["E"]); d = e - tgt
+        ok = abs(d) <= tol and (ex != "M3 H-" or e < -0.5)
+        put(ex, "PASS" if ok else "FAIL", E_theta0=e, error_bar=bar(job), target=tgt, diff_mEh=d * 1e3, tol_mEh=tol * 1e3,
+            E_at_mA=nr[job]["E"], exact_at_mA=tgt * mA, basis_err_at_mA=nr[job]["E"] - tgt * mA)
+    muHe = NUC_MASS[2] / (NUC_MASS[2] + 1); muH = NUC_MASS[1] / (NUC_MASS[1] + 1)
+    ie = (th0(nr["one_Z2"]["E"]) - th0(nr["he1S_Z2"]["E"])) * muHe * EH_EV
+    sie = float(np.hypot(bar("one_Z2"), bar("he1S_Z2")) * muHe * EH_EV)
+    put("E1", "PASS" if abs(ie - 24.587389) <= 0.01 else "FAIL", IE_eV=ie, error_bar_eV=sie, target=24.587389,
+        diff_meV=(ie - 24.587389) * 1e3, note="massa ridotta applicata, polarizzazione di massa / relativita' / QED assenti")
+    ea = (th0(nr["one_Z1"]["E"]) - th0(nr["he1S_Z1"]["E"])) * muH * EH_EV
+    put("E2", "PASS" if abs(ea - 0.754195) <= 0.005 else "FAIL", EA_eV=ea, target=0.754195, diff_meV=(ea - 0.754195) * 1e3,
+        error_bar_eV=float(np.hypot(bar("one_Z1"), bar("he1S_Z1")) * muH * EH_EV))
+    r5 = {f"Z{z}": nr[f"one_Z{z}"]["E"] / (-mA * z * z / 2) - 1 for z in (1, 2, 10)}
+    fu = PR.get("full", {}); dr = PR.get("dirac_ref_posthoc", {})
+    r5f = fu.get("relearn_A:one_Z10", {}).get("ratio_vs_5Z4_first_order")
+    put("R5", ("PASS" if all(abs(v) < 1e-6 for v in r5.values()) and r5f is not None and abs(r5f - 1) <= 0.05 else "FAIL"),
+        NR_rel={k: float(v) for k, v in r5.items()}, NR_PASS=bool(all(abs(v) < 1e-6 for v in r5.values())),
+        full_ratio_first_order=r5f, full_note="variazionale con la banda piena: COLLASSA (banda limitata + Coulomb puntiforme); "
+        "si usa il primo ordine sullo stato NR (dichiarato)",
+        posthoc_band_over_exact_dirac_kinetic=dr.get("relearn_A:one_Z10", {}).get("band_over_dirac"))
+    r6 = {z: fu.get(f"relearn_A:he1S_Z{z}", {}).get("ratio_first_order") for z in range(6, 11)}
+    r6e = {z: fu.get(f"existing_A:he1S_Z{z}", {}).get("ratio_first_order") for z in range(6, 11)}
+    if all(v is not None for v in r6.values()):
+        put("R6", "PASS" if all(abs(v - 1) <= 0.10 for v in r6.values()) else "FAIL",
+            relearn_ratio={f"Z{z}": v for z, v in r6.items()}, existing_ratio={f"Z{z}": v for z, v in r6e.items()},
+            posthoc_band_over_exact_dirac_kinetic={k: v["band_over_dirac"] for k, v in dr.items()},
+            cause="il bersaglio 1 +- 0.10 suppone che conti solo k^4; <p^4> prende peso da p ~ c (coda della cuspide), dove "
+                  "anche Dirac esatto e' sotto k^4: Dirac esatto sugli stessi stati da' 0.86-0.97. La banda ri-imparata = "
+                  "Dirac cinetico a 0.1 %; il livello esistente ne porta il 41-44 %")
+    g4 = {k: v["G4_frac_beyond_zone_nr_state"] for k, v in fu.items()}
+    put("G4", "PASS per l'elio (Z = 2)" if all(abs(g4[k]) < 1e-6 for k in g4 if "he1S_Z2" in k) else "FAIL",
+        frac=g4, all_states_PASS=bool(all(abs(v) < 1e-6 for v in g4.values())),
+        note="esistente: Z = 9, 10 oltre 1e-6 (1.0e-6, 1.4e-6) e 1e Z = 10 -4.9e-4 (segno negativo = cancellazioni numeriche)")
+    hd = R.get("He_DMC_report_only", {})
+    if "E_tau0_thetaA" in hd:
+        d1 = hd["E_tau0_thetaA"] - nr["he1S_Z2"]["E"]; s1 = hd["sigma_tau0"]
+        put("D1", "PASS" if abs(d1) <= max(3 * s1, 1e-4) and s1 <= 1e-4 else "FAIL", diff_mEh=d1 * 1e3, sigma_mEh=s1 * 1e3,
+            sigma_controlled_mEh=hd.get("posthoc_sigma_autocorr", {}).get("sigma_theta0", 0) * 1e3)
+    h3 = R.get("He3S_DMC_report_only", {})
+    if "E_tau0_thetaA" in h3:
+        put("D2", "FERMO (G5 FAIL non emendato); confronto riportato", diff_DMC_minus_ECG_mEh=(h3["E_tau0_thetaA"] - nr["he3S_Z2"]["E"]) * 1e3,
+            sigma_mEh=h3["sigma_tau0"] * 1e3)
+    q = fu.get("existing_A:he1S_Z2")
+    if q:
+        dq = q["delta_first_order"]
+        put("Q1", "PASS" if -3.6e-4 <= dq <= -2.0e-4 else "FAIL", delta_band_first_order_mEh=dq * 1e3,
+            delta_band_variational_mEh=(q["variational_E_full"] - q["E_NR_mband"]) * 1e3, prediction_mEh=-0.28,
+            fraction_of_mass_velocity=q["ratio_first_order"],
+            fraction_of_exact_dirac_kinetic=dr.get("existing_A:he1S_Z2", {}).get("band_over_dirac"),
+            relearn_band_delta_mEh=fu.get("relearn_A:he1S_Z2", {}).get("delta_first_order", 0) * 1e3)
 save_json("multi_e_results.json", R)
 for k, v in R.items():
     print(f"{k:22s} {v['verdict']}")

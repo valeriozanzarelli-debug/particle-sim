@@ -1,9 +1,11 @@
 # Molti elettroni: elio (e oltre) dalla regola zig-zag agglomerata
 
-**Stato: M0 (la regola e i controlli) fatto quasi tutto; M1 (elio) a metà: la parte "esatta" ECG è FERMA per un gate
-fallito (G1); la parte a camminatori (DMC) è fatta: elio −2,903762 ± 0,000082 Eh contro −2,903724 (0,46 σ), prima
-ionizzazione 24,5885 ± 0,0022 eV contro 24,5874 (0,5 σ); elio 2³S −2,175328 ± 0,000072 contro −2,175229 (1,4 σ);
-tutti solo riportati.** Brief: `docs/MOLTI_ELETTRONI_PIANO.md`.
+**Stato (13/10, dopo la pre-registrazione v2): l'elio è fatto con due strade indipendenti sullo stesso operatore.
+ECG (esatta): He −2,903761 ± 0,000080 Eh contro −2,903724 (**M1 PASS**), ionizzazione 24,5885 ± 0,0022 eV contro
+24,5874 (**E1 PASS**), He 2³S, H⁻ e affinità di H⁻ PASS. DMC (camminatori): −2,903757 ± 0,000071, e DMC − ECG =
++0,004 mEh (**D1 PASS**). Il pezzo di banda non quadratico che la DMC non vede è misurato: −0,289 mEh (**Q1 PASS**).
+R5/R6 FAIL come scritti, con la causa trovata: la banda ri-imparata è la cinetica di Dirac esatta a 0,1 %. D6' in
+corsa.** Brief: `docs/MOLTI_ELETTRONI_PIANO.md`.
 Pre-registrazione: `lab/out/multi_e_prereg.json` (committata in `9b1e4d0` **prima di ogni corsa**).
 Giudizio automatico: `python lab/multi_e_summary.py` → `lab/out/multi_e_results.json`. Figura: `lab/out/multi_e_figure.png`.
 
@@ -39,7 +41,19 @@ controllo esatto, non il metodo**. Non è "la vecchia DMC con un nome nuovo", ma
 | G3 | campo medio (test d'implementazione con valori HF della letteratura) | He 5,6·10⁻⁹, H⁻ 6,6·10⁻⁸, Li 2,3·10⁻¹⁰, Be 5,9·10⁻⁹, Ne 2,9·10⁻⁹ (soglia 2·10⁻⁵); partenze casuali ≤ 1,2·10⁻¹² | **PASS** |
 | G5 | rapporto 2s/1s monotono (nodo esatto r₁ = r₂ per He 2³S) | non monotono in 778 punti, **tutti a r < 4,2·10⁻⁷ a₀, salti ≤ 1,4·10⁻¹⁵** | **FAIL** come scritto; causa: arrotondamento (§2.7) |
 | G4 | cucitura della banda oltre la zona | non valutabile senza le basi ECG | — |
-| M1–M3, R5, R6, E1, E2, D1, D2 | elio con l'ECG | **fermi** per G1 (e D2 anche per G5) | — |
+| **v2** | pre-registrazione v2 (`lab/out/multi_e_prereg_v2.json`, `e3bd3cb`), committata prima delle corse qui sotto | | |
+| G1' | Hooke K = 300 a 10⁻⁸; MC = quadratura a 10⁻¹² + \|z\| < 3 | Hooke 6,3·10⁻⁹; quadratura 2·10⁻¹⁶; z ≤ 1,78 | **PASS** (riproduce la diagnosi: esito già noto, dichiarato) |
+| M1 | He 1¹S, ECG, θ → 0 | **−2,9037614 ± 0,0000798** contro −2,903724377: −0,037 mEh (tolleranza 0,29) | **PASS** |
+| M2 | He 2³S, ECG | −2,1752593 ± 0,0000378 contro −2,175229378: −0,030 mEh (tolleranza 0,22) | **PASS** |
+| M3 | H⁻, ECG | −0,5277563 contro −0,527751017: −0,005 mEh (tolleranza 0,05), sotto −0,5 | **PASS** (ma la barra di convergenza pre-registrata, 0,20 mEh, è più larga della tolleranza: §3) |
+| E1 | prima ionizzazione di He (ECG He e He⁺, massa ridotta) | **24,58848 ± 0,00218 eV** contro 24,587389: +1,09 meV (tolleranza 10 meV) | **PASS** |
+| E2 | affinità elettronica di H⁻ | 0,75469 ± 0,0054 eV contro 0,754195: +0,49 meV (tolleranza 5 meV) | **PASS** |
+| D1 | DMC dell'elio = ECG sullo stesso operatore | DMC − ECG = **+0,004 ± 0,071 mEh** | **PASS** |
+| D2 | DMC 2³S = ECG | −0,069 ± 0,071 mEh | **fermo** (G5), solo riportato |
+| Q1 | quanto pesa sull'elio la parte non quadratica della banda (DEBT-4/9) | **−0,285 mEh** (primo ordine), **−0,289 mEh** (variazionale) contro la previsione −0,28 ± 30 % | **PASS** |
+| R5 | 1 elettrone: NR a 10⁻⁶; banda ri-imparata Z = 10: rapporto con −5α²Z⁴/8 = 1 ± 0,05 | NR 1,3·10⁻⁸; pieno **0,861** | **FAIL** — causa trovata (§3): anche la cinetica di Dirac esatta dà 0,858 |
+| R6 | He-like Z = 6..10 sulla banda ri-imparata: 1 ± 0,10 | 0,915 / 0,902 / 0,888 / 0,875 / 0,862 | **FAIL** (Z = 8, 9, 10) — stessa causa; contro Dirac esatto: **1,001 ± 0,001** |
+| G4 | parte della cinetica da oltre la zona < 10⁻⁶ | elio 3·10⁻¹⁰ (esistente), 0 (ri-imparato); esistente a Z = 9, 10: 1,0 e 1,4·10⁻⁶ | **PASS per l'elio**, FAIL ai Z alti del livello esistente |
 | He DMC | elio 1¹S con i camminatori (solo riportato: M1/E1 erano sulla strada ECG) | **−2,903757 ± 0,000071 Eh** (barra pre-registrata; con la barra controllata −2,903762 ± 0,000082) contro −2,903724 (0,46 σ); ionizzazione **24,5884 ± 0,0019 eV** (controllata: 24,5885 ± 0,0022) contro 24,587389 (+1,0 meV) | riportato |
 | He 2³S DMC | nodo esatto r₁ = r₂ (solo riportato: D2/M2 fermi per G1 e G5) | **−2,175328 ± 0,000072 Eh** contro −2,175229 (−0,10 mEh, 1,4 σ); corsa lunga di controllo a τ = 0,01: −0,6 σ | riportato |
 | D7 | sanità variazionale della DMC | E ≥ E_esatta − 3σ | **PASS** |
@@ -134,7 +148,8 @@ elettroni con lo stesso spin.
 - **Hooke ω = 1/2: 2,000000027 (errore 2,7·10⁻⁸, soglia 10⁻⁸): FAIL.**
 - **Monte Carlo di ⟨1/r⟩: un elemento a −1,34·10⁻⁴ (soglia 10⁻⁴): FAIL.**
 
-Per la regola, un gate fallito ferma il ramo: **la produzione ECG (M1–M3, R5, R6, E1, E2) non è partita.** Il codice è
+Per la regola, un gate fallito ferma il ramo: **la produzione ECG (M1–M3, R5, R6, E1, E2) non è partita** (ripartita
+dopo G1' della v2: §3). Il codice è
 pronto e rifiuta di partire senza una decisione scritta (`MULTI_E_G1_DECISION`).
 **Diagnosi post hoc** (`lab/multi_e_g1_diag.py`, non rigiudica il gate):
 - Monte Carlo: l'errore statistico di ogni elemento con 10⁸ campioni è 7,5·10⁻⁵, quindi lo scarto peggiore è a
@@ -166,9 +181,62 @@ da 10⁻⁹/Z a 60 a₀, derivata seconda al 4° ordine, integrali col trapezio.
   c₀ + c₂r² ed è piatto sotto l'arrotondamento. Fisicamente è monotono; ma la soglia l'avevo scritta "su tutti i punti" e
   non la cambio. Per la DMC 2³S il nodo esatto si può prendere direttamente dalla simmetria (idea in §7).
 
-## 3. Elio con l'ECG: fermo
+## 3. Elio con l'ECG (pre-registrazione v2)
 
-Vedi G1. Quello che serve per ripartire è una decisione di Valerio (§8), non un'altra corsa.
+**Come si è ripartiti.** La decisione su G1 l'ha presa la sessione principale con la regola di Valerio ("default
+ragionevole, dichiarato"): G1' come proposto. G1' rifà la ricetta della diagnosi (stesso seme), quindi l'esito era noto:
+Hooke 6,3·10⁻⁹ a K = 300, quadratura indipendente = formula a 2·10⁻¹⁶, Monte Carlo entro 1,8 σ. **PASS** → produzione.
+Due correzioni di codice durante la corsa, dichiarate: la tolleranza della quadratura (10⁻¹⁴ non è accettata da scipy,
+messa 10⁻¹³) e, per le basi a un elettrone, un'ortogonalizzazione canonica quando la matrice di sovrapposizione diventa
+numericamente non definita (succedeva a K ≈ 36 con il seme 2026).
+
+**Numeri** (ECG a m_kin(θ_A) = 1,0003833, poi θ → 0 con E ∝ m; barra = |E(K) − E(K−50)| ⊕ |E|·2,6·10⁻⁶):
+
+| sistema | E alla massa del livello | esatto alla stessa massa | E (θ → 0) | bersaglio | esito |
+|---|---|---|---|---|---|
+| He 1¹S (K = 200) | −2,9048341568 | −2,9048372652 (base +3,1·10⁻⁶) | −2,9037614 ± 0,0000798 | −2,903724377 | M1 PASS |
+| He 2³S (K = 150) | −2,1760628968 | −2,1760630615 (+1,6·10⁻⁷) | −2,1752593 ± 0,0000378 | −2,175229378 | M2 PASS |
+| H⁻ (K = 200) | −0,5279512527 | −0,5279532841 (+2,0·10⁻⁶) | −0,5277563 | −0,527751017 | M3 PASS |
+| He⁺, H (1 e, K = 40) | −2,0007664985, −0,5001916245 | −m Z²/2 a 1,3·10⁻⁸ | | | R5-NR PASS |
+
+- **Ionizzazione dell'elio: 24,58848 ± 0,00218 eV contro 24,587389** (E1 PASS, +1,09 meV). Con l'energia esatta NR e la
+  stessa massa ridotta verrebbe 24,58822: i +0,26 meV in più sono quasi tutti la massa dell'agglomeratore
+  (m₀ − 1 = 1,4·10⁻⁵ moltiplica tutto: +0,34 meV). Gli altri −0,83 meV fino all'esperimento sono fisica che qui non c'è
+  (polarizzazione di massa, relatività, QED). Le due strade (ECG e DMC) danno la stessa ionizzazione a 0,1 meV.
+- **Affinità di H⁻: 0,75469 eV contro 0,754195** (E2 PASS, +0,49 meV).
+- **D1: DMC − ECG = +0,004 ± 0,071 mEh.** I camminatori e la base esatta vedono lo stesso elio.
+- **Una debolezza della regola d'errore** (cercata, non nascosta): la barra pre-registrata |E(K) − E(K−50)| per H⁻ vale
+  0,20 mEh, più della tolleranza di M3 (0,05), mentre l'errore vero di base (contro l'esatto alla stessa massa) è
+  2·10⁻⁶. Il motivo: dopo i giri di raffinamento le prime K−50 funzioni non sono più una base "a metà strada", quindi
+  quel numero misura altro. Il PASS di M3 è sul valore; la barra è troppo pessimista e lo diciamo.
+
+**Q1 — la parte non quadratica della banda sull'elio (DEBT-4/9), misurata.** Stato NR dell'elio, operatore pieno
+del livello 1 in uso (`existing_A`): **Δ = −0,285 mEh al primo ordine, −0,289 mEh variazionale** (qui la base non
+collassa). La previsione scritta prima era −0,28 ± 30 %: **PASS**. È il 39,8 % del termine −α²⟨Σp⁴⟩/8 (⟨Σp⁴⟩ = 107,7) e
+il 40,9 % della correzione cinetica di Dirac esatta. Quindi: i camminatori del continuo (nucleo gaussiano) danno l'elio
+dell'operatore k²/2m; l'operatore del livello 1 completo lo darebbe più basso di 0,289 mEh. Con il livello ri-imparato
+sarebbe −0,696 mEh, cioè la correzione cinetica di Dirac intera (−0,697).
+
+**R5/R6 — FAIL come scritti, causa trovata (e la cosa più bella della giornata).** Il bersaglio "ΔE/(−α²⟨p⁴⟩/8) = 1"
+supponeva che della relatività cinetica contasse solo il termine k⁴. Ma ⟨p⁴⟩ prende peso dalla coda della cuspide,
+fino a p ~ c, dove la vera √(p²c² + c⁴) − c² sta sotto il suo sviluppo. Controllo indipendente (analitico, 1s
+idrogenoide): la cinetica di Dirac esatta dà 0,969 (Z = 2), 0,911 (Z = 6), 0,858 (Z = 10). **Diagnosi post hoc**: sugli
+stessi stati ECG, la banda ri-imparata (dirac4, B = 2) dà **1,0014 / 0,9990 / 1,0013 … 1,0014 volte la cinetica di
+Dirac esatta** (1 e⁻ Z = 10, He-like Z = 2, 6..10). Cioè: il livello che l'agglomeratore ha scelto con l'osservabile di
+Z = 10 *è* la dispersione di Dirac, a 0,1 %. Il livello esistente ne porta il 41–44 %. (È validazione: la regola fine è
+un cammino di Dirac, e la sua dispersione √(p² + m²) è nota; ma vederla uscire dall'agglomeratore a 10⁻³ è il controllo.)
+
+**Una sorpresa da capire: la base collassa con la banda piena.** La ricetta pre-registrata ("base NR + 2 giri con
+l'operatore pieno") per Z ≥ 6 (e già senza giri per un elettrone a Z = 10) scende a −10⁶…−10¹¹ Eh. Causa: la banda di
+un reticolo è **limitata** (oltre la zona non cresce più), mentre il Coulomb di un nucleo puntiforme non ha fondo; una
+gaussiana strettissima guadagna −Z√s di potenziale e paga una cinetica che non cresce. Sul reticolo vero questo non
+succede perché il Coulomb è mediato sulla cella (R4). Quindi per R5/R6 usiamo il primo ordine sullo stato NR (che è
+anche quello che misura "la banda su questo stato"), e per l'elio i due numeri coincidono (−0,285 / −0,289 mEh).
+Questo è un pezzo di DEBT-3/DEBT-4: un operatore pieno serio deve avere anche il nucleo sulla stessa griglia.
+
+**G4.** La parte di cinetica da oltre la zona del livello vale 3·10⁻¹⁰ per l'elio (PASS) e supera 10⁻⁶ solo ai Z alti
+del livello esistente (1,0·10⁻⁶ a Z = 9, 1,4·10⁻⁶ a Z = 10; per 1 e⁻ a Z = 10 −4,9·10⁻⁴, con un segno negativo che
+è cancellazione numerica fra funzioni strette: lì il numero non è affidabile).
 
 ## 4. Elio con i camminatori (energia: riportata; esami D7 e D6)
 
@@ -209,7 +277,7 @@ Regola pre-registrata: retta in τ, la parabola solo se la retta è rifiutata (p
 | m_kin(0) sistematico dell'agglomeratore (+1,4·10⁻⁵) | −0,040 (se la massa vera è 1) | R3 §2.3: E/m₀ = −2,903717, scarto da −2,903724 di +0,007 |
 | bias di popolazione (4000 camminatori) | −0,004 ± 0,007 | **diagnosi post hoc**: 250 camminatori a τ = 0,02 danno −0,059 ± 0,115 mEh rispetto a 4000; il bias va come 1/N, quindi /16 |
 | guida (b = 1 fisso, orbitale HF) | 0 sul valore | niente nodi: la guida entra solo nel rumore e nella pendenza in τ (che si estrapola) |
-| **DEBT-9 / DEBT-4**: nucleo gaussiano = solo k²/2m | ≈ −0,28 **non incluso** | vedi sotto |
+| **DEBT-9 / DEBT-4**: nucleo gaussiano = solo k²/2m | **−0,289 misurato** (Q1), **non incluso** | vedi sotto e §3 |
 | DEBT-1, DEBT-3 (Coulomb istantaneo, nucleo fermo e puntiforme) | 0 rispetto al bersaglio | il bersaglio −2,903724 ha gli stessi debiti: è lo stesso problema |
 | **totale (barra)** | **± 0,072** (pre-registrata) / **± 0,082** (controllata) | la statistica domina |
 
@@ -217,6 +285,7 @@ Regola pre-registrata: retta in τ, la parabola solo se la retta è rifiutata (p
 la parte k²/2m della banda. La banda imparata ha anche una parte non quadratica (il suo pezzo di relatività, §2.4: in
 media il 40 % del −α²k⁴/8 di Dirac). Quanto pesa sull'elio lo stimiamo coi nostri numeri: con l'orbitale del campo medio
 ⟨p⁴⟩ = 52,89 per elettrone, quindi −α²Σ⟨p⁴⟩/8 = −0,70 mEh, e la banda ne porterebbe circa il 40 %: **≈ −0,28 mEh**.
+Questa stima è stata poi messa alla prova (Q1, pre-registrato in v2): con l'ECG e l'operatore pieno viene **−0,289 mEh**.
 È grande quanto la tolleranza di M1. Non è un errore del calcolo (confrontiamo apposta con il valore non relativistico),
 ma dice una cosa importante: **i camminatori sul reticolo imparato (D0b) darebbero un elio più basso di ~0,3 mEh**, e
 quella differenza non sarebbe "la relatività vera" (manca Darwin, e il k⁴ è anisotropo). Per questo DEBT-4 resta il
@@ -283,7 +352,8 @@ ma è una diagnosi post hoc, non un PASS. (Correzione di bias presa da un'altra 
 ## 5. Validazione e scoperta
 
 - **Validazione** (ritrovare numeri noti): G3 (valori HF della letteratura), R3 (m → 1), il controllo su H e Li/Be non
-  interagenti, R4b, e l'energia e la ionizzazione dell'elio con i camminatori (§4). Nessuno di questi è una scoperta:
+  interagenti, R4b, l'elio, l'elio 2³S, H⁻ e le energie di ionizzazione con l'ECG e con i camminatori (§3, §4), e la
+  banda ri-imparata uguale alla cinetica di Dirac esatta (§3). Nessuno di questi è una scoperta:
   la DMC dell'elio senza nodi è un metodo noto e il suo risultato giusto è atteso. La parte nostra è la catena: la
   massa e la larghezza dei salti vengono dalla regola, non da una tabella.
 - **Cose che non sapevamo e che abbiamo visto**: (i) la regola fine affonda in tempo immaginario e il livello Pauli no:
@@ -300,7 +370,7 @@ ma è una diagnosi post hoc, non un PASS. (Correzione di bias presa da un'altra 
 | DEBT-1 | e-e come fase di Coulomb istantanea (niente Breit, ritardo): ~10⁻⁵–10⁻⁴ Eh nell'elio | aperto; idea §7 |
 | DEBT-2 | antisimmetria postulata | G1 mostra che il segno cambia tutto (bosonico −13,50 contro −10,12); idea §7 |
 | DEBT-3 | nucleo puntiforme e infinitamente pesante; massa ridotta solo negli esami E | aperto |
-| DEBT-4 | proiezione k²/2m_kin | aperto; il livello che porterebbe la relatività è stato rifiutato (§2.4) |
+| DEBT-4 | proiezione k²/2m_kin | aperto; sull'elio vale −0,289 mEh col livello in uso (Q1); il livello ri-imparato = cinetica di Dirac esatta a 0,1 % (§3), ma è quasi la regola fine (B = 2) |
 | DEBT-5 | campo medio = Hartree–Fock come portatore dei nodi | usato solo come guida della DMC; idea §7 per eliminarlo nel litio |
 | DEBT-6 | famiglia di J | non ancora (M2) |
 | DEBT-7 | nodo fisso | per l'elio 1¹S nessun nodo; per 2³S il nodo è esatto per simmetria |
@@ -350,7 +420,7 @@ ma è una diagnosi post hoc, non un PASS. (Correzione di bias presa da un'altra 
 
 ## 8. Dove Valerio può aiutare
 
-1. **G1 (decisione necessaria).** Il gate è fallito per due motivi che ora conosciamo (Monte Carlo sottodimensionato da
+1. **G1 — deciso il 13/10 (vedi sotto), G1' PASS, ECG fatta.** Testo originale: Il gate è fallito per due motivi che ora conosciamo (Monte Carlo sottodimensionato da
    me nella pre-registrazione; convergenza lenta della base sulla cuspide di Hooke, con un pavimento numerico a ~6·10⁻⁹).
    Proposta da approvare *prima* di qualunque corsa sull'elio: emendamento dichiarato "G1-Hooke a K = 300 con la stessa
    soglia 10⁻⁸; G1-MC con la verifica deterministica a 10⁻¹² più il MC a 3σ". Senza la tua decisione l'ECG resta ferma.
@@ -360,7 +430,7 @@ ma è una diagnosi post hoc, non un PASS. (Correzione di bias presa da un'altra 
 3. **Il campo medio (DEBT-5).** Il brief chiede di usare un Hartree–Fock "ascoltato" come portatore dei nodi, ma
    `MOLECOLE.md` diceva "niente Hartree–Fock". L'idea §7.1 potrebbe toglierlo almeno per il litio: vale la pena provarla
    prima di decidere.
-4. **D6 (decisione).** L'esame era scritto male da me (stimatore estrapolato che al contatto non può funzionare con
+4. **D6 — deciso il 13/10: D6' pre-registrato in v2.** Testo originale: L'esame era scritto male da me (stimatore estrapolato che al contatto non può funzionare con
    una guida senza cuspide). Proposta: emendamento dichiarato "D6' = cuspide del **misto** c = m/2 ± 0,05, fit pesato,
    modello col termine cubico (o finestra r < 0,1 a₀), τ → 0 con almeno 3 τ", da pre-registrare e correre con semi nuovi. Lo corro solo se dici sì.
 5. **La massa dell'agglomeratore.** Ti torna l'idea di imparare la massa a parte (§7.4)? È un cambio
@@ -374,6 +444,10 @@ il riferimento; (4) niente litio finché l'elio non è capito voce per voce, com
 
 ## 9. Cambi dopo la pre-registrazione (tutti dichiarati)
 
+- Durante la v2: tolleranza della quadratura di G1' (10⁻¹³ invece di 10⁻¹⁴, limite di scipy); ortogonalizzazione
+  canonica nell'SVM quando S diventa non definita; operatore pieno: la ricetta variazionale collassa per Z ≥ 6 e per
+  1 e⁻ a Z = 10, quindi R5/R6 si leggono al primo ordine (dichiarato, §3); riferimento di Dirac esatto per R5/R6:
+  diagnosi post hoc.
 - **Pre-registrazione v2** (`lab/multi_e_prereg_v2.py` → `lab/out/multi_e_prereg_v2.json`): G1', produzione ECG
   dell'elio con D1 e G4, Q1 (banda non quadratica sull'elio, con la previsione −0,28 mEh ± 30 % scritta prima), D6'
   (cuspide del misto, stimatore a rapporto I_mix/I_VMC scelto prima dei dati per bias e rumore, semi nuovi), L1m

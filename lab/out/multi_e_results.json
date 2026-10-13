@@ -91,7 +91,25 @@
   "diagnosis": "passi non monotoni solo per r < 4.2e-7 a0, ampiezza <= 1.4e-15: il rapporto e' c0 + c2 r^2 vicino al nucleo (le due cuspidi uguali cancellano il termine lineare), piatto sotto l'arrotondamento"
  },
  "G4": {
-  "verdict": "NON VALUTABILE (serve la base ECG, ferma per G1)"
+  "verdict": "PASS per l'elio (Z = 2)",
+  "frac": {
+   "existing_A:one_Z10": -0.0004878067708820425,
+   "existing_A:he1S_Z2": 3.147597454019776e-10,
+   "existing_A:he1S_Z6": 3.059064694205438e-07,
+   "existing_A:he1S_Z7": 4.972462544230162e-07,
+   "existing_A:he1S_Z8": 7.445362556847827e-07,
+   "existing_A:he1S_Z9": 1.0438151493347166e-06,
+   "existing_A:he1S_Z10": 1.4386779947442625e-06,
+   "relearn_A:one_Z10": -3.3931018180089013e-12,
+   "relearn_A:he1S_Z2": 0.0,
+   "relearn_A:he1S_Z6": 4.668268884700506e-32,
+   "relearn_A:he1S_Z7": 2.984681771326549e-25,
+   "relearn_A:he1S_Z8": 1.240947999087376e-21,
+   "relearn_A:he1S_Z9": 3.340495421809225e-18,
+   "relearn_A:he1S_Z10": 1.0246878716094935e-15
+  },
+  "all_states_PASS": false,
+  "note": "esistente: Z = 9, 10 oltre 1e-6 (1.0e-6, 1.4e-6) e 1e Z = 10 -4.9e-4 (segno negativo = cancellazioni numeriche)"
  },
  "R1": {
   "verdict": "PASS",
@@ -168,31 +186,109 @@
   }
  },
  "R5": {
-  "verdict": "FERMO (G1 FAIL: produzione ECG sospesa)"
+  "verdict": "FAIL",
+  "NR_rel": {
+   "Z1": -1.3301717172176097e-08,
+   "Z2": -1.3072058546725884e-08,
+   "Z10": -1.1899586649377625e-08
+  },
+  "NR_PASS": true,
+  "full_ratio_first_order": 0.8606887160573639,
+  "full_note": "variazionale con la banda piena: COLLASSA (banda limitata + Coulomb puntiforme); si usa il primo ordine sullo stato NR (dichiarato)",
+  "posthoc_band_over_exact_dirac_kinetic": 1.0014020045873866
  },
  "R6": {
-  "verdict": "FERMO (G1 FAIL: produzione ECG sospesa)"
+  "verdict": "FAIL",
+  "relearn_ratio": {
+   "Z6": 0.9152515597475419,
+   "Z7": 0.9015849019518586,
+   "Z8": 0.8883304779284505,
+   "Z9": 0.8752062183033773,
+   "Z10": 0.8623712661774325
+  },
+  "existing_ratio": {
+   "Z6": 0.38762920794115685,
+   "Z7": 0.3850640614782305,
+   "Z8": 0.3825759241263307,
+   "Z9": 0.38004357277757517,
+   "Z10": 0.3775354201789065
+  },
+  "posthoc_band_over_exact_dirac_kinetic": {
+   "existing_A:one_Z10": 0.4389038292847579,
+   "existing_A:he1S_Z2": 0.40931947449336936,
+   "existing_A:he1S_Z6": 0.42405126829944034,
+   "existing_A:he1S_Z7": 0.42766448766274306,
+   "existing_A:he1S_Z8": 0.4312629554605261,
+   "existing_A:he1S_Z9": 0.4348477534519309,
+   "existing_A:he1S_Z10": 0.43841803189545625,
+   "relearn_A:one_Z10": 1.0014020045873866,
+   "relearn_A:he1S_Z2": 0.9989670976692961,
+   "relearn_A:he1S_Z6": 1.0012504923702936,
+   "relearn_A:he1S_Z7": 1.0013301168822981,
+   "relearn_A:he1S_Z8": 1.0013815418755592,
+   "relearn_A:he1S_Z9": 1.0014166035885588,
+   "relearn_A:he1S_Z10": 1.0014415150259524
+  },
+  "cause": "il bersaglio 1 +- 0.10 suppone che conti solo k^4; <p^4> prende peso da p ~ c (coda della cuspide), dove anche Dirac esatto e' sotto k^4: Dirac esatto sugli stessi stati da' 0.86-0.97. La banda ri-imparata = Dirac cinetico a 0.1 %; il livello esistente ne porta il 41-44 %"
  },
  "M1 He 1^1S": {
-  "verdict": "FERMO (G1 FAIL: produzione ECG sospesa)"
+  "verdict": "PASS",
+  "E_theta0": -2.9037614065234543,
+  "error_bar": 7.980722927485778e-05,
+  "target": -2.903724377,
+  "diff_mEh": -0.03702952345419064,
+  "tol_mEh": 0.29,
+  "E_at_mA": -2.904834156764668,
+  "exact_at_mA": -2.9048372651915884,
+  "basis_err_at_mA": 3.1084269203063286e-06
  },
  "M2 He 2^3S": {
-  "verdict": "FERMO (G1 FAIL: produzione ECG sospesa)"
+  "verdict": "PASS",
+  "E_theta0": -2.1752592804800517,
+  "error_bar": 3.779554871526752e-05,
+  "target": -2.175229378,
+  "diff_mEh": -0.02990248005163565,
+  "tol_mEh": 0.22,
+  "E_at_mA": -2.176062896752585,
+  "exact_at_mA": -2.1760630614955643,
+  "basis_err_at_mA": 1.647429792583921e-07
  },
  "M3 H-": {
-  "verdict": "FERMO (G1 FAIL: produzione ECG sospesa)"
+  "verdict": "PASS",
+  "E_theta0": -0.5277562811953458,
+  "error_bar": 0.00019698110025092303,
+  "target": -0.527751017,
+  "diff_mEh": -0.005264195345744405,
+  "tol_mEh": 0.05,
+  "E_at_mA": -0.5279512526818744,
+  "exact_at_mA": -0.527953284088285,
+  "basis_err_at_mA": 2.0314064106408125e-06
  },
  "E1": {
-  "verdict": "FERMO (G1 FAIL: produzione ECG sospesa)"
+  "verdict": "PASS",
+  "IE_eV": 24.588478241439685,
+  "error_bar_eV": 0.0021760583606774395,
+  "target": 24.587389,
+  "diff_meV": 1.0892414396828087,
+  "note": "massa ridotta applicata, polarizzazione di massa / relativita' / QED assenti"
  },
  "E2": {
-  "verdict": "FERMO (G1 FAIL: produzione ECG sospesa)"
+  "verdict": "PASS",
+  "EA_eV": 0.7546879883843368,
+  "target": 0.754195,
+  "diff_meV": 0.49298838433686765,
+  "error_bar_eV": 0.005357329878171564
  },
  "D1": {
-  "verdict": "FERMO (G1 FAIL: produzione ECG sospesa)"
+  "verdict": "PASS",
+  "diff_mEh": 0.003931530053957744,
+  "sigma_mEh": 0.07098148727463327,
+  "sigma_controlled_mEh": 0.08206925873645234
  },
  "D2": {
-  "verdict": "FERMO (G1 FAIL: produzione ECG sospesa)"
+  "verdict": "FERMO (G5 FAIL non emendato); confronto riportato",
+  "diff_DMC_minus_ECG_mEh": -0.06903119121171031,
+  "sigma_mEh": 0.0714987469546345
  },
  "D7": {
   "verdict": "PASS",
@@ -290,5 +386,21 @@
   "target": 1.0003832623372946,
   "c_mixed": 5.956976079331646,
   "c_vmc": -0.24332908738428619
+ },
+ "G1'": {
+  "verdict": "PASS",
+  "Hooke_err": 6.334067492730355e-09,
+  "MC_quad_rel": 2.220446049250313e-16,
+  "MC_max_z": 1.7843643752930676,
+  "note": "riproduce la ricetta della diagnosi post hoc (esito gia' noto, dichiarato)"
+ },
+ "Q1": {
+  "verdict": "PASS",
+  "delta_band_first_order_mEh": -0.2851605094065235,
+  "delta_band_variational_mEh": -0.2892647657444236,
+  "prediction_mEh": -0.28,
+  "fraction_of_mass_velocity": 0.3982961074716497,
+  "fraction_of_exact_dirac_kinetic": 0.40931947449336936,
+  "relearn_band_delta_mEh": -0.695969181422118
  }
 }
