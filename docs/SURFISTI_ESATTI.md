@@ -720,3 +720,113 @@ regola senza valli doppie (o con il Wilson, controllando insieme che Θ resti es
 
 * `lab/surf_f2_kramers.py` → `lab/out/surf_f2_kramers.json` (B6). Log dei due Ritz con spin giù:
   `lab/out/surf_f2_ritzdown*.log` (non tracciati).
+
+---
+
+## 13. Fase 3: sono i doppioni a uccidere la corrente? Sì
+
+Pre-registrazione: `lab/surf_f3_prereg.py` → `lab/out/surf_f3_prereg.json` (commit 6b5ea78, prima delle corse).
+Emendamento: `lab/out/surf_f3_amend.json` (C1; nessuna soglia cambiata). Codice: `lab/surf_f3.py` (`check`, `prep`, `run`),
+driver `lab/surf_f3_drive.sh`, giudizio e figura `lab/surf_f3_judge.py` → `lab/out/surf_f3_results.json`,
+`lab/out/surf_f3_figure.png`. **Esiti: PASS 6, FAIL 0.**
+
+![fase 3](../lab/out/surf_f3_figure.png)
+
+### 13.1 In breve, come a un ventenne
+
+Prendiamo l'atomo del Laboratorio (48³, Z = 60, a = 0,5) con il **nucleo imparato** di NUCLEO_1S: due numeri,
+(s0, s1) = (0,5546; 1,0035), che correggono la carica sulle 8 + 24 celle più vicine al nucleo. Con questo nucleo
+le 4 copie (valli) dell'1s smettono quasi di mescolarsi: il loro split scende di 98 volte e il battimento dura
+circa 60 000 tick. Prepariamo un 1s con lo spin in su, tenuto **solo nella valle dell'elettrone vero (k = 0)**, e
+lo lasciamo andare per 4000 tick con 200 000 surfisti esatti.
+
+* **Resta fermo:** fedeltà 0,965 dopo 4000 tick, il 96,6 % del peso ancora in k = 0, spin 0,93 → 0,91.
+* **I surfisti girano:** **0,87 / 0,87 / 0,86 / 0,85 volte Zα c sinθ** (tick 500, 1000, 2000, 3000), dentro la
+  finestra di Dirac pre-registrata [0,75; 1,25]. Restano |ψ|²: |z| ≤ 2,8.
+* **Controllo con il nucleo nudo**, stessa ricetta: il peso in k = 0 crolla fino al 4 % e torna a salti (il
+  battimento delle 4 valli), lo spin oscilla fra 0,01 e 0,9. I surfisti vanno a −0,32 / 0,38 / 0,10 / 0,62:
+  avanti, indietro, a scatti.
+
+**Risposta:** sì, sono i doppioni mescolati dal nucleo a uccidere la corrente. Se l'elettrone sta nella sua
+valle e il nucleo non lo butta nelle altre, la regola trasporta la rotazione di Dirac, all'87 % del valore del
+continuo. Il FAIL di E5 (fase 1) e quello di S5 (fase 2) erano il prezzo del nucleo puntiforme sull'angolo.
+
+### 13.2 Ragionamento prima delle corse: il "flusso netto zero" copre questo caso?
+
+No, e lo si poteva dire prima di correre (scritto nella pre-registrazione).
+- L'identità esatta della fase 2: per **qualsiasi** stato, il flusso netto dei due tick vale F₁(ψ) − F₁(Θ W₂ ψ).
+  Ricontrollata su 4³ con potenziale a caso: 5·10⁻¹⁷.
+- Da qui il flusso netto è zero soltanto se F₁(ψ) = F₁(Θψ). Questo l'avevamo visto vero **dentro un solo
+  doppietto di Kramers**, cioè per gli stati stazionari.
+- Per una combinazione di **due doppietti diversi dello stesso colore** il flusso netto vale invece **0,31**
+  (`lab/out/surf_f3_check.json`). Attenzione: i colori non si scambiano flusso, quindi i due stati vanno presi sullo
+  stesso colore; due autostati su colori diversi danno zero per un motivo banale.
+- Anche il vecchio stato di E5 (due doppietti, split 3·10⁻⁴) girava (0,23).
+- Un 1s nella sola valle k = 0 è una combinazione dei 4 doppietti del quartetto. Con il nucleo imparato il
+  quartetto è quasi degenere, quindi lo stato è quasi stazionario per 4000 tick **e** ha il diritto di portare
+  corrente. Il test aveva senso: l'ho corso.
+
+### 13.3 Come ho preparato lo stato (dichiarato)
+
+1. Seme: l'1s di Dirac della regola radiale (κ = −1, spin su), messo sul cubo.
+2. Prima passata di ascolto: 2048 tick con finestra di Hann, frequenze 0,86…0,94; si prende il picco dello spettro.
+   Seconda passata: 2048 tick al picco, partendo dal risultato della prima. Il picco cade a 0,8995 con tutti e due
+   i nuclei.
+3. **Proiezione P0 sulla valle k = 0**: si tengono solo le celle di Fourier più vicine a k = 0 (o alle sue copie a π),
+   le stesse di `valley_split` della fase 2, e si rinormalizza.
+
+Con il nucleo imparato lo stato ascoltato era già al 98,9 % in k = 0 (spin 0,926). La proiezione toglie appena l'1 %:
+ne esce lo spin 0,933. Con il nucleo nudo lo stato ascoltato era al 48,7 % in k = 0 (spin 0,52, come E5); dopo la
+proiezione, spin 0,933 anche lì. Le due partenze sono quindi praticamente la stessa: cambia solo il nucleo.
+
+### 13.4 Esami pre-registrati
+
+| esame | cosa | misura | soglia | esito |
+|---|---|---|---|---|
+| F1 | lo stato preparato è un elettrone k = 0 polarizzato | peso in k = 0 1,000; ⟨Σz⟩ 0,933 | ≥ 0,99; ≥ 0,9 | **PASS** |
+| F2 | (a) quasi stazionario per 4000 tick | fedeltà minima 0,965; peso minimo in k = 0 0,966 | ≥ 0,9 | **PASS** |
+| F3 | (b) i surfisti girano come Bohm–Dirac | v_φ/(Zα sinθ) = 0,869 / 0,866 / 0,857 / 0,847 | [0,75; 1,25] | **PASS** (4 finestre su 5, C1) |
+| F4 | i surfisti restano \|ψ\|² | max \|z\| = 2,8 | ≤ 4 | **PASS** |
+| F5 | (c) il controllo col nucleo nudo si comporta diverso | peso minimo in k = 0 0,04; surfisti fuori finestra in 4 finestre su 4 | < 0,5 oppure ≥ 2 fuori | **PASS** |
+| F6 | la corrente è nello stato, non la fanno i surfisti | v_φ del flusso a t = 0: 0,877 | [0,75; 1,25] | **PASS** |
+
+**C1 (dichiarato):** la quinta finestra dei surfisti (tick 3990) non è mai stata misurata. Il ciclo si ferma a
+t = 4000 prima che la finestra si chiuda (errore mio in `surf_f3.py`). F3 e F5 sono giudicati sulle 4 finestre
+misurate. Come valore tardivo c'è la corrente dello stato a t = 3900: 0,834.
+
+### 13.5 Cosa vuol dire, e cosa no
+
+* **Validazione, non scoperta:** ritroviamo la rotazione di Bohm–Dirac nota. Il punto nuovo è il meccanismo sul
+  reticolo. Gli stati stazionari esatti della regola non portano corrente netta (§12.8), ma un elettrone tenuto
+  nella valle giusta sì, finché le valli non si mescolano.
+* **0,87 e non 1.** Un 13 % sotto Dirac, con una lenta discesa (0,877 → 0,834 in 3900 tick, mentre la fedeltà
+  passa da 1 a 0,965). La discesa è il battimento residuo delle valli (periodo ~6·10⁴ tick). Il 13 % è con ogni
+  probabilità l'errore del reticolo a θ = a = 0,5 (lontano dal continuo), ma **non l'ho misurato**: sarebbe da
+  rifare a = 0,3 o 0,25 con il nucleo trasferito di NUCLEO_1S §14. Debito.
+* **Il nucleo imparato non toglie i doppioni:** toglie solo la loro mescolanza. Gli autostati esatti del reticolo
+  restano doppietti mescolati e senza corrente; il nostro stato è un pacchetto quasi stazionario di 4 doppietti,
+  che dopo ~3·10⁴ tick si sfaserebbe. Per un 1s polarizzato **stazionario per sempre** serve una regola senza
+  valli doppie (o con valli pesanti). Questo resta il limite della strada, ora con la cura in mano.
+* **Per il Laboratorio:** con il nucleo imparato (patch già proposta in NUCLEO_1S §13.2) e lo stato iniziale
+  proiettato su k = 0, i surfisti esatti girerebbero davvero, per tempi lunghissimi rispetto a quelli di una scena.
+  Costo della proiezione: 2 FFT, una volta sola alla preparazione.
+
+### 13.6 Debiti e parametri (fase 3)
+
+* Parametri liberi nuovi: **0**. I due numeri (s0, s1) vengono da NUCLEO_1S, già contati lì.
+* Scelte dichiarate: la proiezione P0 (cella di Fourier più vicina), 2 × 2048 tick di ascolto, 4000 tick di corsa,
+  la finestra della misura di E5.
+* Debiti:
+  - il 13 % mancante, non studiato contro a;
+  - lo stato è quasi stazionario, non stazionario: gli autostati esatti non portano corrente;
+  - la finestra 3990 non misurata (C1).
+
+### 13.7 Dove l'intuizione di Valerio può aiutare (fase 3)
+
+1. **L'elettrone che "sceglie" la sua copia.** Nella regola ci sono 4 copie, e il nucleo puntiforme le mescola.
+   Il nucleo imparato le lascia stare, così l'elettrone resta in quella in cui l'hai messo. Ti basta come immagine
+   ("il nucleo vero non deve far cambiare copia all'elettrone"), o vuoi una regola in cui la copia sbagliata non
+   esista proprio?
+2. **Che velocità aspettarsi.** Il giro dei surfisti è l'87 % di quello di Dirac sul reticolo del Laboratorio.
+   Vuoi che il prossimo passo sia vedere se va a 1 restringendo la cella, o metterlo subito nel Laboratorio come
+   è (si vede già girare)?
