@@ -48,6 +48,11 @@ File: motore `lab/locale_core.py`, candidati `lab/locale_cands.py`, pre-registra
    bene da θ = 0,05); la luce di sorgenti piccole "esce dal cono" 3–20 volte più della congelata, fino a 1,57 c (P6
    FAIL). Nessun paradosso: il tick è un "adesso" globale, niente anelli causali. Anche la congelata ha un precursore
    (√2 in diagonale). S4 resta ottimo per la luce libera ben risolta (≥ 13 celle/λ, sorgenti ≥ 24 celle).
+7. **Fase 3 (§12):** le 8 copie, le 4 valli del battimento 1s e le "4 + 4 specie" del vuoto sono la stessa cosa:
+   8 mondi identici, ognuno con 4 elettroni massivi (1 vero + 3 doppioni) e 4 coni **senza massa** a quasi-energia π.
+   Il Wilson ritorto spegne i 3 doppioni massivi: l'1s 3-D col nucleo sull'angolo passa da 25/25/25/25 % sulle valli
+   a 92 % nella valle vera. Le coppie fisiche non cambiano (≤ 1,9 %). Ma i coni π restano senza massa e fanno coppie
+   senza soppressione. Il protone vero non chiude il pavimento s di S4.
 
 Tabellone: r1 **66 PASS / 1 FAIL**, r2 **33 PASS / 16 FAIL**, r3 **20 PASS / 12 FAIL**, emendamento 6/0.
 Molti FAIL sono **previsti nella pre-registrazione** (la regola congelata che fallisce gli esami dei doppioni); quelli
@@ -571,4 +576,141 @@ OMP_NUM_THREADS=1 python lab/locale_s4_prereg.py            # pre-registrazione 
 OMP_NUM_THREADS=1 timeout 590 python lab/locale_s4_run.py   # P3-P7 (171 s; exit 3 = rilanciare)
 OMP_NUM_THREADS=1 timeout 590 python lab/locale_s4_diag.py  # diagnosi dopo la corsa (~5 min)
 python lab/locale_s4_figure.py
+```
+
+---
+
+## 12. Fase 3: vuoto di coppie col Wilson ritorto, valli del battimento 1s, nucleo finito, precursori 3-D
+
+File: pre-registrazione `lab/locale_f3_prereg.py` → `lab/out/locale_f3_prereg.json` (commit **c095eb9**, prima delle
+corse), emendamento dichiarato (chiesto dopo, per il battimento) `lab/locale_f3_amend_prereg.py` →
+`lab/out/locale_f3_amend_prereg.json` (commit **3d822c9**, prima della sua corsa), corse `lab/locale_f3_run.py` →
+`lab/out/locale_f3_run.json` e `lab/locale_f3_valleys.py` → `lab/out/locale_f3_valleys.json`, esplorazione **non**
+pre-registrata `lab/locale_f3_stagger.py` → `lab/out/locale_f3_stagger.json`, figura `lab/locale_f3_figure.py` →
+`lab/out/locale_f3_figure.png`.
+
+![fase 3](../lab/out/locale_f3_figure.png)
+
+*Sinistra: coppie create dal vuoto in un campo E = E_c, valle per valle, in unità delle coppie di Schwinger di una sola
+specie. La congelata ha 4 valli a energia 0 che fanno ognuna le coppie di un elettrone vero, più 4 valli a quasi-energia π
+senza massa che ne fanno 23 volte tanto. Il Wilson ritorto spegne le 3 valli N ma non le valli π. Destra: contenuto di
+Fourier dei livelli "1s" 3-D col nucleo sull'angolo: con la congelata ogni livello è metà Γ e metà N (25/25/25/25 %),
+col Wilson è tutto Γ.*
+
+### 12.1 In breve (per Valerio)
+
+1. **Conti riconciliati** (tabella sotto). Le 8 copie su 2Z³, le 4 valli del battimento e le "4 + 4 specie" del vuoto
+   sono **la stessa cosa contata a due livelli**. Il reticolo contiene **8 mondi identici** che non si parlano (le
+   copie). **Dentro ognuno** ci sono 8 punti di Dirac: 4 a energia 0 con massa m (l'elettrone vero più 3 doppioni,
+   cioè le 4 valli del battimento) e 4 a quasi-energia π **senza massa**.
+2. **Il Wilson ritorto toglie le 4 valli che il nucleo mescola.** Nel modello ridotto (48³, Z = 60, θ = 0,5, nucleo
+   sull'angolo di 8 celle) la congelata riproduce il battimento: livelli 0,7853 / 0,8976 / 0,8985 / 0,8988, ognuno
+   **25/25/25/25 %** sulle 4 valli. Col Wilson ritorto (h = 0,1) il livello profondo finto sparisce e l'1s sta al
+   **92 % nella valle Γ**, con 0,2 % per ogni valle N. Resta una coppia di livelli vicini (0,8811 / 0,8822): sono
+   **entrambi** in Γ, quindi non sono copie di valle. Gli esami scritti però falliscono alla lettera (vedi 12.3).
+3. **Ma il vuoto ha un buco più grosso: le valli π sono senza massa.** È vero sia per la congelata sia per il Wilson
+   ritorto (mezzo gap misurato 0). In un campo E = E_c le 4 valli π fanno **23 volte** le coppie di un elettrone
+   vero ciascuna (senza la soppressione exp(−π m²/E)); con E = 4 E_c fanno 2 volte. Il Wilson ritorto **non le tocca**.
+   Il motivo: a quei momenti ogni termine che mescola la chiralità (il flip di massa, il Wilson) cambia segno tra i due
+   tick del periodo e si cancella. Un Wilson **alternato nel tempo** le apre (mezzo gap 0,40 e 1,19), ma rovina la
+   massa cinetica (−9 %): esplorazione, non una cura (12.5).
+4. **h non si fissa da un principio pre-registrato:** il gap minimo dei doppioni G(h) è 0 per ogni h, a causa delle
+   valli π (S3 FAIL). Se si guardano solo le valli a energia 0, il loro gap g0(h) ha il massimo a **h ≈ 0,6 per ogni θ**
+   (0,601 / 0,596 / 0,595 per θ = 0,1 / 0,05 / 0,02). Ma questo è dopo aver visto i dati, e la curva ha buchi
+   (h = 0,4 e 0,8): resta una proposta.
+5. **Nucleo finito: il pavimento degli stati s di S4 NON sparisce.** Il protone vero (0,84 fm = 2,2·10⁻³ λ_C) sta
+   tutto dentro la prima cella per ogni θ provato, quindi cambia l'energia di **0 esatto**. Anche con un Coulomb
+   addolcito a scala 0,1 a₀ (diagnosi, non fisica) gli stati s restano sul pavimento erratico di ~10⁻⁵, mentre i p
+   scendono come θ⁴. Quindi la causa **non** è la singolarità del Coulomb né la dimensione del nucleo: è la zona
+   vicino a r = 0 per le onde s. La mia ipotesi di fase 2 (solo il termine κ/r) è smentita, perché 2p½ ha lo stesso
+   |κ| e scende pulito. Resta aperto.
+6. **Precursori in 3-D:** come in 2-D. Sorgente liscia R = 12: fuori cono 1,1·10⁻⁵ (S4) contro 3,1·10⁻⁶ (congelata);
+   R = 6: 2,0·10⁻³ contro 1,0·10⁻⁴. Velocità in diagonale di corpo v(10⁻¹²): 1,59 c (S4) contro 1,26 c (congelata).
+
+### 12.2 Tabella unica dei conti (3-D)
+
+| livello | che cosa | quante | massa (congelata) | col Wilson ritorto | chi l'ha visto |
+|---|---|---|---|---|---|
+| reticolo intero | copie su 2Z³ (classi di parità: la classe p ai tick pari, p + (1,1,1) ai dispari); W(k + π e_j) = W(k) | **8** mondi identici, non si parlano | — | restano 8 (il Wilson salta di 2 celle); innocue, basta tenerne una (÷8) | questo studio §2; BATTIMENTO "copie a +π, che sui tick pari sono la stessa cosa"; "le 8 classi hanno 1/8 del peso" |
+| dentro una copia, energia 0 | Γ (k = 0) | 1 | m | m (identica; R_Γ cambia di +0,7 / +1,4 / +1,9 %) | l'elettrone vero |
+| dentro una copia, energia 0 | N = (π/2, π/2, 0) e permutazioni | 3 | **m** (stesso spettro a 7·10⁻¹⁶) | mezzo gap 0,80/a al punto N, ≥ 0,43/a in tutta la zona (θ = 0,1) | BATTIMENTO: insieme a Γ sono "le 4 valli"; VUOTO: "4 specie massive" |
+| dentro una copia, quasi-energia π | (π/2, 0, 0) ×3 e (π/2, π/2, π/2) | 4 | **0** (coni senza massa) | **0** (non toccate) | VUOTO: "4 coni senza massa a quasi-energia π"; qui in Schwinger R = 23 |
+| totale per copia | | 4 massive + 4 senza massa | | 1 massiva + 4 senza massa | |
+| totale nel reticolo | | 8 × (4 + 4) = 64 punti di Dirac | | 8 × (1 + 4) | |
+
+"Cella di lato π" di VUOTO = la zona di **una** copia (passo 2 → zona di lato 2π/2 = π). Le chiralità sono quelle di §3.
+
+### 12.3 Tabellone della fase 3
+
+| esame | numeri | esito |
+|---|---|---|
+| S1 coppie fisiche invariate (Γ, Wilson h = 0,1 vs congelata) | +0,65 %, +1,36 %, +1,85 % per E/E_c = 1, 2, 4 (soglia 2 %) | **PASS** |
+| S2 doppioni: congelata somma ≥ 1; Wilson ≤ 10⁻³ | congelata: N 3,24 + π 92,3 (E = E_c); Wilson: N 6,6·10⁻³, π 142 | **FAIL** (valli π senza massa; anche N sta sopra 10⁻³, vedi sotto) |
+| S3 h da un principio | G(h) = 0 per ogni h (valli π) → nessun massimo interno | **FAIL** |
+| N1 nucleo finito chiude il pavimento | 0 celle dentro il protone; cambio 0 esatto; rapporto 1s 0,1→0,05 = 7,2 e 2s 2,2 come prima | **FAIL** (come previsto) |
+| N2 diagnosi Coulomb addolcito b = 0,1 a₀ | 1s S4: 2,7·10⁻⁵, 1,6·10⁻⁵, −7,1·10⁻⁶ per θ = 0,1, 0,05, 0,025 (erratico); 2p½: −6,5·10⁻⁶ → −4,4·10⁻⁷ | informazione: **non** è il Coulomb |
+| C3 precursori 3-D, R = 12 | fuori cono S4 1,1·10⁻⁵ (> 10⁻⁶); v(10⁻⁶) corpo 1,10 c | **FAIL** (anche la congelata: 3,1·10⁻⁶, 1,09 c) |
+| V2 controllo: congelata, angolo, ≥ 3 livelli | 4 livelli (0,7853 12 %; 0,8976 / 0,8985 / 0,8988, 23 % ciascuno), ma residui 2·10⁻⁶ – 1·10⁻⁵ > 10⁻⁶ richiesto | **FAIL alla lettera** (soglia sul residuo troppo stretta per 700 periodi; il multipletto c'è) |
+| V3 Wilson, angolo: un solo livello ≥ 2 %, ≥ 90 % del peso | h = 0,1: 0,8811 (78 %) + 0,8822 (7 %), quota 91 %; h = 0,6: 0,9211 (58 %) + 0,9215 (31 %), quota 65 % | **FAIL** (due livelli) |
+| V3 (aggiunta dichiarata, informazione): contenuto di valle | congelata: ogni livello 24,5 % per valle; Wilson h = 0,1: Γ 92 %, ogni N 0,2 %, ogni π ≤ 0,14 % | le valli **non** si mescolano più |
+| V4 centro di cella (informazione) | congelata: 0,9019/0,9020 (residuo 3·10⁻⁴, mal risolti) e 0,9378; Wilson h = 0,6: nuovi livelli profondi a 0,813 / 0,816 / 0,683 | il nucleo su un sito con h = 0,6 **crea** livelli finti |
+
+**Note oneste:**
+
+- Il residuo N di S2 (R ≈ 10⁻³ – 10⁻², mentre exp(−π · 0,43²/E) ≈ 10⁻²⁵) non scala con E. È quasi certamente il
+  "pavimento numerico" della spazzata a scalini (il campo dà un calcio a ogni periodo): non è fisica, ma non l'ho
+  dimostrato.
+- Il Wilson **sposta l'1s** a θ = 0,5: 0,8811 (h = 0,1) e 0,9211 (h = 0,6) contro 0,898 della congelata (Dirac
+  0,89907). Sul reticolo grosso del Laboratorio il Wilson non è gratis: cambia la fisica vicino al nucleo di
+  ~2 %. A θ = 0,1 invece non cambia né la massa né la massa cinetica (fase 1).
+- La coppia rimasta (0,8811 / 0,8822, separazione 1,1·10⁻³, entrambi in Γ) è probabilmente l'1s spezzato dalla forma
+  cubica della prima cella. Non è dimostrato.
+- Deviazioni: h* del prereg è venuto 0,05 (argmax di una curva tutta a 0). La corsa "F2 a h*" quindi è un secondo
+  Wilson debole, non un principio.
+
+### 12.4 Cosa vuol dire per il battimento del Laboratorio
+
+La cura del thread principale (prendere un livello esatto come 1s) resta giusta per l'esperimento: è una scelta dello
+stato, non della regola. Il Wilson ritorto è la cura **della regola**: toglie la degenerazione delle 4 valli e così
+l'1s 3-D diventa uno solo. Prezzi: (a) a θ = 0,5 sposta l'1s del 2 % e, col nucleo su un sito e h grande, crea livelli
+finti; (b) non tocca le valli π; (c) costa ~10 volte i fattori per periodo (link). Proposta (non applicata):
+**Wilson ritorto h = 0,1 + nucleo sull'angolo**, da provare nel Laboratorio con una richiesta di ponte (NON creata):
+`ponte/richieste/locale_wilson_1s.json` con `{"azione": "test", "nome": "battimento_libero", "regola": "zigzag+wilson_y",
+"h": 0.1}`. Atteso: p_exc senza luce < 10⁻² senza bisogno di scegliere il livello. Da rifare: B1–B4 di BATTIMENTO,
+`zz_atom3d` A1–A2, il conteggio del vuoto di VUOTO_POLARIZZA (le 3 specie massive in più devono sparire, i 4 coni π no).
+
+### 12.5 Esplorazione (non pre-registrata): Wilson alternato per le valli π
+
+Wilson con segno che cambia tra i tick (tick 0: h_u + h_s, tick 1: h_u − h_s), θ = 0,1:
+
+| h_u | h_s | mezzo gap N | X (π) | R (π) | min zona da π | m_cin/m − 1 | dispersione |
+|---|---|---|---|---|---|---|---|
+| 0 | 0 (congelata) | 0,100 | 0 | 0 | 0,112 | +3,4·10⁻³ | 1,9·10⁻³ |
+| 0,1 | 0 (F2) | 0,805 | 0 | 0 | 0,041 | +3,4·10⁻³ | 1,6·10⁻³ |
+| 0 | 0,1 | 0,100 | 0,398 | 1,187 | 0,414 | **−8,8·10⁻²** | 7,4·10⁻⁴ |
+| 0,1 | 0,1 | 0,805 | 0,398 | 1,187 | 0,412 | **−0,24** | 2,0·10⁻³ |
+
+Il Wilson alternato **apre le valli π**, ma cambia la massa cinetica (−9 % / −24 %): al secondo ordine in k non si
+cancella come speravo. Non è una cura. Resta la domanda per una fase 4: un termine che apra le valli π e sia zero
+fino a O(k⁴) vicino a Γ.
+
+### 12.6 Debiti e parametri (fase 3)
+
+- Parametri: il Wilson ha **1 manopola h**, ancora messa a mano (nessun principio pre-registrato ha funzionato).
+- Debiti aperti: **valli π senza massa** (nuovo, il più importante per il vuoto: in campo fanno coppie senza
+  soppressione); pavimento s di S4 (causa vicino a r = 0, non il nucleo); coppia 0,8811/0,8822 non spiegata; residuo
+  numerico della spazzata a scalini.
+- Debito chiuso in parte: "le 4 valli del battimento" hanno una cura locale nella regola (Wilson ritorto), verificata
+  nel modello ridotto (contenuto di valle 92 % Γ).
+
+Come rifare la fase 3:
+
+```
+OMP_NUM_THREADS=1 python lab/locale_f3_prereg.py            # (già committata, c095eb9)
+OMP_NUM_THREADS=1 python lab/locale_f3_amend_prereg.py      # (già committata, 3d822c9)
+OMP_NUM_THREADS=1 timeout 590 python lab/locale_f3_run.py   # rilanciare finché exit 0 (~6 pezzi)
+OMP_NUM_THREADS=1 timeout 590 python lab/locale_f3_valleys.py      # 6 configurazioni (~5 pezzi)
+OMP_NUM_THREADS=1 timeout 590 python lab/locale_f3_valleys.py vw   # contenuto di valle (2 pezzi)
+OMP_NUM_THREADS=1 python lab/locale_f3_stagger.py
+python lab/locale_f3_figure.py
 ```
