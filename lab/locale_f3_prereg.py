@@ -1,0 +1,51 @@
+"""locale_f3_prereg.py - pre-registration of PHASE 3 of REGOLA LOCALE, written BEFORE lab/locale_f3_run.py.
+Earlier pre-registrations (locale_prereg.json, locale_s4_prereg.json) are NOT modified. Writes lab/out/locale_f3_prereg.json."""
+import json, os, subprocess, datetime
+OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "out")
+head = subprocess.check_output(["git", "rev-parse", "HEAD"]).decode().strip()
+P = {
+ "meta": {"written": datetime.datetime.now().isoformat(timespec="seconds"), "git_head_before": head},
+ "questions": [
+  "(1) Schwinger / vacuum pairs in 3-D: do the doublers of the frozen rule add spurious pairs ('does the second sheet "
+  "count double?'), and does the twisted local Wilson F2 remove them without touching the physical pairs? Can h be fixed "
+  "by a principle instead of by hand?",
+  "(2) Does a finite nucleus (true proton radius, an allowed input) remove the floor of the S4 s-states?",
+  "(3) If time allows: precursors of light in 3-D."],
+ "method": {
+  "schwinger": "3-D Dirac walk of ONE copy (zone k in [-pi/2, pi/2)^3), theta = 0.1, m = theta, E_c = m^2. Constant field "
+               "along z: k_z(t) = k_vz - 0.4 + E t (0.8 total sweep, = +-4 m), k_perp fixed; per period the Bloch matrix "
+               "is evaluated at the k of the period midpoint (same treatment for F0 and F2). Valleys v: energy 0: Gamma, "
+               "(1/2,1/2,0), (1/2,0,1/2), (0,1/2,1/2); energy pi: (1/2,0,0), (0,1/2,0), (0,0,1/2), (1/2,1/2,1/2) (units of "
+               "pi). Start: the 2 bands below the valley energy c_v (sign of the phase measured from c_v), end: probability in "
+               "the 2 bands above. k_perp grid +-0.25 around the valley, step 0.0125. R_v = sum P_lat / sum 2 exp(-pi (m^2 + "
+               "k_perp^2)/E) (continuum, 2 spins, same grid). E/E_c in {1, 2, 4}. Walks: F0 (frozen), F2 (twisted Wilson, "
+               "h = 0.1 as in phase 1) and F2 at h* (below).",
+  "h_principle": "G(h) = smallest half-gap (per unit time) over the 7 doubler valleys AND over a 24^3 zone grid outside "
+                 "|k| < 0.4, for h on a grid in (0, pi/2], theta = 0.1, 0.05, 0.02. Candidate principle: h* = argmax G "
+                 "(the strongest possible separation of the doublers). Cost: dispersion and kinetic mass (D2, D3 of phase 1).",
+  "nucleus": "radial S4 and frozen, Z = 1, uniformly charged sphere of radius R_p = 0.8414 fm = 2.1789e-3 / m (reduced "
+             "Compton wavelength 386.159 fm): V = -Z alpha (3 - r^2/R_p^2)/(2 R_p) inside. theta in {0.1, 0.05, 0.025}. "
+             "Reference: Sommerfeld-Dirac point formula (the true finite-size shift of 1s is ~1e-10 relative, below every "
+             "lattice error here). Diagnostic (not physics): softened Coulomb -alpha/sqrt(r^2 + b^2), b = 0.02 and 0.1 a0, "
+             "reference = 3-point Richardson of the frozen rule at theta 0.05, 0.025, 0.0125.",
+  "precursors_3d": "light 3-D, box 192^3, F = (0, 0, f), smooth f = (1 - r^2/R^2)^4, R in {6, 12}, t = 60 (S4: 5 periods, "
+                   "frozen: 30), frozen and S4: energy fraction at r > t + R + 1 at t = 60; receiver at distance 50 on the "
+                   "axis and on the body diagonal, v(eps) for eps = 1e-3, 1e-6, 1e-9, 1e-12 (log interpolation, as P6)."},
+ "exams": {
+  "S1_physical_pairs": "|R_Gamma(F2, h = 0.1) / R_Gamma(F0) - 1| <= 2 % for E/E_c = 1, 2, 4.",
+  "S2_doubler_pairs": "prediction: frozen sum over the 7 doubler valleys of R_v >= 1 at E/E_c = 1 (the doublers at least "
+                      "double the vacuum pairs); F2 (h = 0.1): sum of doubler R_v <= 1e-3 for E/E_c <= 4. PASS = both true.",
+  "S3_h_principle": "G(h) has an interior maximum in (0, pi/2) at theta = 0.1, and at h* the dispersion error D2 <= 1e-2 "
+                    "and |m_kin/m - 1| <= 1e-3; h* is 'theta-free' if it changes by <= 10 % over theta in {0.1, 0.05, "
+                    "0.02}. Otherwise h* (theta) is reported as a relation (and h stays a declared knob).",
+  "N1_nucleus": "prediction: the finite proton changes the S4 1s and 2s energies by < 1e-9 (relative to binding) for "
+                "theta >= 0.025 (the proton is inside the first cell, a/2 >= 6e-3/m > R_p). The floor is 'closed' only if "
+                "S4 1s and 2s error ratio theta 0.1 -> 0.05 is >= 8 with the finite nucleus (expected: FAIL, floor stays).",
+  "N2_diagnostic": "if the S4 s-state floor (non-monotone, ~1e-6) persists with the softened Coulomb b = 0.1 a0, the cause "
+                   "is the centrifugal term kappa/r, not the Coulomb singularity (information, no PASS/FAIL).",
+  "C3_precursors_3d": "same rule as P6 for R = 12: outside fraction <= 1e-6 and v(1e-6) <= 1.01 (information if not reached; "
+                      "frozen reported alongside)."},
+}
+with open(os.path.join(OUT, "locale_f3_prereg.json"), "w") as f:
+    json.dump(P, f, indent=1, ensure_ascii=False)
+print("written")
