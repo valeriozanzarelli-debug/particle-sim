@@ -1,0 +1,8 @@
+{
+ "studio": "mg_oit",
+ "emendamento": 1,
+ "data": "2026-10-13",
+ "quando": "prima di ogni misura d'esame (solo una foto di prova al tick 13 per controllare il comando)",
+ "cambio": "tick dell'esame: la pre-registrazione diceva N = 4 lambda/c (bassa 48, alta 96), ma il fotone riparte da capo a 2 t_fuoco = 27 tick a bassa (scatola 8 lambda, sigma = 1 lambda) e 58 ad alta: il tick 48 a bassa non esiste. Nuovo N = 2,17 lambda/c: bassa 26, alta 52 (stesso istante fisico, la coda di 2 lambda/c ha gia' storia completa).",
+ "esami_e_soglie": "invariati"
+}
