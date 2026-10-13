@@ -36,8 +36,8 @@ if WIN == "bh":   # Blackman-Harris 4-term: side lobes -92 dB
     h = 0.35875 - 0.48829 * np.cos(2 * np.pi * x_) + 0.14128 * np.cos(4 * np.pi * x_) - 0.01168 * np.cos(6 * np.pi * x_)
 else:
     h = np.sin(np.pi * x_)**2
-om = np.arange(0.80, 1.06, 2e-5)
-S = np.abs(np.exp(1j * np.outer(om, tt)) @ (h * cc)) / np.sum(h)          # amplitude ~ weight of each level
+om = np.arange(float(os.environ.get("X5_LO", 0.80)), float(os.environ.get("X5_HI", 1.06)), 2e-5)
+S = np.concatenate([np.abs(np.exp(1j * np.outer(om[i:i + 2000], tt)) @ (h * cc)) for i in range(0, len(om), 2000)]) / np.sum(h)   # amplitude ~ weight of each level
 pk = [(float(om[i]), float(S[i])) for i in range(1, len(om) - 1) if S[i] > S[i - 1] and S[i] > S[i + 1] and S[i] > 1e-4]
 pk.sort(key=lambda p: -p[1])
 win1 = [p for p in pk if 0.880 <= p[0] <= 0.892]
@@ -48,7 +48,7 @@ res = dict(peaks=pk[:15], levels=dict(w1s=w1s, w12=w12, w32=w32), H1_weight=W1, 
            H1_peaks=win1[:3], H2_peaks=win2[:3], decision="H1 (1s-type level near w1s - 0.0131)" if W1 > W2 else "H2 (2p-type level near w2p + 0.0131)",
            predicted_lines=dict(from_H1=[w32 - (w1s - 0.0131), w12 - (w1s - 0.0131)]), seconds=time.time() - t0)
 res["NT"] = NT; res["window"] = WIN
-json.dump(res, open(os.path.join(OUT, "emiss_x5.json" if NT == 4000 else f"emiss_x5_{NT}_{WIN}.json"), "w"), indent=1)
+json.dump(res, open(os.path.join(OUT, "emiss_x5.json" if NT == 4000 else f"emiss_x5_{NT}_{WIN}" + os.environ.get("X5_TAG", "") + ".json"), "w"), indent=1)
 if os.path.exists(ck): os.remove(ck)
 print("peaks (omega, weight):", [(round(a, 5), round(b, 4)) for a, b in pk[:12]])
 print(f"H1 window [0.880, 0.892]: {win1[:3]};  H2 window [0.985, 0.996]: {win2[:3]}  -> {res['decision']}  ({time.time() - t0:.0f} s)")
