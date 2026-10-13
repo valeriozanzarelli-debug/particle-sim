@@ -27,7 +27,15 @@ GROUPS = {
 
 
 def sym_fit(job, group):
-    d = np.load(os.path.join(OUT, f"colla_fields_{job}.npz")); w = np.clip(d["b"].astype(float), 0, None)
+    fn = os.path.join(OUT, f"colla_fields_{job}.npz")
+    if not os.path.exists(fn):
+        # declared fallback (cloud 2026-10-12): the field files of the laptop runs are not in the repo (npz never committed).
+        # Use the asyms stored in the result json in the GRID orientation: an upper bound of the best-fit asym for
+        # rotations (so '< threshold' verdicts stay valid), and identical for the inversion (orientation independent).
+        a = run(job)["final"]["asym_grid"]
+        out = {k: a[k] for k in GROUPS[group]}; out["inv"] = a["inv"]; out["rot_deg"] = None; out["orientation"] = "grid (npz missing)"
+        return out
+    d = np.load(fn); w = np.clip(d["b"].astype(float), 0, None)
     _, c, _, _ = nc.moments(w, H)
     G = GROUPS[group]
 
@@ -77,7 +85,7 @@ ok2 = max(sh[2]["Cax"]) < 0.02 and sh[2]["ring_center_over_max"] < 0.1
 ok3 = max(sh[3][k] for k in ("C2x", "C2y", "C2z", "C3")) < 0.02 and sh[3]["inv"] > 0.3
 ok4 = max(sh[4][k] for k in ("Cz90", "C3", "inv")) < 0.02
 exam("C1c", ok2 and ok3 and ok4, f"B2 Cax30/45/90 = {np.round(sh[2]['Cax'], 4).tolist()}, centre/max {sh[2]['ring_center_over_max']:.3f}; "
-     f"B3 {({k: round(v, 4) for k, v in sh[3].items()})}; B4 {({k: round(v, 4) for k, v in sh[4].items()})}")
+     f"B3 {({k: (round(v, 4) if isinstance(v, float) else v) for k, v in sh[3].items()})}; B4 {({k: (round(v, 4) if isinstance(v, float) else v) for k, v in sh[4].items()})}")
 N["shapes_AN"] = sh
 cl = {B: (B * E1l - E(f"an_B{B}")) * Eu for B in (2, 3, 4)}
 N["AN_classical_MeV"] = {NAME[B]: cl[B] for B in cl}

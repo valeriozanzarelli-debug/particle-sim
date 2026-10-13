@@ -1,0 +1,55 @@
+"""locale_s4_prereg.py - pre-registration of PHASE 2 of REGOLA LOCALE: "is S4 better than the zig-zag?" (Valerio: the
+backward step is acceptable as part of the rule). Written BEFORE the production run lab/locale_s4_run.py.
+The phase-1 pre-registration (lab/out/locale_prereg.json) is NOT modified. Writes lab/out/locale_s4_prereg.json."""
+import json, os, subprocess, datetime
+
+OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "out")
+head = subprocess.check_output(["git", "rev-parse", "HEAD"]).decode().strip()
+P = {
+ "meta": {"written": datetime.datetime.now().isoformat(timespec="seconds"), "git_head_before": head},
+ "question": "Adopt S4 (palindromic composition of zig-zag blocks with integer steps m = (1,1,1,1,-2,1,1,1,1)) instead "
+             "of the frozen zig-zag? What does its lattice light cone (1.667 c) do: precursors, signals, paradoxes?",
+ "engine": "lab/locale_core.py (3-D/2-D walks), lab/locale_s4_core.py (1-D Dirac in k-space with minimal coupling, "
+           "radial hydrogen RadialS4 = the RadialWalk shift and local rotation composed with the sequence; SEQ_FROZEN = "
+           "(1,) reproduces the frozen spectrum).",
+ "exams": {
+  "P1_cells": "N_1% (worst of phase, group, diffraction) of S4 <= 0.6 x frozen, 2-D and 3-D. (Already measured in phase 1: "
+              "14.4/36.3 and 14.6/36.3; restated, not re-run.)",
+  "P2_mass": "3-D Dirac S4 at theta = 0.1: |E(0)/m - 1| <= 1e-12 and |m_kin/m - 1| <= 1e-4 (phase 1: 1.8e-5; restated).",
+  "P3_hydrogen": "radial form, Z = 1, infinite nucleus, rmax = 30 a0, theta in {0.2, 0.1, 0.05}: relative binding error "
+                 "vs the Sommerfeld-Dirac formula for 1s, 2s, 2p1/2, 2p3/2. PASS if at theta = 0.1 S4 is >= 10x better "
+                 "than frozen for all four, AND the S4 error ratio theta 0.1 -> 0.05 is >= 8 for all four, AND the fine "
+                 "structure 2p3/2 - 2p1/2 of S4 has relative error <= 1e-4 at theta = 0.1. Eigen residual <= 1e-8.",
+  "P4_schwinger": "1-D Dirac, theta = 0.1, constant field E/E_c in {0.5, 1, 2, 4} (E_c = m^2 in lattice units): one mode "
+                  "starting in the negative band at k_eff = -0.4, swept to +0.4; probability in the positive band vs "
+                  "exp(-pi m^2/E). PASS if |P/P_Schwinger - 1| <= 5% for E/E_c in {1, 2, 4} for S4 (frozen reported "
+                  "alongside). Information: the same sweep to +-0.8, crossing the first Floquet fold of S4.",
+  "P5_folding": "S4 period is 6x (1-D) / 6x (3-D) longer than the frozen one, so quasi-energies fold 6x sooner. (a) light "
+                "2-D/3-D: no avoided crossing of a moving band with gap > 1e-6 (eigenvalue splitting) for N >= 13 cells/"
+                "lambda; (b) 1-D Dirac: report the gap at the first fold (k where E T = pi) and the window |E| < pi/T in "
+                "units of m.",
+  "P6_causality": "2-D light, box 384^2, source at the centre, F = (0, 0, f) (transverse), run to t = 120 (lattice units, "
+                  "c = 1), frozen and S4. Smooth compact source f = (1 - r^2/R^2)^4 for r < R, R in {3, 6, 12, 24}; sharp "
+                  "disk R = 12. Measure the energy fraction at r > t + R + 1 (outside the TRUE light cone) at t = 30, 60, "
+                  "90, 120, and the arrival time at a receiver at distance 100 (axis and diagonal) for thresholds "
+                  "eps = 1e-3, 1e-6, 1e-9, 1e-12 of the peak energy density there -> v(eps) = (100 - R)/t. PASS (causality "
+                  "acceptable) if for smooth R >= 6 the outside fraction at t = 120 is <= 1e-6 and v(1e-6) <= 1.01 c, "
+                  "AND for the sharp disk the outside fraction of S4 is <= 10x the frozen one.",
+  "P7_variants": "the cone of an integer 4th-order composition with |m| <= c is >= (c^2+1)/(c^2-1) (analytic, checked on "
+                 "all solutions of the phase-1 search); variant seq_c(4) (32 ones, -4, 32 ones; cone 1.133): N_1% "
+                 "(2-D) and Floquet folding reported (information).",
+ },
+ "verdict_rule": "ADOPT if P1, P2, P3, P4, P6 pass. ADOPT WITH A WINDOW if only P6 fails for sharp/unresolved sources and "
+                 "P5(a) passes. DO NOT ADOPT if P3 or P4 fail.",
+ "dev_seen_before_prereg": {
+   "hydrogen": "theta 0.2/0.1: S4 1s -4.1e-4/-3.1e-5, 2s -1.2e-4/-7.9e-6, 2p +9.7e-5/+6.5e-6; frozen 1s -1.3e-2/-3.1e-3, "
+               "2p -4.5e-3/-1.1e-3",
+   "folding_1D": "S4 (T = 6 in 1-D) pi-gap 0.048 rad per period at k = 0.51 (E = 5.2 m at theta = 0.1); frozen 0.1 at k = pi",
+   "folding_light": "S4 2-D: crossings of the two moving bands at kT = pi exact (gap ~1e-8); moving vs static at kT = 2pi "
+                    "(k ~ 0.52, N ~ 12) avoided, gap 0.02-0.19 depending on direction",
+   "c4": "1-D: T = 60, pi-gap 0.029 at k = 0.12, near-zero folded gap 1e-3",
+ },
+}
+with open(os.path.join(OUT, "locale_s4_prereg.json"), "w") as f:
+    json.dump(P, f, indent=1, ensure_ascii=False)
+print("written")

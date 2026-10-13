@@ -47,13 +47,14 @@ dove le impostazioni grafiche sono i livelli di agglomerato e il motore scala co
 | Fotone (regola a due ruoli, 96 esperimenti) | fatto, storico | `ESPERIMENTI_FOTONE.md`, `REGOLA_BASE.md`, `MULTIFOTONE.md` |
 | Regola zig-zag: luce, elettrone, idrogeno 13,60575 eV, struttura fine | fatto | `ZIGZAG.md` |
 | Fotone libero 3D zig-zag nel Laboratorio Atomo (E, B, elica, Poynting) | fatto, grafica rifatta | `ATOMO.md` |
-| Atomo vivo zig-zag (ione a 1 elettrone Nd⁵⁹⁺, risonanza 1s→2p dalla regola) | fatto | `ATOMO.md` |
+| Atomo vivo zig-zag (ione a 1 elettrone Nd⁵⁹⁺, risonanza 1s→2p dalla regola); orbitali n ≤ 4 sulla mesh a cipolla dello zoom (13/10): tutti entro 0,36 % di Dirac (1s +0,05 %, prima +39,9 %) | fatto; l'atomo 3-D dal vivo resta con celle cubiche da 0,5 (1s +40 %, debito 12 di `NUCLEO_1S.md`) | `ATOMO.md`, `NUCLEO_1S.md` |
 | Vuoto di coppie (Schwinger 0,3%, Sauter 0,5%, scatola stretta) | fatto | `IDEE_RIPRESE.md`, `COPPIE_IN_SCATOLA.md` |
 | Molecole dalla regola DMC: H, He, H₂ (vibrazione ora −0,2%) | fatto, storico | `MOLECOLE.md`, `H2_VIBRAZIONE.md` |
 | Relatività da un fluido di palline (Lorentz 1,5%) | fatto | `FLUIDO_IN_NEGATIVO.md` |
 | Protone come nodo (Skyrme): una massa, Lorentz fino a 0,6c, annichilazione 98–99% | fatto | `NODO_3D.md` |
 | Pressione dentro il protone (cambio di segno 0,605 vs 0,586 fm) | fatto | `PRESSIONE.md` |
 | Nuclei da nodi: toro, tetraedro, cubo nascono da soli; legame ×11–32 troppo forte | fatto | `NUCLEI_DA_NODI.md` |
+| Colla dei nuclei: massa del pione, trottola quantistica, punto zero (0 parametri) non bastano (deuterone 78–160 MeV); GHS con 1 parametro: d 3.2, ³He 8.75, ⁴He 16.6 MeV a α = 0.95, ma nessun α mette a posto tutti e tre e le forme platoniche si perdono | fatto (13/10), debito: deuterone quantistico con vibrazioni accoppiate | `COLLA.md` |
 | Zoom ad agglomerati sul nodo: p(0) −0,08%, E −0,16% con meno celle | fatto | `ZOOM_NODO.md` |
 | Glueball (materia da luce autointeragente, 2+1 D SU(2)): massa base entro 4% | fatto, dettagli falliti | `GLUEBALL.md` |
 | Carica come giro su cerchio nascosto: carica sì, massa no (×10²¹) | fatto, fallito sulla massa | `CARICA_NASCOSTA.md` |
@@ -70,7 +71,7 @@ Quattro studi erano in corso quando è stato scritto questo file. Se uno risulta
 | Cantiere | File | Obiettivo | Esami principali |
 |---|---|---|---|
 | **Agglomeratore sulla zig-zag** | `lab/agg_zz_*`, `docs/AGGLOMERATO_ZIGZAG.md`, `assets/atomo/agglomerato_zz.json` | imparare dai dati la regola dei blocchi della zig-zag (deve uscire Schrödinger + correzioni (v/c)²), scelta automatica dei livelli con budget di errore; idrogeno vero a scala di Bohr con poche celle; zoom fine solo vicino al protone | 1s entro 0,1% di −13,6057 eV; massa dal flip entro 1%; −k⁴/8m³ entro 10%; costo ridotto ≥ b²; legge dei costi per N elettroni e piano per imparare la regola a molti elettroni da 2–3 elettroni esatti |
-| **Colla dei nuclei** | `lab/colla_*`, `docs/COLLA.md` | trovare i pezzi mancanti del legame troppo forte | massa del pione; quantizzazione rotazionale + punto zero (0 parametri; deuterone quantizzato ~6 MeV secondo Braaten–Carson 1988, da verificare); varianti con 1 parametro (GHS 2015, termine sestico); tabella parametri vs legame |
+| ~~Colla dei nuclei~~ **chiuso 13/10** | `lab/colla_*`, `docs/COLLA.md` | trovare i pezzi mancanti del legame troppo forte | chiuso: vedi §3 e `COLLA.md` (C3a-iv FAIL: a α\* = 0.894 deuterone ×2.5–3.4; resta il debito del deuterone come nuvola quantistica, idea "valle del deuterone" scritta nei debiti, non corsa; sestico B = 3 non fatto) |
 | **Reticolo universo** | `lab/reticolo_*`, `docs/RETICOLO_UNIVERSO.md`, `assets/atomo/reticolo_spec.json` | reticolo sparso a livelli (h_k = 2^k h_0), stessa regola della luce su ogni livello, cucitura tra livelli | velocità c su ogni livello (0,5%); passaggio fine↔grosso ≥ 99% con ≥ 16 celle/λ (curva di riflessione onesta); gamma al livello 0 e radio al livello 20 nello stesso mondo; stima onesta per una scatola grande come la Via Lattea |
 | **Laboratorio Atomo: grafica + orbitali** | `src/atomo/**` (in particolare `fotscena.rs`, `render_zz.rs`, `orbitali.rs`), `docs/ATOMO.md` | (fatto) fotone con palline che cavalcano il campo e surfisti; (in corso) atomo a un elettrone con selettore n = 1..4, l = s..f, m e sovrapposizioni; da lontano forme degli orbitali come gusci morbidi, da vicino dinamica pallina per pallina | grafica almeno bella quanto il Laboratorio Fotone vecchio; niente orbitali da tabella |
 

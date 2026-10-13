@@ -1,0 +1,13 @@
+{
+  "id": "2026-10-13_foto_assorbe_f3600",
+  "azione": "foto",
+  "ok": true,
+  "inizio": "2026-10-13T00:48:20Z",
+  "fine": "2026-10-13T00:49:35Z",
+  "durata_s": 74.3,
+  "git": "5204f881d070816ba7d648e51f5981efcb5677e1",
+  "macchina": "LAPTOP-01UIII6L",
+  "exit": 0,
+  "secondi": 73.1,
+  "comando": "--scena atomo --frames 3600 --spara-al 600 --distanza 150 --pitch 0.5 --pannello --foto C:\\Users\\valer\\Desktop\\Programma di simulazione\\ponte_lab\\ponte\\risultati\\2026-10-13_foto_assorbe_f3600\\foto.png"
+}

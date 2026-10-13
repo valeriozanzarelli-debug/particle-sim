@@ -272,9 +272,26 @@ pub fn mul4(a: &[[C; 4]; 4], b: &[[C; 4]; 4]) -> [[C; 4]; 4] {
 /// sites r_i = (i + ½) a; per site (χ₊ moving outwards, χ₋ moving inwards); at r = 0 the inward walker
 /// turns into the outward one with a sign (g(0) = 0), at r_max the outward one turns back.
 /// Rotation per tick: exp(−i a (m σ_z + κ/r σ_x − Zα/r)) acting on (g, f).
+///
+/// GRADED mesh (`Radial::graded`, docs/NUCLEO_1S.md §8): the same rule on cells of unequal width. Cell i is
+/// [e_i, e_{i+1}], width h_i, site at its centre r_i; the rotation of site i uses dt = h_i (the time a ball at c
+/// spends crossing the cell); the walker from site i to i+1 travels l_i = r_{i+1} − r_i at c; the inner mirror is a
+/// link of length 2 r_0 (site 0 → origin → site 0), the outer one h_{N−1}. Stationary states by "listening with a
+/// phase per link" (`ascolta`): x = U(ω) x with U(ω) = M·S·diag(e^{iωl}). With equal cells U(ω) = e^{iωa} W and
+/// `ascolta` = `eigen`. Mirror of `GradedWalk` in lab/nucleo1s_core.py.
 pub struct Radial {
+    /// cell width for the uniform mesh (`new`); for a graded mesh the OUTERMOST width (use `h`, `r` instead)
     pub a: f64,
     pub n: usize,
+    /// true for `new` (equal cells): only then `eigen` (λ = e^{−iωa}) is meaningful
+    pub uniforme: bool,
+    /// site radii r_i and cell widths h_i
+    pub r: Vec<f64>,
+    pub h: Vec<f64>,
+    /// length of the link that brings χ₊ into site i (from i − 1, or the inner mirror) and χ₋ (from i + 1, or the
+    /// outer mirror)
+    lp: Vec<f64>,
+    lq: Vec<f64>,
     /// rotation in the (χ₊, χ₋) basis per site
     pub m: Vec<[[C; 2]; 2]>,
     /// half rotation (for the state at the symmetric point of the tick)
@@ -315,7 +332,125 @@ impl Radial {
             m.push(rot_chi(a * nrm, hx / nrm, hz / nrm, v * a));
             mh.push(rot_chi(0.5 * a * nrm, hx / nrm, hz / nrm, 0.5 * v * a));
         }
-        Self { a, n, m, mh }
+        let r = (0..n).map(|i| (i as f64 + 0.5) * a).collect();
+        Self { a, n, uniforme: true, r, h: vec![a; n], lp: vec![a; n], lq: vec![a; n], m, mh }
+    }
+
+    /// The same rule on a GRADED mesh given by its cell edges 0 = e₀ < e₁ < … < e_N (see the struct doc).
+    pub fn graded(kappa: i32, edges: &[f64], z_alpha: f64) -> Self {
+        let n = edges.len() - 1;
+        assert!(n >= 2 && edges[0] == 0.0);
+        let h: Vec<f64> = (0..n).map(|i| edges[i + 1] - edges[i]).collect();
+        let r: Vec<f64> = (0..n).map(|i| 0.5 * (edges[i + 1] + edges[i])).collect();
+        let mut m = Vec::with_capacity(n);
+        let mut mh = Vec::with_capacity(n);
+        for i in 0..n {
+            let (hx, hz) = (kappa as f64 / r[i], 1.0);
+            let nrm = (hx * hx + hz * hz).sqrt();
+            let v = -z_alpha / r[i];
+            m.push(rot_chi(h[i] * nrm, hx / nrm, hz / nrm, v * h[i]));
+            mh.push(rot_chi(0.5 * h[i] * nrm, hx / nrm, hz / nrm, 0.5 * v * h[i]));
+        }
+        let lp = (0..n).map(|i| if i >= 1 { r[i] - r[i - 1] } else { 2.0 * r[0] }).collect();
+        let lq = (0..n).map(|i| if i + 1 < n { r[i + 1] - r[i] } else { h[n - 1] }).collect();
+        Self { a: h[n - 1], n, uniforme: false, r, h, lp, lq, m, mh }
+    }
+
+    /// Edges of a dyadic mesh written as runs (k, count): `count` cells of width 2^{−k}, from r = 0 outwards.
+    pub fn edges_da_corse(corse: &[(u8, u16)]) -> Vec<f64> {
+        let mut e = vec![0.0];
+        for &(k, c) in corse {
+            let h = (0.5f64).powi(k as i32);
+            for _ in 0..c { let last = *e.last().unwrap(); e.push(last + h); }
+        }
+        e
+    }
+
+    /// U(ω) − I as a band matrix: row 2i+s = M_i[s][0] e^{iω lp_i} χ₊(in) + M_i[s][1] e^{iω lq_i} χ₋(in).
+    fn band_u(&self, omega: f64) -> Band {
+        let n2 = 2 * self.n;
+        let mut b = Band::new(n2, 3, 3);
+        for i in 0..self.n {
+            let m = &self.m[i];
+            let (sp, fp) = if i >= 1 { (2 * (i - 1), 1.0) } else { (1, -1.0) };
+            let (sq, fq) = if i + 1 < self.n { (2 * (i + 1) + 1, 1.0) } else { (2 * (self.n - 1), -1.0) };
+            let (ep, eq) = (C::expi(omega * self.lp[i]).scale(fp), C::expi(omega * self.lq[i]).scale(fq));
+            for s in 0..2 {
+                let row = 2 * i + s;
+                b.add(row, sp, m[s][0] * ep);
+                b.add(row, sq, m[s][1] * eq);
+                b.add(row, row, C::real(-1.0));
+            }
+        }
+        b
+    }
+
+    /// y = U(ω) x.
+    fn apply_u(&self, omega: f64, x: &[C], y: &mut [C]) {
+        let n = self.n;
+        for i in 0..n {
+            let p = (if i >= 1 { x[2 * (i - 1)] } else { -x[1] }) * C::expi(omega * self.lp[i]);
+            let q = (if i + 1 < n { x[2 * (i + 1) + 1] } else { -x[2 * (n - 1)] }) * C::expi(omega * self.lq[i]);
+            let m = &self.m[i];
+            y[2 * i] = m[0][0] * p + m[0][1] * q;
+            y[2 * i + 1] = m[1][0] * p + m[1][1] * q;
+        }
+    }
+
+    /// d arg μ / dω for the eigenvector x of U(ω): Σ over incoming links of |incoming amplitude|² · length.
+    fn peso_link(&self, x: &[C]) -> f64 {
+        let n = self.n;
+        let mut s = 0.0;
+        for i in 0..n {
+            let p = if i >= 1 { x[2 * (i - 1)] } else { x[1] };
+            let q = if i + 1 < n { x[2 * (i + 1) + 1] } else { x[2 * (n - 1)] };
+            s += p.norm2() * self.lp[i] + q.norm2() * self.lq[i];
+        }
+        s / x.iter().map(|c| c.norm2()).sum::<f64>()
+    }
+
+    /// "Listening with a phase per link" (any mesh): ω with x = U(ω) x, by inverse iteration on U(ω) at 1
+    /// (`inner` solves) plus a Newton step on arg μ(ω), μ = ⟨x|U(ω)x⟩: ω ← ω − arg μ / ⟨l⟩. Exactly
+    /// `GradedWalk.eigen` of lab/nucleo1s_core.py (x₀ = ones, tol 1e-14, ≤ 40 steps, 6 solves).
+    /// Returns (ω, (g, f) per site at the symmetric point of the tick normalised as Σ (g² + f²) h_i = 1, ‖Ux − x‖).
+    pub fn ascolta(&self, omega0: f64) -> (f64, Vec<[f64; 2]>, f64) {
+        let n2 = 2 * self.n;
+        let mut w = omega0;
+        let mut x = vec![C::ONE; n2];
+        let mut y = vec![C::ZERO; n2];
+        for _ in 0..40 {
+            let mut lu = self.band_u(w);
+            lu.factor();
+            for _ in 0..6 {
+                lu.solve(&mut x);
+                normalize(&mut x);
+            }
+            self.apply_u(w, &x, &mut y);
+            let mu = dot(&x, &y);
+            let dw = -mu.arg() / self.peso_link(&x);
+            w += dw;
+            if dw.abs() < 1e-14 * w.abs().max(1.0) { break; }
+        }
+        self.apply_u(w, &x, &mut y);
+        let resid = x.iter().zip(&y).map(|(a, b)| (*b - *a).norm2()).sum::<f64>().sqrt();
+        (w, self.gf_simmetrico(&x), resid)
+    }
+
+    /// (g, f) per site at the symmetric point (u = Mh† χ), global phase making g real, Σ (g² + f²) h = 1.
+    fn gf_simmetrico(&self, x: &[C]) -> Vec<[f64; 2]> {
+        let mut gf = vec![[C::ZERO; 2]; self.n];
+        for i in 0..self.n {
+            let (c0, c1) = (x[2 * i], x[2 * i + 1]);
+            let h = &self.mh[i];
+            let u0 = h[0][0].conj() * c0 + h[1][0].conj() * c1;
+            let u1 = h[0][1].conj() * c0 + h[1][1].conj() * c1;
+            gf[i] = [(u0 + u1) * S2, C::I * (u0 - u1) * S2];
+        }
+        let kmax = (0..self.n).max_by(|&i, &j| gf[i][0].norm2().total_cmp(&gf[j][0].norm2())).unwrap_or(0);
+        let ph = C::expi(-gf[kmax][0].arg());
+        let norm: f64 = gf.iter().zip(&self.h).map(|(v, h)| (v[0].norm2() + v[1].norm2()) * h).sum();
+        let s = 1.0 / norm.sqrt();
+        gf.iter().map(|v| [(v[0] * ph).re * s, (v[1] * ph).re * s]).collect()
     }
 
     /// One tick on a state stored as x[2i + s].
@@ -352,6 +487,7 @@ impl Radial {
     /// Infinite listening at frequency ω (units m c²): inverse iteration on W at λ = e^{−iωa}.
     /// Returns (ω of the state, χ at the symmetric point of the tick, as (g, f) per site).
     pub fn eigen(&self, omega_guess: f64, iters: usize) -> (f64, Vec<[f64; 2]>) {
+        assert!(self.uniforme, "Radial::eigen needs equal cells: use `ascolta` on a graded mesh");
         let lam0 = C::expi(-omega_guess * self.a);
         let mut lu = self.band(lam0);
         lu.factor();
@@ -481,5 +617,55 @@ impl Band {
             for j in k + 1..=jmax { s -= self.get(k, j) * b[j]; }
             b[k] = s / self.get(k, k);
         }
+    }
+}
+
+#[cfg(test)]
+mod test_graded {
+    use super::*;
+
+    /// The 353-cell automatic-zoom mesh of docs/NUCLEO_1S.md §4.2 (budget 0.1 %, Z = 60), from
+    /// lab/out/nucleo1s_results.json `zoom/budget_0.001/edges`, as runs (k, count) of cells 2^{−k}.
+    const ZOOM_001: [(u8, u16); 91] = [
+        (9, 4), (8, 1), (9, 2), (8, 2), (9, 4), (8, 2), (9, 2), (8, 1), (7, 6), (8, 2), (9, 2), (8, 1), (7, 1), (8, 2),
+        (7, 4), (8, 2), (7, 2), (8, 2), (7, 2), (8, 4), (7, 2), (6, 9), (7, 2), (6, 1), (7, 1), (8, 2), (7, 2), (6, 2),
+        (7, 1), (8, 2), (7, 2), (6, 12), (7, 2), (6, 2), (7, 2), (6, 2), (7, 2), (6, 1), (5, 2), (6, 2), (5, 2), (6, 2),
+        (5, 2), (6, 1), (7, 2), (6, 2), (5, 8), (4, 1), (5, 2), (4, 4), (3, 2), (2, 1), (3, 2), (4, 2), (5, 1), (6, 2),
+        (5, 2), (4, 6), (5, 2), (4, 1), (5, 4), (4, 2), (5, 2), (4, 2), (5, 2), (4, 16), (5, 2), (4, 2), (5, 2), (4, 6),
+        (5, 4), (4, 3), (5, 2), (4, 24), (5, 2), (4, 2), (5, 2), (4, 2), (5, 4), (4, 2), (3, 11), (4, 4), (3, 1), (4, 2),
+        (3, 8), (4, 4), (3, 2), (2, 4), (3, 2), (2, 6), (1, 74),
+    ];
+
+    /// Rust `Radial::graded` + `ascolta` reproduce the Python `GradedWalk` 1s of Nd⁵⁹⁺ on the same mesh
+    /// (python: level(Mesh(edges), 1, −1, 60α) → binding 0.10098790712726413 mc², +0.0399 % vs Dirac).
+    #[test]
+    fn graded_1s_come_python() {
+        let za = 60.0 * 7.297_352_5693e-3;
+        let e = Radial::edges_da_corse(&ZOOM_001);
+        assert_eq!(e.len(), 354);
+        assert!((e[353] - 51.0).abs() < 1e-12);
+        let w = Radial::graded(-1, &e, za);
+        let k: f64 = 1.0 - (1.0 - za * za).sqrt();
+        let dirac = 1.0 - 1.0 / (1.0 + (za / (1.0 - k)).powi(2)).sqrt();
+        let (om, gf, res) = w.ascolta(1.0 - 1.05 * dirac);
+        let b = 1.0 - om;
+        let rel = (b / 0.10098790712726413 - 1.0).abs();
+        eprintln!("graded 1s: binding {b:.15} (python 0.10098790712726413, rel {rel:.2e}), vs Dirac {:+.4} %, resid {res:.1e}", 100.0 * (b / dirac - 1.0));
+        assert!(rel < 1e-6, "rel {rel:e}");
+        assert!(res < 1e-8);
+        let nrm: f64 = gf.iter().zip(&w.h).map(|(v, h)| (v[0] * v[0] + v[1] * v[1]) * h).sum();
+        assert!((nrm - 1.0).abs() < 1e-12);
+    }
+
+    /// On equal cells `ascolta` (phase per link) and `eigen` (λ = e^{−iωa}) are the same listening.
+    #[test]
+    fn ascolta_uguale_eigen_su_celle_uguali() {
+        let za = 60.0 * 7.297_352_5693e-3;
+        let w = Radial::new(-1, 0.5, 51.0, za);
+        let (om1, _) = w.eigen(0.85, 30);
+        let (om1, _) = w.eigen(om1, 40);
+        let (om2, _, res) = w.ascolta(0.85);
+        eprintln!("eigen {om1:.15}, ascolta {om2:.15}, resid {res:.1e}");
+        assert!((om1 - om2).abs() < 1e-11);
     }
 }

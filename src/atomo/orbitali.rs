@@ -2,9 +2,11 @@
 //! j = l ± ½, m_j, and superpositions of two of them.
 //!
 //! Where the numbers come from: the RADIAL form of the same rule (src/zigzag/walk.rs `Radial`: the walk in one
-//! partial wave κ, same cell a = 0.5 λ_C, same Coulomb phase). Its eigenstates (ω, g(r), f(r)) are found by
-//! "listening" at a frequency (inverse iteration); the n-th state of a partial wave is the (n − l)-th most bound
-//! one. The 3-D wave is ψ = (g/r Ω_{κ m}, i f/r Ω_{−κ m}) with the Dirac spin-angle functions Ω built from the
+//! partial wave κ, same Coulomb phase) on the GRADED "onion" mesh of the automatic zoom (docs/NUCLEO_1S.md §4.2,
+//! §8: cells from 2⁻⁹ λ_C at the nucleus to 0.5 λ_C far away, each rotating for dt = its width). Its eigenstates
+//! (ω, g(r), f(r)) are found by "listening with a phase per link" (`Radial::ascolta`); the n-th state of a partial
+//! wave is the (n − l)-th most bound one. (Before 2026-10-13: equal cells of 0.5 λ_C, 1s +39.9 % — the first cell
+//! around the nucleus acted as a wrong mirror, NUCLEO_1S §3.) The 3-D wave is ψ = (g/r Ω_{κ m}, i f/r Ω_{−κ m}) with the Dirac spin-angle functions Ω built from the
 //! spherical harmonics. A superposition evolves with the rule's own frequencies, ψ(t) = Σ c_k ψ_k e^{−i(ω_k − 1)t}
 //! (rest-mass phase removed): its density beats at ω₁ − ω₂.
 //!
@@ -26,7 +28,7 @@ use crate::misura::{Opzioni, Rivelatore};
 use crate::render::{phase_color, schermo, Ball};
 use crate::rng::{hash01, Rng};
 use crate::walk::{surfer_velocity, Radial};
-use crate::zz::{dirac_a_chirale, z_alpha, A};
+use crate::zz::{dirac_a_chirale, z_alpha};
 
 /// One state: principal n, orbital l, 2j and 2m_j.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
@@ -63,31 +65,43 @@ pub fn dirac_esatto(n: u32, kappa: i32) -> f64 {
     1.0 / (1.0 + (za / (n as f64 - d)).powi(2)).sqrt()
 }
 
-/// A radial state of the rule: frequency ω (mc²/ħ), r·g and r·f on sites r_i = (i + ½) a.
+/// A radial state of the rule: frequency ω (mc²/ħ), r·g and r·f on the sites r_i (cell widths h_i,
+/// Σ (g² + f²) h = 1).
 #[derive(Clone)]
-pub struct Radiale { pub omega: f64, pub gf: Vec<[f64; 2]>, pub a: f64 }
+pub struct Radiale { pub omega: f64, pub gf: Vec<[f64; 2]>, pub r: Vec<f64>, pub h: Vec<f64> }
+
+/// The radial mesh of the orbitals: the AUTOMATIC ZOOM of docs/NUCLEO_1S.md §4.2 driven by all ten levels n ≤ 4,
+/// j = l + ½ (budget 0.5 %, Z = 60; post hoc there): cells split by the rule itself where they move the levels
+/// most, from 2⁻⁹ λ_C at the nucleus to 0.5 λ_C far away, 1 292 cells up to r = 359 λ_C. Exported from
+/// lab/out/nucleo1s_results.json `posthoc_allzoom/edges` as runs (k, count) = `count` cells of width 2^{−k} λ_C.
+/// Same rule as the equal cells of 0.5 λ_C (each cell rotates for dt = its width); only the cells differ.
+pub const MESH_ZOOM: [(u8, u16); 82] = [
+    (8, 1), (9, 2), (8, 2), (7, 1), (8, 2), (7, 2), (8, 4), (7, 2), (6, 1), (7, 4), (6, 2), (7, 1), (8, 2), (7, 2),
+    (6, 12), (7, 2), (6, 1), (7, 2), (6, 1), (5, 1), (6, 2), (5, 2), (6, 4), (5, 1), (6, 2), (5, 6), (6, 2), (7, 2),
+    (6, 1), (5, 2), (4, 4), (5, 2), (6, 2), (5, 1), (4, 1), (5, 2), (4, 16), (5, 2), (4, 1), (5, 1), (6, 2), (5, 2),
+    (4, 40), (5, 2), (4, 2), (5, 2), (4, 2), (5, 4), (4, 1), (5, 2), (4, 22), (5, 2), (4, 2), (5, 2), (4, 2), (5, 4),
+    (4, 2), (3, 18), (4, 2), (5, 4), (4, 2), (5, 2), (4, 2), (5, 2), (4, 104), (5, 2), (4, 2), (5, 2), (4, 2),
+    (5, 4), (4, 4), (3, 170), (4, 4), (3, 3), (4, 2), (3, 38), (4, 4), (3, 2), (2, 124), (3, 2), (2, 56), (1, 537),
+];
 
 /// The n-th state of partial wave κ of the radial rule: listen at many frequencies, keep the distinct bound
 /// states, sorted from the most bound; the n-th of a partial wave with orbital l is number n − l − 1.
 pub fn radiale(kappa: i32, n: u32, l: u32) -> Radiale {
     let za = z_alpha();
-    let rmax = 30.0 + 9.0 * (n * n) as f64 * (1.0 / za);
-    let w = Radial::new(kappa, A, rmax, za);
+    let w = Radial::graded(kappa, &Radial::edges_da_corse(&MESH_ZOOM), za);
     let mut trovati: Vec<(f64, Vec<[f64; 2]>)> = Vec::new();
-    // bindings from 0.3 down to 0.002 mc², log-spaced
+    // bindings from 0.3 down to 0.002 mc², log-spaced: listen with a phase per link (converges onto the nearest state)
     for k in 0..48 {
         let b = 0.3 * (0.002f64 / 0.3).powf(k as f64 / 47.0);
-        let (om0, _) = w.eigen(1.0 - b, 30);
-        // listen again exactly at the frequency found (converges onto the nearest state)
-        let (om, gf) = w.eigen(om0, 40);
-        if om >= 1.0 || om <= 0.0 { continue; }
+        let (om, gf, res) = w.ascolta(1.0 - b);
+        if om >= 1.0 || om <= 0.0 || !(res < 1e-8) { continue; }
         let bind = 1.0 - om;
         if trovati.iter().all(|t| ((1.0 - t.0) - bind).abs() > 0.005 * bind) { trovati.push((om, gf)); }
     }
     trovati.sort_by(|a, b| a.0.total_cmp(&b.0));
     let idx = (n - l - 1) as usize;
-    let (omega, gf) = trovati.get(idx).cloned().unwrap_or_else(|| trovati.last().cloned().unwrap_or((1.0, vec![[0.0, 0.0]; 2])));
-    Radiale { omega, gf, a: A }
+    let (omega, gf) = trovati.get(idx).cloned().unwrap_or_else(|| trovati.last().cloned().unwrap_or((1.0, vec![[0.0, 0.0]; w.n])));
+    Radiale { omega, gf, r: w.r.clone(), h: w.h.clone() }
 }
 
 /// Associated Legendre P_l^m(x) for m ≥ 0 (with the Condon–Shortley phase).
@@ -138,10 +152,11 @@ pub fn omega_km(kappa: i32, m2: i32, ct: f64, phi: f64) -> [C; 2] {
 /// The 3-D Dirac spinor (Dirac representation) of a radial state at p (λ_C).
 pub fn spinore(r: &Radiale, kappa: i32, m2: i32, p: [f64; 3]) -> [C; 4] {
     let rr = (p[0] * p[0] + p[1] * p[1] + p[2] * p[2]).sqrt().max(1e-9);
-    let x = rr / r.a - 0.5;
-    if x >= (r.gf.len() - 1) as f64 { return [C::ZERO; 4]; }
-    let i = (x.floor().max(0.0) as usize).min(r.gf.len() - 2);
-    let t = (x - i as f64).clamp(0.0, 1.0);
+    let ns = r.gf.len();
+    if rr >= r.r[ns - 1] { return [C::ZERO; 4]; }
+    // linear interpolation between the two sites around rr (cells of any width)
+    let i = r.r.partition_point(|&ri| ri <= rr).saturating_sub(1).min(ns - 2);
+    let t = ((rr - r.r[i]) / (r.r[i + 1] - r.r[i])).clamp(0.0, 1.0);
     let g = (r.gf[i][0] * (1.0 - t) + r.gf[i + 1][0] * t) / rr;
     let f = (r.gf[i][1] * (1.0 - t) + r.gf[i + 1][1] * t) / rr;
     let ct = p[2] / rr;
@@ -153,13 +168,13 @@ pub fn spinore(r: &Radiale, kappa: i32, m2: i32, p: [f64; 3]) -> [C; 4] {
 
 /// Radius (λ_C) that holds 99.5 % of the state.
 pub fn raggio(r: &Radiale) -> f64 {
-    let tot: f64 = r.gf.iter().map(|v| v[0] * v[0] + v[1] * v[1]).sum();
+    let tot: f64 = r.gf.iter().zip(&r.h).map(|(v, h)| (v[0] * v[0] + v[1] * v[1]) * h).sum();
     let mut acc = 0.0;
     for (i, v) in r.gf.iter().enumerate() {
-        acc += v[0] * v[0] + v[1] * v[1];
-        if acc > 0.995 * tot { return (i as f64 + 0.5) * r.a; }
+        acc += (v[0] * v[0] + v[1] * v[1]) * r.h[i];
+        if acc > 0.995 * tot { return r.r[i]; }
     }
-    r.gf.len() as f64 * r.a
+    r.r[r.r.len() - 1]
 }
 
 pub const G: usize = 64;

@@ -1,0 +1,13 @@
+{
+  "id": "2026-10-13_foto_orbitali_cipolla",
+  "azione": "foto",
+  "ok": true,
+  "inizio": "2026-10-13T00:57:26Z",
+  "fine": "2026-10-13T00:58:46Z",
+  "durata_s": 79.9,
+  "git": "eb0569cb1790e4a932ee171b0d39f0560ec3c6de",
+  "macchina": "LAPTOP-01UIII6L",
+  "exit": 0,
+  "secondi": 11.3,
+  "comando": "--scena orbitali --stati 2p+3d --frames 300 --pannello --foto C:\\Users\\valer\\Desktop\\Programma di simulazione\\ponte_lab\\ponte\\risultati\\2026-10-13_foto_orbitali_cipolla\\foto.png"
+}
