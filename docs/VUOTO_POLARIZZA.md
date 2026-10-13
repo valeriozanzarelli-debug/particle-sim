@@ -56,6 +56,12 @@ reticolo: è l'effetto di Collins–Perez–Sudarsky–Urrutia–Vucetich. La si
 L'ordine degli assi che gira toglie l'anisotropia (A4 PASS) ma non il pezzo isotropo e restringe la zona di Floquet
 (A7 FAIL). Correzione: i δv di fase 2 erano un artefatto, e il g−2 di fase 2 dipende dalla fetta di tempo (6 %).
 
+**Fase 4 (§15), in tre righe.** Col vertice **esatto** a tempo discreto (Ward esatta a 10⁻⁸) il g−2 della regola è
+**α/2π entro 0,01 %** al reticolo più fine, e la dispersione fra orientazioni **sparisce** come a² (quella di fase 3
+era un artefatto). Vestita anche la luce (col mare delle sole specie fisiche): la differenza isotropa c_elettrone −
+c_luce resta: **−0,11 α** (regola, taglio largo), **+0,017 α** (taglio stretto), **+0,013 α** (ordine che gira),
+ma il taglio rompe la gauge e sporca il c della luce di 0,007–0,05 α. Nessuna birifrangenza della regola vista.
+
 **Validazione, non scoperta.** Uehling è del 1935: qui la regola lo **ritrova**. Le cose nuove sono sulla regola: il
 teorema "il mare intero 1-D non polarizza", i 32 coni senza massa del 3-D, l'anisotropia del vuoto del reticolo, e il
 trucco della moneta che respira.
@@ -323,6 +329,8 @@ RETICOLO_UNIVERSO servirebbero ~16 livelli). Il loop in k e il risolvente radial
 10. **Fase 3** (§14.6): c vestito dell'elettrone ≠ c della luce (−0,067 α isotropo, −0,093 α in più lungo y, taglio di
    fase 2), non cala con il reticolo (Collins e colleghi); modello di accoppiamento elettrone–luce scelto da me; vertice
    del g−2 dipendente dalla fetta.
+11. **Fase 4** (§15.4): mare della luce = solo specie fisiche (n(k) = w(k)); massa del fotone del taglio sottratta;
+   c della luce sporcato dal taglio (0,007–0,05 α); g−2 linearizzato a un loop. Pagato: g−2 indipendente dalla fetta.
 9. **Fase 2** (dettagli al §13.5): θ_nudo ≠ θ_fisico (δm/m ≈ 1,55 α); controtermine di velocità δv_j anisotropo;
    massa del fotone λ → 0; nucleo di Coulomb come ingresso nella parte istantanea; filtro di banda e due emendamenti
    numerici nel logaritmo di Bethe (2S a θ = 0,05 FAIL aperto); g−2 su una sola fetta di tempo. Il debito #6
@@ -377,6 +385,9 @@ RETICOLO_UNIVERSO servirebbero ~16 livelli). Il loop in k e il risolvente radial
    l'elettrone no (Collins e colleghi). Ti viene un'idea geometrica per cui le due "nuvole" di loop (quella della
    luce e quella dell'elettrone) si compensino da sole? Senza una cura, servirebbe una manopola regolata finemente.
 
+9. **(fase 4) Un mare sano per la luce.** Per vestire la luce in modo pulito serve un mare senza i coni a π. Le due
+   strade che vedo: la moneta che respira (dà massa ai coni) o "regolatori" sulle specie. Quale ti piace di più?
+
 ---
 
 ## 12. Come rieseguire
@@ -399,6 +410,9 @@ RETICOLO_UNIVERSO servirebbero ~16 livelli). Il loop in k e il risolvente radial
     # fase 3 (pre-registrazione lab/out/vuoto_f3_prereg.json)
     sh lab/vuoto_f3_drive_dv.sh; sh lab/vuoto_f3_drive_g2.sh; python lab/vuoto_f3_bands.py   # ~15 min in tutto
     python lab/vuoto_f3_analyze.py; python lab/vuoto_f3_figure.py
+    # fase 4 (pre-registrazione lab/out/vuoto_f4_prereg.json)
+    sh lab/vuoto_f4_drive.sh vuoto_f4_g2.py; sh lab/vuoto_f4_drive.sh vuoto_f4_light.py   # ~1 h 40 in tutto
+    python lab/vuoto_f4_analyze.py; python lab/vuoto_f4_figure.py
     python lab/vuoto_figure.py
 
 ---
@@ -776,7 +790,8 @@ Le coppie con la corrente lungo **y** (21, 01) restano a 0,94, le altre vanno ve
 l'asse speciale, come dice la simmetria. Però con lo stesso vertice preso **sull'altra fetta** (θ = 0,0125) la media
 scende a **0,910** e la dispersione è 0,064: il vertice H_eff non è affidabile al livello di qualche %. Quello che
 resta solido: la dispersione non cala con a (come per δv), e y è l'asse diverso. Il numero assoluto del g−2 della
-regola va rifatto con il vertice esatto.
+regola va rifatto con il vertice esatto. **[Correzione fase 4, §15.2: col vertice esatto la dispersione SPARISCE come
+a² e la media è α/2π entro 0,01 %; il "sopravvive" qui sopra era un artefatto del vertice H_eff.]**
 
 ### 14.6 Debiti, manopole, cosa resta
 
@@ -796,3 +811,122 @@ vertice esatto a tempo discreto; (3) la regola nuda nella zona di Brillouin inte
 isotropo (per esempio: luce ed elettrone che saltano con la stessa struttura in modo che i loro loop si compensino;
 oppure una simmetria tipo "supersimmetria del reticolo", che in letteratura è la via proposta contro questo problema:
 lo dico a memoria).
+
+---
+
+## 15. Fase 4: il g−2 col vertice esatto e la luce vestita
+
+Pre-registrazione: `lab/out/vuoto_f4_prereg.json` (commit 52fdd71, **prima** delle corse). Codice: `lab/vuoto_f4_core.py`
+(motore), `lab/vuoto_f4_g2.py`, `lab/vuoto_f4_light.py` (produzione a pezzi, `sh lab/vuoto_f4_drive.sh <script>`),
+`lab/vuoto_f4_analyze.py` → `lab/out/vuoto_f4_exams.json`, `lab/vuoto_f4_figure.py` → `lab/out/vuoto_f4_figure.png`.
+
+### 15.1 Il motore: diagrammi di Feynman nel tempo discreto della regola
+
+Stessa fisica della fase 3 (mosse del periodo, la luce è il cammino della luce, Peierls a ogni salto, Coulomb dopo ogni
+moneta), ma scritta "alla Feynman": ogni linea di elettrone va avanti nel tempo se è a energia positiva e **indietro**
+se è del mare; due particelle diverse toccate **nello stesso salto** contano (è un termine a due corpi vero del
+cammino a molti elettroni). Così il loop a 2 vertici (autoenergia) e quello a 3 vertici (g−2) si trattano allo stesso
+modo, senza hamiltoniana efficace e quindi **senza fetta di tempo**. Due pezzi nuovi che servono davvero:
+* il **contatto** A_esterno·A_luce nello stesso salto (il secondo ordine della fase di Peierls, d²T/dk² = −T);
+* i diagrammi di "**sovrapposizione**": nel tempo discreto il campo esterno può toccare l'elettrone nello stesso
+  periodo in cui parte (o finisce) il loop. Senza questi l'identità di Ward sbagliava di 10⁻³; con questi è esatta.
+
+Controlli (sviluppo, prima della pre-registrazione, e G1 rifatto in produzione):
+* autoenergia di Feynman = motore di fase 3 (parte reale, 4 stati) a 10⁻¹²: il termine "stesso salto" del mare
+  aggiunge solo una costante immaginaria uguale per tutti (unitarietà);
+* **G1 Ward** (Q = 0, il campo esterno uniforme deve solo spostare k): V/F1 = 1 + dΣ/dμ entro **8·10⁻⁹** (R assi x, y;
+  C asse x). **PASS.** Il vertice è giusto fino all'ultima cifra che conta;
+* g−2 identico se il periodo comincia da un'altra mossa (10⁻¹⁰): indipendente dalla fetta **per costruzione e nei
+  numeri**; griglia angolare (64,12,16) → (64,24,32): 8·10⁻⁷ α/2π.
+
+**Una cosa imparata per strada:** il g−2 va preso **linearizzato** a un loop: a = (r − 1) + δm/m − δv_j − δv_q. Il
+prodotto di due correzioni O(α) (due loop, non calcolati) porta grossi logaritmi e da solo dava 0,90 → 0,63 al calare
+di θ. Linearizzato, tutto torna (sotto).
+
+### 15.2 Risultati: g−2 (esami G)
+
+a/(α/2π), media delle 6 coppie (asse di Q, asse della corrente), dopo kmin → 0:
+
+| θ = m a | 0,05 | 0,025 | 0,0125 | 0,00625 | a → 0 (retta in θ, pre-reg.) | dispersione a 0,00625 |
+|---|---|---|---|---|---|---|
+| regola, K12 | 1,0052 | 1,0015 | 1,0004 | **1,0001** | 0,9991 | 1,8·10⁻⁴ |
+| regola, K12/3 | 1,0298 | 1,0080 | 1,0021 | **1,0005** | 0,9940 | 1,5·10⁻⁴ |
+| ordine che gira, K12/3 | 1,0299 | 1,0081 | 1,0021 | **1,0005** | 0,9940 | 4·10⁻⁹ |
+
+* **G2 (media entro il 3 %): PASS** in tutti e tre i casi. Al reticolo più fine a = α/2π entro **0,01 %** (regola
+  congelata). Nota onesta: la retta in θ pre-registrata estrapola male (la convergenza va come θ², non θ), per questo
+  a → 0 viene 0,994 invece di ~1,000; resta comunque dentro la soglia.
+* **G3 (dispersione fra orientazioni): SPARISCE.** 0,0063 → 0,0020 → 0,0006 → 0,00018 (va come θ^1,7, cioè quasi
+  a²); a a → 0 (retta) 0,0011 < 0,01. **Questo corregge la fase 3**: la dispersione di 0,052 che "sopravviveva" era
+  un artefatto del vertice H_eff, non fisica. Le coppie con la corrente o Q lungo **y** sono uguali fra loro e diverse
+  da (x,z)/(z,x), come vuole la simmetria D4h con y speciale.
+* **G4 (ordine che gira: isotropia): PASS** (≤ 4·10⁻⁹).
+* **G5 (controlli): PASS** per la regola (Im r ≤ 10⁻¹², struttura ≤ 2·10⁻¹¹); **FAIL** per l'ordine che gira:
+  il vertice vestito ha una piccola parte (1,6·10⁻⁵ del totale, cioè ~1,4 % della parte anomala) con una struttura di
+  spin **diversa** dall'albero; costante in θ. Non cambia la media; è dichiarato (la soglia 10⁻⁸ era tarata sulla R).
+
+**In breve: il g−2 della regola, col vertice esatto, è α/2π (validazione: è il numero di Schwinger del 1948), e
+l'anisotropia del g−2 va via col reticolo.** Il G1 PASS della fase 2 ora è robusto.
+
+### 15.3 La luce vestita (esami L) e il numero chiave
+
+**Come:** loop elettrone–buco del mare nel tempo discreto (stesse regole di Feynman, segno del loop fermionico, termine
+"stesso salto" mare–mare, termine A² della fase di Peierls), per i due modi del fotone a q; si diagonalizza la matrice
+2×2 → due polarizzazioni vestite. La parte immaginaria si cancella (unitarietà): esatta (0) con la zona intera,
+≤ 0,0016 α col taglio (**L4 PASS**).
+
+**Il mare della zona intera NON si può usare.** Nella regola congelata la zona di Floquet si chiude a quasi-energia π
+in k = (π/2, π/2, π/2) (10⁻¹⁴, a ogni θ): sono i coni senza massa a π della fase 1. Il mare intero non ha gap lì, le
+somme convergono solo come 1/M² e la luce "vestita" esce con velocità di ordine **α·1** e dipendenti dalla direzione
+(prova esplorativa, θ = 0,2: −0,5 α lungo x, +0,4 α lungo y, +3,6 α lungo la diagonale). Quindi la luce è stata vestita
+dal mare **delle sole specie fisiche** (occupazione n(k) = w(k), stesso taglio K12 o K12/3 usato per l'elettrone):
+scelta dichiarata. Il prezzo: il taglio rompe l'invarianza di gauge, il fotone prende una massa (−0,73 α in Ω², che
+sottraggo: debito) e, peggio, una parte della pendenza (cioè di c) è artefatto del taglio (vedi L1/L2).
+
+δc_luce/(α c) per asse (media delle due polarizzazioni; a → 0, retta in θ):
+
+| caso | x = z | y | diagonale (1,1,1) | isotropo (x,y,z) | elettrone isotropo | **Δ_iso = elettrone − luce** |
+|---|---|---|---|---|---|---|
+| regola, K12 | +0,063 | +0,014 | −0,010 | +0,047 | −0,067 | **−0,114 α** |
+| regola, K12/3 | +0,031 | +0,024 | +0,021 | +0,029 | +0,046 | **+0,017 α** |
+| ordine che gira, K12/3 | +0,031 (x = y = z) | | +0,022 (le due pol. diverse) | +0,031 | +0,045 | **+0,013 α** |
+
+* **L1 simmetria**: regola, x = z entro 4·10⁻⁵ α **PASS**. Ordine che gira: x = y = z sì, ma la **diagonale** è
+  diversa (0,008 α e le due polarizzazioni lungo la diagonale differiscono fino a 0,03 α): **FAIL**. Diagnosi: con la
+  simmetria cubica una teoria invariante di gauge di dimensione 4 non può distinguere asse e diagonale né essere
+  birifrangente; qui lo fa ⇒ è l'**artefatto del taglio** (non è la griglia: rifatto con griglia angolare 4 volte più
+  fitta e radiale 1,5 volte, stesso numero).
+* **L2 sistematici**: griglia 0,001 α, scelta dei due q 0,0001 α, ma il **modo di pesare le coppie** (n(k) contro
+  √(w(k)w(k+q)) della fase 1) cambia c di **0,007 α** > 0,005: **FAIL**.
+* **L3 birifrangenza (input del coordinatore).** Previsione di simmetria (D4h con asse y): **zero lungo y** (la
+  rotazione di 90° attorno a y scambia le due polarizzazioni), permessa lungo x e z. Misura (a → 0): lungo y 4·10⁻⁵ α,
+  lungo x e z 2–4·10⁻⁵ α: **non vista** (soglia 0,002 α). Lungo la diagonale 0,002 α (regola) e 0,029 α (ordine che
+  gira): "vista", ma per quanto detto in L1 è da attribuire al taglio, non alla regola.
+* Anisotropia della luce (y meno x,z): −0,051 α (K12), −0,008 α (K12/3): stesso segno di quella dell'elettrone
+  (−0,093 α, −0,010 α). **Anisotropia relativa elettrone − luce: −0,042 α (K12), −0,002 α (K12/3), 0 (ordine che gira).**
+
+**Il numero chiave.** Δ_iso = c_elettrone vestito − c_luce vestita, isotropo, in unità di α·c:
+**regola congelata −0,11 α (taglio K12), +0,017 α (taglio K12/3); ordine che gira +0,013 α (K12/3).** Sopra la soglia
+pre-registrata di 0,01 α in tutti e tre i casi, ma con un'incertezza **dello stesso ordine**: l'artefatto del taglio
+sulla luce vale almeno 0,007 α (L2) e fino a ~0,05 α col taglio largo (differenza asse–diagonale). In termini semplici:
+vestendo anche la luce, **la differenza non si cancella** (con il taglio largo anzi raddoppia), e l'ordine che gira non
+la cura (come già il pezzo isotropo dell'elettrone in fase 3); ma il valore preciso dipende da come si taglia il mare per
+la luce, e un taglio pulito (invariante di gauge) nella regola non c'è perché il mare intero ha i coni a π.
+
+### 15.4 Debiti, manopole, cosa resta
+
+* Manopole adattate: **0**. Taglio K12 e K12/3 (dichiarati dalle fasi 1–3, variati non regolati).
+* **Debiti nuovi:** (a) mare della luce = solo specie fisiche, occupazione n(k) = w(k); (b) massa del fotone del taglio
+  sottratta a mano (pendenza a due q); (c) parte del c della luce è artefatto del taglio (≥ 0,007 α, fino a ~0,05 α);
+  (d) g−2 linearizzato a un loop (due loop non calcolati).
+* **Pagati:** il g−2 non dipende più dalla fetta (debito di fase 3) e la sua anisotropia sparisce come a².
+* **Esiti:** G1, G2, G3 (sparisce), G4 PASS; G5 FAIL per l'ordine che gira (piccola struttura di spin in più);
+  L1 PASS (regola) / FAIL (ordine che gira, diagonale); L2 FAIL (peso delle coppie); L3 nessuna birifrangenza della
+  regola; L4 PASS.
+* **Da fare:** una luce vestita senza taglio che rompe la gauge (serve un mare sano: o la moneta che respira, che dà
+  massa ai coni, o un regolatore di gauge tipo Pauli–Villars sulle specie); solo dopo il Δ_iso sarà un numero netto.
+
+Nota dal coordinatore (thread Problemi aperti, non verificata qui): il gruppo misurato della regola congelata è D4h
+con y distinto (16 delle 48 operazioni del cubo), l'ordine che gira dà T_h, che vieta ogni coefficiente SME anisotropo
+di dimensione 4. I miei numeri sono coerenti: x = z ovunque, y distinto, nessuna anisotropia per l'ordine che gira (a
+parte l'artefatto del taglio lungo la diagonale nella luce).
