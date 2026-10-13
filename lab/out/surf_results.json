@@ -1,0 +1,274 @@
+{
+ "results": {
+  "E0b Liouville 1s": {
+   "value": [
+    8.246294147529198e-09,
+    5.125494431157107e-05
+   ],
+   "PASS": true
+  },
+  "E0c reversibility 1s": {
+   "value": [
+    3.552713678800501e-15,
+    8.497380576954887e-13
+   ],
+   "PASS": true
+  },
+  "E0b Liouville 1s2p": {
+   "value": [
+    4.7359231641896926e-07,
+    7.981637519294466e-05
+   ],
+   "PASS": true
+  },
+  "E0c reversibility 1s2p": {
+   "value": [
+    3.552713678800501e-15,
+    1.2665068993555494e-12
+   ],
+   "PASS": true
+  },
+  "E0b Liouville free": {
+   "value": [
+    3.655899249999095e-09,
+    6.333045124540202e-08
+   ],
+   "PASS": true
+  },
+  "E0c reversibility free": {
+   "value": [
+    0.0,
+    7.105427357601002e-15
+   ],
+   "PASS": true
+  },
+  "E1 F6 flow quantile": {
+   "value": 2.886579864025407e-15,
+   "PASS": true
+  },
+  "E1 old reader (report)": {
+   "value": 0.01259995116088175
+  },
+  "E2 continuum: monotone": {
+   "value": [
+    0.2509064604616089,
+    0.1108340424194516,
+    0.05173048588993723
+   ],
+   "PASS": true
+  },
+  "E2 continuum: order": {
+   "value": 1.0993144223458469,
+   "PASS": true
+  },
+  "E2 Bohm quantile identity": {
+   "value": 4.5590162853215155e-07,
+   "PASS": true
+  },
+  "E3 h1s flow max dq": {
+   "value": 7.260858581048524e-14,
+   "PASS": true
+  },
+  "E3 h1s bell jumps": {
+   "value": [
+    0.0,
+    0.0
+   ],
+   "PASS": true
+  },
+  "E3 h1s bellflux jumps": {
+   "value": [
+    0.0,
+    0.0
+   ],
+   "PASS": true
+  },
+  "E4 beat flow quantile": {
+   "value": 2.066818938217807e-13,
+   "PASS": true
+  },
+  "E4 beat z flow": {
+   "value": 0.9366256997676415,
+   "PASS": true
+  },
+  "E4 beat z bellflux": {
+   "value": 2.6327781657028906,
+   "PASS": true
+  },
+  "E4 beat z bell": {
+   "value": 1.85132382158789,
+   "PASS": true
+  },
+  "E4 beat z ballistic": {
+   "value": 3.278098999264721,
+   "PASS": true
+  },
+  "E4 beat old (report)": {
+   "value": 37281.876163562454
+  },
+  "E5 z flow2": {
+   "value": 2.2501236390628465,
+   "PASS": true
+  },
+  "E5 TV ratio flow2": {
+   "value": 1.0149767903358982,
+   "PASS": true
+  },
+  "E5 z flow": {
+   "value": 2.2842963935792824,
+   "PASS": true
+  },
+  "E5 TV ratio flow": {
+   "value": 0.9675906010449324,
+   "PASS": true
+  },
+  "E5 z bellflux": {
+   "value": 2.9803039749402624,
+   "PASS": true
+  },
+  "E5 TV ratio bellflux": {
+   "value": 1.0015533729525867,
+   "PASS": true
+  },
+  "E5 z bell": {
+   "value": 2.749800427855922,
+   "PASS": true
+  },
+  "E5 TV ratio bell": {
+   "value": 0.9922213670280335,
+   "PASS": true
+  },
+  "E5 z ballistic": {
+   "value": 2.3243667801140906,
+   "PASS": true
+  },
+  "E5 TV ratio ballistic": {
+   "value": 1.0338966133374514,
+   "PASS": true
+  },
+  "E5 z cdfasse": {
+   "value": 2.2307724243443676,
+   "PASS": true
+  },
+  "E5 TV ratio cdfasse": {
+   "value": 1.0360822605348328,
+   "PASS": true
+  },
+  "E5 z old (report)": {
+   "value": 15932.888833295432
+  },
+  "E5 z old_rebirth (report)": {
+   "value": 13805.189713019077
+  },
+  "E6 z flow2": {
+   "value": 2.196206932145947,
+   "PASS": true
+  },
+  "E6 TV ratio flow2": {
+   "value": 1.0106542406819068,
+   "PASS": true
+  },
+  "E6 z flow": {
+   "value": 2.4333452394387773,
+   "PASS": true
+  },
+  "E6 TV ratio flow": {
+   "value": 1.008620501513627,
+   "PASS": true
+  },
+  "E6 z bellflux": {
+   "value": 2.169611700830221,
+   "PASS": true
+  },
+  "E6 TV ratio bellflux": {
+   "value": 0.9986483200915632,
+   "PASS": true
+  },
+  "E6 z bell (report)": {
+   "value": 2.3319125486414145
+  },
+  "E6 z ballistic (report)": {
+   "value": 2.377643887298741
+  },
+  "E6 z cdfasse (report)": {
+   "value": 2.678445487001385
+  },
+  "E6 z old (report)": {
+   "value": 60327.41414910718
+  },
+  "E6 z old_rebirth (report)": {
+   "value": 28948.522962469542
+  },
+  "E7 z flow2": {
+   "value": 2.5359791130492497,
+   "PASS": true
+  },
+  "E7 TV ratio flow2": {
+   "value": 1.002038579153224,
+   "PASS": true
+  },
+  "E7 z flow": {
+   "value": 2.190842803292565,
+   "PASS": true
+  },
+  "E7 TV ratio flow": {
+   "value": 1.0078348621500197,
+   "PASS": true
+  },
+  "E7 z bellflux": {
+   "value": 2.615448191189992,
+   "PASS": true
+  },
+  "E7 TV ratio bellflux": {
+   "value": 0.9966682132216043,
+   "PASS": true
+  },
+  "E7 z bell (report)": {
+   "value": 2.0828789390822426
+  },
+  "E7 z ballistic (report)": {
+   "value": 2.6780290993985463
+  },
+  "E7 z cdfasse (report)": {
+   "value": 3.2945704496850903
+  },
+  "E7 z old (report)": {
+   "value": 24218.260806450373
+  },
+  "E7 z old_rebirth (report)": {
+   "value": 13790.68889555602
+  },
+  "E5 flow2 drift growth": {
+   "value": 1.0397737667679534,
+   "PASS": true
+  },
+  "E5 flow2 neq H ratio": {
+   "value": 0.9785493446051743,
+   "PASS": true
+  },
+  "E5 flow2 v_phi/(Za sin)": {
+   "value": 0.20887313727508122,
+   "PASS": false
+  },
+  "E5 flow2 v_r rms/Za": {
+   "value": 0.05665572288518079,
+   "PASS": true
+  },
+  "E8 radial flow neq H ratio": {
+   "value": 1.0,
+   "PASS": true
+  },
+  "E9 orbitals proiettato z": {
+   "value": 3.8604964604888568,
+   "PASS": true
+  },
+  "E9 old orbital reader (report)": {
+   "value": [
+    7.277936553679532,
+    2.825754039247611
+   ]
+  }
+ },
+ "n_pass": 47,
+ "n_fail": 1
+}
