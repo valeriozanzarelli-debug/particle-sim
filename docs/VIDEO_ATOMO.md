@@ -13,8 +13,9 @@ Studio `vl_` del 13/10/2026. Il primo video lento della corsa accoppiata luce + 
 Codice: `lab/vl_campi.py` (campi che muovono e colorano le palline), `lab/vl_palline.py` (moto delle palline, a
 pezzi con checkpoint), `lab/vl_esami.py` (esami), `lab/vl_render.py` (disegno), `lab/vl_figura.py` (figura e
 fermo-immagine), `lab/vl_video.sh` (montaggio). Pre-registrazione: `lab/out/vl_prereg.json` (**commit cf95ca6,
-prima di muovere qualunque pallina**). Risultati: `lab/out/vl_campi.json`, `lab/out/vl_esami.json`,
-`lab/out/vl_serie.json`.
+prima di muovere qualunque pallina**) + emendamento 1 `lab/out/vl_amend1.json` (commit edd687b, prima di rifare le
+palline). Risultati: `lab/out/vl_campi.json`, `lab/out/vl_esami.json`,
+`lab/out/vl_serie.json` (prima versione, col giro finto: `*_v1.json`).
 
 Video e fermo-immagine: `/mnt/project-files/modello-standard/video_atomo_1080p.mp4`, `video_atomo_720p.mp4`,
 `video_atomo_assorbe.png`, `video_atomo_oscilla.png`, `video_atomo_riemette.png`, `video_atomo_si_svuota.png`.
@@ -26,8 +27,8 @@ Video e fermo-immagine: `/mnt/project-files/modello-standard/video_atomo_1080p.m
 ## 0. In breve
 
 * **Cosa si vede.** A sinistra, grande, *dentro l'atomo*: 120 000 palline che sono l'elettrone. All'inizio sono
-  messe una volta sola dove |ψ|² è grande, poi si muovono **solo** con la corrente dell'elettrone calcolata dalla
-  regola. A destra in alto la luce intorno all'atomo (scatola di 416 λ_C, l'atomo è il puntino al centro, in scala
+  messe una volta sola dove |ψ|² è grande, poi si muovono **solo** col flusso che serve a portare |ψ|² da un
+  fotogramma all'altro (continuità): ferme in un livello puro, in moto solo quando la luce crea la sovrapposizione. A destra in alto la luce intorno all'atomo (scatola di 416 λ_C, l'atomo è il puntino al centro, in scala
   vera): palline di energia della luce. In basso a destra il tempo, la curva p_exc e il dipolo ⟨z⟩.
 * **La storia in tre atti** (49 s di video, 24 fotogrammi al secondo):
   1. arriva l'impulso (bande rosa/verdi = E su e giù);
@@ -37,7 +38,7 @@ Video e fermo-immagine: `/mnt/project-files/modello-standard/video_atomo_1080p.m
      (la luce dell'atomo, amplificata ×1000 in energia e dichiarata): p_exc scende da 0,120 (t = 220) a 0,064
      (t = 1600) mentre l'oscillazione si smorza.
 * **Esami** (pre-registrati): le palline restano fedeli a |ψ|² per tutta la corsa senza mai essere rinate
-  (correlazione minima **0,9995**), il dipolo letto dalle palline coincide con quello del calcolo (**0,99999**,
+  (correlazione minima **0,9996**), il dipolo letto dalle palline coincide con quello del calcolo (**0,999997**,
   scarto 0,015 λ_C), la luce ricostruita è coerente (0,96) e **l'energia della luce che esce dalla sfera di 40 λ_C
   è il 91 % dell'energia persa dall'atomo**. Un esame è **fallito come previsto** (p_exc letto dalle palline con la
   sola fase esportata: +0,05 di troppo). Dettagli in §4.
@@ -58,8 +59,9 @@ Quando la luce scuote l'atomo, una parte dell'elettrone (al massimo il 12 %) pas
 onde (1s ed eccitato) hanno energie diverse e quindi **battono**: la nuvola si sposta su e giù lungo z (la
 direzione del campo elettrico dell'impulso). Si vede come **oro sopra / blu sotto**, poi **blu sopra / oro sotto**,
 ogni 42 λ_C/c. Il centro diventa un po' blu in media: l'elettrone eccitato sta più largo, il centro si svuota un po'.
-Le palline intanto **girano piano attorno all'asse z** (vedi §5, punto 3: il giro c'è, la sua velocità non è
-validata).
+Prima che arrivi la luce le palline **stanno ferme**: in un livello puro questo reticolo non porta corrente
+(scritto a schermo; §5 punto 3). Si muovono solo su e giù (e un po' dentro-fuori nelle code) quando c'è la
+sovrapposizione. **Nessuna rotazione**: quella di Dirac attorno all'asse dello spin qui non c'è (debito aperto).
 
 **La luce (destra in alto).** Ogni pallina è un pezzetto dell'energia della luce, (E² + B²)/2. Si muovono con la
 velocità dell'energia (mai più di c). Colore = verso di E: rosa = E in su, verde-acqua = E in giù. La vista è
@@ -86,15 +88,20 @@ fuori dall'1s, **dal calcolo**, fotogrammi.csv) e il dipolo **⟨z⟩** (punti =
 * **Il flusso.** La corrente esportata (R†σR − L†σL per cella, mediata sui 16 tick) **non rispetta la continuità**:
   |∇·j| ≈ 0,30 contro |∂ρ/∂t| ≈ 0,03–0,06, correlazione tra −0,66 e +0,31. Non è la corrente sulle facce che usano i
   surfisti esatti (SURFISTI_ESATTI), è una lettura per cella che contiene una parte "di compressione" finta.
-  Si corregge col cambio più piccolo possibile della velocità (minimo di ∫|δJ|²/ρ) che rende il flusso fedele:
-  J = j_s − ρ_s ∇χ con ∇·(ρ_s∇χ) = ∇·j_s + ∂ρ_s/∂t, sulle facce delle celle, per ogni intervallo tra due fotogrammi
-  (gradiente coniugato, residuo < 10⁻⁷, ≤ 187 iterazioni). **La correzione è grande: l'84 % (mediana) della
-  corrente esportata.** Quello che resta è per l'81 % **un giro attorno a z** (tutto nello stesso verso: 80 % con
-  il segno), cioè la corrente di spin dell'1s; dentro la cella le palline usano i flussi sulle facce (RT0, come i
-  surfisti) e la densità della cella lineare nel tempo, così una nuvola uniforme in una cella resta uniforme.
-  Residuo di continuità dopo la correzione: 4·10⁻⁴.
-* **Integratore**: punto medio, passo ≤ 0,5 λ_C/c; velocità tagliata a 0,95 c in 329 valutazioni su ~7·10⁸
-  (code esterne); 738 urti contro il bordo della scatola (24 λ_C).
+  **Prima versione** (pre-registrata): si teneva la j esportata e si correggeva col cambio più piccolo
+  (J = j_s − ρ_s∇χ, ∇·(ρ_s∇χ) = ∇·j_s + ∂ρ_s/∂t): la correzione era l'84 % della j, e quello che restava era per
+  l'81 % un giro attorno a z (le palline facevano ~4 giri, 0,12 di Bohm–Dirac). **Poi Debiti ha mostrato** che
+  nessuno stato stazionario del reticolo 3-D porta corrente netta sui collegamenti (≤ 5·10⁻¹³ per coppia di tick):
+  quel giro era una lettura finta della j per cella. **Emendamento 1** (`lab/out/vl_amend1.json`, prima di rifare):
+  la j esportata non si usa più; il flusso è quello **di energia cinetica minima imposto dalla continuità**:
+  J = −ρ_s∇χ con ∇·(ρ_s∇χ) = ∂ρ_s/∂t, sulle facce delle celle, per ogni intervallo tra due fotogrammi (gradiente
+  coniugato, residuo < 10⁻⁷, ≤ 192 iterazioni). Risultato: rotazione netta attorno a z **7·10⁻⁸** (era 0,80);
+  velocità media 0,017 c (era 0,05). Dentro la cella le palline usano i flussi sulle facce (RT0, come i surfisti)
+  e la densità della cella lineare nel tempo: una nuvola uniforme in una cella resta uniforme. Residuo di
+  continuità 4·10⁻⁴. Prima della luce le palline si spostano di 0,04 λ_C per fotogramma (rumore del float16
+  esportato nelle code); spostamento radiale rms su tutta la corsa 0,43 λ_C (era 2,7 col giro finto).
+* **Integratore**: punto medio, passo ≤ 0,5 λ_C/c; velocità tagliata a 0,95 c in 311 valutazioni su ~7·10⁸
+  (code esterne); 0 urti contro il bordo della scatola (24 λ_C).
 
 ### 2.2 Luce
 
@@ -130,25 +137,26 @@ fuori dall'1s, **dal calcolo**, fotogrammi.csv) e il dipolo **⟨z⟩** (punti =
 | luce dell'atomo | ×1000 in energia (×31,6 in campo) | è 1,8·10⁻³ dell'impulso, sparsa su gusci grandi |
 | accoppiamento luce-elettrone (dai dati, non dal video) | K = 10 (e → 10e), tassi ×100 | vedere lo svuotamento in una corsa corta |
 | colore dell'elettrone | pieno quando il cambio locale di densità è ~25 % | perché si legga il dipolo anche dove ci sono poche palline |
-| corrente dell'elettrone | corretta (84 % tolto) per rispettare la continuità | la j esportata per cella non è il flusso vero (§2.1) |
+| corrente dell'elettrone | non usata: flusso minimo dalla continuità (emendamento 1) | la j esportata per cella non è il flusso del reticolo (§2.1) |
 
 ## 4. Esami (pre-registrati in `lab/out/vl_prereg.json`)
 
 | esame | soglia | risultato | esito |
 |---|---|---|---|
-| E1 palline fedeli a |ψ|² smussata, 201 fotogrammi, senza rinascite | Pearson ≥ 0,97 sempre; TV ≤ TV(0)+0,05 | min **0,9995** (fot. 114); TV 0,022 → max 0,028 | **PASS** |
-| E2 dipolo ⟨z⟩ dalle palline contro il calcolo | Pearson ≥ 0,98; rms ≤ 0,10 λ_C | **0,99999**; rms **0,015** λ_C; ampiezza max 1,172 contro 1,166 | **PASS** |
-| E3a p_exc dalle palline = stesso stimatore sul reticolo | max diff ≤ 0,02 | 0,017 | **PASS** |
-| E3b p_exc dalle palline contro p_exc vero | max diff ≤ 0,02 | 0,071 (media +0,046) | **FAIL (previsto)** |
+| E1 palline fedeli a |ψ|² smussata, 201 fotogrammi, senza rinascite | Pearson ≥ 0,97 sempre; TV ≤ TV(0)+0,05 | min **0,9996** (fot. 21); TV 0,022 → max 0,029 | **PASS** |
+| E2 dipolo ⟨z⟩ dalle palline contro il calcolo | Pearson ≥ 0,98; rms ≤ 0,10 λ_C | **0,999997**; rms **0,015** λ_C; ampiezza max 1,169 contro 1,166 | **PASS** |
+| E3a p_exc dalle palline = stesso stimatore sul reticolo | max diff ≤ 0,02 | 0,013 | **PASS** |
+| E3b p_exc dalle palline contro p_exc vero | max diff ≤ 0,02 | 0,068 (media +0,050) | **FAIL (previsto)** |
 | E4 B ricostruito coerente con la radiazione | media ≥ 0,90, min ≥ 0,80 | 0,963 / 0,832 | PASS (controllo già visto) |
 | E5 bilancio di energia: luce uscita da R₀ / energia persa dall'atomo | in [0,67; 1,5] | **0,906** (3,69·10⁻³ contro 4,08·10⁻³ mc²) | PASS (controllo già visto) |
 | E6 palline dell'impulso fedeli a u (fot. 10, 20, 30) | Pearson ≥ 0,90 | 0,985 / 0,984 / 0,980 | **PASS** |
-| E7 dichiarazioni a schermo | leggibili nei fermo-immagine | smussamento, ×1000, K = 10, rallentatore, "dal calcolo", BOZZA, impronta dei dati, giro non validato | PASS |
+| E7 dichiarazioni a schermo | leggibili nei fermo-immagine | smussamento, ×1000, K = 10, rallentatore, "dal calcolo", BOZZA, impronta dei dati, "in un livello puro... le palline stanno ferme" | PASS |
 
 Note oneste sugli esami:
 
-* E1 ed E2 passano **anche perché il flusso è stato corretto per costruzione** a rispettare la continuità: misurano
-  l'integratore e l'interpolazione, non la corrente esportata (che da sola non li passerebbe, §2.1).
+* E1 ed E2 passano **anche perché il flusso è costruito** per rispettare la continuità: misurano l'integratore e
+  l'interpolazione, non la corrente esportata (che da sola non li passerebbe, §2.1). Prima versione (giro finto):
+  E1 0,9995, E2 0,99999, E3a 0,017, E3b 0,071 — stessi esiti.
 * E4 ed E5 erano già stati misurati prima della pre-registrazione (scritto nella pre-registrazione): sono controlli,
   non previsioni. E5 però è un buon numero di fisica: l'energia che la luce porta fuori è il 91 % di quella che
   l'atomo perde (p_exc da 0,1198 a 0,0640 × ω₂₁). Il 9 % mancante: luce ancora vicino all'atomo, la quota di
@@ -158,24 +166,24 @@ Note oneste sugli esami:
 
 ## 5. Fallimenti e sorprese
 
-1. **La corrente esportata non è un flusso** (l'84 % è compressione finta). Senza correzione le palline si
-   sarebbero ammassate nel posto sbagliato (prima prova: |v| sopra c in 75 000 valutazioni su 32 fotogrammi e
-   26 000 urti col bordo, con una correzione non pesata dalla densità). Serve esportare **la corrente sulle facce**
+1. **La corrente esportata non è un flusso** (l'84 % è compressione finta e il resto è un giro che il reticolo non
+   ha). Con una prima correzione non pesata dalla densità le palline andavano sopra c in 75 000 valutazioni su 32
+   fotogrammi e urtavano il bordo 26 000 volte; con la correzione pesata giravano per finta (punto 3). Serve esportare **la corrente sulle facce**
    della regola (quella dei surfisti esatti): debito 1.
 2. **B non c'è nell'esportazione**: ricostruito con Faraday + un residuo fermo tolto (§2.2). Funziona (0,96) ma è
    una ricostruzione; esportare B è facile: debito 2.
-3. **Il giro dell'1s (debito aperto, scritto a schermo).** Ci si aspettava che nell'1s le palline stessero ferme come in Bohm per la parte radiale, e
-   così è in media; ma il flusso dell'1s di Dirac **gira** attorno all'asse dello spin (corrente di spin). Qui le
-   palline fanno ~4 giri in tutta la corsa (ω ≈ 0,016, v_φ ≈ 0,04 c a r ≈ 3,4 λ_C): **0,12 volte** la velocità di
-   Bohm–Dirac Zα c sinθ. Il reticolo da solo dava 0,21 (SURFISTI_ESATTI E5, FAIL); lo smussamento toglie un altro
-   pezzo. **Non è validato**, ed è scritto a schermo. In più (SURFISTI_ESATTI, emendamento B5, in verifica da Debiti):
-   nella valle k = 0 l'elettrone gira a 0,87–0,97 di Zα c sinθ, ma sul livello 1s esatto le altre 3 valli lo
-   cancellano e la rotazione netta *vera* dovrebbe essere ~0. Il giro che si vede qui viene dalla corrente
-   esportata smussata (somma dei 4 colori) ed è quindi **una lettura da non credere**: nessuna rotazione è stata
-   disegnata o aggiunta. Scritta a schermo: "la rotazione vera dell'1s esatto tra le 4 copie del reticolo è in
-   verifica: debito aperto".
-4. Le palline si rimescolano in raggio (spostamento radiale rms 2,7 λ_C su tutta la corsa): la nuvola resta giusta
-   (E1), ma le singole palline non sono "orbite" ferme: l'eccitazione spinge e tira.
+3. **Il giro dell'1s: prima versione sbagliata, buttata (debito aperto, scritto a schermo).** Nella prima versione
+   le palline dell'1s giravano attorno a z (~4 giri in tutta la corsa, 0,12 di Bohm–Dirac Zα c sinθ): veniva dalla
+   j per cella, che non è il flusso del reticolo. Debiti (SURFISTI_ESATTI B5 e controlli di spin) ha mostrato che
+   nessun livello puro dell'atomo 3-D porta corrente netta (≤ 5·10⁻¹³ per collegamento e coppia di tick): nella
+   valle k = 0 l'elettrone gira a 0,87–0,97 di Zα c sinθ, ma le altre 3 copie del reticolo lo cancellano. Quindi nel
+   video rifatto **le palline dell'1s stanno ferme** e si muovono solo nella sovrapposizione creata dalla luce: è la
+   regola com'è oggi. Scritto a schermo: "in un livello puro questo reticolo non porta corrente: le palline stanno
+   ferme (debito aperto: le copie del reticolo, da provare)". Nessuna rotazione disegnata o aggiunta. La rotazione
+   di spin che Valerio vuole vedere arriverà solo quando il reticolo la porta davvero.
+4. Il flusso "minimo" della continuità è **una scelta** (come Bohm sceglie la sua): tra tutti i flussi che portano
+   |ψ|² giusto, quello senza giri. Se il reticolo avesse giri veri a divergenza zero, questo flusso non li vedrebbe.
+   Per saperlo servono i flussi sui collegamenti nell'esportazione (debito 1).
 5. Le palline della luce dell'atomo nascono solo fuori da R₀ = 40 λ_C: dentro (zona vicina) non ci sono palline di
    luce, anche se il campo c'è.
 6. Il colore dell'elettrone mostra soprattutto il **dipolo**; il fatto che l'eccitato sia più largo si vede solo
@@ -185,7 +193,8 @@ Note oneste sugli esami:
 
 0. **Taglio BOZZA**: la corsa sotto ha uno smorzamento finto ×2,2 (EMISSIONE §7); da rifare con `lab/vl_tutto.sh`
    sulla nuova esportazione.
-1. Corrente dell'elettrone ricostruita (84 % corretto): servono i **flussi sulle facce** nell'esportazione.
+1. Flusso dell'elettrone ricostruito dalla sola continuità: servono i **flussi sui collegamenti** nell'esportazione.
+1b. Rotazione di spin dell'1s assente sul reticolo (le 4 copie la cancellano): debito della regola, da provare.
 2. B ricostruito con Faraday: esportare B (o F complesso) dal Laboratorio.
 3. Smussamento σ = 1 λ_C per la scacchiera delle 4 valli: è un debito della regola 3-D (raddoppio dei fermioni),
    non del video.
