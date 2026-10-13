@@ -1,0 +1,56 @@
+{
+ "studio": "idrogeno_bohr fase 3 — capire il picco del blocco 7, partire dall'autostato dell'ibrido, regola della fase 4 dell'agglomeratore (richiesta del coordinatore)",
+ "scritto": "2026-10-13, prima di tutte le corse della fase 3",
+ "diagnostica_gia_fatta": "decomposizione della corrente spuria esportata in fase 2 (j_grosso.f16): radiale max 1.69e-3 (rms 2.7e-5), azimutale max 2.8e-4 (rms 3.5e-6); massimo a r = 0.0625 a0, media radiale verso il nucleo (-5.3e-4 a r = 0.1 a0), ~0 oltre 1.5 a0: e' un 'respiro' transitorio, non una corrente di spin o di parita'",
+ "cambi_al_codice": {
+  "IDRO_NH": "spessore dell'alone del blocco fine in celle grosse (prima fisso a 1). Nessun parametro fisico.",
+  "IDRO_FILTRO": "K passi dell'ibrido partendo dall'1s grosso; si accumula sum_k sin^2(pi k/K) conj(c_k/|c_k|) psi_k dell'INTERO stato (campo grosso + 4 componenti fini), c_k = <v0|psi_k>; si riparte da li' (carica rinormalizzata). Filtro spettrale centrato sull'autovalore dell'ibrido: toglie cio' che non gira alla frequenza dell'1s. Una manopola: K (= 48, dichiarata)."
+ },
+ "esami": {
+  "P1_alone": {
+   "domanda": "il picco al blocco 7 (fase 2: -0.0675/-0.0489/-0.0212/-0.0380 % per 3/5/7/9) viene dall'alone di 1 sola cella?",
+   "corse": "IDRO_ASSET=assets/atomo/agglomerato_zz_T_v1.json IDRO_REFLUX=1 IDRO_ORD=9 IDRO_B=16 IDRO_NH=2 esame_ibrido 256 256 {3,5,7,9} 48 (finestra [24,48])",
+   "criteri": {
+    "convergenza_registrata (invariata)": "|E5-E3|/|E| < 1e-4 e |E7-E5|/|E| < 1e-4",
+    "picco_sparito": "|E7 - (E5+E9)/2|/|E| < 1e-4",
+    "alone_conta": "almeno un blocco cambia di > 1e-4 relativo rispetto a NH=1"
+   }
+  },
+  "P2_autostato": {
+   "domanda": "partendo dall'autostato dell'ibrido (filtro K=48) spariscono transitorio e corrente spuria (R4c FAIL 1.7e-3)?",
+   "corsa": "IDRO_ASSET=assets/atomo/agglomerato_zz_T_v1.json IDRO_REFLUX=1 IDRO_ORD=9 IDRO_B=16 IDRO_FILTRO=48 esame_ibrido 256 256 7 48 <scratch> (blocco 7, alone 1, come R4c)",
+   "criteri": {
+    "corrente_spuria": "max|j| <= 1e-6 alpha c/a0^3 (soglia di fase 2, invariata)",
+    "stazionarieta": "max|drho|/max rho (grosso e fine, passo 24 -> 48) <= 1e-4 (fase 2: ~1e-3)",
+    "lettura": "|E[8,48] - E[32,48]|/|E| < 1e-5",
+    "energia": "E1 entro 0.10 % di Dirac x mu (soglia di fase 1)"
+   }
+  },
+  "P1b_picco_e_partenza": {
+   "domanda": "il picco al blocco 7 viene invece dalla contaminazione dello stato iniziale?",
+   "corse": "IDRO_ASSET=assets/atomo/agglomerato_zz_T_v1.json IDRO_REFLUX=1 IDRO_ORD=9 IDRO_B=16 IDRO_FILTRO=48 esame_ibrido 256 256 {3,5,9} 48 (il 7 e' P2)",
+   "criteri": {
+    "convergenza_registrata (invariata)": "|E5-E3|/|E| < 1e-4 e |E7-E5|/|E| < 1e-4",
+    "picco_sparito": "come P1"
+   }
+  },
+  "P3_regola_fase4": {
+   "domanda": "la regola della fase 4 (c2, c4, c6 fissati al livello sotto, parita' esatta, B=512 dal B=256) cambia gli stati?",
+   "costruzione": "python3 lab/idro_regola_P4.py -> assets/atomo/agglomerato_zz_P4_v1.json (nuovo, versionato); deve passare il controllo kcheck come in fase 4",
+   "corse": [
+    "IDRO_ASSET=assets/atomo/agglomerato_zz_P4_v1.json spettro 512 288 0 <dir>",
+    "IDRO_ASSET=...P4_v1 IDRO_REFLUX=1 IDRO_ORD=9 IDRO_B=16 IDRO_FILTRO=48 esame_ibrido 256 256 7 48"
+   ],
+   "previsione_scritta_prima": "la 'massa esatta' della fase 4 e' esatta rispetto al MAESTRO (il cammino fine a a0/4096, massa 1.000373 = 1+theta^2/3), non rispetto a Dirac: quindi il +0.034 % del 2p NON sparisce. Previsto 2p = +0.034 +- 0.005 % (se esce |2p| < 0.005 % la previsione e' sbagliata e lo si dice).",
+   "criteri": {
+    "parita": "1-|P| <= 1e-6 per 1s, 2s, 2p",
+    "tripletto": "spread relativo <= 1e-6",
+    "2p": "+0.029 .. +0.039 %",
+    "2s_1s": "descrittivo (T: 2s -0.163 %, 1s(a0/8) -0.385 %)",
+    "ibrido": "E1 entro 0.10 %; differenza da P2 descrittiva"
+   }
+  }
+ },
+ "manopole": "una nuova: K del filtro (48, scelta prima). NH e' configurazione.",
+ "economia": "corse in coda seriale, 2 thread, nice; nessuna corsa oltre quelle elencate senza emendamento dichiarato"
+}

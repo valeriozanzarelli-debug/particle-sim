@@ -410,12 +410,38 @@ fn esame_ibrido(bl: usize, n: usize, ni: usize, passi: usize, esporta: Option<St
     let v0 = s1.v.clone();
     let lv2 = Livello::con_nucleo(&reg, n, 1.0, off);
     let bf: usize = std::env::var("IDRO_B").ok().and_then(|v| v.parse().ok()).unwrap_or(32);
-    let fine = if ni > 0 { Some(Fine::new(&lv2, ni, 1, bf, 1.0)) } else { None };
+    let nh: usize = std::env::var("IDRO_NH").ok().and_then(|v| v.parse().ok()).unwrap_or(1);
+    let fine = if ni > 0 { Some(Fine::new(&lv2, ni, nh, bf, 1.0)) } else { None };
     if let Some(f) = fine.as_ref() {
         println!("fine block: ni = {ni}, patch {}^3, a_f = {:.5} (a0/{:.0}), walk angle {:.6} (kappa_rule {:.6})", f.p, f.th, a0() / f.th, f.ang, kappa_regola(&lv));
     }
     let mut at = Atomo::new(lv2, v0.clone(), fine, Calcio::DalFine);
     at.covarianza = std::env::var("IDRO_COV").is_ok();
+    if let Some(f) = at.fine.as_ref() { println!("halo nh = {}", f.nh); }
+    // phase 3 (P2): start from the hybrid's OWN eigenstate. IDRO_FILTRO=K: run K hybrid steps from the coarse 1s and
+    // accumulate the Hann-windowed, phase-demodulated sum  Σ_k sin²(πk/K) conj(ĉ_k) ψ_k  (ĉ_k = ⟨v0|ψ_k⟩/|⟨v0|ψ_k⟩|) of the
+    // WHOLE state (coarse field and the 4 fine components): what does not turn at the 1s frequency averages out.
+    // Then restart from it (charge renormalised to the coarse 1s). No parameter besides K (declared).
+    let kf: usize = std::env::var("IDRO_FILTRO").ok().and_then(|v| v.parse().ok()).unwrap_or(0);
+    if kf > 0 {
+        let tf = Instant::now();
+        let mut ac = vec![C::ZERO; at.psi.len()];
+        let mut afi: Vec<Vec<C>> = at.fine.as_ref().map(|f| f.psi.iter().map(|v| vec![C::ZERO; v.len()]).collect()).unwrap_or_default();
+        for k in 1..kf {
+            at.passo();
+            let c = dot(&v0, &at.psi);
+            let w = (std::f64::consts::PI * k as f64 / kf as f64).sin().powi(2);
+            let d = c.conj().scale(w / c.abs());
+            ac.par_iter_mut().zip(at.psi.par_iter()).for_each(|(a, x)| *a += d * *x);
+            if let Some(f) = at.fine.as_ref() { for q in 0..4 { afi[q].par_iter_mut().zip(f.psi[q].par_iter()).for_each(|(a, x)| *a += d * *x); } }
+        }
+        let resto = 1.0 - dot(&v0, &ac).norm2() / (norm2(&ac) * norm2(&v0));
+        let sc = (norm2(&v0) / norm2(&ac)).sqrt();
+        ac.par_iter_mut().for_each(|a| *a = a.scale(sc));
+        at.psi = ac;
+        if let Some(f) = at.fine.as_mut() { for q in 0..4 { f.psi[q] = afi[q].par_iter().map(|a| a.scale(sc)).collect(); } }
+        println!("filtro: K = {kf} passi (Hann, demodulato sull'1s), 1-|<v0|psi_filtrato>|^2 = {:.3e} [{:.0} s]", resto, tf.elapsed().as_secs_f64());
+    }
     let q0 = norm2(&at.psi);
     let h0 = h_media(&lv, &at.psi);
     let mut cs = vec![dot(&v0, &at.psi)];
