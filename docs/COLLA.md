@@ -162,13 +162,22 @@ legame per nucleone del B = 2 è 1.58 MeV (GHS 1.84) e del B = 4 4.15 MeV (GHS 4
 
 **La scansione** (rilassamenti dal campo senza massa + rumore liscio; 52³ palline, h = 0.2):
 
-| α | deuterone | ⁴He | forma B=2 | forma B=4 |
-|---|---|---|---|---|
-| 0 | 67.5 MeV (3.6 %) | 303 MeV (8.1 %) | ciambella | cubo |
-| 0.5 | 35.2 MeV (1.9 %) | 163 MeV (4.3 %) | **2 grumi** (q₂ = 0.42) | **4 grumi a tetraedro** (q₃ = 0.23, niente inversione) |
-| 0.8 | 14.3 MeV (0.76 %) | 69.3 MeV (1.8 %) | 2 grumi | 4 grumi a tetraedro |
-| 0.95 | 3.2 MeV (0.17 %) | 16.6 MeV (0.44 %) | 2 grumi a 2.7 fm | 4 grumi a tetraedro (q₃ = 0.49) |
-| vero | 2.22 MeV | 28.3 MeV | nuvola larga ~2 fm | — |
+| α | deuterone | ³He | ⁴He | forma B=2 | forma B=3 | forma B=4 |
+|---|---|---|---|---|---|---|
+| 0 | 67.5 MeV (3.6 %) | 170 MeV (6.1 %) | 303 MeV (8.1 %) | ciambella | tetraedro (q₃ = 0.19) | cubo |
+| 0.5 | 35.2 MeV (1.9 %) | 89.6 MeV (3.2 %) | 163 MeV (4.3 %) | **2 grumi** (q₂ = 0.42) | **3 grumi** | **4 grumi a tetraedro** (q₃ = 0.23, niente inversione) |
+| 0.8 | 14.3 MeV (0.76 %) | 37.6 MeV (1.3 %) | 69.3 MeV (1.8 %) | 2 grumi | 3 grumi | 4 grumi a tetraedro |
+| 0.95 | 3.2 MeV (0.17 %) | **8.75 MeV (0.31 %)** | 16.6 MeV (0.44 %) | 2 grumi a 2.7 fm | 3 grumi a triangolo (q₂ = 0.39, q₃ = 0.50) | 4 grumi a tetraedro (q₃ = 0.49) |
+| vero | 2.22 MeV | 7.72 MeV | 28.3 MeV | nuvola larga ~2 fm | — | — |
+
+(Le colonne ³He sono state corse nel cloud il 12–13/10, vedi "Cambi dichiarati" sotto. A α = 0.95 il ³He viene
+8.75 MeV contro 7.72: **+13 %**, il numero più vicino al vero di tutto lo studio. Ma attenzione: α = 0.95 è il valore
+di GHS, non scelto da noi, e con lo stesso α il deuterone è +42 % e il ⁴He −41 %: nessun α li mette a posto tutti e tre.)
+
+**Controllo delle partenze a α = 0.95 (pre-registrato).** Partendo da due ricci nel canale attrattivo (`ghs95_B2pair`)
+e da quattro ricci a tetraedro (`ghs95_B4tet`) si arriva **agli stessi grumi** (2 picchi; 4 picchi a tetraedro) con
+energie un filo **più alte** di quelle dalle partenze rumorose (B = 2: 172.704 contro 172.680; B = 4: 344.413 contro
+344.410): si tengono le partenze rumorose (la più bassa), nessun numero cambia.
 
 * **C3a-ii PASS**: il legame scende con α in modo regolare (di un fattore ~20 da 0 a 0.95).
 * **C3a-iii FAIL** (metà giusta, metà sbagliata): avevamo previsto che a α = 0.5 ciambella e cubo restassero e che a
@@ -177,8 +186,15 @@ legame per nucleone del B = 2 è 1.58 MeV (GHS 1.84) e del B = 4 4.15 MeV (GHS 4
   Cioè: **forme platoniche e legame giusto, in questo modello, non stanno insieme**.
 * **C3a-iv (un fit, poi una previsione).** Scegliamo α perché il ⁴He venga 28.3 MeV (interpolazione log-lineare fra
   0.8 e 0.95): **α\* = 0.894 (FIT, dichiarato)**. Con quello stesso α il modello *prevede*: deuterone **5.5 MeV**
-  (vero 2.22: 2.5 volte troppo) e ³He **⟨3He⟩**. Esame: entrambi entro un fattore 2 → **⟨VERDETTO⟩**.
-  (Corse dirette a α\* = 0.894 per controllare l'interpolazione: messe in coda ma **non fatte**, vedi debiti.)
+  (vero 2.22: 2.5 volte troppo) e ³He **15.1 MeV** (vero 7.72: 1.95 volte troppo, appena dentro). Esame: entrambi
+  entro un fattore 2 → **C3a-iv FAIL** (il ³He passa per un soffio, il deuterone no).
+* **Corse dirette a α = 0.894 (controllo a posteriori, non un esame).** L'interpolazione log-lineare fra 0.8 e 0.95
+  **non regge**: le corse vere danno deuterone **7.5 MeV**, ³He **20.0 MeV**, ⁴He **37.3 MeV** (non 28.3). Cioè il
+  legame scende con α più ripido vicino a 0.95 di quanto dica la retta in log. Per avere davvero il ⁴He a 28.3 servirebbe
+  α ≈ 0.91 (stima, non corsa); lì, guardando la scansione, il deuterone resterebbe ~3 volte e il ³He ~2 volte sopra il
+  vero. Il verdetto non cambia: **un solo parametro non mette a posto i tre nuclei insieme** (rapporti modello/vero alla
+  corsa diretta: d ×3.4, ³He ×2.6, ⁴He ×1.3). Non abbiamo rifatto il fit con le corse dirette (sarebbe un fit dopo aver
+  visto i numeri).
 
 ## C3b — Il termine sestico (1 parametro: c₆)
 
@@ -210,11 +226,15 @@ termine li penalizza meno. Il sestico aiuta solo **vicino al limite "BPS"** (qua
 | C1 + massa del pione | m_π = 138 (costante) + M_N, M_Δ | 0 | 68 | 170 | 300 | **tenute** |
 | C1 + C2a trottola rigida | idem | 0 | 160 | 344 | 610 | tenute |
 | C1 + C2a + C2b punto zero (modi legati) | idem | 0 | 78 | — | — | tenute |
-| C3a GHS α = 0.95 | E₁ := 938 MeV | 1 (α, valore di GHS) | 3.2 | ⟨3He95⟩ | 16.6 | **perse** (grumi) |
-| C3a GHS α\* = 0.894 | E₁ := 938 MeV + ⁴He | 1 (α, **fit** sul ⁴He) | 5.5 (previsto) | ⟨3HeS⟩ (previsto) | 28.3 (fit) | perse |
+| C3a GHS α = 0.95 | E₁ := 938 MeV | 1 (α, valore di GHS) | 3.2 | **8.75** | 16.6 | **perse** (grumi) |
+| C3a GHS α\* = 0.894 (interpolato) | E₁ := 938 MeV + ⁴He | 1 (α, **fit** sul ⁴He) | 5.5 (previsto) | 15.1 (previsto) | 28.3 (fit) | perse |
+| C3a GHS α = 0.894 (corsa diretta) | idem | idem | 7.5 | 20.0 | 37.3 | perse (2, 3, 4 grumi) |
 | C3b sestico c₆ = 200 | come C1 | 1 (c₆) | 106 | — | 429 | tenute |
 
-(MeV. "—" = non calcolato. Le righe C1–C3b sono di questo studio, sullo stesso reticolo; C0 da `NUCLEI_DA_NODI`.)
+(MeV. "—" = non calcolato. Le righe C1–C3b sono di questo studio, sullo stesso reticolo; C0 da `NUCLEI_DA_NODI`.
+Studio **chiuso il 13/10/2026** con le corse B = 3 fatte nel cloud. Esami: PASS C1a, C1c, C1d, C2a-ii, C2a-iii,
+C2a-iv, C2b-i, C2b-ii, C3a-i, C3a-ii; FAIL C1b, C1e, C2a-i (reticolo), C3a-iii (forme già perse a α = 0.5),
+C3a-iv (deuterone ×2.5 al α\* interpolato), C3b-i (il sestico lega di più). Riepilogo in `lab/out/colla_results.json`.)
 
 ### C4b — Che cosa abbiamo capito
 
@@ -244,20 +264,38 @@ termine li penalizza meno. Il sestico aiuta solo **vicino al limite "BPS"** (qua
 * **L'energia fra nucleoni va presa "leggermente legata":** o il modello GHS con **1 parametro fittato (α\* ≈ 0.89,
   sul ⁴He)**, dichiarato come debito, o — più onestamente — un'interazione efficace nucleone–nucleone da fittare sui
   nuclei leggeri. In tutti e due i casi il legame del ⁴He **non è una previsione**; deuterone e ³He sì, e lì il modello
-  sbaglia ancora di un fattore ~2.5 (⟨3He commento⟩).
+  sbaglia ancora di un fattore ~2–2.5 (interpolato: d ×2.5, ³He ×1.95; corsa diretta a α = 0.894: d ×3.4, ³He ×2.6).
 * **La trottola di spin/isospin si quantizza per nucleone**, non per nucleo rigido, quando il nucleo è "a grumi"; la
   quantizzazione a corpo rigido va usata solo per stati in cui i nucleoni sono davvero fusi (e lì sbaglia).
 * **Non** usare le energie dei nuclei classici di Skyrme (ciambella/cubo) come energie di legame: sbagliano di 10–30
   volte. Si possono usare le loro **forme e simmetrie** come "stampo" per gli stati eccitati e per le regole di spin.
 
 **Debiti che restano aperti** (sotto): la dinamica quantistica vera del deuterone (nuvola, non corpo rigido), le
-correzioni del continuo (loop), la calibrazione GHS con F_π e m_π non fisici, e le corse dirette a α\*.
+correzioni del continuo (loop), la calibrazione GHS con F_π e m_π non fisici, il sestico B = 3.
 
 ## Debiti e cose non fatte (dette chiare)
 
 * **Il deuterone come nuvola quantistica non è fatto.** La strada giusta in letteratura (Leese–Manton–Schroers 1995:
   Schrödinger su uno spazio di 10 dimensioni di configurazioni di due nucleoni, legame 6.2 MeV, raggio 2.18 fm) qui
   non è rifatta. È il pezzo più importante che manca dal lato "0 parametri".
+  **Idea geometrica per toglierlo (scritta, non corsa): "la valle del deuterone".** Il doppietto legato trovato in C2b
+  (ħω = 81.6 MeV, due modi uguali) è proprio il movimento in cui la ciambella si apre in due nucleoni, in due direzioni
+  del suo piano: geometricamente è un **piano** (x, y) = posizione relativa dei due nucleoni proiettata, con la ciambella
+  al centro e i due ricci separati lontano. In C2b l'abbiamo trattato come una buca a parabola (punto zero ħω), ma la
+  buca vera **non è una parabola**: a grande distanza si appiattisce sul valore 2E₁, e lungo la strada cambiano anche
+  le inerzie (la trottola passa da "una ciambella J = 1, I = 0" a "due nucleoni con 78 MeV di spin l'uno"). Il test:
+  (1) 8–10 rilassamenti **vincolati** alla separazione ρ fra i due lobi della densità barionica (ρ = 0 … 3 fm, oltre serve una scatola più grande; canale
+  attrattivo, unità AN, stesso reticolo), che danno il profilo della valle V(ρ); (2) lungo la stessa strada la metrica
+  cinetica g(ρ) (quanto "pesa" muoversi lungo la valle, da `colla_core`) e i tensori d'inerzia U, V, W(ρ) per l'energia
+  di rotazione J = 1, I = 0 a ogni ρ; (3) l'equazione di Schrödinger in 2D (nel piano del doppietto) con V(ρ) +
+  rotazione(ρ) e massa g(ρ). **Zero parametri.** Esame interno: per piccolo ρ la curvatura deve ridare ħω = 81.6 MeV
+  entro il 5 %. Esami veri (da pre-registrare prima): legame del deuterone **entro un fattore 3 di 2.22 MeV** (cioè
+  la "valle larga" spiega il ×35 che resta dopo C2b) e raggio quadratico medio **> 1.5 fm** (la nuvola larga); se il
+  legame resta > 20 MeV, il pezzo mancante non è la geometria della valle ma il continuo (loop) o un termine in più.
+  Figura naturale (regole della grafica): non una ciambella ferma ma la **densità che respira** fra ciambella e due
+  palline, pesata con |ψ(ρ)|², cioè il deuterone come lo vede il modello. È la versione ridotta, a un grado di libertà
+  radiale + rotazioni, di Leese–Manton–Schroers; per il "legame ×N troppo forte" dei nuclei più grandi la stessa idea
+  vale con la valle che separa il ⁴He in 2 + 2 o 3 + 1 (una sola coordinata per volta).
 * **Il continuo delle vibrazioni (correzioni a un loop, "Casimir") non è calcolato**: serve rinormalizzare, cioè
   nuovi parametri. Per il B = 1 vale circa −200 MeV (Moussallam); per la ciambella 3D non è noto a nessuno. C2b conta
   solo i modi legati: è una stima parziale, il segno della correzione completa non è noto.
@@ -266,12 +304,9 @@ correzioni del continuo (loop), la calibrazione GHS con F_π e m_π non fisici, 
   stesso reticolo) l'errore si cancella quasi tutto; nelle energie di rotazione resta (qualche MeV).
 * **Calibrazione GHS non fisica** (F_π = 29 MeV, m_π = 303 MeV in GHS); qui il GHS è confrontato con E₁ classica
   := 938 MeV, senza trottola quantistica (vedi C4b punto 3: per nuclei a grumi è la scelta sensata, ma non è calcolata).
-* **Corse non fatte (coda tagliata per il trasloco nel cloud, 23:54):** corse dirette a α\* = 0.894 (`ghsS_B1..B4`,
-  modello già in `colla_units.json`; `ghsS_B3` era partito ed è stato fermato), partenze a coppia/tetraedro per
-  α = 0.95 (`ghs95_B2pair`, `ghs95_B4tet`, pre-registrate come controllo della forma: con il rumore il campo si era già
-  rotto in grumi da solo), B = 3 a α = 0 e 0.5 (`ghs0_B3`, `ghs50_B3`, solo per la tabella), sestico B = 3.
-  **Come riprendere:** da `lab/`, `COLLA_THREADS=2 ./colla_drive.sh ghsS_B1 ghsS_B2 ghsS_B4 ghsS_B3 ghs95_B2pair ghs95_B4tet ghs0_B3 ghs50_B3`
-  (riparte dai checkpoint `lab/out/colla_ckpt_*.pt` se ci sono), poi `python colla_summary.py` e `python colla_figure.py`.
+* **Corse della coda: fatte nel cloud (12–13/10)**: `ghs95_B3`, `ghs80_B3`, `ghsS_B1..B4`, `ghs95_B2pair`,
+  `ghs95_B4tet`, `ghs0_B3`, `ghs50_B3` (tutte convergenti). **Resta non fatto:** il sestico B = 3 (`sx50_B3`,
+  `sx200_B3`): la riga C3b non ha il ³He.
 * **Le forme a α = 0.5 vengono da partenze rumorose**: non abbiamo confrontato con un cubo "tenuto simmetrico" per
   vedere se il cubo è ancora un minimo locale (più alto). Il verdetto "il cubo si rompe" vuol dire "dal cubo leggermente
   disturbato il campo scende nei grumi".
@@ -279,6 +314,22 @@ correzioni del continuo (loop), la calibrazione GHS con F_π e m_π non fisici, 
   2 % casuale → 3 % liscio e localizzato (21:26, per velocità: il rumore a scacchiera rallentava L-BFGS); tolleranza
   1e-8 → 1e-7 dalle 22:25 (an_B1..B4 e ghs95_B1 a 1e-8); tetto LOBPCG 150 → 60 iterazioni per il B = 2 (autovalori sotto
   soglia già fermi a 10⁻⁴); **segno di w per il ³He corretto dopo aver visto i numeri** (vedi C2a, con la ragione).
+* **Cambi dichiarati per le corse nel cloud (12–13/10/2026):**
+  - **Macchina diversa**: container Linux, 4 core CPU, Python 3.13, torch 2.14 (CPU), `COLLA_THREADS=2`. Le corse
+    del portatile e quelle del cloud sono mescolate nelle stesse tabelle (stesso codice, stesso reticolo).
+  - **Campi di partenza rigenerati**: i checkpoint `nuclei_ckpt_rm1..rm4.pt` (partenze di `colla_run.py`) non sono nel
+    repo; li abbiamo rifatti con `lab/nuclei_run.py rm1..rm4`. Riprodotti: E/12π²B uguale a quella committata entro
+    10⁻¹¹ relativo (es. rm3: 1.14285585353 contro 1.14285585353). I JSON/log di `nuclei_*` committati non sono stati toccati.
+  - **`ghs95_B3` ripartito da capo** (il checkpoint del portatile non è nel repo); tolleranza 1e-7 come le altre corse
+    dopo le 22:25.
+  - **`ghs80_B3` aggiunto** alla coda (non era nella lista di ripresa): serve all'esame pre-registrato C3a-iv, che
+    interpola il ³He fra α = 0.8 e 0.95. Corsa decisa prima di vedere il numero.
+  - **Campi `.npz` del portatile mancanti** (mai committati): `colla_summary.py` per le simmetrie di an_B3, an_B4 e dei
+    B = 4 della scansione usa le asimmetrie già salvate nei JSON **nell'orientazione della griglia** invece della
+    migliore orientazione. Per le rotazioni è un limite superiore (quindi i "< 0.02" restano validi), per l'inversione è
+    identico: tutti i verdetti C1c e C3a-iii tornano uguali a quelli del portatile. La figura, pannello (d), mostra le
+    forme dei campi corsi nel cloud (B = 3 a α = 0, 0.5, 0.95 e le partenze a coppia/tetraedro a 0.95) invece di
+    an_B2/an_B4.
 * **Log:** alcune righe dei log in `lab/out/colla_logs/` sono andate perse quando i log erano ancora tracciati da git
   (stash/ripristino automatici di altri agenti); i JSON dei risultati sono la fonte.
 * **Il sestico** è stato provato solo sul modello con il pione massivo, unità AN tenute fisse (niente rifit), senza il
