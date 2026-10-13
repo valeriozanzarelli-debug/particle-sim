@@ -274,21 +274,26 @@ def run_beat():
     per = 2 * np.pi / abs(o2 - o1)
     T = int(round(20 * per / a)) if not SMOKE else 40
     kinds = ("flow", "bellflux", "bell", "ballistic", "old")
-    Nf, Ns = 100000, 20000
-    ens = make_ens(rng, rho, ("flow",), Nf)
-    ens.update(make_ens(rng, rho, kinds[1:], Ns))
-    neq = make_ens(rng, rho, ("flow", "bellflux", "bell", "ballistic"), Ns, start="rho2")
-    allens = dict(ens); allens.update({"neq_" + k: e for k, e in neq.items()})
-    stats = {k: dict(jumps=0, bits=0.0) for k in allens}
-    q0 = quantile_of(ens["flow"]["cell"], ens["flow"]["xi"], rho)
-    qn0 = {k: quantile_of(e["cell"], e["xi"], rho) for k, e in neq.items()}
-    H0 = {k: quantile_bins_H(v) for k, v in qn0.items()}
-    rec = {k: [] for k in kinds}
-    recH = {k: [] for k in neq}
-    rec_qerr = []
-    checks = np.unique(np.linspace(0, T, 41).astype(int))
+    ck = os.path.join(CK, "beat.pkl")
+    if os.path.exists(ck):
+        S = pickle.load(open(ck, "rb"))
+    else:
+        Nf, Ns = 100000, 20000
+        ens = make_ens(rng, rho, ("flow",), Nf)
+        ens.update(make_ens(rng, rho, kinds[1:], Ns))
+        neq = make_ens(rng, rho, ("flow", "bellflux", "bell", "ballistic"), Ns, start="rho2")
+        allens = dict(ens); allens.update({"neq_" + k: e for k, e in neq.items()})
+        S = dict(t=0, chi=chi, rng=rng, ens=ens, neq=neq, allens=allens,
+                 stats={k: dict(jumps=0, bits=0.0) for k in allens},
+                 q0=quantile_of(ens["flow"]["cell"], ens["flow"]["xi"], rho),
+                 H0={k: quantile_bins_H(quantile_of(e["cell"], e["xi"], rho)) for k, e in neq.items()},
+                 rec={k: [] for k in kinds}, recH={k: [] for k in neq}, rec_qerr=[], time=0.0)
+    ens, neq, allens, stats, rng, chi = S["ens"], S["neq"], S["allens"], S["stats"], S["rng"], S["chi"]
+    rec, recH, rec_qerr, q0, H0 = S["rec"], S["recH"], S["rec_qerr"], S["q0"], S["H0"]
+    checks = set(np.unique(np.linspace(0, T, 41).astype(int)).tolist())
     t0 = time.time()
-    for t in range(T + 1):
+    while S["t"] <= T and time.time() - t0 < 520:
+        t = S["t"]
         if t in checks:
             rho = density(chi)
             for k in kinds:
@@ -298,6 +303,14 @@ def run_beat():
                 recH[k].append(quantile_bins_H(quantile_of(e["cell"], e["xi"], rho)))
         if t < T:
             chi = radial_tick_all(rad, chi, allens, rng, stats)
+        S["t"] += 1
+    S["time"] += time.time() - t0
+    if S["t"] <= T:
+        S["chi"] = chi
+        pickle.dump(S, open(ck, "wb"))
+        print(f"beat: checkpoint at tick {S['t']}/{T}", flush=True)
+        sys.exit(3)
+    t0 = time.time() - S["time"]
     res = dict(omega_1s=o1, omega_2s=o2, beat_period=per, ticks=T, periods=20, a=a, Za=Za, time_s=time.time() - t0,
                chi2_z={k: v for k, v in rec.items()}, max_abs_z={k: float(np.max(np.abs(v))) for k, v in rec.items()},
                flow_quantile_err_max=max(rec_qerr),
@@ -307,6 +320,8 @@ def run_beat():
                bits_per_surfer_per_tick={k: stats[k]["bits"] / (len(allens[k]["cell"]) * T) for k in allens})
     print(json.dumps({k: res[k] for k in ("max_abs_z", "flow_quantile_err_max", "neq_H_ratio", "jumps_per_surfer_per_tick")}, indent=1, default=float))
     save("beat", res)
+    if os.path.exists(ck):
+        os.remove(ck)
 
 
 # ======================================================================================================
@@ -450,6 +465,7 @@ def run_a3d(state, budget=540.0):
         S["tvnull"] = tv_null(rng, rho, 200000, 2, 10)
         S["tvnull_small"] = tv_null(rng, rho, 50000, 2, 10)
         S["drift_r"] = {k: [] for k in ("flow2", "flow", "bellflux", "bell", "ballistic", "cdfasse", "old")}
+        S["traj"] = {k: [] for k in ("flow2", "bellflux", "ballistic", "old")}      # 6 surfers each, for the figure
     ens = S["ens"]
     checks = set((np.unique((np.linspace(0, T, 41) / 2).astype(int)) * 2).tolist())     # even ticks only
     while S["t"] <= T and time.time() - t_start < budget:
@@ -485,6 +501,9 @@ def run_a3d(state, budget=540.0):
                                   vr_rms_over_Za=float(np.sqrt(np.mean(((r1 - r) / (10 * A3))[sel]**2)) / ZA))
                 S["vphi"] = out
                 print("v_phi:", out, flush=True)
+        if t % 2 == 0:
+            for k in S["traj"]:
+                S["traj"][k].append(phys(ens[k]["cell"][:6], ens[k]["xi"][:6]).tolist())
         if t == T:
             S["t"] += 1
             break
@@ -501,6 +520,7 @@ def run_a3d(state, budget=540.0):
                max_abs_z={k: float(np.max(np.abs(S["rec"]["z"][k]))) for k in KINDS3},
                tv_ratio_final={k: S["rec"]["tv"][k][-1] / (S["tvnull"][0] if k in ("flow", "flow2") else S["tvnull_small"][0]) for k in KINDS3},
                stats={k: {q: v / (len(ens[k]["cell"]) * T) for q, v in s.items()} for k, s in S["stats"].items()})
+    res["traj"] = S["traj"]
     if state == "1s":
         res["H_neq"] = S["H"]
         res["H_ratio"] = {k: v[-1] / v[0] for k, v in S["H"].items()}
