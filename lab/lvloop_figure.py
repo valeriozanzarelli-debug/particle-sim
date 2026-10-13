@@ -2,8 +2,8 @@
 (a) maximum lattice step a_max (Planck units) vs scaling exponent p of a loop-induced Lorentz violation
     delta = alpha * kappa * theta^p (kappa = 1), for each bound, mass-type (solid) and momentum-type (dashed);
 (b) symmetry of the interacting rule (lvloop_sym.json): spectral distance for pairs of impurities, and group sizes;
-(c) the dressed-electron speed counterterm of vuoto_ phase 2 (read from origin/master, slice 0) vs theta.
-Usage: python lvloop_figure.py [path to vuoto_f2_exams.json from origin/master]"""
+(c) the dressed-electron limiting speed of vuoto_ phase 3 (exact engine, origin/master 35afcc5) vs theta.
+Usage: python lvloop_figure.py <vuoto_f2_exams.json> <vuoto_f3_exams.json>  (both from origin/master via git show)"""
 import os, sys, json
 import numpy as np
 import matplotlib
@@ -53,18 +53,26 @@ b.text(0.03, 0.97, txt, transform=b.transAxes, va="top", fontsize=8)
 b.set_title("(b) coppie di impurezze, regola, n = 8:\nx = z esatto, y diverso", fontsize=10)
 
 c = ax[2]
-if f2path and os.path.exists(f2path):
+f3path = sys.argv[2] if len(sys.argv) > 2 else None
+if f3path and os.path.exists(f3path):
+    t = json.load(open(f3path))["table"]
+    th = [r["theta"] for r in t["R|K12"]["rows"]]
+    for key, col, nm in (("R|K12", "C3", "regola, K12"), ("R|K12/3", "C1", "regola, K12/3"), ("C|K12/3", "C2", "ordine a giro, K12/3")):
+        rows = t[key]["rows"]
+        c.plot(th, [r["iso"] for r in rows], "-o", color=col, label=nm + ": isotropa")
+        c.plot(th, [r["aniso"] for r in rows], "--s", color=col, ms=4, label=nm + ": anisotropia y")
+    c.plot(th, t["cont|K12"]["dv"], "k:", label="continuo, stesso taglio (isotropa)")
+    c.axhline(0, color="gray", lw=0.6)
+    c.set_xscale("log"); c.set_xlabel("theta = m a  (5 passi, massa fissa)"); c.set_ylabel("delta v / alpha (contro la luce nuda)")
+    c.legend(fontsize=6.5)
+    c.set_title("(c) vuoto_ fase 3 (master 35afcc5): c dell'elettrone vestito\nnessuna parte cala con a (p = 0)", fontsize=10)
+elif f2path and os.path.exists(f2path):
     f2 = json.load(open(f2path))
-    th = sorted(float(t) for t in f2["G1"]["table"])
-    dv = np.array([f2["G1"]["table"][str(t)]["dv_over_alpha"] for t in th])
-    dv0 = np.array([f2["G0"]["table"][str(t)]["dv_over_alpha"] for t in th])
+    th = sorted(float(x) for x in f2["G1"]["table"])
+    dv = np.array([f2["G1"]["table"][str(x)]["dv_over_alpha"] for x in th])
     for j, (nm, col) in enumerate((("x", "C0"), ("y", "C3"), ("z", "C2"))):
-        c.plot(th, dv[:, j], "-o", color=col, label="regola, fetta 0, asse " + nm)
-    c.plot(th, dv0[:, 0], "k--", label="continuo, stesso proiettore")
-    c.plot(th, dv[:, 1] - 0.5 * (dv[:, 0] + dv[:, 2]), "m-s", label="anisotropia y - (x+z)/2")
-    c.set_xscale("log"); c.set_xlabel("theta = m a"); c.set_ylabel("delta v / alpha")
-    c.legend(fontsize=7)
-c.set_title("(c) c dell'elettrone vestito (vuoto_ fase 2):\nnon cala con a", fontsize=10)
+        c.plot(th, dv[:, j], "-o", color=col, label="fase 2, asse " + nm)
+    c.set_xscale("log"); c.legend(fontsize=7)
 plt.tight_layout()
 out = os.path.join(here, "out", "lvloop_figura.png")
 plt.savefig(out, dpi=130)

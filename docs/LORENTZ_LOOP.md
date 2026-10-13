@@ -9,6 +9,11 @@ File: `lab/lvloop_prereg.py` → `lab/out/lvloop_prereg.json` (commit f0f5d43, *
 `lab/out/lvloop_emendamenti.json` (EM1, commit prima della corsa v2), `lab/lvloop_sym.py` → `lab/out/lvloop_sym.json`,
 `lab/lvloop_figure.py` → `lab/out/lvloop_figura.png`.
 
+> **Aggiornamento (fase 3 di Debiti arrivata, §10):** misurato p = 0 per tutte e due le parti. **Regola congelata:
+> esclusa per qualunque passo**: l'anisotropia lungo y è 7·10⁻⁵–7·10⁻⁴, contro 10⁻²¹ di Yb⁺. **Ordine a giro:**
+> l'anisotropia è zero, ma il gap isotropo +0,044 α ≈ 3·10⁻⁴ (misurato contro la luce **nuda**) la esclude per
+> qualunque passo, **a meno che** il vestito della luce compensi quello dell'elettrone entro ~1 parte su 10¹⁶–10¹⁷.
+
 ## In una riga
 
 Il giro 1 diceva: "la luce libera della regola ha solo una violazione (ka)² con simmetria del cubo: con passo di
@@ -217,7 +222,7 @@ misura variando θ). Il passo massimo vale a_max = λ_C·(B/(ακ))^{1/p}. Con �
 - P4: il gap isotropo non è protetto da nessuna simmetria (tick e cella non sono legati da una simmetria del
   reticolo). Previsione: p = 0, salvo cancellazioni.
 
-## 6. I numeri di Debiti: cosa c'è oggi su origin/master (ultimo fetch: commit 63c1219)
+## 6. I numeri di Debiti prima della fase 3 (ultimo fetch prima della fase 3: commit 63c1219; i risultati sono nel §10)
 
 **La fase 3 è pre-registrata (commit a38fda3) ma i risultati delle corse non sono ancora arrivati.** Ci sono:
 
@@ -311,21 +316,116 @@ c_e − c_γ. Quel numero, con la c della luce vestita, non l'ha ancora calcolat
    permessi, non quanto valgono.
 6. **Due fallimenti dichiarati:** S1 (configurazione non generica, EM1) e S2' (T_h invece di O_h).
 
-## 10. Come rifare
+## 10. Risultati della fase 3 di Debiti e verdetto (origin/master 35afcc5)
+
+Fonte: `docs/VUOTO_POLARIZZA.md` §14 e `lab/out/vuoto_f3_exams.json` su origin/master, **commit 35afcc5** ("vuoto
+fase 3: c vestito esatto a tempo discreto …"). La pre-registrazione di Debiti (a38fda3) era venuta prima delle sue
+corse; la mia (f0f5d43) prima di tutto. I numeri li ho letti con `git show`, senza toccare i loro file. Calcolo:
+`lab/lvloop_verdetto.py` → `lab/out/lvloop_verdetto.json`.
+
+**Il motore.** Loop a un fotone calcolato **esattamente nel tempo discreto** della regola: il fotone è il cammino
+della luce e tocca l'elettrone con la fase di Peierls a ogni salto. Non usa l'H_eff della fase 2 e non dipende dalla
+fetta di tempo. Velocità δv_j presa dalla dispersione vestita; 5 passi a massa fissa, θ = 0,05 … 0,003125.
+**Correzione importante:** i δv della fase 2 (quelli usati nella figura del primo commit e nel §6) erano un artefatto
+del vertice H_eff. Anche il g−2 della fase 2 non è robusto (0,972 → 0,910 α/2π cambiando la fetta), quindi qui **non
+lo uso**.
+
+| δv/α, retta in θ → 0 (5 punti) | anisotropia y − (x+z)/2 | isotropa (media dei 3 assi) | x − z |
+|---|---|---|---|
+| regola congelata, taglio K12 = (0,6; 1,05) | **−0,0928** (pendenza 0,014) | **−0,0668** | 6·10⁻¹¹ |
+| regola congelata, taglio K12/3 | **−0,0102** | **+0,0455** | < 10⁻¹² |
+| ordine a giro (proposta), K12/3 | 5,6·10⁻¹³ (zero per simmetria) | **+0,0444** | — |
+| continuo (Dirac), stesso taglio K12 | — | +0,0531 | — |
+
+δv > 0 vuol dire che l'elettrone vestito corre più veloce della luce **nuda**.
+
+**Contro le mie previsioni pre-registrate (§5):**
+- **P1 confermata:** x = z entro 6·10⁻¹¹ α.
+- **P2 confermata:** nella congelata l'anisotropia resta finita per a → 0, cioè q = 0.
+- **P3 confermata:** con l'ordine a giro l'anisotropia è < 10⁻³ α (anzi ~10⁻¹² α: è zero per simmetria).
+- **P4 confermata:** il gap isotropo resta finito, cioè p = 0.
+
+Due cose che non avevo previsto:
+- il **segno** del gap isotropo cambia con il taglio (−0,067 / +0,045 α);
+- l'anisotropia scala come (Λa)²: dividendo il taglio per 3 cala di 9,1 volte. Nella regola, però, il taglio è il
+  reticolo stesso (Λ ~ 1/a), quindi Λa resta ~1 e l'anisotropia resta di ordine α.
+
+**Applicazione della tabella (scenario p = q = 0, regola R2 pre-registrata):**
+
+| caso | quantità | valore assoluto | limite più stretto | rapporto | verdetto |
+|---|---|---|---|---|---|
+| congelata, K12 | anisotropia c dell'elettrone | 6,8·10⁻⁴ | Yb⁺ 2022, 10⁻²¹ (2019: 1,6·10⁻²⁰) | 7·10¹⁷ (4·10¹⁶) | **esclusa per qualunque a** |
+| congelata, K12/3 | anisotropia | 7,5·10⁻⁵ | idem | 7·10¹⁶ (5·10¹⁵) | **esclusa per qualunque a** |
+| congelata, K12 | gap isotropo (elettrone più lento) | 4,9·10⁻⁴ | decadimento del fotone, 6·10⁻²¹; LEP 5·10⁻¹⁵ | 8·10¹⁶; 1·10¹¹ | esclusa, con riserva |
+| congelata, K12/3 | gap isotropo (elettrone più veloce) | 3,3·10⁻⁴ | Granchio 2,5·10⁻²⁰; LEP 5·10⁻¹⁵ | 1,3·10¹⁶; 7·10¹⁰ | esclusa, con riserva |
+| **ordine a giro** | anisotropia | 0 (simmetria T_h) | — | — | nessun limite |
+| **ordine a giro** | **gap isotropo** (elettrone più veloce) | **3,2·10⁻⁴** | Granchio 2,5·10⁻²⁰ (indicativo); LEP 5·10⁻¹⁵ (robusto) | **1,3·10¹⁶; 6·10¹⁰** | **esclusa per qualunque a, con riserva** |
+
+Con p = 0 il passo a non entra: **nessun passo, nemmeno quello di Planck o più piccolo, salva la regola**. Ogni
+riga a p = 0 della tabella del §5 diventa "esclusa".
+
+**La riserva, detta chiaramente.** Il +0,044 α (e gli altri gap isotropi) è misurato contro la luce **nuda**. Gli
+esperimenti invece confrontano l'elettrone vestito con il **fotone vestito** (polarizzazione del vuoto), e quel
+vestito non è nel materiale di Debiti: con il proiettore di specie non è invariante di gauge, e con il mare intero ci
+sono doppioni e coni. Per salvare la regola il vestito della luce dovrebbe spostare c_γ della stessa quantità, cioè
++0,044 α ≈ 3,2·10⁻⁴, **con un errore massimo di 2,5·10⁻²⁰** (Granchio, indicativo) o **6·10⁻²¹** se lo scarto va
+dall'altra parte (fotoni che decadono). Vuol dire **una cancellazione al livello di 1 parte su ~10¹⁶–10¹⁷**. Con il
+solo LEP, che è il limite più robusto, basterebbe 1 parte su ~6·10¹⁰. Nessuna simmetria della regola impone questa
+cancellazione: luce ed elettrone sono cammini diversi (spin 1 contro spin ½ con moneta), e i loro loop non hanno
+motivo di coincidere. Anche dentro il solo elettrone c'è già una cancellazione grande fra parte trasversa (−0,77 α)
+e parte di Coulomb (+0,73 α), che dipende dal modello del vertice. Una cancellazione 1 su 10¹⁷ senza simmetria è
+proprio il "fine tuning" di Collins. Lo conto come **esclusione, salvo un miracolo da dimostrare**.
+
+Anche l'anisotropia ha una riserva, più debole: un'anisotropia **identica** per tutte le particelle (luce, elettroni,
+nuclei) sarebbe solo un cambio di coordinate e nessuno la vedrebbe. Per salvarsi la luce dovrebbe vestirsi con la
+**stessa** anisotropia lungo y dell'elettrone, entro 10⁻²¹/7·10⁻⁵ ~ 1 parte su 10¹⁶–10¹⁷. Non c'è nessuna ragione
+per crederlo. In più la fase 1 ha già misurato per la luce un'anisotropia elettrica di 4·10⁻⁵, diversa da quella
+dell'elettrone.
+
+**Riserva sul regolatore** (vale per tutte le righe): i numeri sono con il proiettore di specie, che non è la regola.
+La regola nuda nella zona di Brillouin intera non è stata fatta. Il valore assoluto dipende dal taglio di un fattore
+~10, ma il segno del verdetto no: anche il valore più piccolo misurato (7,5·10⁻⁵ e 3,2·10⁻⁴) sta 10¹⁰–10¹⁷ sopra i
+limiti. Per salvarsi servirebbe un regolatore che porti tutto a zero entro 10⁻¹⁷, e il continuo con lo stesso tipo di
+taglio dà +0,053 α, non zero.
+
+**Verdetto sul reticolo dell'universo.**
+- **Regola congelata (xyz|zyx):** **esclusa come teoria fondamentale per qualunque passo a.** Basta l'anisotropia
+  lungo y (q = 0), di 16–17 ordini sopra i limiti Yb⁺. Non dipende dal vestito della luce, salvo la cancellazione
+  1 su 10¹⁷ descritta sopra.
+- **Ordine a giro:** l'anisotropia è uccisa esattamente (T_h). Il gap isotropo +0,044 α (p = 0) la **esclude per
+  qualunque a**, **con la riserva** del vestito della luce, che dovrebbe compensare entro ~1 parte su 10¹⁶–10¹⁷. In
+  più ha le bande peggiori (zona di Floquet 3 volte più piccola, A7 FAIL) e Debiti non la propone come regola.
+- **La frase del giro 1 "con passo di Planck la regola passa tutto" è falsa per la teoria con interazioni.** Resta
+  vera solo per le particelle libere. Come nel caso di Collins et al., il passo non c'entra più: la regola zig-zag,
+  presa come reticolo vero dell'universo, ha bisogno o di una **simmetria che leghi la c dell'elettrone a quella della
+  luce** (in letteratura l'unica nota è la supersimmetria), o di una **manopola sintonizzata a 10⁻¹⁷**. Per il
+  Laboratorio come **strumento di calcolo**, che estrapola a → 0 e usa l'agglomeratore, non cambia nulla nella
+  sostanza: il gap è un controtermine di velocità (come δm per la massa), da fissare con una condizione fisica e da
+  dichiarare come debito. È quello che Debiti già fa.
+
+**Cosa resterebbe per riaprire la questione:** il vestito della luce invariante di gauge (mare intero) e la regola
+nuda senza proiettore. Solo se il gap c_e − c_γ vestito venisse ≤ 10⁻²⁰ **senza sintonia** il verdetto cambierebbe, e
+sarebbe una scoperta (una simmetria nascosta).
+
+## 11. Come rifare
 
     export OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1
     cd lab
     python lvloop_prereg.py        # tabella condizionale -> out/lvloop_prereg.json (già committata)
     python lvloop_sym.py           # simmetrie della regola con potenziale, ~9 min -> out/lvloop_sym.json
     git show origin/master:lab/out/vuoto_f2_exams.json > /tmp/f2.json
-    python lvloop_figure.py /tmp/f2.json   # out/lvloop_figura.png
+    git show origin/master:lab/out/vuoto_f3_exams.json > /tmp/f3.json   # fase 3 (commit 35afcc5)
+    python lvloop_verdetto.py /tmp/f3.json            # verdetto -> out/lvloop_verdetto.json
+    python lvloop_figure.py /tmp/f2.json /tmp/f3.json # out/lvloop_figura.png
 
 ![figura](../lab/out/lvloop_figura.png)
 
 Figura: (a) passo massimo contro esponente di scaling per ogni limite (linea piena: violazione ∝ (ma)^p; tratteggio:
 ∝ (Ea)^p), con le linee di Planck, del giro 1 e del Laboratorio; a p = 0 tutto è escluso. (b) Regola con due
 impurezze sullo stesso sottoreticolo: separazioni lungo x e lungo z danno lo stesso spettro (10⁻¹⁴), lungo y no (0,1).
-(c) Il controtermine di velocità dell'elettrone vestito della fase 2 di Debiti: l'anisotropia y−(x+z)/2 è piatta in θ.
+(c) La c dell'elettrone vestito della fase 3 di Debiti (motore esatto, master 35afcc5), contro la luce nuda: parte
+isotropa e anisotropia lungo y, per due tagli e per l'ordine a giro. Nessuna cala con a (p = 0); l'ordine a giro
+azzera l'anisotropia ma non la parte isotropa.
 
 Fonti verificate online: [Collins et al. 2004](https://arxiv.org/abs/gr-qc/0403053),
 [Gambini–Rastgoo–Pullin 2011](https://arxiv.org/abs/1106.1417), [Polchinski, commento](https://arxiv.org/abs/1106.6346),

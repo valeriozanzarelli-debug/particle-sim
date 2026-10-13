@@ -1,0 +1,62 @@
+{
+ "source": "origin/master 35afcc5 lab/out/vuoto_f3_exams.json",
+ "alpha": 0.0072973525693,
+ "bounds": {
+  "aniso_e": 1e-21,
+  "aniso_e_2019": 1.6e-20,
+  "iso_e_faster_astro": 2.4680522391408555e-20,
+  "iso_g_faster_astro": 6e-21,
+  "iso_two_sided_LEP": 5e-15
+ },
+ "cases": {
+  "R|K12": {
+   "label": "regola congelata, taglio K12",
+   "aniso_a0_over_alpha": -0.09284057522375326,
+   "aniso_slope": 0.014019263657839813,
+   "iso_a0_over_alpha": -0.06680942879217498,
+   "iso_slope": -0.006321479297884208,
+   "scaling_exponent": 0,
+   "aniso_abs": 0.0006774904101443458,
+   "iso_abs": 0.0004875319568500435,
+   "iso_sign": "elettrone piu' lento della luce nuda (decadimento del fotone)",
+   "aniso_over_bound_Yb2022": 6.774904101443459e+17,
+   "aniso_over_bound_Yb2019": 4.234315063402162e+16,
+   "aniso_verdict": "p = 0: ESCLUSA per qualunque a (pre-registrato R2)",
+   "iso_over_bound_astro": 8.125532614167392e+16,
+   "iso_over_bound_LEP": 97506391370.0087,
+   "iso_verdict": "p = 0: ESCLUSA per qualunque a CON RISERVA (misurato contro la luce NUDA): per salvarla il vestito della luce deve compensare quello dell'elettrone entro 1 parte su 8e+16 (astro) / 1e+11 (LEP)"
+  },
+  "R|K12/3": {
+   "label": "regola congelata, taglio K12/3",
+   "aniso_a0_over_alpha": -0.010248303662447205,
+   "aniso_slope": 0.009231041308662166,
+   "iso_a0_over_alpha": 0.04545055076331096,
+   "iso_slope": -0.08805014786078846,
+   "scaling_exponent": 0,
+   "aniso_abs": 7.478548506212572e-05,
+   "iso_abs": 0.0003316686933887473,
+   "iso_sign": "elettrone piu' veloce della luce nuda (Cherenkov nel vuoto)",
+   "aniso_over_bound_Yb2022": 7.478548506212573e+16,
+   "aniso_over_bound_Yb2019": 4674092816382858.0,
+   "aniso_verdict": "p = 0: ESCLUSA per qualunque a (pre-registrato R2)",
+   "iso_over_bound_astro": 1.343847946687722e+16,
+   "iso_over_bound_LEP": 66333738677.749466,
+   "iso_verdict": "p = 0: ESCLUSA per qualunque a CON RISERVA (misurato contro la luce NUDA): per salvarla il vestito della luce deve compensare quello dell'elettrone entro 1 parte su 1e+16 (astro) / 7e+10 (LEP)"
+  },
+  "C|K12/3": {
+   "label": "ordine a giro (proposta), taglio K12/3",
+   "aniso_a0_over_alpha": 5.553717208339745e-13,
+   "aniso_slope": -9.50060818546893e-12,
+   "iso_a0_over_alpha": 0.044367943548213516,
+   "iso_slope": -0.08866855593078084,
+   "scaling_exponent": 0,
+   "aniso_abs": 4.052743253944366e-15,
+   "iso_abs": 0.0003237685268461133,
+   "iso_sign": "elettrone piu' veloce della luce nuda (Cherenkov nel vuoto)",
+   "aniso_verdict": "zero per simmetria (T_h): nessun limite",
+   "iso_over_bound_astro": 1.3118382249429986e+16,
+   "iso_over_bound_LEP": 64753705369.22266,
+   "iso_verdict": "p = 0: ESCLUSA per qualunque a CON RISERVA (misurato contro la luce NUDA): per salvarla il vestito della luce deve compensare quello dell'elettrone entro 1 parte su 1e+16 (astro) / 6e+10 (LEP)"
+  }
+ }
+}
