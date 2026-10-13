@@ -1,0 +1,36 @@
+{
+ "studio": "mg_oit (motore grafico: trasparenza pesata per profondita' e vista da dietro del fotone)",
+ "data": "2026-10-13",
+ "scritto_prima_di_misurare": true,
+ "problema": "Nel Laboratorio il fotone circolare visto da dietro (lungo l'asse di volo) e' una nebbia bianca; il vortice dello spin (J_z omega/U = 1,0012 dalle palline) non si vede.",
+ "regola_di_valerio": "i preset cambiano solo risoluzione, numero di palline e precisione, mai i fenomeni: il vortice deve vedersi anche a bassa (Intel UHD), stesso metodo di disegno a ogni preset",
+ "metodo": {
+  "trasparenza": "weighted blended OIT (McGuire-Bavoil 2013) per lo strato delle palline di energia: bersaglio accum (Rgba16Float, somma di c*a*w e a*w) + bersaglio revealage (R16Float, prodotto di exp(-k a)); peso w = exp(-(z - z_rif)/D) con D = 0,9 lambda come in lab/fp_render.py; composizione sopra la scena prima dei bagliori additivi",
+  "esposizione": "k scelto da una griglia grossa delle palline proiettate (percentile 99,5 della somma di alfa per cella = 2,5): luminosita' = 1 - exp(-k somma a) invece di saturare",
+  "scia": "la coda di ogni pallina copre lo stesso tempo FISICO a ogni preset (2 lambda/c, 6 campioni ogni lambda/3); vista di lato: si vede solo il primo quarto della coda (come oggi); vista lungo l'asse: tutta. Decide lo shader dall'angolo tra sguardo e asse di volo",
+  "colore": "invariato: direzione di E attorno all'asse (gia' esistente)",
+  "niente_disegnato": "nessun vortice disegnato: solo palline e loro posizioni passate vere"
+ },
+ "configurazioni": {
+  "preset": {"bassa": {"lambda_celle": 12, "n": 96, "tick": 48}, "alta": {"lambda_celle": 24, "n": 192, "tick": 96}},
+  "tick": "N = 4 lambda/c a ogni preset (stesso istante fisico), fotone fermato con --tick N",
+  "polarizzazioni": ["c+", "c-", "h"],
+  "viste": {"retro": {"yaw": -1.5708, "pitch": 0.0}, "fronte": {"yaw": 1.5708, "pitch": 0.0}, "lato": {"yaw": 0.0, "pitch": 0.0}, "tre_quarti": {"yaw": 0.42, "pitch": 0.28}},
+  "macchina": "cloud: Vulkan software llvmpipe sotto Xvfb, finestra 1600x900; portatile (Intel UHD) via ponte per una foto a bassa",
+  "prima": "il disegno di oggi (istanze, alfa sopra) dallo stesso commit di partenza 484368c + lavori in corso degli altri agenti",
+  "dopo": "il disegno nuovo (OIT); --mesh resta il disegno vecchio"
+ },
+ "esami": {
+  "V1_saturazione_retro": "foto retro, c+, bassa e alta, tick fisso: frazione di pixel saturi tra i pixel accesi <= 5 %. Pixel acceso: max(R,G,B) >= 40 (sRGB 8 bit). Pixel saturo: max(R,G,B) >= 250 oppure min(R,G,B) >= 215 (bianco slavato). Si riporta anche il valore PRIMA (atteso molto piu' alto). Soglia valida per il dopo.",
+  "V2_verso_del_giro": "sulle palline disegnate (istanze esattamente come mandate alla GPU, coda inclusa, peso = alfa visibile nella vista retro come lo calcola lo shader), proiettate con la camera della foto retro: C = media pesata dello spostamento angolare (rad, positivo = antiorario sullo schermo) dalla pallina di coda piu' vecchia visibile alla testa, attorno alla proiezione dell'asse di volo. PASS se, sia a bassa sia ad alta: segno(C c+) = -segno(C c-), |C c+| e |C c-| >= 0,05 rad, |C h| <= 0,2 min(|C c+|, |C c-|), e il segno coincide con quello atteso dallo spin delle palline in 3-D (L lungo la direzione di sguardo positivo => orario visto da dietro => C < 0).",
+  "V3_lato_psnr": "foto di lato (e tre quarti), c+, bassa: PSNR del disegno nuovo contro quello di oggi, solo riportato (nessuna soglia); giudizio a occhio: l'aspetto non deve peggiorare",
+  "V4_costo_bassa": "preset bassa sul cloud (llvmpipe): fotogrammi al secondo e ms per fotogramma prima e dopo, solo riportati; foto via ponte sulla Intel UHD a bassa, vista retro, fps riportati"
+ },
+ "manopole_estetiche_nuove": ["D profondita' della trasparenza (0,9 lambda)", "obiettivo di esposizione (2,5 al percentile 99,5)", "durata della coda (2 lambda/c) e frazione visibile di lato (1/4)"],
+ "manopole_fisiche": 0,
+ "debiti_noti_prima": [
+  "V2 sul cammino GPU della regola (alta/ultra con regola sulla GPU) si misura solo se le istanze si possono rileggere; altrimenti alta si misura con --regola cpu (stesso disegno, lo shader delle istanze GPU e' una copia)",
+  "Ultra non provato (nessuna GPU da 16 GB)",
+  "tempi del cloud = llvmpipe, non una GPU"
+ ]
+}
