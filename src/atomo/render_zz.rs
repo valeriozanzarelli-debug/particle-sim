@@ -76,6 +76,14 @@ pub fn aggiorna(
     let onde_gpu = if lab.scena == Scena::Fotone { lab.fot.as_ref().and_then(|c| c.lock().unwrap().out.onde_gpu.clone()) } else { None };
     let r_cam = cam.r();
     let focus = cam.focus;
+    // the photon's worker sorts its glows by distance from the eye (physics coordinates, cells): camera.rs puts the
+    // eye at r·(sin yaw cos pitch, sin pitch, cos yaw cos pitch) on screen, relative to the focus
+    if lab.scena == Scena::Fotone {
+        let (yw, pt) = (cam.yaw as f64, cam.pitch as f64);
+        let e = [yw.sin() * pt.cos() * r_cam, pt.sin() * r_cam, yw.cos() * pt.cos() * r_cam];
+        let occhio = [e[0] + focus[0], -e[2] + focus[1], e[1] + focus[2]];
+        if let Some(c) = &lab.fot { c.lock().unwrap().occhio = Some(occhio); }
+    }
     let scena = lab.scena;
     // what the main layer shows
     type Strati = (Vec<crate::render::Ball>, Vec<crate::render::Ball>, Vec<[f32; 3]>);
@@ -100,6 +108,14 @@ pub fn aggiorna(
             let out = lab.orb.as_ref().map(|c| c.lock().unwrap().out.clone());
             match out {
                 Some(o) if vis.versione != o.versione || vis.scena != Some(scena) => (Some(((*o.palline).clone(), (*o.onde).clone(), vec![])), o.versione),
+                Some(o) => (None, o.versione),
+                None => (None, 0),
+            }
+        }
+        Scena::Elettrone => {
+            let out = lab.el.as_ref().map(|c| c.lock().unwrap().out.clone());
+            match out {
+                Some(o) if vis.versione != o.versione || vis.scena != Some(scena) => (Some(((*o.palline).clone(), vec![], vec![])), o.versione),
                 Some(o) => (None, o.versione),
                 None => (None, 0),
             }
@@ -158,16 +174,18 @@ pub fn aggiorna(
         }
     }
     vis.versione = versione;
+    lab.versione_disegnata = versione;
     vis.scena = Some(scena);
     // sizes: screen-constant, capped
     let fm = 1e-15 / lab.metri_per_unita();
-    let g_nodo = if lab.mostra_protone && scena != Scena::Fotone {
+    let g_nodo = if lab.mostra_protone && scena != Scena::Fotone && scena != Scena::Elettrone {
         let x = (r_cam / (300.0 * fm)).ln();
         (1.0 - x / 2.0).clamp(0.0, 1.0) as f32
     } else { 0.0 };
     let (s_main, g_main) = match scena {
         Scena::Fotone => ((0.0032 * r_cam).min(0.9), lab.luce),
         Scena::Atomo => ((0.0035 * r_cam).min(0.12), lab.luce * (1.0 - 0.8 * g_nodo)),
+        Scena::Elettrone => ((0.0035 * r_cam).min(0.12), lab.luce),
         // balls about half a grid step at the full view (the grid step is 2R/64), smaller when zooming in
         Scena::Orbitali => ((0.0045 * r_cam).min(0.018 * lab.orb_r), lab.luce * (1.0 - 0.8 * g_nodo)),
     };

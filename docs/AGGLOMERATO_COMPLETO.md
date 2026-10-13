@@ -65,7 +65,7 @@ segni sbagliati del nucleo dei camminatori, pezzo k⁴ della banda, parità).
    limiti "a palline" verificati (salti ≥ 4,3 λ_C per il k⁶; nessuna regola positiva relativistica con celle > √3 λ_C);
    F3 dei 2p **chiuso con il cinetico T** (−0,7 % e −3,0 %), con un emendamento dichiarato sulla coda finta ad alto k.
 
-**Esami: 16 PASS / 3 FAIL** (fase 2 + emendamenti), **5 PASS / 1 FAIL** (fase 3), **3 PASS / 2 FAIL** (fase 4), **3 PASS / 1 FAIL** (fase 5, §13: livello Z = 10 entro 3·10⁻⁵ su 6 semi su 6; la coda ad alto k era parità sbagliata lasciata dal solutore; F3 dei 2p chiuso senza filtri), **6 PASS / 3 FAIL** (fase 6, §14: l'accoppiamento campo–moto imparato nella lingua della componente grande è quello di Dirac e nella colla fa esattamente il Darwin spalmato esterno, ma il plateau −10 % della 1s di nucleo1s **non** viene da lì).
+**Esami: 16 PASS / 3 FAIL** (fase 2 + emendamenti), **5 PASS / 1 FAIL** (fase 3), **3 PASS / 2 FAIL** (fase 4), **3 PASS / 1 FAIL** (fase 5, §13: livello Z = 10 entro 3·10⁻⁵ su 6 semi su 6; la coda ad alto k era parità sbagliata lasciata dal solutore; F3 dei 2p chiuso senza filtri), **6 PASS / 3 FAIL** (fase 6, §14: l'accoppiamento campo–moto imparato nella lingua della componente grande è quello di Dirac e nella colla fa esattamente il Darwin spalmato esterno, ma il plateau −10 % della 1s di nucleo1s **non** viene da lì), **5 PASS / 1 FAIL** (fase 7, §16: il plateau è un termine Z³ della catena di zoom, ∝ θ²·R_z·|ψ(0)|²; con la cella della catena θ/4 la 1s sta a −0,03 %; il c4 di K è già fissato nel livello T).
 
 ---
 
@@ -582,6 +582,68 @@ python aggfull_l1_prereg.py; python aggfull_l1.py run; python aggfull_l1_analyze
 python aggfull_p4_prereg.py; python aggfull_p4.py; python aggfull_relearnT.py; ./aggfull_drive4.sh; python aggfull_p4_f3.py; python aggfull_p4_analyze.py   # fase 4
 python aggfull_p5_prereg.py; python aggfull_p5.py; ./aggfull_drive5.sh; python aggfull_p5_analyze.py   # fase 5
 python aggfull_p6_prereg.py; python aggfull_p6.py learn; ./aggfull_drive6.sh; python aggfull_p6_atom.py eT8_1s eT8_2s eT16_1s eT8_2p_c; python aggfull_p6_glue.py run; python aggfull_p6_analyze.py; python aggfull_p6_figure.py   # fase 6
+python aggfull_p7_prereg.py; ./aggfull_drive7.sh; python aggfull_p7_analyze.py; python aggfull_p7_figure.py   # fase 7
 python aggfull_analyze.py; python aggfull_figure.py
 ```
 I campi di Galerkin (`aggfull_field_*.npz`, ~0,5 GB) e i vettori (`.npy`) non sono nel repo: si rifanno.
+
+## 16. Fase 7: da dove viene il plateau −10,5 % della 1s; il c4 di K
+
+Pre-registrazione `lab/aggfull_p7_prereg.py` → `lab/out/aggfull_p7_prereg.json` (**commit 99ee295, prima delle corse
+di produzione**; le corse di sviluppo, con i numeri visti, sono dichiarate lì). Codice `lab/aggfull_p7_glue.py` (colla con
+la cella della catena come parametro; `nucleo1s_f8_core.py` e `nucleo1s_core.mesh_zoom` importati **in sola lettura**),
+`lab/aggfull_p7_chain.py` (la catena **da sola**, senza livello grosso né colla), `lab/aggfull_drive7.sh`,
+`lab/aggfull_p7_analyze.py` → `lab/out/aggfull_p7_verdict.json`, figura `lab/out/aggfull_p7_figure.png`.
+**5 PASS / 1 FAIL.**
+
+| esame | cosa | risultato | esito |
+|---|---|---|---|
+| P1 | la catena da sola dà lo stesso plateau della colla (1s, J0 = 64) | −10,48 % e −10,48 % | **PASS** |
+| P2 | catena con cella θ/4 (uguale per i due Z): 1s e 2s entro ±1 % a J0 = 24, 32, 48, 64 | 1s −0,72 / −0,10 / −0,03 / −0,03 %; 2s **+1,22** / +0,35 / −0,02 / −0,02 % | **FAIL** (il 2s a J0 = 24) |
+| P3 | termine per termine (cella θ, quattro Z): parte Z³ + parte Z⁴ = plateau; resto Z⁴ ≤ 2 % | 1s: −10,48 % = **Z³ −11,87 %** + Z⁴ +1,24 % (somma −10,63); 2s: −4,12 % = Z³ −4,78 % + Z⁴ +0,56 % | **PASS** |
+| P4 | previsione nuova: il pezzo Z³ è "di contatto" (pesa |ψ_n(0)|² ∝ 1/n³): rapporto 2s/1s = 1/8 entro 15 % | **0,1259** (1/8 = 0,125) | **PASS** |
+| P5 | previsione nuova: il pezzo Z³ è del reticolo della catena: con θ/2 almeno ×1/4 | ×**0,118** (1s), ×0,125 (2s): scala come θ³ | **PASS** |
+| K1 | punto 2: il livello T è K re-imparato con c4 fissato: c4 entro 0,5 % di Dirac (−k⁴/8, m = 1) in 13 direzioni, parità dispari ≤ 10⁻¹⁰ | T: 0,9993–1,0012 (a₀/16), 0,9993–1,0014 (a₀/8); dispari 0; K: 0,82–1,19 e 0,58–1,28 secondo la direzione | **PASS** |
+
+**Emendamento dichiarato (errore di codice, non di soglia).** Alla prima analisi P3 usciva FAIL perché il codice
+toglieva 1 a un numero che era già un errore (e₄ è B/m − B_Dirac, quindi la sua parte è e₄/D₄, non e₄/D₄ − 1).
+Corretto il codice, soglie invariate.
+
+**Cosa vuol dire, semplice.**
+
+1. **Il mio indizio della fase 6 era sbagliato per metà.** Le celle della catena sono davvero fisse in λ_C, ma
+   scalarle con 1/Z peggiora tutto (−700 % in sviluppo). Il motivo: l'errore più grosso della catena è la sua **massa**
+   tanθ/θ = 1 + θ²/3, che è fissata in λ_C. A θ uguale per i due Z la massa si cancella nella differenza; a θ scalato
+   non si cancella più. Il confronto giusto è quindi a θ uguale, ma θ **più piccolo**.
+2. **Il plateau è tutto nella catena** (P1): senza livello grosso e senza colla esce identico. Non c'entrano né il
+   livello T, né il termine campo–moto della fase 6, né la profondità dello zoom (4, 8, 12, 16 livelli danno lo stesso).
+3. **Termine per termine** (P3–P5): con quattro Z (1–4) l'errore relativo, dopo la massa nota, cresce **lineare in Z**.
+   Vuol dire che c'è un termine **Z³** nell'energia, e la formula a due Z lo legge come α⁴. Quel termine:
+   - pesa come |ψ(0)|² (rapporto 2s/1s = 0,126 contro 1/8): è un pezzo di contatto vicino al nucleo;
+   - scala come θ³ a parità di livelli (θ/2 → ×0,118);
+   - in sviluppo, cresce col numero di celle per livello di zoom (4 / 16 / 64 celle → −0,5 / −10,5 / −45 %).
+
+   Tutto insieme: ∝ θ²·R_z·|ψ(0)|², con R_z ≈ 2·n_celle·θ il raggio della zona zoomata. **Ipotesi, non dimostrata:**
+   è la correzione di reticolo θ²-a-θ² del pezzo 1/r (κ/r) della pallina radiale, che cambia dove cambiano le celle.
+   Il resto (Z⁴, +1,2 %) è l'errore di reticolo "normale" della catena (∝ θ², ×0,29 con θ/2).
+4. **Cura.** Basta affinare la cella esterna della catena: θ/2 → −1,0 %, θ/4 → −0,03 % (1s, J0 ≥ 48). Il FAIL di P2 è
+   il 2s a J0 = 24: +1,22 %. Lì pesa anche la parte grossa vicina alla colla. Con J0 ≥ 32 tutto sta entro ±0,4 %.
+   In alternativa, a θ pieno, si separa il pezzo Z³ con quattro Z: il resto α⁴ è +1,2 % (1s) e +0,6 % (2s).
+   **Validazione, non scoperta**: Dirac si ritrova quando la catena è abbastanza fine.
+5. **Correzione a NUCLEO_1S §18 e a questo documento §14:** il −10 % non era "niente Darwin nella lingua della
+   componente grande". Il termine campo–moto serve davvero per J0 piccoli e medi (fase 6, G1), ma il plateau è un
+   artefatto Z³ della catena di zoom.
+6. **Punto 2 (c4 di K).** Non serve un nuovo apprendimento: il livello T della fase 4 **è** K re-imparato con il k⁴
+   fissato esattamente sulla regola fine (che ha il c4 di Dirac entro 0,2 %). La parità è esatta e i 2p passano (A1 della
+   fase 6: −0,34 / −1,13 %). Il c4 di K, invece, dipende dalla direzione: 0,58–1,28 a a₀/8. Lo 0,959 di AGGLOMERATO_2S
+   è una sua media. **Proposta per `agg2s_`** (file loro, non toccato): usare `lab/out/aggfull_relearnT.pkl` al posto di
+   `aggfull_relearn.pkl`.
+
+**Debiti.** Nessuno nuovo nella fisica. La cella della catena θ/4 è una scelta di risoluzione ("HD"), non un parametro
+fittato. L'ipotesi del meccanismo (punto 3) è da verificare: la verifica naturale è un mesh a cella uniforme θ/4 fino al
+nucleo, senza zoom, con cusp risolto.
+
+**Parità:** non toccata (solo misure; il livello T ha parte dispari 0).
+
+**Patch proposte per `nucleo1s_`** (non applicate): in `Glue8` passare la cella esterna della catena `a_out = θ_A/4`
+(oggi `mesh_zoom(TH_A, …)`), oppure misurare l'α⁴ con tre o quattro Z togliendo il termine Z³.

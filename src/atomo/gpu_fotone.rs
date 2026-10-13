@@ -108,7 +108,14 @@ struct Par {
     n: u32, tick: u32, n_palline: u32, ns: u32,
     verso: f32, scia_op: u32, allunga: u32, n_sonde: u32,
     rif: [f32; 4], e1: [f32; 4], e2: [f32; 4], dir: [f32; 4],
+    /// il bagliore (fotdisegno::Bagliore): (s0, s1, a0, a1) e (p, amax, -, -)
+    bag: [f32; 4], bag2: [f32; 4],
+    /// l'occhio (la camera, celle dal centro della scatola) e w = mezzo intervallo di profondità (0 = non ordinare)
+    occhio: [f32; 4],
 }
+
+/// Cassetti di profondità per disegnare le palline dalla più lontana alla più vicina (ordinamento per conteggio)
+const N_CASSETTI: u64 = 4096;
 
 /// Quello che la CPU rilegge a ogni tick (qualche decina di KB).
 #[derive(Clone, Debug)]
@@ -144,6 +151,8 @@ pub struct GpuFotone {
     /// tenuti vivi qui (li usano solo i bind group)
     _eprev: [wgpu::Buffer; 3],
     _stato: wgpu::Buffer,
+    /// conteggi e inizi dei cassetti di profondità (li usano solo i bind group)
+    _cassetti: [wgpu::Buffer; 2],
     eta: wgpu::Buffer,
     sonde_in: wgpu::Buffer,
     staging: wgpu::Buffer,
@@ -152,12 +161,15 @@ pub struct GpuFotone {
     sonde_out: wgpu::Buffer,
     /// le istanze del disegno (STORAGE | VERTEX): istanze.rs le disegna da qui
     pub ist: BBuffer,
-    pip: [wgpu::ComputePipeline; 7],
+    pip: [wgpu::ComputePipeline; 10],
     /// bind group per kernel; quelli che leggono il campo hanno due versioni (terna 0 o 1)
     bg_misura: [wgpu::BindGroup; 2],
     bg_avanza: [wgpu::BindGroup; 2],
     bg_sonde: [wgpu::BindGroup; 2],
     bg_istanze: [wgpu::BindGroup; 2],
+    bg_azzera: wgpu::BindGroup,
+    bg_conteggio: wgpu::BindGroup,
+    bg_somma: wgpu::BindGroup,
     bg_finalizza: wgpu::BindGroup,
     bg_rinasci: wgpu::BindGroup,
     bg_spin: wgpu::BindGroup,
@@ -170,6 +182,9 @@ const K_RINASCI: usize = 3;
 const K_SONDE: usize = 4;
 const K_SPIN: usize = 5;
 const K_ISTANZE: usize = 6;
+const K_AZZERA: usize = 7;
+const K_CONTEGGIO: usize = 8;
+const K_SOMMA: usize = 9;
 
 impl GpuFotone {
     /// Il device regge questo preset? (limiti di wgpu: niente sorprese a metà corsa)
@@ -191,7 +206,7 @@ impl GpuFotone {
         // la lunghezza della storia di ogni pallina viene da fotdisegno (stesso passo del buffer caricato)
         let src = SORGENTE.replace("const SCIA_MAX: u32 = 4u;", &format!("const SCIA_MAX: u32 = {}u;", SCIA_MAX));
         let modulo = device.create_shader_module(wgpu::ShaderModuleDescriptor { label: Some("gpu_fotone"), source: wgpu::ShaderSource::Wgsl(src.into()) });
-        let pip = ["misura", "finalizza", "avanza", "rinasci", "sonde", "spin", "istanze"].map(|e| device.create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
+        let pip = ["misura", "finalizza", "avanza", "rinasci", "sonde", "spin", "istanze", "azzera", "conteggio", "somma"].map(|e| device.create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
             label: Some(e), layout: None, module: &modulo, entry_point: Some(e),
             compilation_options: wgpu::PipelineCompilationOptions::default(), cache: None,
         }));
@@ -212,6 +227,8 @@ impl GpuFotone {
         let ist: BBuffer = mk("istanze_fotone", np * (ns as u64 + 1) * 32, U::STORAGE | U::VERTEX | U::COPY_SRC).into();
         let sonde_in = mk("sonde_in", MAX_SONDE as u64 * 16, U::STORAGE | U::COPY_DST);
         let sonde_out = mk("sonde_out", MAX_SONDE as u64 * 16, st);
+        let conta = mk("cassetti", N_CASSETTI * 4, st);
+        let offs = mk("cassetti_inizio", N_CASSETTI * 4, st);
         let parzp = mk("parzp", NWG_SPIN as u64 * 8 * 4, st);
         let staging = mk("fotone_staging", ngm * NP as u64 * 4 + NWG_SPIN as u64 * 32 + MAX_SONDE as u64 * 16, U::MAP_READ | U::COPY_DST);
 
@@ -224,14 +241,18 @@ impl GpuFotone {
         let bg_misura = [0, 1].map(|s| bg(K_MISURA, &[(0, &par_buf), (1, &terne[s][0]), (2, &terne[s][1]), (3, &terne[s][2]), (4, &eprev[0]), (5, &eprev[1]), (6, &eprev[2]), (7, &parz)]));
         let bg_avanza = [0, 1].map(|s| bg(K_AVANZA, &[(0, &par_buf), (1, &terne[s][0]), (2, &terne[s][1]), (3, &terne[s][2]), (8, &stato), (9, &pos), (10, &vel), (11, &scia), (12, &eta)]));
         let bg_sonde = [0, 1].map(|s| bg(K_SONDE, &[(0, &par_buf), (1, &terne[s][0]), (2, &terne[s][1]), (3, &terne[s][2]), (14, &sonde_in), (15, &sonde_out)]));
-        let bg_istanze = [0, 1].map(|s| bg(K_ISTANZE, &[(0, &par_buf), (1, &terne[s][0]), (2, &terne[s][1]), (3, &terne[s][2]), (8, &stato), (9, &pos), (11, &scia), (12, &eta), (13, ist_w)]));
+        let bg_istanze = [0, 1].map(|s| bg(K_ISTANZE, &[(0, &par_buf), (1, &terne[s][0]), (2, &terne[s][1]), (3, &terne[s][2]), (8, &stato), (9, &pos), (11, &scia), (12, &eta), (13, ist_w), (17, &conta), (18, &offs)]));
+        let bg_azzera = bg(K_AZZERA, &[(17, &conta)]);
+        let bg_conteggio = bg(K_CONTEGGIO, &[(0, &par_buf), (9, &pos), (17, &conta)]);
+        let bg_somma = bg(K_SOMMA, &[(17, &conta), (18, &offs)]);
         let bg_finalizza = bg(K_FINALIZZA, &[(0, &par_buf), (7, &parz), (8, &stato)]);
         let bg_rinasci = bg(K_RINASCI, &[(0, &par_buf), (9, &pos), (10, &vel), (11, &scia), (12, &eta)]);
         let bg_spin = bg(K_SPIN, &[(0, &par_buf), (9, &pos), (10, &vel), (16, &parzp)]);
         GpuFotone {
             regola, n, n_palline, ns, passo_scia: 2, passi: 0, par: Par { n: n as u32, n_palline: n_palline as u32, ns: ns as u32, ..Default::default() }, par_buf,
             pos, vel, scia, _eprev: eprev, _stato: stato, eta, sonde_in, staging, parz, parzp, sonde_out, ist, pip,
-            bg_misura, bg_avanza, bg_sonde, bg_istanze, bg_finalizza, bg_rinasci, bg_spin,
+            bg_misura, bg_avanza, bg_sonde, bg_istanze, bg_finalizza, bg_rinasci, bg_spin, bg_azzera, bg_conteggio, bg_somma,
+            _cassetti: [conta, offs],
         }
     }
 
@@ -270,6 +291,9 @@ impl GpuFotone {
             K_ISTANZE => &self.bg_istanze[terna],
             K_FINALIZZA => &self.bg_finalizza,
             K_RINASCI => &self.bg_rinasci,
+            K_AZZERA => &self.bg_azzera,
+            K_CONTEGGIO => &self.bg_conteggio,
+            K_SOMMA => &self.bg_somma,
             _ => &self.bg_spin,
         };
         let mut pass = enc.begin_compute_pass(&wgpu::ComputePassDescriptor { label: Some("gpu_fotone"), timestamp_writes: None });
@@ -338,13 +362,28 @@ impl GpuFotone {
     }
 
     /// Scrive le istanze del disegno dal buffer delle palline (niente CPU). `l_max`: allungamento massimo lungo E
-    /// (celle), 0 = palline tonde.
-    pub fn disegna(&mut self, device: &wgpu::Device, queue: &wgpu::Queue, l_max: f32) {
+    /// (celle), 0 = palline tonde. `occhio`: dov'è la camera (celle dal centro della scatola): le istanze escono
+    /// ordinate dalla più lontana alla più vicina (cassetti di profondità), così la fusione alfa fa vedere davanti
+    /// lo strato più vicino, come fa il cammino CPU (fotscena). None = nell'ordine delle palline.
+    pub fn disegna(&mut self, device: &wgpu::Device, queue: &wgpu::Queue, l_max: f32, occhio: Option<[f64; 3]>) {
         self.par.allunga = (l_max > 0.0) as u32;
         self.par.e1[3] = l_max;
+        let b = crate::fotdisegno::Bagliore::attuale();
+        self.par.bag = [b.s0, b.s1, b.a0, b.a1];
+        self.par.bag2 = [b.p, b.amax, b.c, 0.0];
+        // mezzo intervallo di profondità: la mezza diagonale della scatola
+        let r = 0.5 * 3f32.sqrt() * self.n as f32 + 2.0;
+        self.par.occhio = match occhio { Some(o) => [o[0] as f32, o[1] as f32, o[2] as f32, r], None => [0.0; 4] };
         queue.write_buffer(&self.par_buf, 0, bytemuck::bytes_of(&self.par));
         let mut enc = device.create_command_encoder(&wgpu::CommandEncoderDescriptor { label: Some("fotone_istanze") });
-        self.dispatch(&mut enc, K_ISTANZE, (self.n_palline as u32).div_ceil(256), self.regola.attuale());
+        let gp = (self.n_palline as u32).div_ceil(256);
+        let t = self.regola.attuale();
+        if occhio.is_some() {
+            self.dispatch(&mut enc, K_AZZERA, (N_CASSETTI as u32).div_ceil(256), t);
+            self.dispatch(&mut enc, K_CONTEGGIO, gp, t);
+            self.dispatch(&mut enc, K_SOMMA, 1, t);
+        }
+        self.dispatch(&mut enc, K_ISTANZE, gp, t);
         queue.submit(Some(enc.finish()));
     }
 
@@ -421,8 +460,9 @@ impl FotoneGpu {
     /// Prova a mettere sulla GPU del motore il fotone appena lanciato (campo in `f`, palline in `tr`).
     /// `riuso`: il FotoneGpu del fotone precedente (stessi buffer se il preset è lo stesso).
     pub fn prova(f: &Fotone3D, tr: &Traccianti, l: &Lancio, riuso: Option<FotoneGpu>) -> Result<Self, String> {
-        // la stessa scia a ogni preset (regola di Valerio, fotdisegno::palline): SCIA_MAX campioni
-        let (n, np, ns) = (f.n, tr.pos.len(), SCIA_MAX);
+        // niente scia (regola di Valerio, 13/10: solo bagliori), come il cammino CPU (fotscena::SCIA_QUAL = 0):
+        // la storia resta nel buffer (gli esami la usano), ma non si disegna
+        let (n, np, ns) = (f.n, tr.pos.len(), tr.scia_n.min(SCIA_MAX));
         let mut fg = match riuso {
             Some(r) if r.g.n == n && r.g.n_palline == np && r.g.ns == ns => r,
             vecchio => {
@@ -479,7 +519,7 @@ impl FotoneGpu {
 
     /// Il disegno: le palline di energia restano sulla GPU (istanze), la CPU fa solo surfisti, bordi della scatola
     /// e, se accese, le viste di diagnosi (che rileggono il campo).
-    pub fn palline(&mut self, f: &mut Fotone3D, l: &Lancio, centro: [f64; 3], tr: &Traccianti, vista: Vista, surfisti: bool)
+    pub fn palline(&mut self, f: &mut Fotone3D, l: &Lancio, centro: [f64; 3], tr: &Traccianti, vista: Vista, surfisti: bool, occhio: Option<[f64; 3]>)
         -> (Vec<Ball>, Vec<Ball>, Vec<[f32; 3]>, Option<IstanzeGpu>) {
         let diagnosi = vista.fronti || vista.e_vettori || vista.b_vettori || vista.poynting || vista.spin || vista.sezione;
         let mut out = if diagnosi {
@@ -492,7 +532,7 @@ impl FotoneGpu {
         if !vista.traccianti { return (out, vec![], vec![], None); }
         let (d, q) = (self.dev.0.clone(), self.dev.1.clone());
         let l_max = if vista.allunga { (0.35 * l.lambda) as f32 } else { 0.0 };
-        self.g.disegna(d.wgpu_device(), &q, l_max);
+        self.g.disegna(d.wgpu_device(), &q, l_max, occhio);
         (out, vec![], vec![], Some(self.g.istanze()))
     }
 }

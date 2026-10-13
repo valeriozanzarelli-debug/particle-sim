@@ -7,11 +7,11 @@
 //!   field. They are born ONCE with probability ∝ u = E² + c²B² and then every tick move with the energy velocity
 //!   v = 2 E × cB / (E² + c²B²) (|v| ≤ c), read from the lattice by trilinear interpolation. Energy is conserved,
 //!   so the cloud stays ∝ u by itself (exam F1 of the study: correlation 0.998 after 4 λ): no re-birth, no ages.
-//!   Each ball is STRETCHED along the local E and coloured by the direction of E around the flight axis (circular
-//!   light: every colour once per λ; linear: two colours, crest and trough); brightness ∝ √u. Tail = the same
-//!   ball where it was 2, 4, 6, 8 ticks ago (its real, curved path). At the edge of a circular beam the balls turn around the axis: that swirl is the
-//!   spin of the photon (exam F2: ±0.999 ħ from the balls). There is NO drawn helix any more.
-//! • SURFERS: 6 bright white balls carried by the same energy flow, with long trails.
+//!   Each ball is a ROUND GLOW (Valerio, 13/10: no stretching, no tails, no special surfers) coloured by the
+//!   direction of E around the flight axis (circular light: every colour once per λ; linear: two colours, crest and
+//!   trough); its size and light grow with u (`Bagliore`, docs/BAGLIORI.md). At the edge of a circular beam the
+//!   glows turn around the axis: that swirl is the spin of the photon (exam F2: ±0.999 ħ from the balls; BAGLIORI S1–S3).
+//!   (Stretching along E and the 4-sample tail are still in the code, off: `Vista::allunga`, `SCIA_QUAL`.)
 //! • WAVEFRONTS: thin glowing sheets where E along the polarization has a crest (gold) or a trough (cyan)
 //!   along the flight; the peak position inside the cell comes from a parabola through three cells, so the sheets
 //!   glide smoothly instead of jumping from cell to cell.
@@ -49,6 +49,34 @@ pub struct Vista {
 impl Default for Vista {
     fn default() -> Self {
         Vista { traccianti: true, fronti: false, allunga: false, e_vettori: false, b_vettori: false, poynting: false, spin: false, sezione: false }
+    }
+}
+
+/// The glow of an energy ball (study "bagliori", docs/BAGLIORI.md): its SIZE and its LIGHT follow the local energy
+/// density u = (E² + c²B²)/max, so the core of the beam reads brighter and fuller than its edge, and the light of one
+/// ball stays low enough that the thousands seen through the beam head-on do not saturate into a white disc.
+/// size = s0 + s1 √u, light = min(a0 + a1 u^p, amax), colour = phase colour × c (c < 1 keeps the colour out of the
+/// tone mapper's white shoulder: at 1 the HDR tone mapping turns every hue pastel). Drawing knobs, not physics
+/// (counted in the document). `ATOMO_BAGLIORE="s0,s1,a0,a1,p,amax,c"` overrides them (only to try values without
+/// recompiling).
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct Bagliore { pub s0: f32, pub s1: f32, pub a0: f32, pub a1: f32, pub p: f32, pub amax: f32, pub c: f32 }
+
+pub const BAGLIORE: Bagliore = Bagliore { s0: 0.45, s1: 0.85, a0: 0.03, a1: 0.42, p: 1.0, amax: 0.5, c: 1.0 };
+
+impl Bagliore {
+    pub fn attuale() -> Bagliore {
+        static B: std::sync::OnceLock<Bagliore> = std::sync::OnceLock::new();
+        *B.get_or_init(|| {
+            let v: Vec<f32> = std::env::var("ATOMO_BAGLIORE").ok().map(|s| s.split(',').filter_map(|x| x.trim().parse().ok()).collect()).unwrap_or_default();
+            if v.len() == 7 { Bagliore { s0: v[0], s1: v[1], a0: v[2], a1: v[3], p: v[4], amax: v[5], c: v[6] } } else { BAGLIORE }
+        })
+    }
+    /// (size factor, light) of a ball at relative energy density u ∈ [0, 1]
+    #[inline]
+    pub fn di(&self, u: f32) -> (f32, f32) {
+        let u = u.clamp(0.0, 1.0);
+        (self.s0 + self.s1 * u.sqrt(), (self.a0 + self.a1 * u.powf(self.p)).min(self.amax))
     }
 }
 
@@ -266,6 +294,7 @@ pub fn palline(f: &Fotone3D, l: &Lancio, centro: [f64; 3], tr: &Traccianti, e_pr
         // stretch: up to 0.35 λ along E at the peak of the field (scene units = cells)
         let l_max = (0.35 * lam) as f32;
         let ns = tr.scia_n.min(SCIA_MAX);
+        let bg = Bagliore::attuale();
         let parti: Vec<Vec<(Ball, [f32; 3])>> = tr.pos.par_iter().zip(tr.scia.par_iter()).zip(tr.eta.par_iter()).map(|((p, sc), eta)| {
             let q = campo_in(f, *p);
             let e = [q[0].re, q[1].re, q[2].re];
@@ -275,8 +304,12 @@ pub fn palline(f: &Fotone3D, l: &Lancio, centro: [f64; 3], tr: &Traccianti, e_pr
             let ang = d3(&e, &e2).atan2(d3(&e, &e1)) as f64;
             // a re-born ball fades in over 6 ticks
             let fade = (*eta as f32 / 6.0).min(1.0);
-            let a = fade * (0.12 + 0.6 * u.sqrt()).min(0.72);
+            let (size, luce) = bg.di(u);
+            let a = fade * luce;
             let c = phase_color(ang, a);
+            // the palette is written in sRGB; the Lab renders in linear HDR, so it is converted (≈ x^2.2), otherwise
+            // every hue comes out pastel and thousands of them average to a white disc
+            let c = [c[0].powf(2.2) * bg.c, c[1].powf(2.2) * bg.c, c[2].powf(2.2) * bg.c, c[3]];
             let st = if vista.allunga {
                 let k = l_max / emax;
                 schermo([(e[0] * k) as f64, (e[1] * k) as f64, (e[2] * k) as f64]).to_array()
@@ -288,7 +321,7 @@ pub fn palline(f: &Fotone3D, l: &Lancio, centro: [f64; 3], tr: &Traccianti, e_pr
                 let w = 0.5 * (1.0 - j as f32 / ns as f32);
                 v.push(((sp(&sc[j]), 0.85 - 0.08 * j as f32, [c[0], c[1], c[2], w * a]), [0.0; 3]));
             }
-            v.push(((sp(p), 1.0, c), st));
+            v.push(((sp(p), size, c), st));
             v
         }).collect();
         for t in parti { for (ball, st) in t { onde.push(ball); allunga.push(st); } }

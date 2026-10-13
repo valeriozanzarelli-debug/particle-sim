@@ -54,7 +54,9 @@ def jack(f, Hm, Wm, Hv=None, Wv=None):
 res = load_json("multi_e_dmc.json")
 m = res["He_u0_dmc_tau0.01"]["m_kin"]
 Hv, Wv = blocks("He_u0_vmc_tau0.01_v2", 4000)
-LEN = {0.0025: 4000, 0.00125: 3000, 0.000625: 2000}
+# lunghezze raddoppiate dalla regola di estensione della v2 (sigma(c0) = 0.037 > 0.03 alla prima lettura, commit e19434b).
+# Il pezzo in piu' aggiunto per errore a tau = 0.0025 e 0.00125 ora sta DENTRO la stessa catena allungata (dichiarato).
+LEN = {0.0025: 8000, 0.00125: 6000, 0.000625: 4000}
 pts = []
 rec = {}
 for tau in (0.0025, 0.00125, 0.000625):
@@ -80,4 +82,7 @@ if len(pts) == 3:
     c0, s0 = out["ratio"]["c0"], out["ratio"]["sigma_c0"]
     out["verdict"] = ("INCONCLUSIVO (sigma > 0.03)" if s0 > 0.03 else ("PASS" if abs(c0 - m / 2) <= 0.05 else "FAIL"))
     print("D6':", out["verdict"], out["ratio"], "secondario cubico:", out["cubic"])
-res = load_json("multi_e_dmc.json"); res["D6_v2"] = out; save_json("multi_e_dmc.json", res)
+res = load_json("multi_e_dmc.json")
+if "D6_v2" in res and "D6_v2_first_reading" not in res:
+    res["D6_v2_first_reading"] = res["D6_v2"]          # prima lettura (lunghezze 4000/3000/2000 a.u.), conservata
+res["D6_v2"] = out; save_json("multi_e_dmc.json", res)

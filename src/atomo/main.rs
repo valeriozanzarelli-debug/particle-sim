@@ -17,6 +17,7 @@ use bevy_egui::{EguiContexts, EguiPlugin};
 
 mod accoppiato;
 mod camera;
+mod elscena;
 #[path = "../zigzag/cplx.rs"]
 #[allow(dead_code)]
 mod cplx;
@@ -52,6 +53,8 @@ mod test_emissione;
 mod test_sottoreticolo;
 #[cfg(test)]
 mod test_diffusa;
+#[cfg(test)]
+mod test_bagliori;
 
 use camera::{Bersaglio, Cam, PointerOverHud};
 use fotone3d::Polar;
@@ -61,7 +64,7 @@ pub enum Modo { Avanti, Pausa, Indietro }
 
 /// The two scenes, both the zig-zag rule live: the free photon (light alone) and the atom (electron + light).
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum Scena { Fotone, Atomo, Orbitali }
+pub enum Scena { Fotone, Atomo, Orbitali, Elettrone }
 
 /// The nucleus is shown on its own slowed clock: spin angular velocity on screen (rad per screen second).
 pub const OMEGA_ROT_SCHERMO: f64 = 1.1;
@@ -117,6 +120,12 @@ pub struct Lab {
     pub frame_count: u64,
     pub palline_disegnate: usize,
     pub fps: f64,
+    /// the free electron (or muon) drawn with glows (elscena.rs) and the particle the panel shows
+    pub el: Option<std::sync::Arc<std::sync::Mutex<elscena::Condiviso>>>,
+    pub el_part: elscena::Particella,
+    pub ritmo_el: f64,
+    /// version of the scene output last handed to the drawing (render_zz), for frame-by-frame sequences
+    pub versione_disegnata: u64,
 }
 
 impl Lab {
@@ -132,6 +141,7 @@ impl Lab {
             t_nucleo: 0.0, omega_rot: OMEGA_ROT_SCHERMO, omega_resp: OMEGA_ROT_SCHERMO * w_resp / w_rot, nodo_info2: info2,
             modo: Modo::Avanti, spara: false, panel_open: false, mostra_protone: true, bagliore: true, grandezza: 1.0, luce: 1.0,
             nodo_palline, nodo_info: info, frame_count: 0, palline_disegnate: 0, fps: 0.0,
+            el: None, el_part: elscena::Particella::Elettrone, ritmo_el: 12.0, versione_disegnata: 0,
         }
     }
 
@@ -140,6 +150,7 @@ impl Lab {
         match self.scena {
             Scena::Atomo | Scena::Orbitali => zz::LAMBDA_C_M,
             Scena::Fotone => self.cella_m(),
+            Scena::Elettrone => zz::LAMBDA_C_M / self.el_part.massa(),
         }
     }
     /// Seconds per tick of the scene's rule.
@@ -148,6 +159,7 @@ impl Lab {
             Scena::Atomo => zz::A * zz::T_UNIT_S,
             Scena::Orbitali => zz::T_UNIT_S,
             Scena::Fotone => self.cella_m() / 299_792_458.0,
+            Scena::Elettrone => elscena::THETA * zz::T_UNIT_S / self.el_part.massa(),
         }
     }
     /// Size of one cell of the photon box (m): λ / (cells per λ) of the photon now flying.
@@ -164,6 +176,11 @@ impl Lab {
             Scena::Fotone => { if self.fot.is_none() { self.fot = Some(fotscena::avvia(self.fot_par)); } }
             Scena::Atomo => { if self.zz.is_none() { self.zz = Some(zzscena::avvia()); } }
             Scena::Orbitali => { if self.orb.is_none() { self.orb = Some(orbitali::avvia()); } }
+            Scena::Elettrone => { if self.el.is_none() { self.el = Some(elscena::avvia(self.el_part)); } }
+        }
+        if let Some(e) = &self.el {
+            let mut g = e.lock().unwrap();
+            g.comando = if s == Scena::Elettrone && self.modo == Modo::Avanti { elscena::Comando::Avanti } else { elscena::Comando::Pausa };
         }
         if let Some(o) = &self.orb {
             let mut g = o.lock().unwrap();
@@ -188,7 +205,7 @@ impl Lab {
                 Bersaglio::Elettrone => self.zz.as_ref().map(|z| z.lock().unwrap().out.punto).unwrap_or([0.0; 3]),
                 _ => [0.0; 3],
             },
-            Scena::Orbitali => [0.0; 3],
+            Scena::Orbitali | Scena::Elettrone => [0.0; 3],
         }
     }
     pub fn distanza_tipica(&self, b: Bersaglio) -> f64 {
@@ -199,6 +216,7 @@ impl Lab {
             (Scena::Atomo, _) => 11.0,
             (Scena::Orbitali, Bersaglio::Elettrone) => 6.0,
             (Scena::Orbitali, _) => 2.4 * self.orb.as_ref().map(|o| o.lock().unwrap().out.r).unwrap_or(25.0),
+            (Scena::Elettrone, _) => 16.0,
             (Scena::Fotone, _) => 1.0 * self.fot.as_ref().map(|f| f.lock().unwrap().out.par.n()).unwrap_or(self.fot_par.n()) as f64,
         }
     }
@@ -262,6 +280,15 @@ impl Lab {
                     if self.azzera_clic { g.azzera = true; }
                 }
             }
+            Scena::Elettrone => {
+                if let Some(e) = &self.el {
+                    let mut g = e.lock().unwrap();
+                    g.comando = if self.modo == Modo::Avanti { elscena::Comando::Avanti } else { elscena::Comando::Pausa };
+                    g.ritmo = self.ritmo_el;
+                    if self.spara { self.spara = false; g.ricomincia = true; }
+                    if g.out.particella != self.el_part && g.particella.is_none() { g.particella = Some(self.el_part); }
+                }
+            }
         }
         let _ = (misura, azzera);
         self.misura = false;
@@ -301,8 +328,10 @@ fn main() {
     let scena = match (scena_arg.as_str(), zoom.as_str()) {
         ("atomo", _) | ("", "nucleo") | ("", "protone") | ("", "elettrone") => Scena::Atomo,
         ("orbitali", _) => Scena::Orbitali,
+        ("elettrone", _) | ("muone", _) => Scena::Elettrone,
         _ => Scena::Fotone,
     };
+    if scena_arg == "muone" || arg("--particella").as_deref() == Some("muone") { lab.el_part = elscena::Particella::Muone; }
     lab.cambia_scena(scena);
     if scena == Scena::Orbitali { if let Some(o) = &lab.orb { o.lock().unwrap().scegli = Some(lab.orb_scelta.clone()); } }
     let mut auto = Auto::default();
@@ -319,7 +348,19 @@ fn main() {
         if args.iter().any(|a| a == "--senza-diffusa") { lab.diffusa = false; }
         lab.panel_open = args.iter().any(|a| a == "--pannello");
         if let Some(r) = arg("--ritmo").and_then(|v| v.parse().ok()) { lab.ritmo_fot = r; }
-        if let Some(t) = arg("--tick").and_then(|v| v.parse::<u64>().ok()) { fotscena::TICK_FERMO.store(t, std::sync::atomic::Ordering::Relaxed); }
+        if let Some(r) = arg("--ritmo").and_then(|v| v.parse().ok()) { lab.ritmo_el = r; }
+        if let Some(t) = arg("--tick").and_then(|v| v.parse::<u64>().ok()) {
+            fotscena::TICK_FERMO.store(t, std::sync::atomic::Ordering::Relaxed);
+            elscena::TICK_FERMO.store(t, std::sync::atomic::Ordering::Relaxed);
+        }
+        // `--sequenza K [--passo P]`: K pictures, one every P ticks of the scene's rule starting from `--tick`
+        // (default 1), each frame saved when the drawing shows exactly that tick: a slow-motion clip, frame by frame
+        if let Some(k) = arg("--sequenza").and_then(|v| v.parse::<u64>().ok()) {
+            let t0 = arg("--tick").and_then(|v| v.parse::<u64>().ok()).unwrap_or(1).max(1);
+            auto.seq = Some(Sequenza { k, passo: arg("--passo").and_then(|v| v.parse().ok()).unwrap_or(1).max(1), t0, fatte: 0, attesa: 0 });
+            fotscena::TICK_FERMO.store(t0, std::sync::atomic::Ordering::Relaxed);
+            elscena::TICK_FERMO.store(t0, std::sync::atomic::Ordering::Relaxed);
+        }
     }
     if let Some(y) = arg("--yaw").and_then(|v| v.parse::<f32>().ok()) { auto.yaw = Some(y); }
     if let Some(p) = arg("--pitch").and_then(|v| v.parse::<f32>().ok()) { auto.pitch = Some(p); }
@@ -425,10 +466,55 @@ pub struct Auto {
     pub frame_foto: u64,
     /// atom scene: the frame at which the pulse really left (it waits for the coupled atom to be prepared)
     pub frame_impulso: Option<u64>,
+    /// frame-by-frame sequence (`--sequenza`)
+    pub seq: Option<Sequenza>,
+}
+
+/// A slow-motion sequence: picture `fatte` shows tick t0 + fatte·passo.
+#[derive(Clone, Copy, Debug)]
+pub struct Sequenza { pub k: u64, pub passo: u64, pub t0: u64, pub fatte: u64, pub attesa: u64 }
+
+/// (ticks, version) of the output of the scene shown.
+fn tick_versione(lab: &Lab) -> Option<(u64, u64)> {
+    match lab.scena {
+        Scena::Fotone => lab.fot.as_ref().map(|z| { let o = &z.lock().unwrap().out; (o.ticks, o.versione) }),
+        Scena::Atomo => lab.zz.as_ref().map(|z| { let o = &z.lock().unwrap().out; (o.ticks, o.versione) }),
+        // the orbitals have no tick to stop at: no sequences there
+        Scena::Orbitali => None,
+        Scena::Elettrone => lab.el.as_ref().map(|z| { let o = &z.lock().unwrap().out; (o.ticks, o.versione) }),
+    }
 }
 
 fn auto_sys(mut commands: Commands, mut auto: ResMut<Auto>, mut lab: ResMut<Lab>, mut exit: EventWriter<AppExit>) {
     if !auto.attivo { return; }
+    if let Some(mut q) = auto.seq {
+        // wait until the drawing shows the wanted tick, let two frames pass, save, then ask for the next tick
+        let voluto = q.t0 + q.fatte * q.passo;
+        if q.fatte >= q.k {
+            q.attesa += 1;
+            if q.attesa > 20 { exit.send(AppExit::Success); }
+        } else if let Some((t, v)) = tick_versione(&lab) {
+            if t == voluto && lab.versione_disegnata == v {
+                q.attesa += 1;
+                if q.attesa == 3 {
+                    let base = auto.foto.trim_end_matches(".png").to_string();
+                    let path = format!("{base}_{:04}.png", q.fatte);
+                    commands.spawn(bevy::render::view::screenshot::Screenshot::primary_window())
+                        .observe(bevy::render::view::screenshot::save_to_disk(path));
+                    if let Some(info) = info_scena(&lab) { eprintln!("sequenza {}/{}: {info}", q.fatte + 1, q.k); }
+                }
+                if q.attesa >= 5 {
+                    q.fatte += 1;
+                    q.attesa = 0;
+                    let t = q.t0 + q.fatte * q.passo;
+                    fotscena::TICK_FERMO.store(t, std::sync::atomic::Ordering::Relaxed);
+                    elscena::TICK_FERMO.store(t, std::sync::atomic::Ordering::Relaxed);
+                }
+            } else { q.attesa = 0; }
+        }
+        auto.seq = Some(q);
+        return;
+    }
     let f = lab.frame_count;
     if Some(f) == auto.spara_al { lab.spara = true; }
     let o_zz = if lab.scena == Scena::Atomo { lab.zz.as_ref().map(|z| z.lock().unwrap().out.clone()) } else { None };
@@ -454,6 +540,13 @@ fn auto_sys(mut commands: Commands, mut auto: ResMut<Auto>, mut lab: ResMut<Lab>
         let path = auto.foto.clone();
         commands.spawn(bevy::render::view::screenshot::Screenshot::primary_window())
             .observe(bevy::render::view::screenshot::save_to_disk(path));
+        let info = info_scena(&lab).unwrap_or_default();
+        eprintln!("foto al frame {f}: scena {:?}, {} palline, {:.0} fps {info}", lab.scena, lab.palline_disegnate, lab.fps);
+    }
+    if auto.fatto && f >= auto.frame_foto + 20 { exit.send(AppExit::Success); }
+}
+
+fn info_scena(lab: &Lab) -> Option<String> {
         let info = match lab.scena {
             Scena::Fotone => lab.fot.as_ref().map(|z| {
                 let o = z.lock().unwrap().out.clone();
@@ -461,8 +554,9 @@ fn auto_sys(mut commands: Commands, mut auto: ResMut<Auto>, mut lab: ResMut<Lab>
             }).unwrap_or_default(),
             Scena::Atomo => lab.zz.as_ref().map(|z| { let o = z.lock().unwrap().out.clone(); format!("tick {} p1s {:.3} dip {:+.3} {:.0} ms/tick p_exc {:.3} t_dal_impulso {:?} luce_diffusa_x {:?} e_diffusa {:.3e}", o.ticks, o.p1s, o.dipolo, o.ms_tick, o.p_exc, o.t_dal_impulso, o.amp_diffusa, o.e_diffusa) }).unwrap_or_default(),
             Scena::Orbitali => lab.orb.as_ref().map(|z| { let o = z.lock().unwrap().out.clone(); format!("t {:.1} R {:.1} livelli {:?} {:.0} ms", o.t, o.r, o.livelli.iter().map(|l| (l.0.nome(), l.1, l.2)).collect::<Vec<_>>(), o.ms) }).unwrap_or_default(),
+            Scena::Elettrone => lab.el.as_ref().map(|z| { let o = z.lock().unwrap().out.clone();
+                format!("{} tick {} t {:.3} centro bagliori ({:+.4}, {:+.4}, {:+.4}) centro onda ({:+.4}, {:+.4}, {:+.4}) {:.0} ms/tick", o.particella.nome(), o.ticks, o.t,
+                        o.centro_palline[0], o.centro_palline[1], o.centro_palline[2], o.centro_onda[0], o.centro_onda[1], o.centro_onda[2], o.ms_tick) }).unwrap_or_default(),
         };
-        eprintln!("foto al frame {f}: scena {:?}, {} palline, {:.0} fps {info}", lab.scena, lab.palline_disegnate, lab.fps);
-    }
-    if auto.fatto && f >= auto.frame_foto + 20 { exit.send(AppExit::Success); }
+        Some(info)
 }

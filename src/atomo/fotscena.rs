@@ -139,7 +139,23 @@ pub struct Condiviso {
     pub misura: bool,
     pub azzera: bool,
     pub fine: bool,
+    /// where the camera is (cells from the box centre): the energy balls are drawn from the farthest to the
+    /// nearest, so the alpha blending shows the nearest layer in front (docs/BAGLIORI.md). None = unsorted.
+    pub occhio: Option<[f64; 3]>,
     pub out: Uscita,
+}
+
+/// Sort the energy balls (and their stretch) from the farthest to the nearest to `occhio`.
+pub fn ordina(onde: &mut Vec<Ball>, allunga: &mut Vec<[f32; 3]>, occhio: [f64; 3]) {
+    let o = [occhio[0] as f32, occhio[1] as f32, occhio[2] as f32];
+    // the balls are already in screen coordinates (render::schermo: (x, z, −y))
+    let os = [o[0], o[2], -o[1]];
+    let d2 = |b: &Ball| { let p = b.0; (p[0] - os[0]).powi(2) + (p[1] - os[1]).powi(2) + (p[2] - os[2]).powi(2) };
+    let mut idx: Vec<(f32, usize)> = onde.iter().enumerate().map(|(i, b)| (-d2(b), i)).collect();
+    idx.sort_unstable_by(|a, b| a.0.total_cmp(&b.0));
+    let st = allunga.len() == onde.len();
+    *onde = idx.iter().map(|&(_, i)| onde[i]).collect();
+    if st { *allunga = idx.iter().map(|&(_, i)| allunga[i]).collect(); }
 }
 
 struct Mondo {
@@ -288,7 +304,7 @@ pub static TICK_FERMO: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU
 
 pub fn avvia(par: Parametri) -> Arc<Mutex<Condiviso>> {
     let c = Arc::new(Mutex::new(Condiviso {
-        comando: Comando::Avanti, ritmo: 30.0, lancia: None, vista: Vista::default(), opz: Opzioni::default(), misura: false, azzera: false, fine: false,
+        comando: Comando::Avanti, ritmo: 30.0, lancia: None, vista: Vista::default(), opz: Opzioni::default(), misura: false, azzera: false, fine: false, occhio: None,
         out: Uscita { palline: Arc::new(vec![]), onde: Arc::new(vec![]), allunga: Arc::new(vec![]), versione: 0, ticks: 0, lanci: 0, par, centro: [0.0; 3], v: None, v_continuo: 1.0,
                       elicita: None, w: 0.0, theta: None, ms_tick: 0.0, energia: 0.0, poynting: [0.0; 3], spin_palline: None,
                       regola: String::new(), onde_gpu: None, pronto: false, n_clic: 0, ultimo_clic: None },
@@ -303,11 +319,12 @@ pub fn avvia(par: Parametri) -> Arc<Mutex<Condiviso>> {
         let mut riv = Rivelatore::default();
         let mut opz_prima = Opzioni::default();
         let mut rng = Rng::new(4242);
+        let mut occhio_prima: Option<[f64; 3]> = None;
         loop {
             let t0 = Instant::now();
-            let (cmd, ritmo, lancia, vista, fine, opz, misura, azzera) = {
+            let (cmd, ritmo, lancia, vista, fine, opz, misura, azzera, occhio) = {
                 let mut g = cc.lock().unwrap();
-                let s = (g.comando, g.ritmo, g.lancia.take(), g.vista, g.fine, g.opz, g.misura, g.azzera);
+                let s = (g.comando, g.ritmo, g.lancia.take(), g.vista, g.fine, g.opz, g.misura, g.azzera, g.occhio);
                 g.misura = false;
                 g.azzera = false;
                 s
@@ -315,7 +332,14 @@ pub fn avvia(par: Parametri) -> Arc<Mutex<Condiviso>> {
             if fine { break; }
             let fermo = TICK_FERMO.load(std::sync::atomic::Ordering::Relaxed);
             let cmd = if fermo > 0 && m.f.ticks >= fermo && cmd == Comando::Avanti { Comando::Pausa } else { cmd };
-            let mut cambiato = vista != vista_prima || opz != opz_prima || riv.invecchia() || azzera;
+            // the camera moved: draw again in the new depth order
+            let occhio_mosso = match (occhio, occhio_prima) {
+                (Some(a), Some(b)) => { let d = ((a[0] - b[0]).powi(2) + (a[1] - b[1]).powi(2) + (a[2] - b[2]).powi(2)).sqrt();
+                                        d > 0.01 * (a[0] * a[0] + a[1] * a[1] + a[2] * a[2]).sqrt() }
+                (a, b) => a.is_some() != b.is_some(),
+            };
+            if occhio_mosso { occhio_prima = occhio; }
+            let mut cambiato = vista != vista_prima || opz != opz_prima || riv.invecchia() || azzera || occhio_mosso;
             vista_prima = vista;
             opz_prima = opz;
             if azzera { riv.azzera(); }
@@ -342,8 +366,12 @@ pub fn avvia(par: Parametri) -> Arc<Mutex<Condiviso>> {
             if cambiato || versione == 0 {
                 let ep = m.e_prima.as_ref().filter(|(t, _)| *t == m.f.ticks).map(|(_, e)| e.as_slice());
                 let (mut p, onde, allunga, onde_gpu) = match &mut m.gpu {
-                    Some(g) => { let c = atteso(&m.l, m.f.ticks); g.palline(&mut m.f, &m.l, c, &m.tr, vista, opz.surfisti) }
-                    None => { let (a, b, c) = fotdisegno::palline(&m.f, &m.l, atteso(&m.l, m.f.ticks), &m.tr, ep, vista, opz.surfisti); (a, b, c, None) }
+                    Some(g) => { let c = atteso(&m.l, m.f.ticks); g.palline(&mut m.f, &m.l, c, &m.tr, vista, opz.surfisti, occhio_prima) }
+                    None => {
+                        let (a, mut b, mut c) = fotdisegno::palline(&m.f, &m.l, atteso(&m.l, m.f.ticks), &m.tr, ep, vista, opz.surfisti);
+                        if let Some(o) = occhio_prima { ordina(&mut b, &mut c, o); }
+                        (a, b, c, None)
+                    }
                 };
                 riv.disegna(&mut p, 0.6 * m.l.lambda, opz.mostra_clic);
                 versione += 1;

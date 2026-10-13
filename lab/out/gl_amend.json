@@ -1,0 +1,19 @@
+{
+  "studio": "bagliori",
+  "emendamenti": [
+    {
+      "n": 1,
+      "quando": "dopo l'esame E3 (FAIL: 0.285 hbar/mc contro soglia 0.06)",
+      "cosa": "la scena dell'elettrone muove i bagliori con la CORRENTE ESATTA DELLA REGOLA (flussi per link, elscena::flussi + passo_flusso, lettore che rifa' le proiezioni di Dirac3D::shift con HALF e order pubblici) invece dello spinore interpolato. Diagnosi aggiunte: stessa corsa con il nuovo lettore e con Eulero sullo spinore interpolato; test bagliori_flussi_esatti (somma dei flussi * a = d<r> della regola a 1e-9).",
+      "perche": "con lo spinore interpolato il centro dei bagliori anticipa quello dell'onda di ~30 gradi di fase del tremito (la corrente psi^dagger alpha psi letta nel punto non e' quella che la regola sposta davvero sui link); E1 ed E2 passano lo stesso",
+      "esito": "E3 resta FAIL anche col nuovo lettore (0.120): non c'e' piu' lo sfasamento, resta lo scarto di partenza (0.035, campionamento) piu' una deriva lenta dell'interpolazione lineare dentro la cella (non e' il tracciamento di Pollock in tempo di flusso di SURFISTI_ESATTI). Le soglie non si cambiano."
+    },
+    {
+      "n": 2,
+      "quando": "dopo aver visto I3 sulla prima foto (saturazione 0.21 < 0.35)",
+      "cosa": "il fotone: palline disegnate dalla piu' lontana alla piu' vicina (CPU: ordinamento; GPU: cassetti di profondita'), e la tavolozza di fase convertita da sRGB a lineare (~x^2.2) prima del disegno HDR; valori finali del bagliore scelti dopo prove con ATOMO_BAGLIORE e dichiarati in docs/BAGLIORI.md",
+      "perche": "la tavolozza (scritta in sRGB) passata come colore lineare esce pastello; migliaia di palline pastello di tutti i colori fanno il disco bianco",
+      "esito": "vedi gl_risultati.json"
+    }
+  ]
+}

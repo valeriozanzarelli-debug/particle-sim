@@ -6,7 +6,8 @@
 //   avanza   -> Traccianti::avanza (fotdisegno.rs): passo di Eulero con v = 2 E x B / (E^2 + B^2), |v| <= 1
 //   rinasci  -> la pallina persa prende il posto di una viva a caso (+-1 cella): DIVERSO dalla CPU (dichiarato)
 //   spin     -> somme per lo spin letto dalle palline
-//   istanze  -> fotdisegno::palline (colore = direzione di E attorno al volo, allungamento lungo E, scia)
+//   istanze  -> fotdisegno::palline (colore = direzione di E attorno al volo, grandezza e luce dalla densita'
+//               di energia; allungamento lungo E e scia ci sono ancora ma spenti: solo bagliori tondi)
 // Le somme di un gruppo di lavoro sono in f32; la CPU le somma tra i gruppi in f64.
 
 struct Par {
@@ -16,6 +17,9 @@ struct Par {
     e1: vec4<f32>,    // base trasversa e1; w = allungamento massimo (celle)
     e2: vec4<f32>,
     dir: vec4<f32>,
+    bag: vec4<f32>,   // il bagliore (fotdisegno::Bagliore): s0, s1, a0, a1
+    bag2: vec4<f32>,  // p, amax, c (fattore del colore)
+    occhio: vec4<f32>, // la camera (celle dal centro della scatola); w = mezzo intervallo di profondita' (0 = non ordinare)
 };
 
 @group(0) @binding(0)  var<uniform>             par : Par;
@@ -35,6 +39,8 @@ struct Par {
 @group(0) @binding(14) var<storage, read>       sonde_in : array<vec4<f32>>;
 @group(0) @binding(15) var<storage, read_write> sonde_out : array<vec4<f32>>;
 @group(0) @binding(16) var<storage, read_write> parzp : array<f32>;  // 8 numeri per gruppo (spin dalle palline)
+@group(0) @binding(17) var<storage, read_write> conta : array<atomic<u32>>; // palline per cassetto di profondita'
+@group(0) @binding(18) var<storage, read_write> inizio : array<u32>;        // primo posto di ogni cassetto
 
 struct Istanza { pos_size: vec4<f32>, allunga: vec3<f32>, colore: u32 };
 
@@ -265,6 +271,41 @@ fn colore_fase(ang: f32, alfa: f32) -> vec4<f32> {
     return vec4<f32>(c, alfa);
 }
 
+// ───────────────────────── ordine di disegno: dalla pallina piu' lontana alla piu' vicina ─────────────────────────
+// Ordinamento per conteggio su N_CASSETTI cassetti di profondita' (distanza dall'occhio): la fusione alfa mostra
+// davanti lo strato piu' vicino, come il cammino CPU (fotscena.rs ordina le palline con la stessa distanza).
+const N_CASSETTI: u32 = 4096u;
+
+fn cassetto(p: vec3<f32>) -> u32 {
+    let rc = length(par.occhio.xyz);
+    let r = par.occhio.w;
+    let d = length(p - par.occhio.xyz);
+    let x = clamp((rc + r - d) / (2.0 * r), 0.0, 0.9999999);
+    return min(u32(x * f32(N_CASSETTI)), N_CASSETTI - 1u);   // lontano -> 0
+}
+
+@compute @workgroup_size(256)
+fn azzera(@builtin(global_invocation_id) gid: vec3<u32>) {
+    if (gid.x < N_CASSETTI) { atomicStore(&conta[gid.x], 0u); }
+}
+
+@compute @workgroup_size(256)
+fn conteggio(@builtin(global_invocation_id) gid: vec3<u32>) {
+    if (gid.x >= par.n_palline) { return; }
+    atomicAdd(&conta[cassetto(pos[gid.x].xyz)], 1u);
+}
+
+@compute @workgroup_size(1)
+fn somma() {
+    var s = 0u;
+    for (var b = 0u; b < N_CASSETTI; b++) {
+        let c = atomicLoad(&conta[b]);
+        inizio[b] = s;
+        s += c;
+        atomicStore(&conta[b], 0u);
+    }
+}
+
 // coordinate della scena -> schermo (render.rs::schermo: (x, z, -y))
 fn schermo(p: vec3<f32>) -> vec3<f32> { return vec3<f32>(p.x, p.z, -p.y); }
 
@@ -281,12 +322,22 @@ fn istanze(@builtin(global_invocation_id) gid: vec3<u32>) {
     let u = (dot(e, e) + dot(b, b)) / imax;
     let ang = atan2(dot(e, par.e2.xyz), dot(e, par.e1.xyz));
     let fade = min(f32(eta[i]) / 6.0, 1.0);
-    let a = fade * min(0.12 + 0.6 * sqrt(u), 0.72);
-    let c = colore_fase(ang, a);
+    // grandezza e luce dalla densita' di energia (fotdisegno::Bagliore::di)
+    let uu = clamp(u, 0.0, 1.0);
+    let size = par.bag.x + par.bag.y * sqrt(uu);
+    let a = fade * min(par.bag.z + par.bag.w * pow(uu, par.bag2.x), par.bag2.y);
+    let c0 = colore_fase(ang, a);
+    // tavolozza scritta in sRGB, disegno in HDR lineare: conversione (~x^2.2), come fotdisegno::palline
+    let c = vec4<f32>(pow(c0.rgb, vec3<f32>(2.2)) * par.bag2.z, c0.a);
     var st = vec3<f32>(0.0);
     if (par.allunga != 0u) { st = schermo(e * (par.e1.w / emax)); }
     let ns = par.ns;
-    let base = i * (ns + 1u);
+    var slot = i;
+    if (par.occhio.w > 0.0) {
+        let b = cassetto(p);
+        slot = inizio[b] + atomicAdd(&conta[b], 1u);
+    }
+    let base = slot * (ns + 1u);
     // prima la scia (disegnata dietro la testa): la stessa pallina λ/3, 2λ/3, λ, 4λ/3 fa
     for (var s = 0u; s < ns; s++) {
         let j = ns - 1u - s;
@@ -298,5 +349,5 @@ fn istanze(@builtin(global_invocation_id) gid: vec3<u32>) {
         ist[base + s] = Istanza(vec4<f32>(schermo(sj), 0.85 - 0.08 * f32(j)), schermo(0.5 * (nuovo - sj)),
                                 pack4x8unorm(vec4<f32>(c.rgb, w * a)));
     }
-    ist[base + ns] = Istanza(vec4<f32>(schermo(p), 1.0), st, pack4x8unorm(c));
+    ist[base + ns] = Istanza(vec4<f32>(schermo(p), size), st, pack4x8unorm(c));
 }
