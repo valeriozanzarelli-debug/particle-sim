@@ -1,0 +1,50 @@
+"""aggmol_h2_prereg.py - PRE-REGISTRATION of phase 2 of study aggmol_: H2 WITH TWO ELECTRONS (gate lifted by Valerio for
+H2 after helium passed the Pauli check 6/6). Written after the development runs below and BEFORE the production runs
+(aggmol_h2.py curve / hf / gate). Writes lab/out/aggmol_h2_prereg.json."""
+import json, os, subprocess, datetime
+OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "out")
+P = {
+ "written": datetime.datetime.now().isoformat(timespec="seconds"),
+ "git_head": subprocess.check_output(["git", "rev-parse", "HEAD"]).decode().strip(),
+ "asked": "H2 with two electrons on the two-centre machine, with the many-electron rule of the main thread used as it is; "
+          "exams: bond length vs 1.401 a0, D_e vs 4.747 eV, vibrational quantum vs ~4401 cm-1 / 0.5456 eV",
+ "declared": [
+   "the helium study of the main thread still has OPEN FAILs (R5, R6, G5, L1c_v3 in docs/MOLTI_ELETTRONI.md); its rule is "
+   "used here as it is",
+   "the rule = its exact few-body level (ECG) with the rule's operator: kinetic p^2/2m_kin with m_kin = m0 of the v3 level "
+   "(1.0000000010922, multi_e_v3.json on master), e-e instantaneous Coulomb (their DEBT-1), antisymmetry (DEBT-2: singlet), "
+   "the alpha^2 rest of the band NOT included (their DEBT-4; ~1e-5 Eh, mostly cancels in D_e)",
+   "new here: Gaussians centred on the molecular axis (two centres); nuclei clamped for the curve (Born-Oppenheimer, "
+   "a debt); vibration = 1-D nuclear Schroedinger on the computed curve with the proton mass (input: mass of a nucleus)",
+   "experimental and literature numbers are exams only",
+ ],
+ "development (declared)": [
+   "ECG code gates in development: H atom 10 functions -0.4998225; H2+ R = 2, 20 functions -1.102498 (exact -1.1026342)",
+   "H2 R = 1.4 (total): K = 30 -1.172899 (+1.58 mEh), K = 80 +0.48 mEh, K = 150 +0.32 mEh (random trials only); with "
+   "local-move refinement K = 120 +0.046 mEh (69 s), K = 180, 8 sweeps +0.008 mEh (287 s)",
+ ],
+ "production config": {
+   "R grid (a0)": [0.8, 1.0, 1.1, 1.2, 1.3, 1.35, 1.4, 1.45, 1.5, 1.6, 1.7, 1.8, 2.0, 2.4, 3.0, 4.0, 5.0, 6.0],
+   "basis": "K = 180, 40 trials, 8 refinement sweeps (local moves + random), seed 1 at R = 1.4; the other R warm-started "
+            "from the neighbour (centres scaled with R) then refined (4 sweeps)",
+   "atom": "E(H) = -m_kin/2 exactly for this operator (checked by the gate G1)",
+   "fits": "R_e and omega_e: quartic least squares on R = 1.2..1.7 (7 points); vibration: cubic spline of the curve on "
+           "0.8..6 a0, Numerov/finite differences, mu = m_p/2, m_p = 1836.15267343 m_e",
+   "constants": "1 Eh = 27.211386245988 eV = 219474.6313632 cm-1",
+ },
+ "exams": {
+   "G1": "gate of the ECG machine: H atom within 1e-6 Eh of -m/2; H2+ (one electron) at R = 2 within 1e-6 Eh of the exact "
+         "two-centre solution (lab/aggmol_exact.py)",
+   "H0": "H2 total energy at R = 1.4 within 0.05 mEh of -1.174475714 Eh (literature, exam of convergence)",
+   "H1": "bond length R_e within 0.3 % of 1.401 a0",
+   "H2": "D_e = 2 E(H) - E_min within 1 kcal/mol (43.4 meV) of 4.747 eV",
+   "H3": "harmonic vibrational quantum omega_e within 1 % of 4401 cm-1 (0.5456 eV)",
+   "H4": "fundamental 0 -> 1 (anharmonic, from the 1-D nuclear problem) within 1 % of 4161 cm-1; D_0 = D_e - ZPE within "
+         "43.4 meV of 4.478 eV",
+   "H5": "grid check on the learned a0/4 machine (64^3, box +-8 a0): restricted Hartree-Fock of H2 at R = 1.4 (e-e as the "
+         "Hartree potential on the 8-lantern sub-grid) within 1.6 mEh of the HF limit -1.133629 Eh (literature); "
+         "the correlation energy E(ECG) - E(HF grid) reported",
+ },
+}
+json.dump(P, open(os.path.join(OUT, "aggmol_h2_prereg.json"), "w"), indent=1)
+print("written")
