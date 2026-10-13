@@ -39,9 +39,9 @@ segni sbagliati del nucleo dei camminatori, pezzo k⁴ della banda, parità).
    disponibile").
 2. **Il potenziale grosso non è più scritto a mano**: 8 "lanterne" per cella (campo di Galerkin senza aliasing). La 1s a
    a₀/16 sta a **+0,0018 % dalla regola fine** allo stesso θ (+0,031 % da Dirac: quasi tutto è la massa θ²/3 della regola fine).
-3. **Il 2s all'1 %**: **+0,11 % da Dirac** (prima +1,003 %, FAIL). Il vecchio FAIL era quasi tutto **scatola**: nella
-   vecchia scatola ±12 a₀ il 2s esce +1,23 % anche con il campo nuovo, a ±16 a₀ +0,11 %. Le immagini periodiche del protone
-   tiravano su il 2s.
+3. **Il 2s all'1 %**: **+0,11 % da Dirac** (prima +1,003 %, FAIL). Il vecchio numero era due errori che si compensavano:
+   la scatola ±12 a₀ (immagini del protone, ~+1,2 %) e la media di cella (~−0,8 %). Servono tutte e due le cure: scatola
+   ±16 a₀ e campo senza media (a pari scatola: −0,82 % → +0,11 %).
 4. **Il rinculo esce da solo.** Il protone è una pallina zig-zag pesante (θ_p = 0,030) agglomerata con la stessa macchina;
    la coppia elettrone+protone dà lo spostamento della massa ridotta entro **0,6 %** su 4 livelli (0,99984 / 1,00065 /
    0,99360 / 1,00238) e l'atomo in moto pesa M/(m_e+m_p) = **1,0007**. μ non compare da nessuna parte.
@@ -155,8 +155,11 @@ Diagnostica di scatola e della vecchia restrizione (non esami):
 | 1s, campo nuovo | ±8 / ±12 / ±16 a₀ | −13,614824 / −13,614676 / −13,614676 | +0,067 / +0,066 / +0,066 % |
 | 2s, campo nuovo | ±12 / ±16 a₀ | −3,443340 / −3,405311 | **+1,232 %** / +0,114 % |
 | 1s, media di cella (vecchia restrizione) con il cinetico imparato | ±12 a₀ | −13,387372 | −1,60 % |
-| 2s, media di cella | ±12 a₀ | (in corso) | — |
-| 1s e 2s, media di cella, ±16 a₀ | ±16 a₀ | (in corso) | — |
+| 2s, media di cella | ±12 a₀ | −3,413552 | +0,357 % |
+| 1s / 2s, media di cella | ±16 a₀ | −13,387372 / −3,373628 | −1,605 / **−0,817 %** |
+
+I 2s con la media di cella hanno il residuo fermo a 2·10⁻⁷ (energia ferma a 8 cifre per 40+ iterazioni): dichiarati non
+convergiti secondo il criterio, ma il numero è stabile.
 
 ### 3.2 Emendamenti 1 e 2 (cinetico ri-imparato, debito #12; `aggfull_amend.json`, `aggfull_amend2.json`, commit 968a554)
 
@@ -202,8 +205,13 @@ numeri noti), non una scoperta, ma è la prima volta che il livello grosso ha un
 | campo nuovo, ±16 a₀ | +0,114 % |
 | campo nuovo + cinetico ri-imparato, ±16 a₀ | +0,091 % (E0); +0,087 % con il primo ordine |
 
-Il 2s ha una coda lunga (e^{−r/2a₀}): in una scatola periodica di ±12 a₀ sente le immagini del protone. La cella a₀/8 di
-per sé basta.
+| media di cella (vecchia restrizione), ±12 a₀ | +0,357 % |
+| media di cella, ±16 a₀ | **−0,817 %** |
+
+Il 2s ha una coda lunga (e^{−r/2a₀}): in una scatola periodica di ±12 a₀ sente le immagini del protone, che lo spingono su
+di ~+1,2 %. La media di cella invece lo spinge giù di ~−0,8 %. **Il vecchio +1,003 % era la somma di due errori che si
+compensavano in parte.** A pari scatola (±16 a₀) le lanterne fanno 7 volte meglio della media di cella (+0,11 % contro
+−0,82 %), e sulla 1s 24 volte (+0,066 % contro −1,60 %).
 
 ### 4.3 Perché F3 fallisce anche col cinetico ri-imparato (onesto)
 Gli spostamenti α⁴ degli stati s sono un effetto **di contatto**: Darwin ∝ |ψ(0)|² e massa-velocità ∝ ⟨p⁴⟩, entrambi
@@ -254,8 +262,8 @@ la regola fine ad alto k (bz 0,91: la banda in fondo al cubo è diversa), quindi
   riscritta (un campo alla volta, ≤ 1,9 GB). La corsa buona è quella riscritta.
 - **Residuo del 2p** fermo a 1,3·10⁻⁸ (campo in float32): il criterio di convergenza è stato portato da 10⁻¹⁰ a
   2·10⁻⁸ durante le corse (errore sull'energia ~r²/gap < 10⁻¹² eV); dichiarato nel codice.
-- **Diagnostica della media di cella a 256³** spostata dopo le corse K (fermata a mano a metà del 2s a 192³): numeri in §3.1
-  quando finita.
+- **Diagnostica della media di cella** spostata dopo le corse K (driver fermato a mano); i 2s con la media di cella non
+  raggiungono il criterio (residuo 2·10⁻⁷) ma l'energia è ferma a 8 cifre.
 
 ## 6. Debiti: chiusi, aperti, nuovi
 
@@ -305,7 +313,8 @@ quello che serve per avere il prodotto V·φ senza aliasing alla risoluzione del
 limitata ha banda doppia: raddoppiare la griglia in ogni direzione = 2³ = 8 punti). Il nucleo non deve più stare al
 centro o all'angolo: tutto è covariante. Numeri, onesti: la 1s a a₀/16 cade a +0,0018 % dalla regola fine; con la
 vecchia media di cella (stesso cinetico, stessa scatola ±12 a₀) la 1s a a₀/8 sbaglia di −1,60 %, con le lanterne di +0,066 %.
-Il 2s invece è migliorato soprattutto per la **scatola** (§4.2): le lanterne non c'entrano. *Costo:* 8 FFT di interpolazione in più per ogni applicazione del potenziale (~4× il costo del solo cinetico);
+Per il 2s a pari scatola ±16 a₀: media di cella −0,82 %, lanterne +0,11 % (il vecchio +1,003 % era scatola + media di cella
+che si compensavano, §4.2). *Costo:* 8 FFT di interpolazione in più per ogni applicazione del potenziale (~4× il costo del solo cinetico);
 sulla GPU è banale (sono convoluzioni). *Regole:* sì: l'unico ingresso è −Zα/r, niente scelte.
 
 **G2 — Una zona di Brillouin più tonda (bcc/fcc) (provata: idea negativa).** *A schermo:* palline su un reticolo
@@ -386,7 +395,8 @@ senza zoom: bastava la scatola più grande (±16 a₀) e il campo senza media di
   bilancio); (3) DEBT-4/DEBT-9: il pezzo k⁴ della banda è ora il 99,9 % del −α²⟨p⁴⟩/8 di Dirac (−0,70 mEh con
   ⟨p⁴⟩ = 52,89): o i camminatori saltano col nucleo M (lo includono), o lo si sottrae al primo ordine per il confronto
   non relativistico; (4) il Darwin non c'è nella banda libera: viene dall'accoppiamento imparato (Γ = 1 − q²/8, fase 2).
-  Codice: `lab/aggfull_l1.py` (`fit(..., mode="T"|"M")`, `taylor()`).
+  Codice: `lab/aggfull_l1.py` (`fit(..., mode="T"|"M")`, `taylor()`); i due .pkl non sono nel repo: si rifanno con
+  `python lab/aggfull_l1.py run` (~3 minuti).
 - **Per l'idrogeno di Bohr:** la parità esatta si ottiene simmetrizzando G_j ← (G_j + G_{−j})/2 per tutte le componenti
   (con l'hermiticità G_{−j} = G_j† vuol dire G_j hermitiana): `aggfull_l1.fit` lo fa. Tocca la parità: sì.
 - **Ponte (proposta, non creata):** `ponte/richieste/aggfull_lanterne.json` con azione `foto` sul Laboratorio Atomo con il
