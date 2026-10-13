@@ -7,8 +7,11 @@ ECG (esatta): He −2,903761 ± 0,000080 Eh contro −2,903724 (**M1 PASS**), io
 R5/R6 FAIL come scritti, con la causa trovata: la banda ri-imparata è la cinetica di Dirac esatta a 0,1 %.
 **v3** (livello 1 nuovo di `AGGLOMERATO_COMPLETO.md` §11): massa esatta m₀ = 1,0000000011, nucleo dei camminatori
 positivo a ogni β, banda = Dirac cinetico al 100,4 % sull'elio; con la massa nuova **M1: −2,9037213 contro −2,9037244
-(+0,003 mEh)**, ionizzazione 24,58814 eV (+0,75 meV, cioè proprio la fisica che manca). Il FAIL ad alto k
-(controllo Z = 10 a 3·10⁻⁵, 1 seme su 3) resta dichiarato. D6' in corsa.** Brief: `docs/MOLTI_ELETTRONI_PIANO.md`.
+(+0,003 mEh)**, ionizzazione 24,58814 eV (+0,75 meV, cioè proprio la fisica che manca). **v5** (fase 5 di
+AGGLOMERATO_COMPLETO, k⁶ fissato e stencil scelto da `auto_level`): i 2 semi che fallivano il Pauli a Z = 10 ora passano
+(0,73 e 0,42·10⁻⁵, **L1c_v5 PASS**); la banda è la cinetica di Dirac al 99,97 % sull'elio e la parte sbagliata di
+DEBT-4/9 scende da +0,41 mEh a +0,0002 mEh (**Q1v5 PASS**). **D6' FAIL** di poco (cuspide del misto 0,447 ± 0,029
+contro 0,500 ± 0,05, §4.4).** Brief: `docs/MOLTI_ELETTRONI_PIANO.md`.
 Pre-registrazione: `lab/out/multi_e_prereg.json` (committata in `9b1e4d0` **prima di ogni corsa**).
 Giudizio automatico: `python lab/multi_e_summary.py` → `lab/out/multi_e_results.json`. Figura: `lab/out/multi_e_figure.png`.
 
@@ -63,11 +66,17 @@ controllo esatto, non il metodo**. Non è "la vecchia DMC con un nome nuovo", ma
 | L1c_v3 | livello Pauli T a Z = 10 entro 3·10⁻⁵ su 3 semi | 4,1 / 1,8 / 7,9·10⁻⁵ | **FAIL** (alto k, dichiarato, come in aggfull) |
 | M1v3, E1v3 | elio e ionizzazione con la massa nuova | **−2,9037213 ± 0,0000794** (+0,003 mEh); **24,58814 ± 0,0022 eV** (+0,75 meV) | **PASS** |
 | Q1v3 | banda T e M sull'elio contro Dirac cinetico esatto | T: −0,6997 contro −0,6967 mEh (**1,004**); M: −0,7080 (**1,016**) | **PASS** |
+| **v5** | pre-registrazione v5 (`lab/out/multi_e_prereg_v5.json`, `904f193` + refusi `360661d`): fase 5 di AGGLOMERATO_COMPLETO, k⁶ fissato (T6 con la scelta di `auto_level`, M6 a w = 8). Sostituisce la v4 (`b90b7bb`), mai eseguita | | |
+| R3v5 | m_kin(θ → 0) dei livelli T6 | **1,0000000046** (massa = quella della regola fine a 10⁻¹²) | **PASS** (contro 10⁻⁹: no, 4,6·10⁻⁹) |
+| L1c_v5 | Pauli T6 a Z = 10 entro 3·10⁻⁵ sul campione indipendente | nostri semi 1 / **3** / **4**: w = 5 / 6 / 7, 0,55 / **0,73** / **0,42**·10⁻⁵ (i 2 semi che fallivano ora passano, identici ai loro); loro 6 semi: 6 su 6, il seme 5 a 2,93·10⁻⁵ (margine sotto il rumore del controllo ~10⁻⁵) | **PASS** |
+| G0v5, R2v5 | parità; nucleo M6 una probabilità a ogni β | parte dispari 0; M6: peso negativo ≤ 4,3·10⁻¹⁴, 0 salti sbagliati, D curvatura = spazio reale a 2·10⁻¹⁰, curtosi 0,016 (T6 invece 628 salti negativi) | **PASS** |
+| M1v5, E1v5 | elio e ionizzazione con la massa T6 | **−2,9037213 ± 0,0000794** (+0,003 mEh); **24,58814 ± 0,0022 eV** (+0,75 meV) | **PASS** |
+| Q1v5 | banda T6 e M6 sull'elio contro Dirac cinetico esatto | T6: −0,69651 contro −0,69669 mEh (**0,9997**); M6: −0,69696 (**1,0004**); parte non Dirac **+0,0002 / −0,0003 mEh** | **PASS** |
 | G4 | parte della cinetica da oltre la zona < 10⁻⁶ | elio 3·10⁻¹⁰ (esistente), 0 (ri-imparato); esistente a Z = 9, 10: 1,0 e 1,4·10⁻⁶ | **PASS per l'elio**, FAIL ai Z alti del livello esistente |
 | He DMC | elio 1¹S con i camminatori (solo riportato: M1/E1 erano sulla strada ECG) | **−2,903757 ± 0,000071 Eh** (barra pre-registrata; con la barra controllata −2,903762 ± 0,000082) contro −2,903724 (0,46 σ); ionizzazione **24,5884 ± 0,0019 eV** (controllata: 24,5885 ± 0,0022) contro 24,587389 (+1,0 meV) | riportato |
 | He 2³S DMC | nodo esatto r₁ = r₂ (solo riportato: D2/M2 fermi per G1 e G5) | **−2,175328 ± 0,000072 Eh** contro −2,175229 (−0,10 mEh, 1,4 σ); corsa lunga di controllo a τ = 0,01: −0,6 σ | riportato |
 | D7 | sanità variazionale della DMC | E ≥ E_esatta − 3σ | **PASS** |
-| D6' | cuspide del misto (v2, stimatore a rapporto, semi nuovi) | c(τ → 0) = 0,446 ± 0,037 contro 0,500 ± 0,05; σ > 0,03 | **INCONCLUSIVO** → corse allungate (in corsa) |
+| D6' | cuspide del misto (v2, stimatore a rapporto, semi nuovi), corse raddoppiate come da regola | prima lettura 0,446 ± 0,037 (INCONCLUSIVO); lettura finale **c(τ → 0) = 0,447 ± 0,029** contro m/2 = 0,500 ± 0,05 | **FAIL** (fuori di 0,003 oltre la tolleranza, 1,8 σ da 0,5; ramo fermo) |
 | D6 | cuspide di Kato dai camminatori (guida senza cuspide) | c = 87 ± 62 contro m = 1,0004 ± 0,10 | **FAIL** — quattro cause trovate (§4.3, tre sono errori miei nella pre-registrazione); post hoc il misto dà la cuspide giusta: 0,51 ± 0,05 contro 0,50 |
 
 ---
@@ -283,6 +292,43 @@ rifatto i nostri controlli col **nostro** codice (gli stessi numeri del loro stu
   vera dell'elio con la coda alta di Dirac) invece di un pezzo sbagliato: o si sottrae al primo ordine, o si cammina col
   nucleo M. Resta fuori il Darwin, che non è nella banda libera ma nell'accoppiamento imparato (AGGLOMERATO_COMPLETO fase 2).
 
+### 3.2 v5: k⁶ fissato e la scelta vera dell'agglomeratore (AGGLOMERATO_COMPLETO §12–13)
+
+Il thread dell'agglomeratore ha fatto altri due passi: fase 4 (fissare anche il k⁶ della regola fine, che è quello di
+Dirac) e fase 5 (scegliere lo stencil con la regola vera di `auto_level`: il w più piccolo che passa **tutto** il
+controllo, budget 3·10⁻⁵ compreso, poi esame su un campione nuovo). Avevo scritto la v4 (fase 4) e l'ho sostituita con la
+v5 (fase 5) **prima** che partisse qualunque corsa v4: nessun numero v4 esiste. Il "solutore pulito" della fase 5
+(`aggfull_atom.Atom(..., clean=True)`, la penalità sul settore di parità sbagliato in LOBPCG) non riguarda il nostro elio:
+l'ECG non proietta H con LOBPCG, le gaussiane correlate sono già simmetriche. Lo diciamo e non cambia niente.
+
+- **L1c_v5 PASS — i due semi che fallivano ora passano.** Rifatti col nostro codice: seme 3 sceglie w = 6 (a w = 5 era
+  3,05·10⁻⁵, cioè il FAIL di prima), esame indipendente **0,73·10⁻⁵**; seme 4 sceglie w = 7 (w = 5: 3,79·10⁻⁵, w = 6:
+  3,04·10⁻⁵), esame **0,42·10⁻⁵**; seme 1 w = 5, 0,55·10⁻⁵. Identici ai loro (stesso w, stessa energia a 10⁻¹⁶). Loro
+  semi 1–6: tutti sotto 3·10⁻⁵. **Onesto:** il loro seme 5 sta a 2,93·10⁻⁵, con un margine (0,07·10⁻⁵) più piccolo del
+  rumore del controllo (~10⁻⁵): quel PASS non è robusto. La lezione: il "FAIL ad alto k" non era un muro, era uno stencil
+  troppo corto per quei semi; il resto era un difetto del solutore dell'altro studio (parità), non nostro.
+- **R3v5 PASS**: m₀ = 1,0000000046 (A/2, A, B; ogni livello ha la massa della regola fine a ≤ 4·10⁻¹²: la barra viene
+  dalla regola fine stessa, non dall'apprendimento). Contro 10⁻⁹ no (4,6·10⁻⁹; v3: 1,1·10⁻⁹): il fit a 3 punti in θ²,
+  θ⁴ della regola fine ha questo resto, non è la banda.
+- **G0v5, R2v5 PASS**: parità esatta; il nucleo M6 (Markov + k⁶, w = 8) è una probabilità a ogni β (≤ 4,3·10⁻¹⁴),
+  0 salti sbagliati, D = 0,4998134 uguale da curvatura e spazio reale, curtosi 0,016. T6 no (628 salti negativi).
+- **M1v5/E1v5 PASS**, uguali a v3 entro 10⁻⁸ Eh (la massa era già esatta): −2,9037213 ± 0,0000794 (+0,003 mEh), 24,58814 eV.
+- **Q1v5 — DEBT-4/9 nella versione finale:**
+
+| livello | banda − k²/2m (mEh) | Dirac cinetico esatto (mEh) | banda / Dirac | parte "non Dirac" (mEh) |
+|---|---|---|---|---|
+| vecchio livello 1 (125 posti) | −0,285 | −0,697 | 0,409 | **+0,412** |
+| v3 T (k², k⁴ fissati) | −0,700 | −0,697 | 1,004 | −0,003 |
+| v3 M (+ Markov, w = 4) | −0,708 | −0,697 | 1,016 | −0,011 |
+| **v5 T6 (k², k⁴, k⁶ fissati, w = 5)** | **−0,69651** | −0,69669 | **0,9997** | **+0,0002** |
+| **v5 M6 (+ Markov, w = 8)** | **−0,69696** | −0,69669 | **1,0004** | **−0,0003** |
+
+  Detto semplice: la parte sbagliata di DEBT-4/9 (+0,41 mEh col livello vecchio) è scesa a **0,2–0,3 µEh**, sotto
+  qualunque barra dell'elio. Quello che resta di DEBT-4/9 è solo una scelta di metodo: i camminatori gaussiani vedono
+  k²/2m, e la differenza è la massa-velocità **vera** (−0,697 mEh), nota e fisica, da sommare al primo ordine o da
+  camminare col nucleo M6 (positivo a ogni β). Variazionale sulla stessa base: −0,705 / −0,706 mEh (il primo ordine resta
+  la lettura, come in v2: la banda limitata più Coulomb puntiforme non è un problema variazionale ben posto).
+
 ## 4. Elio con i camminatori (energia: riportata; esami D7 e D6)
 
 **Come.** Due palline-elettrone (spin opposti) nel continuo, nucleo fisso Z = 2. Ogni passo: ogni elettrone salta con il
@@ -404,13 +450,32 @@ quadratico su r < 0,25 a₀; semi nuovi; τ = 0,0025 / 0,00125 / 0,000625 con 40
 | 0,00125 | 0,515 ± 0,030 | 0,69 ± 0,06 |
 | 0,000625 | 0,488 ± 0,032 | 0,55 ± 0,06 |
 
-Retta in τ (p = 0,80): **c(τ → 0) = 0,446 ± 0,037 contro m/2 = 0,500**. La regola scritta prima chiede σ ≤ 0,03 per dare
-un verdetto: **INCONCLUSIVO**. Come pre-registrato si allungano le corse dai checkpoint (al doppio), mai la tolleranza:
-*(in corsa)*. Note oneste: (i) il buco a τ finito si vede ancora come pendenza (c scende al calare di τ); (ii) il punto
-più piccolo da solo sta già sulla cuspide (0,49 ± 0,03); (iii) il secondario cubico è più rumoroso e più sensibile al
-buco, come previsto; (iv) un pezzo da 2 a.u. in più è stato aggiunto per errore a τ = 0,0025 e 0,00125 da un processo
-rilanciato a corsa finita: escluso dalla lettura, e il checkpoint della VMC v2 è stato rifatto da zero dopo che tre
-processi gemelli l'avevano scritto insieme (prima di ogni analisi).
+Prima lettura, retta in τ (p = 0,80): c(τ → 0) = 0,446 ± 0,037 → σ > 0,03, **INCONCLUSIVO**. Come pre-registrato si
+sono allungate le corse dai checkpoint (al doppio: 8000 / 6000 / 4000 a.u.), mai la tolleranza.
+
+**Lettura finale** (commit di questa sezione):
+
+| τ | a.u. | c del misto (rapporto) | secondario (cubico su h_mix) |
+|---|---|---|---|
+| 0,0025 | 8000 | 0,579 ± 0,020 | 0,99 ± 0,05 |
+| 0,00125 | 6000 | 0,507 ± 0,023 | 0,63 ± 0,04 |
+| 0,000625 | 4000 | 0,484 ± 0,025 | 0,55 ± 0,04 |
+
+Retta in τ (p = 0,77, quindi lineare come da regola): **c(τ → 0) = 0,447 ± 0,029** contro m/2 = 0,5002. Ora σ ≤ 0,03, il
+verdetto si dà: |0,447 − 0,500| = 0,053 > 0,05 → **D6' FAIL**. Il ramo si ferma qui (niente nuove corse, niente nuovi fit
+come esame). Secondario cubico: 0,365 ± 0,053.
+
+Cosa dice, onesto: (i) il fallimento è di 0,003 oltre la tolleranza, a 1,8 σ da 0,5: è compatibile sia con "la cuspide è
+giusta e l'estrapolazione ha sfortuna" sia con "l'estrapolazione lineare tira giù"; non lo posso distinguere senza un altro
+τ, e non lo aggiungo dopo aver visto il numero. (ii) Il punto a τ più piccolo da solo dà 0,484 ± 0,025, sulla cuspide;
+la pendenza in τ è forte (il buco del passo largo √τ ≈ 0,025–0,05 a₀, confrontabile con la finestra 0,25 a₀). (iii)
+Diagnosi post hoc (non rigiudica): estrapolare in √τ invece che in τ dà 0,378 ± 0,051, peggio; quindi non è la forma
+della legge del buco a salvare il risultato. Il messaggio fisico resta quello della diagnosi di D6: la cuspide emerge dai
+camminatori a τ piccolo; l'esame a τ → 0 come scritto non la conferma entro 0,05.
+
+Note sui dati: (a) un pezzo da 2 a.u. in più aggiunto per errore a τ = 0,0025 e 0,00125 alla prima lettura ora sta dentro
+la stessa catena allungata (letta per intero, 8000/6000 a.u.: dichiarato); (b) il checkpoint della VMC v2 fu rifatto da
+zero, prima di ogni analisi, dopo che tre processi gemelli l'avevano scritto insieme.
 
 ## 5. Validazione e scoperta
 
@@ -433,12 +498,12 @@ processi gemelli l'avevano scritto insieme (prima di ogni analisi).
 | DEBT-1 | e-e come fase di Coulomb istantanea (niente Breit, ritardo): ~10⁻⁵–10⁻⁴ Eh nell'elio | aperto; idea §7 |
 | DEBT-2 | antisimmetria postulata | G1 mostra che il segno cambia tutto (bosonico −13,50 contro −10,12); idea §7 |
 | DEBT-3 | nucleo puntiforme e infinitamente pesante; massa ridotta solo negli esami E | aperto |
-| DEBT-4 | proiezione k²/2m_kin | aperto; sull'elio vale −0,289 mEh col livello in uso (Q1); il livello ri-imparato = cinetica di Dirac esatta a 0,1 % (§3), ma è quasi la regola fine (B = 2) |
+| DEBT-4 | proiezione k²/2m_kin | la parte sbagliata è chiusa: con T6 (v5) la banda è Dirac cinetico a 0,03 % sull'elio, parte non Dirac +0,0002 mEh (era +0,412). Resta la scelta di metodo k²/2m per i camminatori: il pezzo mancante è la massa-velocità vera (−0,697 mEh), noto |
 | DEBT-5 | campo medio = Hartree–Fock come portatore dei nodi | usato solo come guida della DMC; idea §7 per eliminarlo nel litio |
 | DEBT-6 | famiglia di J | non ancora (M2) |
 | DEBT-7 | nodo fisso | per l'elio 1¹S nessun nodo; per 2³S il nodo è esatto per simmetria |
 | DEBT-8 | simmetrizzazione dello stencil | ora giustificata da G0 (la regola fine è pari a 10⁻¹⁵) |
-| DEBT-9 | camminatori col nucleo gaussiano continuo D = 1/(2m_kin) | R4b fa la versione sul reticolo; D0b (elio) non fatto; sull'elio vale ≈ −0,28 mEh (la parte non quadratica della banda, §4) |
+| DEBT-9 | camminatori col nucleo gaussiano continuo D = 1/(2m_kin) | il nucleo M6 (Markov + k⁶, w = 8) è una probabilità a ogni β con D identico (R2v5): camminare con lui è possibile, non fatto (D0b); al primo ordine il pezzo è −0,697 mEh, Dirac cinetico (Q1v5) |
 | DEBT-10 | configurazioni | non ancora (Be) |
 
 ## 7. Idee geometriche e visive per togliere debiti (con la prova che le decide)
@@ -513,6 +578,10 @@ il riferimento; (4) niente litio finché l'elio non è capito voce per voce, com
   canonica nell'SVM quando S diventa non definita; operatore pieno: la ricetta variazionale collassa per Z ≥ 6 e per
   1 e⁻ a Z = 10, quindi R5/R6 si leggono al primo ordine (dichiarato, §3); riferimento di Dirac esatto per R5/R6:
   diagnosi post hoc.
+- **Pre-registrazione v4** (`b90b7bb`, fase 4) **sostituita dalla v5** (`904f193`, fase 5; refusi `360661d`) prima di
+  qualunque corsa v4 (il driver v4 aspettava la fine delle DMC ed è stato fermato). v5: barra di R3 = deriva della massa
+  dalla regola fine (un seme per catena, la massa è fissata); L1c_v5 legge i 6 semi di `aggfull_p5.json` e rifà i
+  nostri 1, 3, 4; il solutore pulito della fase 5 non si applica all'ECG.
 - **Pre-registrazione v3** (`lab/multi_e_prereg_v3.py`, `ecbd6d6`): adozione del livello 1 T/M di
   AGGLOMERATO_COMPLETO §11 (codice `aggfull_l1.prod_one` importato e non modificato, file nostri `multi_e_v3_*`); i loro
   numeri erano già pubblici e letti, quindi le corse v3 sono riproduzioni col nostro codice di controllo.
@@ -558,6 +627,7 @@ il riferimento; (4) niente litio finché l'elio non è capito voce per voce, com
     python lab/multi_e_dmc.py He 0.02 dmc 6000 6e-5   (ripetere finché 'done'; poi 0.01 e 0.005)
     python lab/multi_e_dmc.py He_u0 0.01 vmc 400 1e-9 ; python lab/multi_e_dmc.py He_u0 0.01 dmc 400 1e-9 ; python lab/multi_e_d6.py
     DMC_NW=250 python lab/multi_e_dmc.py He 0.02 dmc 10000 1e-4        (diagnosi del bias di popolazione)
+    python lab/multi_e_prereg_v5.py ; python lab/multi_e_v5.py learn (ripetere fino a 'learn done') ; ... checks ; ... tables ; ... he
     python lab/multi_e_dmc.py He_u0 0.0025 dmc 400 1e-9 ; ... 0.000625 ; python lab/multi_e_d6_diag.py 0.01 0.0025 0.000625 ; python lab/multi_e_d6_model.py
     python lab/multi_e_dmc.py He3S 0.02 dmc 6000 6e-5   (poi 0.01, 0.005) ; python lab/multi_e_dmc_err.py
     python lab/multi_e_summary.py ; python lab/multi_e_figure.py

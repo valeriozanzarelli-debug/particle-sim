@@ -241,7 +241,7 @@ fn stato_scena(lab: &Lab) -> (String, String) {
                     format!("Nd⁵⁹⁺ · luce e atomo ACCOPPIATI (la stessa regola nei due versi) · tick {} · 1s {:.0} % · 2p½ {:.1} % · eccitato p_exc = {:.0} %{}",
                             o.ticks, 100.0 * (1.0 - o.p_exc), 100.0 * o.p2p, 100.0 * o.p_exc,
                             match o.amp_diffusa {
-                                Some(a) => format!(" · LUCE DIFFUSA ×{:.0} (rosa/verde, ampiezza; l'impulso libero è attenuato ×0,25) · palline bianche = corrente d'energia", a),
+                                Some(a) => format!(" · LUCE DIFFUSA ×{:.0} (rosa/verde; palline ∝ u·r²: la caduta 1/r² è tolta) · fetta |y| < 10 ħ/mc · atomo ingrandito ×{:.0} · impulso libero ×0,25 · palline bianche = corrente d'energia", a, crate::zzscena::ZOOM_ATOMO),
                                 None => String::new(),
                             }),
                     format!("dipolo ⟨z⟩ = {:+.3} ħ/mc · ω₂₁ della regola 3-D {:.4} mc²/ħ · luce rimandata {} · {:.0} ms per tick",

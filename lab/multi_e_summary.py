@@ -205,6 +205,25 @@ if V3.get("he"):
     put("E1v3", "PASS" if h["E1v3"]["PASS"] else "FAIL", **{k: v for k, v in h["E1v3"].items() if k != "PASS"})
     q = h["Q1v3"]
     put("Q1v3", "PASS" if q["PASS"] else "FAIL", T=q["T"], M=q["M"], old_level=q["old_level"])
+# ---------------------------------------------------------------- pre-registrazione v5 (fase 5 di AGGLOMERATO_COMPLETO, T6/M6)
+V5 = load_json("multi_e_v5.json")
+if V5.get("checks"):
+    c5 = V5["checks"]
+    put("R3v5", "PASS" if c5["R3v5"]["PASS"] else "FAIL", m0=c5["R3v5"]["m0"], within_1e9=c5["R3v5"]["within_1e9"],
+        m_kin=c5["R3v5"]["m_kin"])
+    put("L1c_v5", "PASS" if c5["L1c_v5"]["PASS"] else "FAIL", ours=c5["L1c_v5"]["ours"], theirs=c5["L1c_v5"]["theirs"],
+        reproduces=c5["L1c_v5"]["reproduces"], note="seme 5 (loro) a 2,93e-5: margine sotto il rumore del controllo (~1e-5)")
+    put("G0v5", "PASS" if c5["G0v5"]["PASS"] else "FAIL", odd_rel=c5["G0v5"]["odd_rel"])
+    rm = c5["R2v5"]["levels"]["M6"]
+    put("R2v5", "PASS" if c5["R2v5"]["PASS"] else "FAIL", max_neg_M6=rm["max_neg"], D_curv=rm["D_curv"], D_real=rm["D_real_beta1e-3"],
+        kurtosis=rm["excess_kurtosis_beta1e-2"], wrong_taps_M6=rm["wrong_sign_taps"],
+        T6_max_neg=c5["R2v5"]["levels"]["T6"]["max_neg"], T6_wrong_taps=c5["R2v5"]["levels"]["T6"]["wrong_sign_taps"])
+if V5.get("he"):
+    h = V5["he"]
+    put("M1v5", "PASS" if h["M1v5"]["PASS"] else "FAIL", **{k: v for k, v in h["M1v5"].items() if k != "PASS"})
+    put("E1v5", "PASS" if h["E1v5"]["PASS"] else "FAIL", **{k: v for k, v in h["E1v5"].items() if k != "PASS"})
+    q = h["Q1v5"]
+    put("Q1v5", "PASS" if q["PASS"] else "FAIL", T6=q["T6"], M6=q["M6"], old_level=q["old_level"], v3_levels=q["v3_levels"])
 d6v2 = Q.get("D6_v2")
 if d6v2 and "ratio" in d6v2:
     put("D6'", d6v2["verdict"], c0=d6v2["ratio"]["c0"], sigma_c0=d6v2["ratio"]["sigma_c0"], target=d6v2["target"],

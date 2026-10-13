@@ -9,8 +9,9 @@ fase2/dipolo_lontano.txt). Codice: `lab/vl_idro.py`, `lab/vl_idro_drive.sh` (tut
 Pre-registrazione: `lab/out/vl_idro_prereg.json` (commit 958dc5a) + **emendamento 1 `lab/out/vl_idro_amend1.json`
 (commit 580668c, prima di ogni pallina sui dati della fase 2)**. Risultati: `lab/out/vl_idro_esami.json`.
 
-Video e fermo-immagine: **in rendering** (verranno copiati in `/mnt/project-files/modello-standard/` appena finiti;
-questo paragrafo sarà aggiornato con i nomi verificati).
+Video e fermo-immagine (verificati con `ls -la` il 13/10 alle 19:37 UTC), in `/mnt/project-files/modello-standard/`:
+`video_idrogeno_bohr_1080p.mp4` (33,5 s, 19 MB), `video_idrogeno_bohr_720p.mp4` (8 MB), fermo-immagine
+`video_idrogeno_bohr_lontano.png`, `_zoom.png`, `_protone.png`.
 
 ---
 
