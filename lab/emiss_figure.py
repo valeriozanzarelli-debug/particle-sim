@@ -36,10 +36,10 @@ if "R1_48_numbers" in R:
     try:
         ds = load("P_S1sc")
         pe = np.array(ds["ser_pexc"])[:, 0]
-        a.plot(ds["ser_t"], pe, "C3", label="semiclassico, 2p puro: non parte")
+        a.plot(ds["ser_t"], pe, "C3", label="semiclassico, 2p puro: proiezione che batte (luce emessa 2e-33)")
     except Exception:
         pass
-    a.set_ylim(0.9, 1.002)
+    a.set_ylim(0.93, 1.002)
 a.set_xlabel("t")
 a.set_ylabel("probabilita' nello stato eccitato")
 a.set_title("S1: il 2p puro decade da solo solo con la luce quantistica")
@@ -51,10 +51,13 @@ if "K10_series" in R:
     k = R["K10_series"]
     a.plot(k["t"], k["norm"], "C0", label="QE K=10 (2p puro)")
     a.plot(k["t"], np.exp(-k["A"] * np.array(k["t"])), "k--", lw=0.8, label="esponenziale")
+PH = json.load(open(os.path.join(OUT, "emiss_posthoc.json")))
 if "SC10_series" in R:
     s = R["SC10_series"]
     a.plot(s["t"], s["p"], "C3", label="semiclassico K=10 da (1s+2p)/sqrt2")
-    a.plot(s["t"], s["logistic"], "C3", ls=":", label="logistica con A di K10 (nessun fit)")
+    a.plot(s["t"], s["logistic"], "C3", ls=":", label="logistica con A fittato su K10 (esame: FAIL)")
+    tt_ = np.array(s["t"]); A0 = PH["SC10_rule"]["A0"]
+    a.plot(tt_, 0.5 * np.exp(-A0 * tt_) / (0.5 + 0.5 * np.exp(-A0 * tt_)), "k", ls="-.", lw=0.8, label="logistica con A della regola a t=0 (dopo, dichiarata)")
 a.set_xlabel("t")
 a.set_title("esponenziale (quantistico) vs logistica (classico)")
 a.legend(fontsize=8)
@@ -83,7 +86,7 @@ lb = json.load(open(os.path.join(OUT, "emiss_lab1s.json")))
 csv = "/mnt/project-files/ripresa/dati/atomo_accoppiato/serie.csv"
 if os.path.exists(csv):
     dd = np.genfromtxt(csv, delimiter=",", names=True)
-    a.plot(dd["t"], dd["p_exc"], "C0", lw=0.8, label="Laboratorio (accoppiato.rs), con luce")
+    a.plot(dd["t"], dd["p_exc"], "C0", lw=0.8, label="Laboratorio dopo la cura dell'1s (export 01:46, con luce)")
 fr = lb["free"]
 a.plot(fr["t"], fr["p_run"][:len(fr["t"])], "C3", lw=0.8, label="1s del Laboratorio lasciato solo, SENZA luce")
 a.set_xlim(0, 1600)
@@ -103,6 +106,8 @@ for key, nm in (("R1_48_numbers", "Nd 48^3"), ("R1_96_numbers", "Nd 96^3"), ("P_
         v1.append(q["A_norm"] / (q["A_rule"] * q["W2"]))
 x = np.arange(len(lab))
 a.bar(x, v1, 0.6, color="C0", label="A misurato / A previsto dalla regola")
+lab.append("Nd 48^3, dipolo\ndel momento (dopo)")
+a.bar(len(lab) - 1, np.mean([r_["ratio"] for r_ in PH["P_R1_48_windows"]]), 0.6, color="C7")
 for key, nm in (("N1", "N1: Nd vs Dirac"), ("H1", "H1: H vs Dirac")):
     if key in R:
         lab.append(nm)
@@ -111,12 +116,12 @@ a.axhline(1, color="k", lw=0.8)
 a.axhspan(0.97, 1.03, color="gray", alpha=0.2)
 a.set_xticks(range(len(lab)))
 a.set_xticklabels(lab, rotation=30, fontsize=8)
-a.set_ylim(0.85, 1.15)
-a.set_title("ritmi di emissione con alpha vero (banda: +-3 %)")
+a.set_ylim(0.6, 1.4)
+a.set_title("ritmi con alpha vero: blu regola, verde Dirac (banda +-3 %)")
 f = os.path.join(OUT, "emiss_ideas.json")
 if os.path.exists(f):
     idd = json.load(open(f))
-    ins = a.inset_axes([0.62, 0.62, 0.36, 0.36], projection="polar")
+    ins = a.inset_axes([0.68, 0.68, 0.31, 0.31], projection="polar")
     th = np.arccos(np.array(idd["polar_cos"]))
     pr = np.array(idd["polar"]) / idd["fit_sin2"]
     ins.plot(th, pr, "C1.")

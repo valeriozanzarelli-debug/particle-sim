@@ -1,0 +1,13 @@
+{
+ "study": "Emissione vera, amendments to the pre-registration v3 (lab/out/emiss_prereg.json, commit 907d12c)",
+ "thresholds_changed": "none",
+ "changes": [
+  "R1_96 and R2_96 NOT RUN: the 96^3 listening (S_T = 1000 -> 14000 ticks of a 96^3 walk, ~1.5 h per level, plus ~1.5 h for the run) did not fit in pieces with the pre-pass as written (each piece was killed before its first checkpoint), and after the valley-multiplet finding (docs/BATTIMENTO_1S.md, master 83485bc; R1_48 here) the 96^3 lattice levels would carry the same problem. Declared as not run; R2_96 was an expected FAIL anyway.",
+  "fine 1s spectrum (development, emiss_dev_spectrum.py 48 s 20000) killed by the time limit and abandoned: the 1s pair 0.8993/0.8996 was resolved by the main thread (Rayleigh-Ritz).",
+  "judge details fixed before reading any production number: E1 spectrum from t0 + 4 tau + 160 to the end, peaks in 0.06-0.10; the judge only judges runs whose drive log says 'finished rc=0' (a partial checkpoint had been judged once by mistake, P_H1b; that output was discarded).",
+  "E1v3s prediction formula (amplitude product of the two dipole components with the sigma- drive and the E_y probe) written in the judge, not in the prereg text; it is a lattice prediction, the threshold of E1v3s (strongest line within 0.5 %) does not use it.",
+  "post-hoc analyses, declared, do not change verdicts: lab/emiss_posthoc.py (windowed rate vs instantaneous dipole, energy to light in S1, lattice dipoles vs Dirac, Laboratory decay 0.097 -> 0.064 of BATTIMENTO_1S); lab/emiss_ideas.py (dipole donut isotropy, informative).",
+  "L1 was judged on the Laboratory export as it was at 01:17 (old 1s with the beat); the main thread regenerated /mnt/project-files/ripresa/dati/atomo_accoppiato/ at 01:46 with the cured 1s (no beat). The figure shows the new series (blue) and the free run of the old 1s (red). The L1 number in emiss_lab1s.json (477.8) is from the old series.",
+  "K10/SC10/R1_48/S1 use 48^3 states that are pieces of valley multiplets (found after the pre-registration, docs/BATTIMENTO_1S.md); the verdicts stand."
+ ]
+}

@@ -1,0 +1,91 @@
+{
+ "study": "motore_ottimizzato fase 3",
+ "date": "2026-10-13",
+ "part1": {
+  "title": "correzione locale e conservativa della cinetica al bordo del blocco (campana)",
+  "selection": "candidati in ordine di localita' (blocco L fine, sovrapposizione e = L/2, grosso L/2, e/2): (32,sin2) (32,sin3) (32,cinf) (64,sin2) (64,sin3) (64,cinf) (128,sin2) (128,sin3) (128,cinf); si sceglie il PRIMO con, sul pacchetto di calibrazione (elettrone 1-D theta = a0/4096, k0 = 0.5/a0, sigma = a0/2, 4 dimezzamenti locali), |dN| <= 1e-7 e |dEkin| <= 1e-7 nel giro",
+  "exams": {
+   "G3c_bis": "con la campana scelta, pacchetti registrati di G3c (k0 = 1, 2 /a0): |dN/N| grosso e giro <= 1e-6, energia cinetica del giro <= 1e-6 (soglie di fase 2)",
+   "G3a_bis": "con la campana scelta, luce 2-D come G3a: |dE/E| restrizione e giro <= 1e-6 per N grosso >= 12; 8 riportato",
+   "G3b_bis": "localita' col supporto DICHIARATO NUOVO (fase 2 aveva sbagliato la definizione): una perturbazione nel blocco fine [b0, b0+L) cambia il campo grosso solo per indici grossi in [(b0-L)/2 - e/2, (b0+2L)/2 + e/2) per asse; oltre: <= 1e-14 (soglia di fase 2)",
+   "costo": "larghezza del supporto e tempo per cella riportati (nessuna soglia)"
+  },
+  "predictions": {
+   "choice": "(64, sin3)",
+   "G3c_bis": "PASS (~1e-12)",
+   "G3a_bis": "PASS",
+   "G3b_bis": "PASS (zero esatto)"
+  }
+ },
+ "part2": {
+  "title": "cartolina con 3s/3p/3d0 e criterio automatico di ritorno al livello fine",
+  "level": "Intel (a0/8, catena A B = 512), ottante 216^3 (scatola +-27 a0, la piu' grande dello sweep di parte 3)",
+  "basis": "pari: 1s, 2s, 3s, 3d0 (piu' 3d x^2-y^2 dello stesso gruppo, che il calcio non tocca); dispari: 2p0, 3p0",
+  "criterion": "la cartolina e' ammessa solo se (i) peso fuori base w_out <= tol^2 (stato entro tol) E (ii) rho = w_out / (1 - P_fondamentale) <= tol (l'eccitazione catturata entro tol); altrimenti l'atomo torna al livello fine. tol = 0.10 (Intel)",
+  "scenarios": {
+   "kicks_q_a0": [
+    0.05,
+    0.2,
+    0.5,
+    1.0
+   ],
+   "S1": "(1s + 0.3 i 2p0)/norma",
+   "S2": "(1s + 0.2 2s + 0.1 3s + 0.2 i 3p0)/norma"
+  },
+  "truth": "griglia contro cartolina per M = 40 passi della regola: (a) distanza relativa degli stati ||psi_g - psi_c||/||psi_g|| <= tol; (b) velocita' iniziale del dipolo v = d<z>/dt (fit sui primi 5 passi): |v_c/v_g - 1| <= tol. VERO = (a) e (b).",
+  "exams": {
+   "C1": "probabilita' del calcio q = 0.5 sul reticolo contro Schroedinger, entro tol: 1s, 2s, 2p0, 3p0; 3s e 3d0 riportati",
+   "C2": "cartolina a 6 stati ferma sotto la regola: residui; differenza griglia-cartolina nel sottospazio <= M*r*2 + 1e-12 (come G2)",
+   "C3": "peso fuori base w_out(q) contro l'esatto 1 - somma dei 6: riportato",
+   "C4": "sicurezza: nessuno scenario AMMESSO dal criterio ha VERO = falso",
+   "C5": "niente rifiuti inutili sugli stati legati: S1 e S2 ammessi",
+   "C6": "velocita' della griglia dopo il calcio contro hbar q / m (Ehrenfest/regola f di somma) entro tol"
+  },
+  "predictions": {
+   "kicks": "tutti RIFIUTATI (rho ~ 0.36 per q piccolo: manca ~ meta' della forza d'oscillatore); VERO falso per tutti (v_c/v_g ~ f(2p)+f(3p) = 0.416 + 0.079 = 0.495)",
+   "S1_S2": "AMMESSI, VERO",
+   "C4": "PASS",
+   "C5": "PASS",
+   "C6": "PASS",
+   "exact_P": {
+    "1s": 0.7846649156722568,
+    "2s": 0.008191999317401069,
+    "2p": 0.07372800000002441,
+    "3s": 0.0014717314509587174,
+    "3p": 0.015698470490113407,
+    "3d": 0.001455914181427603
+   },
+   "dipole_strengths": {
+    "2p": 0.5549289573067772,
+    "3p": 0.0889892578125317
+   }
+  }
+ },
+ "part3": {
+  "title": "la scatola dentro il passaporto d'errore",
+  "sweep": "livello Intel (a0/8), scatole +-12, 15, 18, 21, 24, 27 a0 (ottante 96 ... 216): E1s, E2p, riga, P(2p0), P(1s)",
+  "rule": "scatola scelta AUTOMATICAMENTE al livello economico: la piu' piccola b con |P2p(b)/P2p(b+3) - 1| <= tol_Ultra/4 = 0.005 e |riga(b)/riga(b+3) - 1| <= 0.005 e |P1s(b)/P1s(b+3) - 1| <= 0.005. L'errore di scatola stimato |P2p(b)/P2p(27) - 1| entra nel passaporto.",
+  "exams": {
+   "B1": "Ultra (a0/16) alla scatola scelta: P(2p0) e P(1s) entro 2 % dall'esatto (soglia G1b invariata), riga entro 2 % (G1a)",
+   "B2": "trasferimento: l'effetto scatola misurato a Ultra P_U(12)/P_U(b) - 1 coincide con quello di Intel entro 0.005"
+  },
+  "predictions": {
+   "b": "18 a0 (ottante Ultra 288)",
+   "B1": "PASS, P2p ~ +0.3 %",
+   "B2": "PASS"
+  }
+ },
+ "configs": {
+  "q_a0": 0.5,
+  "tol_ultra": 0.02,
+  "tol_intel": 0.1,
+  "M_truth": 40,
+  "v_fit_steps": 5,
+  "calib_k0_a0": 0.5,
+  "test_k0_a0": [
+   1.0,
+   2.0
+  ],
+  "halvings": 4
+ }
+}

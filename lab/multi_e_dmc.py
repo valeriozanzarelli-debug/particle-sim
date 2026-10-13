@@ -59,148 +59,138 @@ def orb_eval(C, x0, hx, nseg, k, rr):
     return R, dR, lap
 
 
-@nb.njit(cache=True)
-def guide(pos, C, x0, hx, nseg, kind, Z, cu, bu, D):
-    """pos (ne, 3). kind 0: 1 electron (orbital 0); 1: singlet phi0(1)phi0(2) e^u; 2: triplet det[phi0, phi1] e^u.
-    returns psi (signed), grad ln|psi| (ne, 3), local energy"""
-    ne = pos.shape[0]
-    g = np.zeros((ne, 3))
-    V = 0.0
-    r = np.zeros(ne)
-    for i in range(ne):
-        r[i] = np.sqrt(pos[i, 0] ** 2 + pos[i, 1] ** 2 + pos[i, 2] ** 2)
-        V -= Z / r[i]
+@nb.njit(cache=True, fastmath=False)
+def guide(p, C, x0, hx, nseg, kind, Z, cu, bu, D):
+    """p: 6 numbers (x1,y1,z1,x2,y2,z2). kind 0: 1 electron (orbital 0, electron 2 ignored); 1: singlet phi0(1) phi0(2) e^u;
+    2: triplet det[phi0, phi1] e^u.  Returns psi (signed), g1x..g2z (grad ln|psi|), local energy. No allocations."""
+    x1, y1, z1, x2, y2, z2 = p[0], p[1], p[2], p[3], p[4], p[5]
+    r1 = np.sqrt(x1 * x1 + y1 * y1 + z1 * z1)
     if kind == 0:
-        R, dR, lap = orb_eval(C, x0, hx, nseg, 0, r[0])
-        for d in range(3):
-            g[0, d] = dR / R * pos[0, d] / r[0]
-        return R, g, -D * lap / R + V
-    # orbitals of each electron
-    va = np.zeros((2, 2)); da = np.zeros((2, 2)); la = np.zeros((2, 2))      # [orbital, electron]
-    for k in range(2 if kind == 2 else 1):
-        for i in range(2):
-            a, b_, c = orb_eval(C, x0, hx, nseg, k, r[i])
-            va[k, i] = a; da[k, i] = b_; la[k, i] = c
-    # Phi and its derivatives (radial orbitals: grad = d/dr * rhat)
-    gradP = np.zeros((2, 3)); lapP = np.zeros(2)
+        R, dR, lap = orb_eval(C, x0, hx, nseg, 0, r1)
+        f = dR / R / r1
+        return R, f * x1, f * y1, f * z1, 0.0, 0.0, 0.0, -D * lap / R - Z / r1
+    r2 = np.sqrt(x2 * x2 + y2 * y2 + z2 * z2)
+    a1, d1, l1 = orb_eval(C, x0, hx, nseg, 0, r1)
+    a2, d2, l2 = orb_eval(C, x0, hx, nseg, 0, r2)
     if kind == 1:
-        Phi = va[0, 0] * va[0, 1]
-        for d in range(3):
-            gradP[0, d] = da[0, 0] * pos[0, d] / r[0] * va[0, 1]
-            gradP[1, d] = va[0, 0] * da[0, 1] * pos[1, d] / r[1]
-        lapP[0] = la[0, 0] * va[0, 1]; lapP[1] = va[0, 0] * la[0, 1]
+        Phi = a1 * a2
+        gp1 = d1 / a1 / r1; gp2 = d2 / a2 / r2           # grad Phi / Phi = gp * r_vec
+        lp1 = l1 / a1; lp2 = l2 / a2
+        G1x, G1y, G1z = gp1 * x1, gp1 * y1, gp1 * z1
+        G2x, G2y, G2z = gp2 * x2, gp2 * y2, gp2 * z2
     else:
-        Phi = va[0, 0] * va[1, 1] - va[1, 0] * va[0, 1]
-        for d in range(3):
-            gradP[0, d] = (da[0, 0] * va[1, 1] - da[1, 0] * va[0, 1]) * pos[0, d] / r[0]
-            gradP[1, d] = (va[0, 0] * da[1, 1] - va[1, 0] * da[0, 1]) * pos[1, d] / r[1]
-        lapP[0] = la[0, 0] * va[1, 1] - la[1, 0] * va[0, 1]
-        lapP[1] = va[0, 0] * la[1, 1] - va[1, 0] * la[0, 1]
-    # Jastrow u(r12)
-    r12v = np.zeros(3)
-    for d in range(3):
-        r12v[d] = pos[0, d] - pos[1, d]
-    r12 = np.sqrt(r12v[0] ** 2 + r12v[1] ** 2 + r12v[2] ** 2)
-    V += 1.0 / r12
+        b1, e1, m1 = orb_eval(C, x0, hx, nseg, 1, r1)
+        b2, e2, m2 = orb_eval(C, x0, hx, nseg, 1, r2)
+        Phi = a1 * b2 - b1 * a2
+        f1 = (d1 * b2 - e1 * a2) / Phi / r1
+        f2 = (a1 * e2 - b1 * d2) / Phi / r2
+        lp1 = (l1 * b2 - m1 * a2) / Phi
+        lp2 = (a1 * m2 - b1 * l2) / Phi
+        G1x, G1y, G1z = f1 * x1, f1 * y1, f1 * z1
+        G2x, G2y, G2z = f2 * x2, f2 * y2, f2 * z2
+    dx, dy, dz = x1 - x2, y1 - y2, z1 - z2
+    r12 = np.sqrt(dx * dx + dy * dy + dz * dz)
     den = 1 + bu * r12
     u = cu * r12 / den
     up = cu / (den * den)
     upp = -2 * cu * bu / (den * den * den)
     lapU = upp + 2 * up / r12
-    psi = Phi * np.exp(u)
-    lapsum = 0.0
-    for i in range(2):
-        sgn = 1.0 if i == 0 else -1.0
-        dot = 0.0; gu2 = 0.0
-        for d in range(3):
-            gU = sgn * up * r12v[d] / r12
-            gp = gradP[i, d] / Phi
-            g[i, d] = gp + gU
-            dot += gp * gU; gu2 += gU * gU
-        lapsum += lapP[i] / Phi + 2 * dot + lapU + gu2
-    EL = -D * lapsum + V
-    return psi, g, EL
+    q = up / r12
+    U1x, U1y, U1z = q * dx, q * dy, q * dz                  # grad_1 u; grad_2 u = -grad_1 u
+    gu2 = up * up
+    lap = lp1 + lp2 + 2 * ((G1x * U1x + G1y * U1y + G1z * U1z) - (G2x * U1x + G2y * U1y + G2z * U1z)) + 2 * (lapU + gu2)
+    EL = -D * lap - Z / r1 - Z / r2 + 1.0 / r12
+    return (Phi * np.exp(u), G1x + U1x, G1y + U1y, G1z + U1z, G2x - U1x, G2y - U1y, G2z - U1z, EL)
 
 
 @nb.njit(cache=True)
-def run_block(P, Wt, nsteps, tau, D, C, x0, hx, nseg, kind, Z, cu, bu, Eref, NT, Tpop, Ebest, dmc, seed, hist, hbin):
-    """P (nw, ne, 3) walkers; returns new walkers, sums. hist: intracule histogram (opposite/any spin pair) weighted"""
-    np.random.seed(seed)
-    ne = P.shape[1]
-    te = 2 * D * tau                          # variance per component of the free move
-    sumE = 0.0; sumW = 0.0; acc = 0.0; prop = 0.0; accr2 = 0.0; propr2 = 0.0
-    Etrace = np.zeros(nsteps); Wtrace = np.zeros(nsteps); Ntrace = np.zeros(nsteps)
-    cnum = 0.0; cden = 0.0
+def walker_step(xw, tau, te, D, C, x0, hx, nseg, kind, Z, cu, bu, ne):
+    """moves one walker electron by electron (in place); returns EL before, EL after, accepted dr2, proposed dr2, r12"""
+    o = guide(xw, C, x0, hx, nseg, kind, Z, cu, bu, D)
+    psi = o[0]; EL0 = o[7]
+    g = np.empty(6)
+    for k in range(6):
+        g[k] = o[1 + k]
+    xn = np.empty(6)
+    acc2 = 0.0; prop2 = 0.0
+    for i in range(ne):
+        v2 = g[3 * i] ** 2 + g[3 * i + 1] ** 2 + g[3 * i + 2] ** 2
+        f = 1.0
+        if v2 * te > 1e-12:
+            f = (-1 + np.sqrt(1 + 2 * v2 * te)) / (v2 * te)
+        for k in range(6):
+            xn[k] = xw[k]
+        dr2 = 0.0
+        lf = 0.0
+        for d in range(3):
+            eta = np.random.normal()
+            xn[3 * i + d] = xw[3 * i + d] + te * f * g[3 * i + d] + np.sqrt(te) * eta
+            dr2 += (xn[3 * i + d] - xw[3 * i + d]) ** 2
+            lf += te * eta * eta
+        on = guide(xn, C, x0, hx, nseg, kind, Z, cu, bu, D)
+        prop2 += dr2
+        if on[0] * psi <= 0:
+            continue                                     # nodo attraversato: rifiutato
+        v2n = on[1 + 3 * i] ** 2 + on[2 + 3 * i] ** 2 + on[3 + 3 * i] ** 2
+        fn = 1.0
+        if v2n * te > 1e-12:
+            fn = (-1 + np.sqrt(1 + 2 * v2n * te)) / (v2n * te)
+        lb = 0.0
+        for d in range(3):
+            lb += (xw[3 * i + d] - xn[3 * i + d] - te * fn * on[1 + 3 * i + d]) ** 2
+        ratio = (on[0] / psi) ** 2 * np.exp(-(lb - lf) / (2 * te))
+        if np.random.random() < ratio:
+            for d in range(3):
+                xw[3 * i + d] = xn[3 * i + d]
+            psi = on[0]
+            for k in range(6):
+                g[k] = on[1 + k]
+            acc2 += dr2
+    o = guide(xw, C, x0, hx, nseg, kind, Z, cu, bu, D)
+    r12 = np.sqrt((xw[0] - xw[3]) ** 2 + (xw[1] - xw[4]) ** 2 + (xw[2] - xw[5]) ** 2)
+    return EL0, o[7], acc2, prop2, r12
+
+
+@nb.njit(cache=True, parallel=True)
+def sweep(P, tau, te, D, C, x0, hx, nseg, kind, Z, cu, bu, ne):
+    nw = P.shape[0]
+    E0 = np.empty(nw); E1 = np.empty(nw); A2 = np.empty(nw); P2 = np.empty(nw); R12 = np.empty(nw)
+    for w in nb.prange(nw):
+        E0[w], E1[w], A2[w], P2[w], R12[w] = walker_step(P[w], tau, te, D, C, x0, hx, nseg, kind, Z, cu, bu, ne)
+    return E0, E1, A2, P2, R12
+
+
+@nb.njit(cache=True)
+def seed_all(s):
+    np.random.seed(s)
+
+
+def run_block(P, nsteps, tau, D, C, x0, hx, nseg, kind, Z, cu, bu, Eref, NT, Tpop, Ebest, dmc, rng, hist, hbin, state):
+    """P (nw, 6). Branching in numpy (integer copies floor(w + u)); mixed estimator recorded at every step."""
+    ne = 1 if kind == 0 else 2
+    te = 2 * D * tau
+    Et = np.zeros(nsteps); Wt = np.zeros(nsteps); Nt = np.zeros(nsteps)
     for st in range(nsteps):
-        nw = P.shape[0]
-        newW = np.zeros(nw)
-        Eacc = 0.0; Wacc = 0.0
-        for w in range(nw):
-            x = P[w].copy()
-            psi, g, EL0 = guide(x, C, x0, hx, nseg, kind, Z, cu, bu, D)
-            for i in range(ne):
-                # UNR-capped drift for electron i
-                v2 = g[i, 0] ** 2 + g[i, 1] ** 2 + g[i, 2] ** 2
-                f = 1.0
-                if v2 * te > 1e-12:
-                    f = (-1 + np.sqrt(1 + 2 * v2 * te)) / (v2 * te)
-                xn = x.copy()
-                dr2 = 0.0
-                for d in range(3):
-                    xn[i, d] = x[i, d] + te * f * g[i, d] + np.sqrt(te) * np.random.normal()
-                    dr2 += (xn[i, d] - x[i, d]) ** 2
-                psin, gn, ELn = guide(xn, C, x0, hx, nseg, kind, Z, cu, bu, D)
-                prop += 1; propr2 += dr2
-                if psin * psi <= 0:
-                    continue                              # nodo attraversato: rifiutato
-                v2n = gn[i, 0] ** 2 + gn[i, 1] ** 2 + gn[i, 2] ** 2
-                fn = 1.0
-                if v2n * te > 1e-12:
-                    fn = (-1 + np.sqrt(1 + 2 * v2n * te)) / (v2n * te)
-                lf = 0.0; lb = 0.0
-                for d in range(3):
-                    lf += (xn[i, d] - x[i, d] - te * f * g[i, d]) ** 2
-                    lb += (x[i, d] - xn[i, d] - te * fn * gn[i, d]) ** 2
-                ratio = (psin / psi) ** 2 * np.exp(-(lb - lf) / (2 * te))
-                if np.random.random() < ratio:
-                    x = xn; psi = psin; g = gn
-                    acc += 1; accr2 += dr2
-            psi, g, EL1 = guide(x, C, x0, hx, nseg, kind, Z, cu, bu, D)
-            P[w] = x
-            if dmc:
-                tef = tau * (accr2 / propr2 if propr2 > 0 else 1.0)
-                ww = Wt[w] * np.exp(-tef * (0.5 * (EL0 + EL1) - Eref))
-            else:
-                ww = 1.0
-            newW[w] = ww
-            Eacc += ww * EL1; Wacc += ww
-            if hbin > 0 and ne == 2:
-                r12 = np.sqrt((x[0, 0] - x[1, 0]) ** 2 + (x[0, 1] - x[1, 1]) ** 2 + (x[0, 2] - x[1, 2]) ** 2)
-                b = int(r12 / hbin)
-                if b < hist.shape[0]:
-                    hist[b] += ww
-        Etrace[st] = Eacc / Wacc; Wtrace[st] = Wacc / nw; Ntrace[st] = nw
-        sumE += Eacc; sumW += Wacc
-        cnum = 0.995 * cnum + Eacc / nw; cden = 0.995 * cden + Wacc / nw
-        Ebest = cnum / cden
+        E0, E1, A2, P2, R12 = sweep(P, tau, te, D, C, x0, hx, nseg, kind, Z, cu, bu, ne)
+        state["acc2"] += A2.sum(); state["prop2"] += P2.sum()
         if dmc:
-            # branching: copie intere floor(w + u)
-            m = 0
-            cnt = np.zeros(nw, np.int64)
-            for w in range(nw):
-                c = int(newW[w] + np.random.random())
-                cnt[w] = c; m += c
-            if m < 1:
-                m = 1; cnt[0] = 1
-            Pn = np.empty((m, ne, 3))
-            k = 0
-            for w in range(nw):
-                for c in range(cnt[w]):
-                    Pn[k] = P[w]; k += 1
-            P = Pn
-            Wt = np.ones(m)
-            Eref = Ebest - np.log(m / NT) / Tpop
-    return P, Wt, Etrace, Wtrace, Ntrace, Eref, Ebest, acc / max(prop, 1.0), accr2 / max(propr2, 1e-300)
+            tef = tau * state["acc2"] / state["prop2"]
+            w = np.exp(-tef * (0.5 * (E0 + E1) - Eref))
+        else:
+            w = np.ones(len(E1))
+        Et[st] = np.sum(w * E1) / np.sum(w); Wt[st] = np.mean(w); Nt[st] = len(P)
+        if hbin > 0:
+            b = (R12 / hbin).astype(int); ok = b < len(hist)
+            np.add.at(hist, b[ok], w[ok])
+        state["cn"] = 0.995 * state["cn"] + np.mean(w * E1); state["cd"] = 0.995 * state["cd"] + np.mean(w)
+        Ebest = state["cn"] / state["cd"]
+        if dmc:
+            c = (w + rng.random(len(w))).astype(int)
+            if c.sum() < 1:
+                c[0] = 1
+            P = np.repeat(P, c, axis=0)
+            Eref = Ebest - np.log(len(P) / NT) / Tpop
+    return P, Et, Wt, Nt, Eref, Ebest
 
 
 def blocking(E, W, nb_list=(32, 16, 8)):
@@ -235,30 +225,31 @@ if __name__ == "__main__":
     hbin = 0.01 if state == "He_u0" else 0.0
     nbins = 200
     if os.path.exists(ck):
-        z = np.load(ck)
+        z = np.load(ck, allow_pickle=True)
         Pw, Et, Wt_, Nt = z["P"], list(z["Et"]), list(z["Wt"]), list(z["Nt"]); Eref, Ebest = float(z["Eref"]), float(z["Ebest"])
-        hist = z["hist"]; nstep_done = int(z["nstep"]); accs = list(z["accs"])
+        hist = z["hist"]; nstep_done = int(z["nstep"]); stt = z["state"].item()
     else:
-        rng = np.random.default_rng(11)
-        Pw = rng.normal(size=(NT, ne, 3)) * (1.0 / Z)
-        Et, Wt_, Nt, accs = [], [], [], []
+        rng0 = np.random.default_rng(11)
+        Pw = rng0.normal(size=(NT, 6)) * (1.0 / Z)
+        Et, Wt_, Nt = [], [], []
         Eref = Ebest = {"Hb": -0.5, "H": -0.5, "He": -2.9, "He_u0": -2.9, "He3S": -2.17}[state] * m_kin
         hist = np.zeros(nbins); nstep_done = 0
+        stt = dict(acc2=0.0, prop2=0.0, cn=0.0, cd=0.0)
     neq = int(round(20.0 / tau))                               # 20 a.u. di equilibratura scartati
     t0 = time.time()
-    Wts = np.ones(len(Pw))
+    rng = np.random.default_rng(1000 + nstep_done)
+    seed_all(1000 + nstep_done)
     while time.time() - t0 < budget:
         nchunk = int(round(2.0 / tau))
         hb = np.zeros(nbins)
-        Pw, Wts, E_, W_, N_, Eref, Ebest, a, ar = run_block(Pw, Wts, nchunk, tau, D, C, x0, hx, nseg, kind, Z, cu, bu, Eref,
-                                                            NT, 1.0, Ebest, mode == "dmc", 1000 + nstep_done // nchunk, hb,
-                                                            hbin)
+        Pw, E_, W_, N_, Eref, Ebest = run_block(Pw, nchunk, tau, D, C, x0, hx, nseg, kind, Z, cu, bu, Eref, NT, 1.0, Ebest,
+                                                mode == "dmc", rng, hb, hbin, stt)
         if nstep_done >= neq:
             hist += hb
-        Et += list(E_); Wt_ += list(W_); Nt += list(N_); accs.append(a)
+        Et += list(E_); Wt_ += list(W_); Nt += list(N_)
         nstep_done += nchunk
-        np.savez(ck, P=Pw, Et=Et, Wt=Wt_, Nt=Nt, Eref=Eref, Ebest=Ebest, hist=hist, nstep=nstep_done, accs=accs)
-        Ea, Wa = np.array(Et[neq:]), np.array(Wt_[neq:]) if mode == "dmc" else np.ones(len(Et[neq:]))
+        np.savez(ck, P=Pw, Et=Et, Wt=Wt_, Nt=Nt, Eref=Eref, Ebest=Ebest, hist=hist, nstep=nstep_done, state=np.array(stt, dtype=object))
+        Ea = np.array(Et[neq:]); Wa = np.array(Wt_[neq:]) if mode == "dmc" else np.ones(len(Et[neq:]))
         if len(Ea) > 32 * 50:
             E, s = blocking(Ea, Wa)
             if s <= sig_goal or (nstep_done - neq) * tau >= T_total:
@@ -267,7 +258,8 @@ if __name__ == "__main__":
     res = load_json(JS)
     if len(Ea) > 32 * 10:
         E, s = blocking(Ea, Wa)
-        res[key] = dict(E=E, sigma=s, prod_time_au=len(Ea) * tau, walkers_mean=float(np.mean(Nt[neq:])), acceptance=float(np.mean(accs)),
+        res[key] = dict(E=E, sigma=s, prod_time_au=len(Ea) * tau, walkers_mean=float(np.mean(Nt[neq:])),
+                        acc_ratio_r2=float(stt["acc2"] / stt["prop2"]),
                         tau=tau, D=D, m_kin=m_kin, cusp_c=cu, b=bu, mode=mode, done=bool(s <= sig_goal or len(Ea) * tau >= T_total))
         if hbin:
             res[key]["intracule_hist"] = hist.tolist(); res[key]["hbin"] = hbin
