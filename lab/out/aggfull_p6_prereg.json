@@ -1,0 +1,113 @@
+{
+ "study": "AGGLOMERATO_COMPLETO phase 6: coarse level learned with the field on, in the large-component language",
+ "date": "2026-10-13",
+ "config": {
+  "learn": {
+   "levels": [
+    256,
+    512
+   ],
+   "data": "fine walk directly, B ticks, first-order response to a potential plane wave",
+   "descriptor": "large component Phi = (U_L + U_R)/sqrt2 of the positive band (no polar factor): Gamma_LC = Phi(k') Gamma_FW Phi(k)^-1",
+   "pairs": 3000,
+   "held_out": 1500,
+   "candidates": [
+    "point",
+    "star",
+    "cube"
+   ],
+   "check": "phase-2 budgets of aggfull_prereg.json (eps_abs 1e-4, eps_rel 2e-2, tame 1.5), non-Hermitian fit"
+  },
+  "atom3d": {
+   "jobs": [
+    "eT8_1s",
+    "eT8_2s",
+    "eT16_1s",
+    "eT8_2p_c"
+   ],
+   "kinetic": "aggfull_relearnT.pkl (T + parity)",
+   "method": "first order on the converged T-level vectors (aggfull_run.py, same solver and criteria as before)"
+  },
+  "glue": {
+   "core": "lab/nucleo1s_f8_core.py (read only): CoarseT band 'learned' + Glue8, pairs (Z=1,B=512),(Z=2,B=256)",
+   "J0": [
+    3,
+    4,
+    5,
+    6,
+    8,
+    12,
+    16,
+    24,
+    32,
+    48,
+    64
+   ],
+   "states": [
+    1,
+    2,
+    3
+   ],
+   "modes": [
+    "base",
+    "lc"
+   ],
+   "rmax_a0_over_Z": 90,
+   "zoom_levels": 12,
+   "n_per_level": 16,
+   "ndir": 120,
+   "outer_term": "(g0-1) V + (a+b+c) V P2 - (2a+c) V'(r)(D - 1/r), P2 = 2 m_kin K, D 8th-order; contact (-a) lap V not added (inside the chain); imaginary parts dropped"
+  }
+ },
+ "exams": {
+  "L1": {
+   "what": "learned LC coefficients at B = 256 and 512: |a + 1/4|, |b|, |c - 1/4|, |gso - 1/4| <= 0.005 (2 % of 1/4)",
+   "tol": 0.005,
+   "prediction": "PASS"
+  },
+  "L2": {
+   "what": "learned large-component amplitude N(k) = 1 + n2 k^2 + ...: |n2/(-1/8) - 1| <= 1 %, non-scalar part <= 1e-6",
+   "tol": 0.01,
+   "nonscalar": 1e-06,
+   "prediction": "PASS"
+  },
+  "L3": {
+   "what": "imaginary parts of a and b are +-theta/4 (where in the fine tick the field acts: a unitary time relabelling) within 5 %",
+   "theta_over_4": 0.00836401361594823,
+   "tol": 0.05,
+   "prediction": "PASS"
+  },
+  "A1": {
+   "what": "3-D, a0/8: 2p1/2 and 2p3/2 alpha^4 shifts with T + LC coupling within 5 % of Dirac",
+   "tol": 0.05,
+   "prediction": "PASS"
+  },
+  "A2": {
+   "what": "3-D: 1s (a0/16, a0/8) and 2s (a0/8) alpha^4 shifts with T + LC coupling within 5 % of Dirac",
+   "tol": 0.05,
+   "prediction": "FAIL: the coarse cell truncates the cusp (|psi(0)|^2 -6 % at a0/16, -12 % at a0/8, phase 5): language-independent"
+  },
+  "A3": {
+   "what": "language independence: |shift_LC - shift_FW| <= 1 % of |Dirac mass-velocity term| for each of the 5 levels (same vectors)",
+   "tol": 0.01,
+   "prediction": "PASS"
+  },
+  "G1": {
+   "what": "glue: the change made by the learned outer term, err_lc - err_base, equals the outer part of the spread Darwin (first order, hydrogen psi, matching row R = (J0 - 1/2) h, x = R Z/a0): 1s 4 e^{-2x}; 2s 1.6 (1 - x/2)^2 e^{-x}; within 30 % for 1s at J0 = 5, 8, 12, 16 and 2s at J0 = 5, 8, 12 (dev: ratios 1.11-1.22, seen before this file)",
+   "tol": 0.3,
+   "prediction": "PASS"
+  },
+  "G2": {
+   "what": "glue with the learned term: |err 1s| <= 5 % and |err 2s| <= 5 % at every J0 in 24, 32, 48, 64 (the hope that the missing coupling is the -10 % plateau)",
+   "tol": 0.05,
+   "prediction": "FAIL: the outer term contributes ~4 e^{-2x} <= 1.1 % at J0 >= 24; the plateau has another cause"
+  },
+  "G3": {
+   "what": "glue with the learned term at J0 = 3 (H1 of nucleo1s): |err| <= 5 % for 1s and 2s",
+   "tol": 0.05,
+   "prediction": "FAIL (dev: +330 %, the term is right but the base error at small J0 has another sign)"
+  },
+  "report": "3s, the 'base' numbers (should reproduce nucleo1s_f8 and its posthoc), the lattice-vs-continuum check of the outer term"
+ },
+ "parity": "the cure does not touch parity: the T level keeps G_-j = G_j; the LC coupling is fitted on the star stencil without parity constraints and its parity-odd part is reported"
+}
