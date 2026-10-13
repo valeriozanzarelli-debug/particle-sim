@@ -157,55 +157,67 @@ def vacuum(rng, complex_field=False):
     return out[0], out[1]
 
 
+def traj_seed(mode_tag, i):
+    return np.random.default_rng([20261013, mode_tag, i])
+
+
 if __name__ == "__main__":
     ntraj = int(sys.argv[1]) if len(sys.argv) > 1 else 400
-    rng = np.random.default_rng(20261013)
     rec_every = 10
-    res = {}
+    ckf = os.path.join(OUT, "emiss_ck", f"twa_{ntraj}.npz")
+    nrec = T_TICKS // rec_every + 1
     t0 = time.time()
-    z = np.zeros(N)
-    # vacuum energy check: mean energy per mode
-    u, v = vacuum(rng)
-    k = 2 * np.pi * np.fft.rfftfreq(N)
-    print(f"vacuum sample: total energy {0.5 * np.sum(u**2 + v**2):.4f}, expected sum w/2 x 2 movers = {np.sum(k[1:]) / 2 * 2:.4f}")
-    # QE from |e>
-    rq = run_traj(0, z.astype(np.complex128), z.astype(np.complex128), 1.0 + 0j, 1.0 + 0j, np.zeros(3), T_TICKS, W0, ED, SUB, rec_every)
-    tt = np.arange(rq.size) * rec_every
+    z = np.zeros(N, np.complex128)
+    if os.path.exists(ckf):
+        ck = dict(np.load(ckf))
+    else:
+        ck = {"HTWA_e": np.zeros(nrec), "HTWA_g": np.zeros(nrec), "STWA_e": np.zeros(nrec), "STWA_g": np.zeros(nrec),
+              "done": np.zeros(4, int)}
+    for mi, (key, tag) in enumerate((("HTWA_e", 1), ("HTWA_g", 2), ("STWA_e", 3), ("STWA_g", 4))):
+        while ck["done"][mi] < ntraj:
+            i = int(ck["done"][mi])
+            rng = traj_seed(tag, i)
+            u, v = vacuum(rng)
+            if key.startswith("HTWA"):
+                ce0, cg0 = (1.0, 0.0) if key.endswith("e") else (0.0, 1.0)
+                ck[key] += run_traj(1, u, v, ce0 + 0j, cg0 + 0j, np.zeros(3), T_TICKS, W0, ED, SUB, rec_every)
+            else:
+                s0 = np.array([rng.choice([-1, 1]), rng.choice([-1, 1]), 1.0 if key.endswith("e") else -1.0])
+                ck[key] += run_traj(2, u, v, 0j, 0j, s0, T_TICKS, W0, ED, SUB, rec_every)
+            ck["done"][mi] += 1
+            if time.time() - t0 > 540:
+                np.savez(ckf, **ck)
+                print(f"checkpoint {ck['done']}; run again", flush=True)
+                sys.exit(3)
+    np.savez(ckf, **ck)
+    res = {}
+    tt = np.arange(nrec) * rec_every
+    rq = run_traj(0, z, z, 1.0 + 0j, 1.0 + 0j, np.zeros(3), T_TICKS, W0, ED, SUB, rec_every)
     m = (tt > 200) & (rq > 0.05)
     A = -np.polyfit(tt[m], np.log(rq[m]), 1)[0]
-    A_formula = ED**2 * W0 / 1.0     # 1-D golden rule estimate (for reference only)
-    res["QE"] = dict(A=A, p=rq[::10].tolist())
-    print(f"QE: A = {A:.5e} per tick (1-D golden rule with this coupling ~ {A_formula:.3e})")
-    # SC from |e> and from p = 0.5
+    res["A_QE"] = A
+    res["QE"] = rq.tolist()
     for p0 in (1.0, 0.5):
-        rs = run_traj(1, z.astype(np.complex128), z.astype(np.complex128), np.sqrt(p0) + 0j, np.sqrt(1 - p0) + 0j, np.zeros(3), T_TICKS, W0, ED, SUB, rec_every)
-        res[f"SC_p{p0}"] = rs[::10].tolist()
-        print(f"SC from p = {p0}: p(end) = {rs[-1]:.4f}")
-    # HTWA from |e> and from |g>
-    for lab, ce0, cg0 in (("e", 1.0, 0.0), ("g", 0.0, 1.0)):
-        acc = np.zeros(T_TICKS // rec_every + 1)
-        for i in range(ntraj):
-            u, v = vacuum(rng)
-            acc += run_traj(1, u, v, ce0 + 0j, cg0 + 0j, np.zeros(3), T_TICKS, W0, ED, SUB, rec_every)
-        acc /= ntraj
-        res[f"HTWA_{lab}"] = acc[::10].tolist()
-        print(f"HTWA from {lab}: p at t = 0, 100, 1000, end: {acc[0]:.3f} {acc[10]:.3f} {acc[100]:.3f} {acc[-1]:.3f}  ({time.time() - t0:.0f} s)")
-    # STWA from |e>
-    acc = np.zeros(T_TICKS // rec_every + 1)
-    for i in range(ntraj):
-        u, v = vacuum(rng)
-        s0 = np.array([rng.choice([-1, 1]), rng.choice([-1, 1]), 1.0])
-        acc += run_traj(2, u, v, 0j, 0j, s0, T_TICKS, W0, ED, SUB, rec_every)
-    acc /= ntraj
-    res["STWA_e"] = acc[::10].tolist()
-    acc_g = np.zeros_like(acc)
-    for i in range(ntraj):
-        u, v = vacuum(rng)
-        s0 = np.array([rng.choice([-1, 1]), rng.choice([-1, 1]), -1.0])
-        acc_g += run_traj(2, u, v, 0j, 0j, s0, T_TICKS, W0, ED, SUB, rec_every)
-    acc_g /= ntraj
-    res["STWA_g"] = acc_g[::10].tolist()
-    print(f"STWA from e: p at 100, 1000, end {acc[10]:.3f} {acc[100]:.3f} {acc[-1]:.3f}; from g: end {acc_g[-1]:.3f}")
-    res["t_rec"] = (np.arange(T_TICKS // rec_every + 1)[::10] * rec_every).tolist()
+        res[f"SC_p{p0}"] = run_traj(1, z, z, np.sqrt(p0) + 0j, np.sqrt(1 - p0) + 0j, np.zeros(3), T_TICKS, W0, ED, SUB, rec_every).tolist()
+    for key in ("HTWA_e", "HTWA_g", "STWA_e", "STWA_g"):
+        res[key] = (ck[key] / ntraj).tolist()
+    pe = ck["HTWA_e"] / ntraj
+    m1 = (tt >= 50) & (tt <= 300)
+    res["T1_htwa_initial_rate_over_A"] = float(-np.polyfit(tt[m1], pe[m1], 1)[0] / A)
+    res["T2_htwa_ground_p_end"] = float(ck["HTWA_g"][-1] / ntraj)
+    ps = ck["STWA_e"] / ntraj
+    m3 = (tt >= 50) & (tt <= 1500)
+    res["T3_stwa_rate_over_A"] = float(-np.polyfit(tt[m3], np.log(ps[m3]), 1)[0] / A)
+    res["T4_sc_pure_e_dev"] = float(np.max(np.abs(np.array(res["SC_p1.0"]) - 1)))
+    res["t"] = tt.tolist()
     res["params"] = dict(N=N, W0=W0, SUB=SUB, T=T_TICKS, ED=ED, ntraj=ntraj)
-    json.dump(res, open(os.path.join(OUT, "emiss_twa_dev.json" if ntraj < 1000 else "emiss_twa.json"), "w"))
+    # rate-equation prediction for HTWA (no fit): dp/dt = (A/2)(1-2p) - A p (1-p)
+    for lab, p0 in (("e", 1.0), ("g", 0.0)):
+        p, out = p0, []
+        for k in range(nrec):
+            out.append(p)
+            for _ in range(rec_every):
+                p += (A / 2 * (1 - 2 * p) - A * p * (1 - p))
+        res[f"HTWA_{lab}_rate_eq"] = out
+    json.dump(res, open(os.path.join(OUT, "emiss_twa.json" if ntraj >= 1000 else "emiss_twa_dev.json"), "w"))
+    print({k: v for k, v in res.items() if k.startswith("T") or k == "A_QE"})
