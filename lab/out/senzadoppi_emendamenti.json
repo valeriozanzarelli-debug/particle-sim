@@ -1,5 +1,20 @@
 {
- "A1": {"when": "dopo la prima corsa di r1 (E2), prima di r2",
-        "what": "il cercatore di nodi (senzadoppi_core.weyl_nodes) con soli punti di partenza casuali aveva perso 1 nodo su 32 a energia pi per F0 e PA (3,875 per copia invece di 4). Aggiunti come punti di partenza tutti i punti della griglia (pi/4) Z^3. Nessuna soglia cambiata; la prima corsa di E2 e' stata buttata e rifatta.",
-        "effect": "F0 e PA: 4 + 4 nodi per copia, come previsto"}
+ "A1": {
+  "when": "dopo la prima corsa di r1 (E2), prima di r2",
+  "what": "il cercatore di nodi (senzadoppi_core.weyl_nodes) con soli punti di partenza casuali aveva perso 1 nodo su 32 a energia pi per F0 e PA (3,875 per copia invece di 4). Aggiunti come punti di partenza tutti i punti della griglia (pi/4) Z^3. Nessuna soglia cambiata; la prima corsa di E2 e' stata buttata e rifatta.",
+  "effect": "F0 e PA: 4 + 4 nodi per copia, come previsto"
+ },
+ "A2": {
+  "when": "dopo la prima corsa di r3 (E6), prima di quella valida",
+  "what": "nella prima corsa ogni linea partiva da k_x = -pi, che e' una copia esatta di Gamma: lo stato iniziale stava proprio sul punto del salto e la spazzata contava meta' attraversamento in modo sbagliato (e il campo si accendeva di colpo). Corretto: partenza a k_x0 = -3pi/4 - 0,3 (lontano da ogni valle), campo acceso e spento con rampe sin^2 di 120 tick, spostamento totale esatto 2 pi. Nessuna soglia cambiata.",
+  "first_run_numbers_discarded": {
+   "PAW_E1": 7.78,
+   "PAW_E2": 2.16,
+   "PA_E1": 16.3,
+   "PA_E2": 5.94,
+   "F0_E1": 42.8,
+   "F0_E2": 9.45
+  },
+  "effect": "PAW: R = 1,025 e 0,977 (PASS); la prima corsa avrebbe dato FAIL per l'errore di metodo"
+ }
 }
