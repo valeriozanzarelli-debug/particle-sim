@@ -1,0 +1,30 @@
+{
+ "written": "2026-10-13T00:31:45",
+ "git_head": "77eac84022623067ede912864329f980157adc11",
+ "configs": {
+  "theta": [
+   0.05,
+   0.025
+  ],
+  "mu": [
+   0.3,
+   0.6
+  ],
+  "directions": "x, y, z (average, per-direction subtraction)",
+  "q_over_m": [
+   0.05,
+   0.025,
+   0.3,
+   1,
+   3
+  ],
+  "quadrature": "chi_full_3d nseg = 16 (check 20)"
+ },
+ "exams": {
+  "B1_uehling_from_whole_sea": "Pi_R,whole (xyz avg) / Pi_R,Uehling - 1 at q/m in {0.3, 1, 3}: PASS if within 2% at theta = 0.025 for both mu.",
+  "B2_log_coefficient": "[pit0(theta=0.025) - pit0(theta=0.05)]/ln 2 at fixed mu: PASS if within 3% of 1/(6 pi^2) for both mu.",
+  "B3_regulator_mass_log": "[pit0(mu=0.6) - pit0(mu=0.3)]/ln 2 at fixed theta: predicted +1/(6 pi^2) (Pi(0) = (2 alpha/3pi) ln(M/m)). PASS if within 10% at both theta.",
+  "B4_finite": "pit0 whole is finite and positive (screening) for every config."
+ },
+ "status": "exploration only: a CHANGE of the rule would need Valerio's decision; not used for V1-V4."
+}

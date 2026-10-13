@@ -1,0 +1,60 @@
+{
+ "meta": {
+  "written": "2026-10-13T00:27:23",
+  "git_head_before": "2e72499cc3dacc5e35f19419b1dd00d0918a03a8",
+  "hardware": "cloud container, 4 cores shared with 5 agents; 1 thread"
+ },
+ "question": "Debts #3 and #4 of CONTESTO_CLOUD §4. (#3) the zig-zag doubles space (U(k+(pi,pi)) = U(k)); the Wilson fix exists only in k-space. (#4) light goes sideways with the factor ka/tan(ka) and slower in oblique directions: >= 24-32 cells per wavelength. Find a LOCAL version of 'run at c, then rotate' (same ball, same inputs c, hbar, m) that removes the doublers and/or needs fewer cells per wavelength, or prove that none exists in a stated class. The frozen rule (lab/zz_core.py) is NOT modified.",
+ "engine": {
+  "file": "lab/locale_core.py",
+  "method": "every candidate is a product of local factors: shift (component with eigenvalue lam of s.n moves by lam v), on-site coin, link rotation S_v^dag C S_v. Analysed through the exact Bloch matrix W(k) of one period (checked == running walk, and == lab/zz_core.bloch_batch for the frozen rule to 4e-16 during development). Physical time of a period T fixed by the Weyl/Maxwell limit (sum of |v| n n^T = T I). Energies E = eps/T with W v = exp(-i eps) v."
+ },
+ "candidates": {
+  "F0": "frozen zig-zag Dirac (3-D and 2-D): tick 0 x,y,z ; tick 1 z,y,x ; flip theta after each tick",
+  "F1": "F0 run on ONE coset of the lattice 2Z^d (sites with all coordinates even on even ticks, all odd on odd ticks): same W(k), 1/2^d of the sites",
+  "F2": "F1 + LOCAL twisted Wilson: after the shifts of every tick, link rotations L(x) <-> R(x+v) about the chirality axis Y (orthogonal to the mass flip X), v in {+-2 e_j}, angle h/2 split over the links, palindromic, the on-site part undone (nothing happens at k = 0), placed symmetrically around the flip (half before, half after), link order mirrored on odd ticks. h = 0.1 (fixed here, a regulator like Wilson's r).",
+  "F2b": "same as F2 with the Wilson axis X (= along the mass flip, 'untwisted'): declared contrast",
+  "F3": "S4: palindromic composition of 2-tick blocks P(m) = C(m th/2)[x,y,z by m]C(m th)[z,y,x by m]C(m th/2) with m = (1,1,1,1,-2,1,1,1,1) (sum m^3 = 0 -> 4th order; the -2 block runs BACKWARDS: balls move 2 cells against their spin, the flip turns back by 2 theta). T = 12.",
+  "L0": "frozen light (spin 1, F = E + icB), 3-D and 2-D",
+  "L1": "2-D light on the HEXAGONAL lattice: shifts along the 3 directions at 0, 60, 120 deg, all 6 orders cycled (period 6 ticks, T = 9)",
+  "L2": "S4 light (same composition as F3), 3-D and 2-D",
+  "L3": "3-D light with the axis order cycled over all 6 permutations (T = 6)",
+  "L4a": "3-D light along the 6 fcc face diagonals (palindrome), on the fcc sublattice (density 1/2)",
+  "L4b": "3-D light along the 4 bcc body diagonals (palindrome), on the bcc sublattice (density 1/4)",
+  "L5": "3-D light: 6 frozen 2-tick blocks + 1 bcc palindrome (mix chosen to cancel the leading cubic anisotropy)"
+ },
+ "exams": {
+  "G1_unitarity": "max ||W^dag W - 1|| over 2000 random k <= 1e-12 (all candidates)",
+  "G2_locality": "radius of each factor (max |v|) and of the whole period (max |sum of displacements|) reported; must be finite (it is by construction); no threshold",
+  "G3_charge": "real-space run, periodic box (3-D 12^3 or 2-D 32^2), 10 periods, random on-site phase each period: |dN|/N <= 1e-12 (all candidates)",
+  "G4_bloch": "running walk on a plane wave == W(k) s0 to <= 1e-12 (all candidates)",
+  "T1_sheets": "(a) frozen 2-tick W(k + pi e_j) = W(k) to <= 1e-13 (3-D, 2-D) -> 8 (3-D) / 4 (2-D) decoupled copies; (b) real space, 3-D 32^3, packet (sigma 3 cells, k0 = 0.3 e_x, random spinor) run 32 ticks on the full grid and on one coset only: sites outside the coset stay exactly 0, and the centroid and rms width of |psi|^2 agree within 1% of the width (one coset = same physics, 1/8 of the sites)",
+  "T2_degree": "3-winding (degree of k -> W(k) in SU(2)) = 0 within 0.02 for: the frozen one-tick U (xyz), (zyx), the 2-tick W, S4 Weyl, and 10 random split-step Weyl walks (random lattice directions, random SU(2) coins, random link rotations); and sum of node chiralities at quasi-energy 0 = sum at pi = 0 for the frozen W. PREDICTION (theorem in the doc: every factor depends on one combination k.v, the 3-winding is additive): all 0.",
+  "T3_order": "error(N=16)/error(N=32) of the worst phase error, light: frozen in [3, 5] (2nd order), S4 in [12, 20] (4th order). Plus: best palindromic word of positive unit steps (2-D, length <= 12) is not better than the frozen one by more than 2% in diffraction N_1% (Sheng-Suzuki: positive steps -> order <= 2).",
+  "D1_rest": "|E(0)/m - 1| <= 1e-12 (m from the flip angle), theta = 0.1, all fermion candidates",
+  "D2_dirac": "max over axis/face/body and p in [0.1, 1] m of |E/sqrt(p^2 + m^2) - 1| <= 1% at theta = 0.1",
+  "D3_kinetic_mass": "|m_kin/m - 1| <= 1% at theta = 0.1 (fit E^2 = m^2 + p^2 m/m_kin + c p^4, p in [0.02, 0.1] m)",
+  "D4_drift": "|grad E(0)| <= 1e-9 c (a particle at rest stays at rest)",
+  "D5_doublers": "only for T = 2 candidates (F0, F1, F2, F2b) in 3-D and 2-D: min over the reduced zone [-pi/2, pi/2)^d outside |k| < 0.4 of the smallest |E| >= 0.3 / a, at theta = 0.1 AND at theta = 0.02 (grid 40^d + Nelder-Mead polish of the 24 lowest points). PREDICTION: F0, F1 FAIL (doublers at the N points, |E| ~ m), F2 PASS.",
+  "D6_h_independence": "F2 at h = 0.05, 0.1, 0.2: D2 and D3 numbers equal to F0's within 1e-6 (the Wilson strength is a harmless regulator for the low-energy physics); F2b expected FAIL (O(h) error)",
+  "D7_light_cone": "max group velocity over 4000 random k (bands separated by > 1e-3) <= 1 + 1e-6 c. Information for all; PREDICTION: F0 PASS, F2 and F3 FAIL (link rotations of radius 2 / backward steps widen the lattice light cone).",
+  "D8_theta_order": "F3: (m_kin/m - 1) ratio theta 0.1 -> 0.05 in [12, 20] (4th order); F0 in [3, 5]",
+  "M1_c": "|omega/k - 1| <= 1e-5 at N = 1000 cells per lambda in all directions",
+  "M2_static": "a static mode (eigenvalue exactly 1, |1 - lambda| <= 1e-12) exists; its overlap defect with k_hat (1 - |<k_hat|v0>|^2) at N = 16 reported",
+  "M3_cells": "N_1% = smallest N (cells per lambda, lattice spacing units) where the worst over directions (2-D: 46 angles, 3-D: 160 directions) of each of: phase |omega/ck - 1|, group ||v_g| - 1|, diffraction |k d2omega/dq_perp^2 - 1| is <= 1%. Debt #4 counts as REDUCED by a candidate if: worst N_1% <= 20 (frozen ~36) AND cost (sites per lambda^d at N_1% x shift factors per unit time) <= the frozen cost at its own N_1% AND the two moving bands have no group velocity > 1 + 1e-6 for |k| <= 2 pi / N_1%.",
+  "M4_cost": "sites per lambda^d at N_1%, factors per unit time, relative cost vs frozen (information)"
+ },
+ "dev_seen_before_prereg": {
+  "note": "development runs (declared): the numbers below were seen while building the tools; the thresholds above were not tuned on them except where said.",
+  "frozen_light_N1%": "2-D phase 13.0, group 22.3, diffraction 36.3; 3-D 14.9 / 25.7 / 36.2",
+  "hex_cyc6_2D": "phase 13.0, group 20.9, diffraction 21.7",
+  "S4_light": "3-D 12.5 / 14.5 / 14.6; whole-zone max group velocity 1.66 c (superluminal modes from |k| ~ 0.6)",
+  "cyc6_3D": "no gain (15.8 / 26.8 / 37.2); fcc and bcc frames worse (N_1% 75 / 81); axes+bcc mix no gain (~38)",
+  "positive_words_2D": "best palindromic positive word = the frozen xyyx (36.3)",
+  "degree": "frozen U(xyz), U(zyx), W: degree 0; nodes of U: Gamma (chir -1) + P (+1) at U = 1; W: Gamma + 3 N-type doublers at quasi-energy 0",
+  "wilson": "X-axis Wilson: kinetic mass off by O(h) (0.92 at h = 0.1); Y-axis with fixed link order: drift ~ h^3 (2.4e-3 c at h = 0.1); with mirrored order on odd ticks: drift 1e-12 and kinetic mass equal to the frozen one; doubler gap ~1.1 rad per period at h = 0.1 (coarse grid)",
+  "S4_dirac": "m_kin/m - 1 = 1.8e-5 (theta 0.1), 1.2e-6 (0.05): 4th order",
+  "F2_D7": "whole-zone max group velocity 1.0096 c"
+ },
+ "parameters": "F2: one regulator h (no physical input; D6 tests that low-energy numbers do not depend on it). F3/L2: the integer sequence (1,1,1,1,-2,1,1,1,1) is the integer palindrome with sum m^3 = 0 and the smallest steps in an exhaustive search (odd lengths <= 9, |m| <= 8; none exists for length <= 7, |m| <= 7); no free real number. Physical inputs as in the frozen rule: c, hbar, m (theta)."
+}
