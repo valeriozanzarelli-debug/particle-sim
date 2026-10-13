@@ -1,0 +1,401 @@
+{
+ "study": "motore_ottimizzato",
+ "date": "2026-10-13",
+ "branch_note": "commit before the production runs",
+ "perimeter": "Solo LATO FISICO dello schema multilivello (cambio di perimetro del coordinatore): scelta del livello per regione entro un limite di errore fisico (anche proiettato sullo schermo come criterio), transizioni tra livelli che conservano carica ed energia, passo di tempo locale. Il disegno (splat, preset, GPU) e' del thread 'Modello standard a palline'.",
+ "principle": "Valerio: la mela in 4K e in 480p marciscono tutte e due. Il budget di errore scala con l'hardware; le DINAMICHE devono restare: leggi di conservazione esatte, frequenze e tempi caratteristici entro la tolleranza del livello, stessa sequenza di eventi, stesse simmetrie. Possono peggiorare: nitidezza (cella), dettagli fini (onde piu' corte di ~12 celle, tremolio di Dirac).",
+ "tiers": {
+  "ultra": {
+   "hardware": "scheda da 16 GB (obiettivo)",
+   "light_N": 32,
+   "electron_B": 16,
+   "tol": 0.02
+  },
+  "intel": {
+   "hardware": "Intel UHD del portatile (unica GPU: la GTX 1650 Ti e' rotta)",
+   "light_N": 12,
+   "electron_B": 192,
+   "tol": 0.1
+  },
+  "sotto_pavimento": {
+   "hardware": "sonda: un livello sotto il pavimento dinamico",
+   "light_N": 8,
+   "electron_B": 384,
+   "tol": 0.1
+  }
+ },
+ "definitions": {
+  "conservation": "norma (carica) e energia del campo sum|F|^2 conservate entro 1e-10 dentro un livello uniforme",
+  "characteristic": "velocita' del centro d'energia, frequenza (fase), apertura per diffrazione, energia cinetica; errore relativo <= tol del livello",
+  "sequence": "due eventi separati nel riferimento da piu' di tol*t restano nello stesso ordine (equivale a errori di velocita' < tol/2)",
+  "symmetry": "purezza di elicita' (luce) e isotropia: max-min della velocita' sugli angoli <= tol",
+  "may_degrade": "nitidezza (cella), contenuto con meno di ~12 celle per lambda, Zitterbewegung (periodo pi hbar/mc^2 < passo grosso)"
+ },
+ "exams": {
+  "A1": "modello d'errore spettrale (Bloch pesato dallo spettro del pacchetto): deriva dell'inviluppo entro 5% + 0.01 lambda e fase entro 0.05 rad (mod 2pi) contro la misura; 16 casi N in {8,12,16,32} x angoli {0,22.5,30,45}, T = 50 lambda, sigma = 3 lambda, scatola +-4.5 sigma. PASS se 16/16",
+  "A2": "modello a un solo k0 (quello economico per il motore): stesse soglie; riportato, PASS se >= 14/16",
+  "B1": "scena 'errore sullo schermo': 8 pacchetti con impronta {0.1..20} lambda/pixel, orizzonte 100 lambda, scala N {8..64}, pavimento del livello (32 Ultra, 12 Intel), margine 0.5 px: errore misurato <= 1 px su tutti i pacchetti non segnalati; costo (celle x tick, 2-D, prop. N^3) sui pacchetti NON segnalati ridotto >= 4x contro gli stessi a N = 64 (Intel) e riportato (Ultra). I pacchetti segnalati (nessun livello della scala basta) sono fuori scala anche per il riferimento: si dichiarano, e la loro misura deve confermare che servirebbe di piu' (errore misurato a N = 64 > 0.5 px). Correzione fatta prima delle misure: la prima stesura contava i segnalati come N = 64 nel costo",
+  "B2": "la memoria dell'errore: camera che si avvicina (impronta 5 -> 0.1 lambda/px in 100 lambda), pacchetto a 30 gradi. Politica ingenua (sceglie il livello col pixel di adesso, ogni 10 lambda, cambio di livello spettrale): errore finale > 1 px (FAIL atteso, e' la dimostrazione). Politica col 'passaporto' (errore accumulato + impronta minima raggiungibile): <= 1 px",
+  "C1": "cono causale: celle fuori dal cono all'indietro della regione guardata congelate; differenza nella regione guardata <= 1e-13 (relativa) per luce 2-D e Dirac 2-D con Coulomb Z = 60 (n = 192, T = 64 tick, finestra 48x48); un cono di 1 cella piu' stretto DEVE sbagliare (> 1e-6); risparmio misurato = conteggio analitico",
+  "C2": "orologio pigro: recupero di m = 1024 tick con W(k)^m in Fourier contro tick per tick: <= 1e-11 relativo (luce 2-D, n = 128)",
+  "C3": "regola agglomerata (1-D, livelli B = 16, 64, 192): coda fuori dal cono dello stencil dopo s passi (descrittivo, senza soglia)",
+  "D1": "transizioni di livello per la luce (N -> N/2 -> N), metodo spettrale contro cubico: |dE/E| al cambio <= 1e-6 (spettrale, N grosso >= 12), salto del centro <= 1e-3 lambda, parte su banda sbagliata del reticolo grosso <= 1e-3 (N grosso >= 12); cubico riportato",
+  "D2": "transizioni per l'elettrone (fine -> livello B -> fine) col blocco dell'agglomeratore e prolungamento spettrale (deconvoluzione del blocco): norma del giro <= 1e-10; prolungamento a gradini riportato",
+  "EL": "dinamica della luce Ultra (32) / Intel (12) / sotto (8) contro Maxwell continuo: EL1 velocita' agli angoli {0,22.5,30,45}; EL2 frequenza; EL3 apertura per diffrazione (fascio w0 = 2 lambda, 0 e 45 gradi); EL4 cucitura tra due livelli (mondo a blocchi di reticolo_core, fine->grosso e grosso->fine, 0 e 30 gradi): T >= 1 - tol/20 (0.999 Ultra, 0.995 Intel), energia persa <= tol/20, elicita' sbagliata <= tol/20, velocita' dopo la cucitura entro tol; EL5 energia nel livello uniforme <= 1e-10; EL6 isotropia (max-min velocita') <= tol e sequenza. PASS per livello se tutte le voci passano",
+  "EE": "dinamica dell'elettrone (livelli 1-D imparati, scala atomica: k0 = 1/a0, sigma = a0/2) Ultra B = 16 / Intel B = 192 / sotto B = 384 contro la regola fine esatta: EE1 velocita' di gruppo; EE2 larghezza al tempo di allargamento 2 m sigma^2; EE3 energie cinetiche a k = 0.5, 1, 2 /a0 (fase dei modi); EE4 norma <= 1e-10; entro tol del livello. EE5 Zitterbewegung (descrittivo: dettaglio che puo' sparire)",
+  "F": "budget (calcolo, non esame): costo e memoria per livello sulla Intel UHD (42 ms per passo con ~33 800 palline misurati nel Laboratorio) e su una scheda da 16 GB; richieste di ponte proposte per misurarli"
+ },
+ "predictions": {
+  "bloch": {
+   "8": {
+    "0.0": {
+     "domega_over_omega": -1.4135798584282297e-16,
+     "speed_error": 2.8755664516211255e-11,
+     "walkoff_rad": 5.551115122966157e-11,
+     "diffraction_factor": 0.785398002266303
+    },
+    "22.5": {
+     "domega_over_omega": -0.013485847556601241,
+     "speed_error": -0.0402413803611229,
+     "walkoff_rad": -0.056544845481009354,
+     "diffraction_factor": 0.9558137898406353
+    },
+    "30.0": {
+     "domega_over_omega": -0.02028487741853719,
+     "speed_error": -0.061739223913228836,
+     "walkoff_rad": -0.05036702734655574,
+     "diffraction_factor": 1.0443134085904409
+    },
+    "45.0": {
+     "domega_over_omega": -0.027122396372306238,
+     "speed_error": -0.0842679670964156,
+     "walkoff_rad": -1.285932471617457e-10,
+     "diffraction_factor": 1.1351570531676576
+    }
+   },
+   "12": {
+    "0.0": {
+     "domega_over_omega": 2.1203697876423447e-16,
+     "speed_error": 2.8755664516211255e-11,
+     "walkoff_rad": 5.551115122966157e-11,
+     "diffraction_factor": 0.9068994745985756
+    },
+    "22.5": {
+     "domega_over_omega": -0.005834345948286355,
+     "speed_error": -0.01747405094646437,
+     "walkoff_rad": -0.023818474190928196,
+     "diffraction_factor": 0.9817426608271109
+    },
+    "30.0": {
+     "domega_over_omega": -0.008763304887196316,
+     "speed_error": -0.026474962620657738,
+     "walkoff_rad": -0.02087399782644561,
+     "diffraction_factor": 1.0198577901105006
+    },
+    "45.0": {
+     "domega_over_omega": -0.01170021483799365,
+     "speed_error": -0.03566063916634887,
+     "walkoff_rad": 0.0,
+     "diffraction_factor": 1.0584481500290266
+    }
+   },
+   "16": {
+    "0.0": {
+     "domega_over_omega": 0.0,
+     "speed_error": 5.651124013184017e-11,
+     "walkoff_rad": 2.775557561406041e-11,
+     "diffraction_factor": 0.9480592233526387
+    },
+    "22.5": {
+     "domega_over_omega": -0.0032513194628116496,
+     "speed_error": -0.009746140077944943,
+     "walkoff_rad": -0.013154060718767457,
+     "diffraction_factor": 0.990005761396955
+    },
+    "30.0": {
+     "domega_over_omega": -0.004880774013396517,
+     "speed_error": -0.014701751490788673,
+     "walkoff_rad": -0.011466829144190949,
+     "diffraction_factor": 1.011202584186379
+    },
+    "45.0": {
+     "domega_over_omega": -0.006512775067669902,
+     "speed_error": -0.0197139048490369,
+     "walkoff_rad": 6.006251052070866e-11,
+     "diffraction_factor": 1.0325507256107602
+    }
+   },
+   "24": {
+    "0.0": {
+     "domega_over_omega": -4.2407395752846894e-16,
+     "speed_error": 5.651124013184017e-11,
+     "walkoff_rad": -2.775557561406041e-11,
+     "diffraction_factor": 0.9770483783949891
+    },
+    "22.5": {
+     "domega_over_omega": -0.0014354701451104377,
+     "speed_error": -0.0043050474563766095,
+     "walkoff_rad": -0.005770796604133266,
+     "diffraction_factor": 0.9956457514423223
+    },
+    "30.0": {
+     "domega_over_omega": -0.0021539633656498633,
+     "speed_error": -0.006473738527271067,
+     "walkoff_rad": -0.005012089543399489,
+     "diffraction_factor": 1.0049891377995377
+    },
+    "45.0": {
+     "domega_over_omega": -0.0028729634752638,
+     "speed_error": -0.008653337142563333,
+     "walkoff_rad": -5.939237990304491e-11,
+     "diffraction_factor": 1.0143625239966565
+    }
+   },
+   "32": {
+    "0.0": {
+     "domega_over_omega": -5.654319433712919e-16,
+     "speed_error": 1.000088900582341e-12,
+     "walkoff_rad": -1.3877787807800577e-11,
+     "diffraction_factor": 0.9871155581387824
+    },
+    "22.5": {
+     "domega_over_omega": -0.0008055831007652977,
+     "speed_error": -0.0024163375560144473,
+     "walkoff_rad": -0.0032314299412971037,
+     "diffraction_factor": 0.997567924682273
+    },
+    "30.0": {
+     "domega_over_omega": -0.0012086154383470354,
+     "speed_error": -0.003629606454857659,
+     "walkoff_rad": -0.002803024221490702,
+     "diffraction_factor": 1.0028083114630777
+    },
+    "45.0": {
+     "domega_over_omega": -0.0016118085599360218,
+     "speed_error": -0.004846298179510877,
+     "walkoff_rad": -7.88868970147405e-11,
+     "diffraction_factor": 1.0080581982073211
+    }
+   },
+   "48": {
+    "0.0": {
+     "domega_over_omega": -2.1203697876423447e-16,
+     "speed_error": 1.4877876708396798e-11,
+     "walkoff_rad": 1.3877787807607985e-11,
+     "diffraction_factor": 0.9942816414366565
+    },
+    "22.5": {
+     "domega_over_omega": -0.00035744553148322496,
+     "speed_error": -0.0010722579710690239,
+     "walkoff_rad": -0.0014315719087402146,
+     "diffraction_factor": 0.9989244342931142
+    },
+    "30.0": {
+     "domega_over_omega": -0.000536215985101196,
+     "speed_error": -0.0016093922203500588,
+     "walkoff_rad": -0.0012406652653350614,
+     "diffraction_factor": 1.001248642013626
+    },
+    "45.0": {
+     "domega_over_omega": -0.0007150182533882366,
+     "speed_error": -0.002147198620206736,
+     "walkoff_rad": 9.834244529827174e-12,
+     "diffraction_factor": 1.0035747294419544
+    }
+   },
+   "64": {
+    "0.0": {
+     "domega_over_omega": 4.240739575284689e-16,
+     "speed_error": -5.938805003324887e-12,
+     "walkoff_rad": 6.938893903948437e-11,
+     "diffraction_factor": 0.9967849235740035
+    },
+    "22.5": {
+     "domega_over_omega": -0.00020094688760374096,
+     "speed_error": -0.0006028161520363895,
+     "walkoff_rad": -0.0008043530804095478,
+     "diffraction_factor": 0.9993959651656865
+    },
+    "30.0": {
+     "domega_over_omega": -0.000301435433825723,
+     "speed_error": -0.000904541972326145,
+     "walkoff_rad": -0.0006968703329942594,
+     "diffraction_factor": 1.0007023784251716
+    },
+    "45.0": {
+     "domega_over_omega": -0.0004019340523751412,
+     "speed_error": -0.001206480108164265,
+     "walkoff_rad": 5.89496229608244e-11,
+     "diffraction_factor": 1.0020093853881973
+    }
+   }
+  },
+  "EL_expected": "Ultra 32: velocita' max -0.49% (45 gradi), frequenza -0.16%, diffrazione 0.987 (0 gradi) -> PASS; Intel 12: velocita' -3.6%, frequenza -1.2%, diffrazione 0.907 (-9.3%, al limite) -> PASS; sotto 8: velocita' -8.4%, diffrazione 0.785 (-21%) -> FAIL su EL3 (e' la prova che il pavimento esiste)",
+  "EE_expected": "i livelli imparati hanno errori 1e-4..1e-3 sulla dinamica a scala atomica: PASS a tutti e tre i livelli; ZB visibile solo a B = 16 (passo 0.54 < pi/2), aliasata/mediata a B = 192, 384",
+  "B1_selection": {
+   "ultra": {
+    "rows": [
+     {
+      "footprint_lambda_per_px": 0.1,
+      "angle": 30.0,
+      "N": null,
+      "predicted_px": null
+     },
+     {
+      "footprint_lambda_per_px": 0.2,
+      "angle": 30.0,
+      "N": null,
+      "predicted_px": null
+     },
+     {
+      "footprint_lambda_per_px": 0.5,
+      "angle": 0.0,
+      "N": 32,
+      "predicted_px": 2.782755269496702e-09
+     },
+     {
+      "footprint_lambda_per_px": 1.0,
+      "angle": 22.5,
+      "N": 32,
+      "predicted_px": 0.4031821654264745
+     },
+     {
+      "footprint_lambda_per_px": 2.0,
+      "angle": 45.0,
+      "N": 32,
+      "predicted_px": 0.242314908975545
+     },
+     {
+      "footprint_lambda_per_px": 5.0,
+      "angle": 60.0,
+      "N": 32,
+      "predicted_px": 0.09165689334029839
+     },
+     {
+      "footprint_lambda_per_px": 10.0,
+      "angle": 15.0,
+      "N": 32,
+      "predicted_px": 0.030418039071899206
+     },
+     {
+      "footprint_lambda_per_px": 20.0,
+      "angle": 0.0,
+      "N": 32,
+      "predicted_px": 6.956888173741755e-11
+     }
+    ],
+    "flagged": [
+     0.1,
+     0.2
+    ],
+    "cost_rel_uniform64_unflagged": 0.125
+   },
+   "intel": {
+    "rows": [
+     {
+      "footprint_lambda_per_px": 0.1,
+      "angle": 30.0,
+      "N": null,
+      "predicted_px": null
+     },
+     {
+      "footprint_lambda_per_px": 0.2,
+      "angle": 30.0,
+      "N": null,
+      "predicted_px": null
+     },
+     {
+      "footprint_lambda_per_px": 0.5,
+      "angle": 0.0,
+      "N": 12,
+      "predicted_px": 1.2503401381685654e-08
+     },
+     {
+      "footprint_lambda_per_px": 1.0,
+      "angle": 22.5,
+      "N": 32,
+      "predicted_px": 0.4031821654264745
+     },
+     {
+      "footprint_lambda_per_px": 2.0,
+      "angle": 45.0,
+      "N": 24,
+      "predicted_px": 0.43266685712816755
+     },
+     {
+      "footprint_lambda_per_px": 5.0,
+      "angle": 60.0,
+      "N": 16,
+      "predicted_px": 0.3718575770776129
+     },
+     {
+      "footprint_lambda_per_px": 10.0,
+      "angle": 15.0,
+      "N": 12,
+      "predicted_px": 0.22066314532359677
+     },
+     {
+      "footprint_lambda_per_px": 20.0,
+      "angle": 0.0,
+      "N": 12,
+      "predicted_px": 3.1258503454214133e-10
+     }
+    ],
+    "flagged": [
+     0.1,
+     0.2
+    ],
+    "cost_rel_uniform64_unflagged": 0.0355224609375
+   }
+  },
+  "B2_expected": "ingenua > 1 px (FAIL atteso); passaporto <= 1 px"
+ },
+ "configs": {
+  "ladder": [
+   8,
+   12,
+   16,
+   24,
+   32,
+   48,
+   64
+  ],
+  "angles": [
+   0.0,
+   22.5,
+   30.0,
+   45.0
+  ],
+  "B1_footprints": [
+   0.1,
+   0.2,
+   0.5,
+   1.0,
+   2.0,
+   5.0,
+   10.0,
+   20.0
+  ],
+  "B1_angles": [
+   30.0,
+   30.0,
+   0.0,
+   22.5,
+   45.0,
+   60.0,
+   15.0,
+   0.0
+  ],
+  "horizon_lambda": 100.0,
+  "safety_px": 0.5,
+  "electron": {
+   "theta": "a0/4096 (agg_zz_1d)",
+   "fine_cells": 196608,
+   "box_a0": "~48",
+   "k0": "1/a0",
+   "sigma": "a0/2"
+  },
+  "seed": 20261013,
+  "threads": 1
+ }
+}
