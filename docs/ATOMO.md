@@ -446,6 +446,22 @@ t = 400 dopo l'impulso π/2: anelli rosa/verdi alternati, più forti lungo x e s
 flusso a v_r = 0,97 c. Debiti in più: la fetta, il fattore r², la soglia della probabilità e l'ingrandimento dell'atomo sono
 scelte di disegno.
 
+**v3, dopo la seconda foto** (`2026-10-13_foto_diffusa2`, t = 500, A ≈ 115, p_exc 0,741): gli anelli si vedevano ma
+deboli, al centro c'era una **linea bianca verticale** e l'impulso libero faceva bande verticali in alto e in basso. Cause e
+cure (solo disegno, la fisica non cambia):
+- la linea: la nuvola ×6 era fatta con i **surfisti** (traiettorie di Bohm), che dopo l'impulso forte si ammucchiano sull'asse
+  dello spin; ora è fatta con **campioni nuovi di |ψ|² a ogni fotogramma** (4 000), bagliori grandi (raggio ~2 ħ/mc nella
+  scala ×6), luminosità ∝ √(ρ/ρ_max);
+- la debolezza: il renderer dà alle palline d'onda della scena atomo un raggio di 0,096 ħ/mc per unità quando la camera è
+  lontana (pensato per l'atomo, non per la luce a 500 ħ/mc); ora ogni pallina di luce diffusa ha raggio 2,4–4,8 ħ/mc,
+  **crescente con l'energia** (25 + 25 √(w/w_max) unità), alpha 0,12 + 0,55 √(w/w_max); palline di flusso raggio ~1,4 ħ/mc;
+  stesso disegno a bagliori del Laboratorio (`onde`, sfumate), nessuno stile parallelo;
+- le bande: l'impulso libero era disegnato sulla **sua** scala, quindi anche il resto che esce nella spugna si accendeva
+  tutto; ora è sulla scala **fissa della partenza** (u_ref = 2 e_ref²), alpha ×0,2: sparisce man mano che esce.
+- la scritta in alto (egui) **non compare in nessuna foto del ponte** (neanche nelle vecchie): lo screenshot prende la scena
+  senza il pannello; il fattore A e p_exc sono nel `log.txt` della foto (riga "foto al frame ...").
+Anteprima aggiornata `lab/out/diffusa_anteprima.png` (dati veri, matplotlib senza bagliore).
+
 Il fotone sparato aspetta l'atomo pronto (prima, se si premeva F durante la preparazione, andava all'atomo non
 accoppiato con la frequenza sbagliata). Per le foto dal ponte: `spara-al` ora aspetta la preparazione e la foto si fa
 (`frames` − `spara-al`) fotogrammi dopo lo sparo vero; flag nuovi (validati in `ponte/ponte.py`): `spara-pronto`,

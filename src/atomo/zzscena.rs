@@ -252,19 +252,22 @@ fn palline_luce(m: &Mondo, diffusa: bool) -> Vec<Ball> {
     match (&e.luce.sc, diffusa) {
         (Some(sc), true) => {
             // the free pulse: same slab, own scale (∝ u), dimmed × 0.25
-            let mut v = fetta(&e.luce.f.f, None, false, 0.25, [[1.0, 0.78, 0.32], [0.35, 0.72, 1.0]]);
+            // on the FIXED scale of its launch (u_ref = 2 e_ref², E and B in phase at a crest), so it fades as it leaves
+            let mut v = if m.e_ref > 0.0 { fetta(&e.luce.f.f, Some(2.0 * m.e_ref * m.e_ref), false, 0.2, [[1.0, 0.78, 0.32], [0.35, 0.72, 1.0]]) } else { vec![] };
             if m.e_ref > 0.0 && m.w_max > 0.0 {
                 v.extend(fetta(&sc.f, Some(m.w_max), true, 1.0, [[1.0, 0.42, 0.78], [0.35, 1.0, 0.62]]));
                 v.extend(palline_flusso(m, sc));
             }
             // the electron cloud (balls drawn from |ψ|²) magnified × ZOOM_ATOMO about the nucleus: the dipole source
-            // brightness ∝ √(ρ/ρ_max) where the ball is (as the surfers: thin wave, faint ball)
+            // FRESH samples of |ψ|² every frame (not the surfers: their Bohm paths pile up on the spin axis after the strong
+            // pulse and drew a line), brightness ∝ √(ρ/ρ_max) where the ball is
             let at = &e.at;
             let rho_max = at.psi.iter().map(|p| p.iter().map(|c| c.norm2()).sum::<f64>()).fold(0.0, f64::max).max(1e-300);
-            for p in m.surf.iter().take(5000) {
-                let rho: f64 = at.campiona(*p).iter().map(|c| c.norm2()).sum();
+            let mut rng = Rng::new(at.ticks.wrapping_mul(2654435761) ^ 0x5eed);
+            for p in at.nascite(4000, &mut rng) {
+                let rho: f64 = at.campiona(p).iter().map(|c| c.norm2()).sum();
                 let q = [p[0] * ZOOM_ATOMO, p[1] * ZOOM_ATOMO, p[2] * ZOOM_ATOMO];
-                v.push((schermo(q).to_array(), 3.0, [0.75, 0.9, 1.0, (0.04 + 0.6 * (rho / rho_max).sqrt()) as f32]));
+                v.push((schermo(q).to_array(), 22.0, [0.75, 0.9, 1.0, (0.08 + 0.6 * (rho / rho_max).sqrt()) as f32]));
             }
             v
         }
@@ -347,7 +350,9 @@ fn fetta(f: &[[crate::fotone3d::Cf; 3]], wref: Option<f64>, r2: bool, alpha: f32
         let c = [s / (n * n), (s / n) % n, s % n];
         let pos = [0, 1, 2].map(|c2| (c[c2] as f64 - h as f64 + (crate::rng::hash01(q + c2 as u64) as f64 - 0.5)) * b);
         let cc = if f[s][2].re > 0.0 { col[0] } else { col[1] };
-        Some((schermo(pos).to_array(), 4.0, [cc[0], cc[1], cc[2], alpha * (0.08 + 0.7 * x.sqrt() as f32).min(0.8)]))
+        // glow radius ~ 2.4–4.8 λ_C (the light cell is 4 λ_C; the scene's wave-ball size is 0.096 λ_C per unit when far)
+        let xs = x.sqrt() as f32;
+        Some((schermo(pos).to_array(), 25.0 + 25.0 * xs, [cc[0], cc[1], cc[2], alpha * (0.12 + 0.55 * xs).min(0.8)]))
     }).collect();
     if out.len() > MAX_GRIGLIA {
         let k = MAX_GRIGLIA as f32 / out.len() as f32;
@@ -386,7 +391,7 @@ fn palline_flusso(m: &Mondo, sc: &crate::fotone3d::Fotone3D) -> Vec<Ball> {
         let rr = (p[0] * p[0] + p[1] * p[1] + p[2] * p[2]) / (acc::B_LUCE * acc::B_LUCE);
         let x = (u * rr / m.w_max.max(1e-300)).min(1.0);
         if x < 0.01 { return None; }
-        Some((schermo(*p).to_array(), 2.2, [1.0, 0.93, 0.97, (0.15 + 0.75 * x.sqrt()) as f32]))
+        Some((schermo(*p).to_array(), 15.0, [1.0, 0.93, 0.97, (0.2 + 0.7 * x.sqrt()) as f32]))
     }).collect()
 }
 
