@@ -43,7 +43,7 @@ dentro un sottoreticolo, contro θ (h = 0,4) e contro h (θ = 0,5). (c) p_exc de
    **un solo 1s** (coppia di spin, ≥ 99,5 % nella valle vera) a a ≤ 0,3; la congelata dalla stessa partenza trova 3–4
    livelli larghi fino a 0,037 mc², ognuno al 25 % nella valle vera. Legame: +12,1 / +6,9 / +5,65 / +4,69 % a a = 0,4 /
    0,3 / 0,24 / 0,2 (scatola 16); estrapolato **+2,7 %** (A1 a 1 %: FAIL; a 3 %: PASS). Ma la scatola pesa: con scatola
-   24 l'estrapolazione dà −2,5 % (−1,1 % con i due punti più fini). Il −11,6 % di ZIGZAG A1 era soprattutto il
+   24 l'estrapolazione dà −2,5 % (−1,1 % con i due punti più fini), con scatola 20 e a = 0,3–0,2 dà −0,35 %: l'errore vero sta fra ~−2,5 % e +2,7 %, non dimostrato entro 1 %. Il −11,6 % di ZIGZAG A1 era soprattutto il
    protocollo di ascolto: con i livelli esatti la media del multipletto della congelata è quasi uguale a FW1.
 4. **Costo:** FW1 costa **2,1–2,4×** la congelata per periodo (numpy, 1 core).
 5. **In una riga:** FW1 fa quello che promette (un 1s solo, niente toppe) **a θ ≤ 1/3**; a θ = 0,5 (il passo del
