@@ -241,6 +241,43 @@ nel **2p3/2**, che pesa il doppio; il 2p3/2 della regola 3-D ascoltato sta a ω 
 ascoltato 600 o 1200 tick sta a 0,8990 o 0,9011 (si mescola con il livello del reticolo a 0,882). Il confronto
 giusto avrebbe dovuto usare la riga 1s → 2p3/2 e un 1s misurato meglio: non lo cambiamo dopo, resta FAIL.
 
+### 3.6 Esportazione per i video al rallentatore (`accoppiato_esporta`, `lab/atomo_export_leggi.py`)
+
+Per disegnare fuori linea (in Python, palline al rallentatore) l'arrivo dell'impulso, l'assorbimento,
+l'oscillazione 1s ↔ 2p e la luce rimandata, il test ignorato `accoppiato_esporta` (in `src/atomo/tests.rs`)
+**registra** l'esperimento del Laboratorio senza cambiare niente della fisica: `Esperimento::new(600)`, poi
+`spara(omega_21(), E0_ACC)`, poi 3 200 tick atomo (1 600 λ_C/c) con un fotogramma ogni 16 tick (8 λ_C/c, due tick
+di luce): **201 fotogrammi, 514 MB** in float16 (valore salvato = fisico × scala).
+
+| file | forma | che cosa |
+|---|---|---|
+| `rho.f16` | (201, 48, 48, 48) | ρ = \|ψ\|² per λ_C³ (scala 10³) |
+| `j.f16` | (201, 3, 48, 48, 48) | corrente j = R†σR − L†σL per λ_C³ (unità c, scala 10³), **mediata sui 16 tick** del fotogramma (toglie il battito di zitterbewegung a 2mc²); v delle palline = j/ρ |
+| `fase.f16` | (201, 48, 48, 48) | fase della componente dominante + t (come la colora la scena) |
+| `E.f16` | (201, 3, 64, 64, 64) | e·E della luce (E = Re F, già × e_eff, in mc²/λ_C, scala 10⁵), media 2×2×2 della scatola 128³ |
+| `fotogrammi.csv`, `serie.csv` | | p_exc, p(2p½), ⟨z⟩, e·E sull'atomo, energie, sonda: per fotogramma e per tick di luce |
+
+`manifest.json` dice forme, scale, unità (λ_C, λ_C/c), passi delle griglie (atomo 0,5 λ_C; luce 8 λ_C dopo la media),
+dove sta la griglia dell'atomo dentro la scatola di luce (centrata sull'origine; nella griglia 64³ il nucleo è a
+I = 31,75) e i debiti che valgono (accoppiamento ×10 a mano, semi-classico, emissione solo da sovrapposizione,
+media gaussiana, Z = 60). Dati in `/mnt/project-files/ripresa/dati/atomo_accoppiato/` (**mai nel repo**). Si
+rigenerano in ~2 minuti:
+`ESPORTA_DIR=<dir> TICKS=3200 OGNI=16 cargo test --bin atomo accoppiato_esporta -- --ignored --nocapture`.
+Lettore e figura di controllo: `python3 lab/atomo_export_leggi.py <dir> --figura [--npz]` →
+`lab/out/atomo_export_controllo.png`.
+
+Che cosa si vede (corsa del 13 ottobre 2026): il campo dell'impulso sta sull'atomo per t ≈ 0–150 λ_C/c, p_exc sale
+da 0 a **0,88 a t ≈ 256**, poi oscilla tra ~0,2 e ~0,88 con periodo ~470 λ_C/c. Attenzione: **non è uno scambio di energia con la luce**
+(dopo t ≈ 450 l'energia della luce nella scatola è < 10⁻³ di quella dell'impulso, troppo poca): è un battimento
+dentro l'atomo, quasi certamente perché l'1s ascoltato non è un livello pulito (si mescola con il livello del
+reticolo a 0,882, §3.5) e p_exc = 1 − |⟨1s|ψ⟩|² misura anche quel miscuglio. Da verificare: è un'imprecisione aperta. Dopo t ≈ 450 l'impulso è uscito dalla scatola (energia nella
+scatola < 10⁻³ di quella iniziale) e resta solo la luce del dipolo dell'atomo: anelli a sin²θ intorno a z, ampiezza
+~10⁻⁵ mc²/λ_C. Due avvertenze per chi disegna: (1) p(2p½, m = ½) resta < 0,01: l'eccitazione va quasi tutta nel
+2p3/2 (vedi la diagnosi di E1v2 sopra), quindi "p_exc" è la popolazione da usare; (2) ρ di una singola fetta di
+tempo ha una trama del reticolo (celle quasi vuote ripetute ogni 4 celle = 2 λ_C, già nell'1s di partenza): è nei
+dati veri, non nella compressione; per le palline conviene nascere con jitter dentro la cella (come fa
+`Atomo::nascite`) o smussare su ~2 λ_C, dichiarandolo.
+
 ## 4. Il fotone libero: pre-registrazione (scritta prima delle corse) e risultati
 
 Corse di sviluppo già viste (dichiarate): nel visore, qualità 8 celle per λ, w0 = λ, circolare +: velocità del
