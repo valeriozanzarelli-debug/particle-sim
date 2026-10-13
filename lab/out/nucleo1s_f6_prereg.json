@@ -1,0 +1,51 @@
+{
+ "study": "NUCLEO_1S phase 6",
+ "date": "2026-10-13",
+ "seen": {
+  "Z1_shift_rel_err": {
+   "1s": 0.0145,
+   "2s": 0.0058,
+   "3s": -0.138
+  },
+  "source": "phase-1 z1 data"
+ },
+ "config": {
+  "Z": [
+   1,
+   2
+  ],
+  "states": [
+   1,
+   2,
+   3
+  ],
+  "theta_out": [
+   0.1,
+   0.05,
+   0.025
+  ],
+  "zoom_levels": 14,
+  "n_per_level": 16,
+  "rmax_a0": 45,
+  "extrapolation": "quadratic in theta^2 through the 3 points"
+ },
+ "exams": {
+  "A1": {
+   "what": "Z = 1: alpha^4 shift of 1s and of 2s within 3 % of Dirac's (partly seen: other theta set)",
+   "tol": 0.03
+  },
+  "A2": {
+   "what": "Z = 2 (blind): alpha^4 shift of 1s and 2s within 3 % of Dirac's",
+   "tol": 0.03
+  },
+  "A3": {
+   "what": "the extrapolation is stable: dropping the coarsest point (linear in theta^2 through 0.05, 0.025) changes each 1s/2s shift by <= 2 % (Z = 1 and 2)",
+   "tol": 0.02
+  },
+  "report": [
+   "3s shifts",
+   "cells",
+   "the part of the shift inside r < 30 lambda_C (fine zone of the old hybrid)"
+  ]
+ }
+}
