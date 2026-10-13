@@ -51,19 +51,26 @@ questo paragrafo sarà aggiornato con i nomi verificati).
 
 ## 1. Cosa si vede, pannello per pannello (come a un ventenne)
 
-**Dentro l'atomo (sinistra).** Il nucleo è al centro (non disegnato). Le palline sono la "nebbia" dell'elettrone:
-fitte dove la probabilità di trovarlo è alta. Il colore dice **come cambia la nuvola rispetto all'1s di partenza**:
-bianco-lavanda = come l'1s; **oro** = lì adesso c'è *più* elettrone di prima; **blu** = *meno*.
+**Dentro l'atomo (sinistra).** Il nucleo è al centro (non disegnato). **Ogni pallina è un bagliore morbido** (luce
+che si somma: dove se ne sovrappongono tante il colore va verso il bianco), come la scena dell'atomo zig-zag del
+Laboratorio con i surfisti accesi. **Niente scie, niente righe**: il movimento si vede solo perché i bagliori si
+spostano (fra un fotogramma di dati e l'altro le posizioni sono interpolate dal moto delle palline). **Colore = fase
+dell'onda** (la fase esportata della componente dominante, la stessa che colora la scena del Laboratorio):
+nell'1s è quasi la stessa ovunque (coerenza 0,96–0,998), quindi la nuvola ha quasi un solo colore che cambia piano
+nel tempo. **Grandezza** dalla densità locale: dove l'elettrone è rado i bagliori sono più grandi e più tenui.
+Si disegnano 24 000 palline delle 120 000 (più tutte nel bagliore largo).
+*(Prima versione, scartata il 13/10 su richiesta di Valerio: scie di 6 fotogrammi e colore oro/blu = cambio di
+densità rispetto all'1s.)*
 
 * **Prima della luce** le palline girano attorno a z (l'asse dello spin): è la corrente dell'1s della regola, quella
   che nella teoria di Dirac dà il momento magnetico. Girano a ~0,83 della velocità di Dirac (§0).
 * **Quando la luce scuote l'atomo**, al massimo il 12–13 % dell'elettrone passa allo stato eccitato. Le due onde
-  battono: la nuvola va su e giù lungo z, **oro sopra / blu sotto**, poi il contrario, ogni ~42 λ_C/c.
-* **Col tempo il centro diventa blu**: in parte l'eccitato è più largo (fisica), in parte è la deriva dell'1s di
-  partenza (non fisica, 3,5 % in 4000 tick): a occhio non si separano.
+  battono: la nuvola va su e giù lungo z ogni ~42 λ_C/c (si legge bene nella curva ⟨z⟩ in basso; nel colore poco,
+  perché la fase cambia poco).
 
 **La luce (destra in alto).** Ogni pallina è un pezzetto dell'energia della luce, (E² + B²)/2, mossa con la velocità
-dell'energia (mai più di c). Colore = direzione di E. Vista tagliata: una fetta 0 < y < 72 λ_C. Prima passa l'impulso
+dell'energia (mai più di c). Ogni pallina è un bagliore (niente strisce lungo E,
+niente scie). Colore = direzione di E. Vista tagliata: una fetta 0 < y < 72 λ_C. Prima passa l'impulso
 come una fila di bande; dopo (t ≥ 240 vicino all'atomo) dal centro nascono **gusci** che si allontanano a c: la luce
 dell'antenna 1s + 2p. Ogni pallina della luce dell'atomo vale 1/1000 di una pallina dell'impulso: senza questo
 fattore non si vedrebbe (l'energia rimandata è 1,6·10⁻³ di quella dell'impulso). Eventuali archi deboli in più sono un
@@ -114,7 +121,7 @@ fotogrammi.csv, mai scritta a mano nel codice) e il dipolo **⟨z⟩** (punti = 
 | densità e corrente dell'elettrone | **nessuno smussamento** | la scacchiera è piccola in questa esportazione; smussare toglierebbe giro |
 | luce dell'atomo | ×1000 in energia (×31,6 in campo) | è 1,6·10⁻³ dell'impulso, sparsa su gusci grandi |
 | accoppiamento luce-elettrone (dai dati) | K = 10 | vedere lo svuotamento in una corsa corta |
-| colore dell'elettrone | pieno a ~25 % di cambio locale di densità | leggere il dipolo dove ci sono poche palline |
+| colore dell'elettrone | fase dell'onda, nessuna amplificazione | come la scena del Laboratorio |
 | giro dell'elettrone | **nessun ritocco**: ~0,83 di Dirac come esce | errore del passo, dichiarato |
 
 ## 4. Esami (pre-registrati in `lab/out/vl_prereg.json`, E8 in `vl_amend3.json`)
@@ -170,9 +177,9 @@ Note oneste:
 7. Le palline sono una **lettura** (traccianti di densità e energia), come i surfisti.
 8. Disegno su CPU: il porto su GPU è lavoro del motore grafico.
 
-**Parametri fisici liberi: 0.** **Manopole estetiche (non toccano gli esami): 12** — grandezza delle palline
-(elettrone, luce), bagliore (2), scia (2), soglia del colore, allungamento lungo E, guadagni di esposizione (2),
-camere (2 percorsi), più palette e spessore della fetta.
+**Parametri fisici liberi: 0.** **Manopole estetiche (non toccano gli esami): 10** — grandezza dei bagliori
+(elettrone, luce), legge grandezza–densità, bagliore largo (2), guadagni di esposizione (2), palline disegnate
+(24 000), camere (2 percorsi), più palette e spessore della fetta. Niente scie.
 
 ## 7. Come rifarlo
 
