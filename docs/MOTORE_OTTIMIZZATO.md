@@ -407,7 +407,7 @@ per la materia della mela: **stessa scena, due risoluzioni, deve marcire allo st
 | riga 1s→2p (G1a) | 10,2021 eV (−0,02 %) **PASS** | 10,1561 eV (−0,47 %) **PASS** | 10,2043 |
 | P(2p0) dopo il calcio (G1b) | 0,07545 (+2,33 %) **FAIL** (tol 2 %) | 0,07608 (+3,19 %) **PASS** (tol 10 %) | 0,073728 |
 | P(1s) | −0,04 % | −0,18 % | 0,784665 |
-| P(2s) | 0,0077 | 0,0078 | (0 nel continuo) |
+| P(2s) | 0,0077 | 0,0078 | ~~(0 nel continuo)~~ 0,00819 [correzione fase 3, §15] |
 | norma dopo M passi (G1c) | 1,5·10⁻¹⁴ **PASS** | 4,5·10⁻¹⁴ **PASS** | ≤ 10⁻¹⁰ |
 | sequenza + primi 4 zeri del dipolo (G1d) | **PASS** | **PASS** | |
 | cartolina (G2) | **PASS**, peso tagliato 13,2 % | **PASS**, peso tagliato 13,3 % | |
@@ -511,6 +511,153 @@ dei gusci lontani si accumula e va tenuto sotto la soglia del pixel. Le transizi
   - controllo della scatola a posteriori (non cambia gli esiti);
   - verifica delle valli aggiunta dopo la richiesta del coordinatore.
 * Ponte: nessuna richiesta creata; l'atomo-cartolina e i gusci restano da misurare sul portatile (§8).
+
+## 15. Fase 3: campana al bordo del blocco, cartolina con n = 3 e criterio di ritorno, scatola nel passaporto
+
+Pre-registrazione: `lab/out/motore_f3_prereg.json` (commit 3bf7c0d, prima delle corse). Le soglie vecchie sono
+rimaste uguali. Codice: `lab/motore_f3_core.py`, `lab/motore_f3_run.py`. Esiti: `lab/out/motore_f3_{lot,sweep,ultra,card,truth,judge}.json`.
+Figura: `lab/out/motore_f3_figure.png`.
+
+![fase 3](../lab/out/motore_f3_figure.png)
+
+**Conto: 10 esami PASS, 0 FAIL** (più C3 solo riportato). Due previsioni erano sbagliate e le dichiaro: la scatola
+scelta è 15 a₀, non 18; il rapporto delle velocità per i calci forti è più basso di 0,495 (vedi §15.2).
+
+### 15.1 La cinetica al bordo del blocco (G3c bis): PASS
+
+Il problema della fase 2: le funzioni di base locali hanno una "campana" ai bordi del blocco. Se la campana è corta,
+ha code ad alta frequenza, e un pezzettino di norma (10⁻¹⁰) va a frequenze che portano un'energia cinetica enorme.
+
+La correzione resta **locale** (stesso tipo di supporto) e **conservativa** (la base resta ortogonale): si cambia solo
+la forma e la lunghezza della campana. La scelta è automatica. Si prova una lista in ordine di località (blocco 32,
+poi 64, poi 128; campana seno iterato 2 o 3 volte, oppure C∞). Si prende la **prima** che, su un pacchetto di
+calibrazione **diverso** da quelli d'esame (k₀ = 0,5/a₀), tiene norma ed energia cinetica entro 10⁻⁷.
+
+| blocco, campana | errore cinetica (calibrazione) |
+|---|---|
+| 32, sin2 (fase 2) | 1,1·10⁻⁴ |
+| 32, sin3 | 6,3·10⁻³ |
+| 32, C∞ | 5,0·10⁻³ |
+| 64, sin2 | 2,2·10⁻⁷ |
+| **64, sin3 (scelta)** | **6,3·10⁻¹³** |
+
+Lezione: una campana più liscia **non** basta se è troppo corta. Sul livello grosso restano 8 campioni di campana, e
+una forma più ripida fa peggio. Serve la campana lunga (blocco 64, sovrapposizione 32 fini, 16 grossi).
+
+* **G3c bis PASS:** sui pacchetti registrati (k₀ = 1 e 2 /a₀) la cinetica sbaglia di **4,0·10⁻¹³ e 1,6·10⁻¹³**
+  (soglia 10⁻⁶; in fase 2 era 7·10⁻⁵), la norma di 10⁻¹⁵.
+* **G3a bis PASS:** luce 2-D, |ΔE/E| 1,3·10⁻¹³…2,1·10⁻¹² (in fase 2 era 10⁻¹¹), anche a N = 8.
+* **G3b bis PASS:** col supporto dichiarato nuovo (blocco ± un blocco ± mezza sovrapposizione grossa), fuori il
+  cambio è **esattamente 0**.
+* **Prezzo:** il supporto raddoppia (256 celle fini contro 128) e la trasformata costa ~10⁻⁷ s per cella. È sempre
+  locale, ma meno stretta.
+
+### 15.2 Cartolina con 3s/3p/3d₀ e criterio automatico di ritorno al livello fine
+
+Livello Intel (a₀/8), scatola ±27 a₀ (ottante 216³). Stati presi dalla regola:
+
+* 1s −13,548 eV, 2s −3,395, 2p −3,403;
+* 3p −1,511, 3s −1,5137, poi la coppia 3d (3z²−r², x²−y²) a −1,5136, degenere come vuole il cubo.
+
+Nel continuo il livello n = 3 vale −1,511 eV. Sul reticolo 3s e 3d sono staccati di 2·10⁻⁵ eV: è la cuspide del nucleo.
+
+**C1 PASS** (calcio q = 0,5, reticolo contro Schrödinger):
+
+| | 1s | 2s | 2p₀ | 3s | 3p₀ | 3d₀ |
+|---|---|---|---|---|---|---|
+| esatto | 0,78466 | 0,00819 | 0,07373 | 0,00147 | 0,01570 | 0,00146 |
+| reticolo | −0,18 % | +1,0 % | +1,1 % | −0,9 % | +1,8 % | +1,2 % |
+
+**Correzione della fase 2.** In §14 avevo scritto "P(2s) = 0 nel continuo". Era sbagliato: e^{iqz} contiene anche una
+parte con l = 0 (j₀(qr)), quindi P(2s) = 0,00819. Il reticolo dava 0,0077 a ±12 a₀ e dà 0,0083 a ±27 a₀.
+
+**C2 PASS:** la cartolina a 7 stati gira con le sue fasi e coincide con la griglia nel sottospazio a 1,1·10⁻⁸, sotto
+il limite M·r·2 = 3,3·10⁻⁵.
+
+**Il criterio.** La cartolina è ammessa solo se:
+1. il peso fuori base è w_out ≤ tol² = 0,01, cioè lo stato è giusto entro il 10 %;
+2. **e** la parte di eccitazione persa è ρ = w_out/(1 − P₁ₛ) ≤ tol = 0,1, cioè quello che è successo all'atomo è
+   catturato entro il 10 %.
+
+Se una delle due condizioni salta, l'atomo torna alle palline vere.
+
+La "verità" si misura con 40 passi della griglia completa contro la cartolina. Lo scenario è VERO se valgono tutte e due:
+- la distanza fra i due stati è ≤ 10 %;
+- la velocità iniziale del dipolo è giusta entro il 10 %.
+
+| scenario | w_out | ρ | criterio | distanza | v_cart/v_griglia | VERO |
+|---|---|---|---|---|---|---|
+| calcio q = 0,05 | 8,9·10⁻⁴ | 0,35 | **fine** | 0,030 | 0,50 | no |
+| calcio q = 0,2 | 0,015 | 0,38 | **fine** | 0,12 | 0,48 | no |
+| calcio q = 0,5 | 0,115 | 0,53 | **fine** | 0,34 | 0,39 | no |
+| calcio q = 1,0 | 0,477 | 0,80 | **fine** | 0,74 | 0,23 | no |
+| S1 = 1s + 0,3i·2p | 2·10⁻¹² | 2·10⁻¹¹ | **cartolina** | 3·10⁻⁶ | 1,000 | sì |
+| S2 = 1s+2s+3s+3p | ~0 (−7·10⁻¹², arrotondamento) | ~0 | **cartolina** | 3·10⁻⁶ | 1,000 | sì |
+
+* **C4 PASS (sicurezza):** nessuno scenario ammesso è falso.
+* **C5 PASS:** gli stati legati sono ammessi, quindi niente rifiuti inutili.
+* **C6 PASS:** la griglia dopo il calcio si muove a v = ħq/m entro lo **0,07–0,18 %**. È il teorema di Ehrenfest:
+  il calcio dà proprio l'impulso q.
+* **C3 (riportato):** il peso fuori base del reticolo coincide con l'esatto (q = 0,05: 8,91·10⁻⁴ contro 8,94·10⁻⁴;
+  q = 0,5: 0,1150 contro 0,1148; q = 1: 0,477 contro 0,475).
+
+**La cosa importante, detta semplice.** Anche col calcio più piccolo (q = 0,05) lo stato è giusto al 97 %
+(w_out < 10⁻³). Eppure la cartolina si muove **a metà velocità** (0,498). Il motivo è una regola nota, la regola di
+somma di Thomas–Reiche–Kuhn: la "forza" con cui l'atomo risponde a una spinta si divide fra tutti gli stati p. 2p e 3p
+ne hanno il 41,6 % + 7,9 % = 49,5 %. L'altra metà sta negli stati più alti e nel **continuo** (ionizzazione).
+
+Quindi un atomo colpito, descritto con pochi stati, **perde metà dell'impulso**. Una vera mela non lo fa: la
+"dinamica conservata" (conservazione dell'impulso) lo vieta. Il primo criterio (w_out) da solo l'avrebbe ammessa
+per q = 0,05. Il secondo (ρ) la rimanda giustamente al fine.
+
+La previsione 0,495 vale per calci piccoli (misurato 0,498 a q = 0,05). Per calci forti il rapporto scende (0,39 a
+q = 0,5; 0,23 a q = 1), perché va sempre più peso nel continuo. Questo l'avevo previsto male.
+
+Conclusione per il motore: la cartolina va bene per atomi **tranquilli o già eccitati in stati legati** (S1, S2:
+esatta a 10⁻⁶, un milione di volte più economica). Un atomo che **prende una botta** torna subito al livello fine. Il
+criterio automatico lo decide da solo e in modo sicuro.
+
+### 15.3 La scatola dentro il passaporto d'errore
+
+La regola è stata registrata prima: provare le scatole al livello **economico** (Intel) e prendere la più piccola
+dopo la quale P(2p₀), riga e P(1s) cambiano meno di tol_Ultra/4 = 0,5 % allargando di 3 a₀.
+
+| scatola (a₀) | 12 | **15** | 18 | 21 | 24 | 27 |
+|---|---|---|---|---|---|---|
+| P(2p₀) Intel, scarto | +3,19 % | **+1,43 %** | +1,17 % | +1,14 % | +1,13 % | +1,13 % |
+| cambio al passo dopo | 1,7 % | **0,26 %** | 0,03 % | 0,003 % | 0,0003 % | – |
+
+Scelta automatica: **±15 a₀** (avevo previsto 18). L'errore di scatola rimasto, stimato contro 27 a₀, è 0,29 %. Va
+scritto nel passaporto.
+
+* **B1 PASS:** Ultra (a₀/16, ottante 240³) a ±15 a₀ dà P(2p₀) **+0,58 %** (in fase 2 era +2,33 % a ±12, FAIL),
+  P(1s) −0,04 % e riga 10,1918 eV (−0,12 %). Tutto entro il 2 %.
+* **B2 PASS, e notevole:** l'effetto scatola misurato a Ultra (P(12)/P(15) − 1 = 1,742 %) coincide con quello di
+  Intel (1,741 %) a 10⁻⁵. Cioè l'errore di scatola **non dipende dalla risoluzione**: si misura sul livello economico
+  e vale per tutti.
+
+È il principio della mela applicato alla scatola: la scatola è un "livello" come la risoluzione, e il suo errore si
+misura una volta, al livello che costa poco.
+
+### 15.4 Debiti e manopole (fase 3)
+
+* **Chiusi:**
+  - D-F2-1 (scatola): ora è scelta automaticamente ed entra nel passaporto;
+  - D-F2-2 (cinetica al bordo): G3c bis PASS.
+* **D-F2-3 (cartolina) cambiato:** non è più "servono più stati". Per un atomo colpito **nessun** numero piccolo di
+  stati legati basta: manca il continuo, metà della regola di somma. Il debito ora è "una cartolina che contenga il
+  continuo" (per esempio stati di scatola fino a qualche Rydberg), da provare.
+* **Nuovi:**
+  - D-F3-1: il supporto del cambio locale raddoppia (blocco 64), quindi la località costa di più;
+  - D-F3-2: le soglie del criterio della cartolina (tol² e tol) sono una scelta di disegno, non derivate dalla fisica.
+* **Manopole nuove: 4 scelte di disegno, nessun fit:**
+  - la lista dei candidati per la campana;
+  - la soglia di calibrazione 10⁻⁷;
+  - le due soglie del criterio della cartolina.
+  - Il passo dello sweep della scatola (3 a₀) e la soglia tol/4 sono scelte anche loro.
+* **Cosa ho deciso nello scrivere lo script** (prima delle corse, dichiarato): la cartolina viene rinormalizzata alla
+  norma della griglia, per conservare la carica.
+* **Ponte:** nessuna richiesta creata.
 
 ## Appendice — idee di disegno da passare al thread "Modello standard a palline"
 
