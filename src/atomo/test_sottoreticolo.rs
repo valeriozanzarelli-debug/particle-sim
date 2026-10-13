@@ -383,3 +383,151 @@ fn sottoreticolo_esame() {
     out.insert(0, ("esiti", es));
     std::fs::write(format!("{dir}/sottoreticolo_results.json"), obj(&out)).unwrap();
 }
+
+/// Diagnosis of E2 (post hoc, declared: written after the exam). Where does the 0.4 % dipole difference between the
+/// whole-cube Laboratorio and the one-colour Laboratorio come from? Variants on one colour against the whole cube:
+/// (a) own 1s, own ω21 (= E2); (b) own 1s, the whole cube's ω21; (c) the whole cube's 1s restricted to the colour
+/// (renormalised), the whole cube's ω21. Also the overlap of the two 1s on the colour, and the spin content.
+#[test]
+#[ignore]
+fn sottoreticolo_diagnosi_e2() {
+    use crate::accoppiato::Esperimento;
+    let ticks: usize = std::env::var("SOTTO_TICKS").ok().and_then(|v| v.parse().ok()).unwrap_or(3200);
+    let col = zz::COLORE_LAB;
+    let e0 = crate::zzscena::E0_ACC;
+    let mut xf = Esperimento::nuovo(600, None);
+    let mut xo = Esperimento::nuovo(600, Some(col));
+    let wf = xf.omega_21();
+    let proj = normalizza(zz::estrai_colore(&xf.phi1s, col));
+    let ov = sovrapp(&xo.phi1s, &proj).norm2();
+    // spin content: weight of the "down" components (L₁, R₁) — the start is m = +½
+    let giu = |v: &[[C; 4]]| v.iter().map(|p| p[1].norm2() + p[3].norm2()).sum::<f64>() / norma2(v);
+    eprintln!("|⟨1s colour | whole 1s on colour⟩|² = {ov:.12}; spin-down weight: own {:.3e}, whole-on-colour {:.3e}", giu(&xo.phi1s), giu(&proj));
+    for c in COLORI {
+        let p = normalizza(zz::estrai_colore(&xf.phi1s, c));
+        eprintln!("  colour {c:?} share of the whole 1s: weight {:.6}, ⟨share|share of 00⟩ n/a, spin-down {:.3e}", norma2(&zz::estrai_colore(&xf.phi1s, c)), giu(&p));
+    }
+    let mut serie = vec![];
+    xf.ricomincia(); xf.spara(wf, e0);
+    let mut s = Serie::default();
+    for _ in 0..ticks { passo_misurato(&mut xf, &mut s); }
+    serie.push(("whole", s));
+    let own = (xo.phi1s.clone(), xo.omega1s);
+    for (nome, start, w) in [("a own 1s own w21", own.0.clone(), xo.omega_21()), ("b own 1s whole w21", own.0.clone(), wf), ("c whole 1s on colour, whole w21", proj.clone(), wf)] {
+        xo.phi1s = start;
+        xo.ricomincia();
+        xo.spara(w, e0);
+        let mut s = Serie::default();
+        for _ in 0..ticks { passo_misurato(&mut xo, &mut s); }
+        serie.push((nome, s));
+    }
+    let r = &serie[0].1;
+    for (nome, s) in &serie[1..] {
+        eprintln!("{nome}: dipole rel {:.2e}, probe rel {:.2e}, light energy rel {:.2e}, p_exc abs {:.2e}", rel(&s.d, &r.d), rel(&s.sonda, &r.sonda), rel(&s.en, &r.en), abs_max(&s.p, &r.p));
+    }
+}
+
+/// Post hoc (declared, after the exam): the 4 colours are 2 classes. Colours 00 ≡ 01 and 10 ≡ 11 (same dynamics),
+/// the two classes differ slightly. Check: the whole-cube coupled run against a run of TWO colours (00 and 10, each
+/// carrying twice its share of the whole-cube 1s) sharing one light box. If they agree to rounding, the whole cube
+/// is exactly reproduced at half the cost.
+#[test]
+#[ignore]
+fn sottoreticolo_due_classi() {
+    use crate::accoppiato::{e_eff, Esperimento, LuceAtomo, SUB};
+    let ticks: usize = std::env::var("SOTTO_TICKS").ok().and_then(|v| v.parse().ok()).unwrap_or(3200);
+    let e0 = crate::zzscena::E0_ACC;
+    let mut xf = Esperimento::nuovo(600, None);
+    let w21 = xf.omega_21();
+    let classi = [[0u8, 0u8], [1, 0]];
+    // each class colour carries the share of its two colours: 2 × its own share (00 and 01 have the same weight)
+    let mut at: Vec<Atomo> = classi.iter().map(|&c| {
+        let mut a = Atomo::new_in(Some(c));
+        let mut v = zz::estrai_colore(&xf.phi1s, c);
+        for p in v.iter_mut() { for q in p.iter_mut() { *q = q.scale(std::f64::consts::SQRT_2); } }
+        a.imposta(v);
+        a
+    }).collect();
+    let phi: Vec<Vec<[C; 4]>> = at.iter().map(|a| a.psi0.clone()).collect();
+    eprintln!("two-class norm {:.15}", at.iter().map(|a| norma2(&a.psi)).sum::<f64>());
+    xf.ricomincia();
+    xf.spara(w21, e0);
+    let mut luce = LuceAtomo::new();
+    luce.impulso(w21, e0);
+    let e = e_eff();
+    let dt = SUB as f64 * zz::A;
+    let pos = |at: &[Atomo]| { let mut r = [0.0; 3]; for a in at { let p = a.posizione(); for k in 0..3 { r[k] += p[k]; } } r };
+    let (mut d1, mut d2, mut p1, mut p2, mut s1, mut s2) = (vec![], vec![], vec![], vec![], vec![], vec![]);
+    let mut r0 = pos(&at);
+    for k in 0..ticks {
+        xf.passo();
+        d1.push(xf.serie_d.last().unwrap().1);
+        let ea = luce.campo_atomo();
+        for a in at.iter_mut() { a.campo_est = [e * ea[0], e * ea[1], e * ea[2]]; a.avanti(); }
+        let r = pos(&at);
+        d2.push(r[2]);
+        if (k + 1) % SUB == 0 {
+            luce.passo([-e * (r[0] - r0[0]) / dt, -e * (r[1] - r0[1]) / dt, -e * (r[2] - r0[2]) / dt]);
+            r0 = r;
+            let amp = at.iter().zip(&phi).map(|(a, f)| sovrapp(f, &a.psi)).fold(C::ZERO, |u, v| u + v);
+            p2.push(1.0 - amp.norm2());
+            p1.push(xf.serie_p.last().unwrap().1);
+            s1.push(xf.luce.sonda.last().unwrap().1);
+            s2.push(luce.sonda.last().unwrap().1);
+        }
+    }
+    eprintln!("whole cube vs two classes: dipole rel {:.2e}, p_exc abs {:.2e}, probe rel {:.2e}", rel(&d2, &d1), abs_max(&p2, &p1), rel(&s2, &s1));
+}
+
+/// Post hoc (declared): the 4 colours driven by the SAME field history (recorded from the whole-cube coupled run,
+/// all three components), open loop. Which colours behave alike, and in which component do they differ?
+#[test]
+#[ignore]
+fn sottoreticolo_colori_stesso_campo() {
+    use crate::accoppiato::Esperimento;
+    let ticks: usize = std::env::var("SOTTO_TICKS").ok().and_then(|v| v.parse().ok()).unwrap_or(3200);
+    let mut xf = Esperimento::nuovo(600, None);
+    let w21 = xf.omega_21();
+    xf.ricomincia();
+    xf.spara(w21, crate::zzscena::E0_ACC);
+    let mut campi = vec![];
+    let mut rf = vec![];
+    for _ in 0..ticks { xf.passo(); campi.push(xf.at.campo_est); rf.push(xf.at.posizione()); }
+    let emax = |c: usize| campi.iter().fold(0.0f64, |m, e| m.max(e[c].abs()));
+    eprintln!("field at the atom, max |eE| x,y,z: {:.3e} {:.3e} {:.3e}", emax(0), emax(1), emax(2));
+    eprintln!("whole cube max |⟨x⟩|,|⟨y⟩|,|⟨z⟩|: {:.3e} {:.3e} {:.3e}", rf.iter().fold(0.0f64, |m, r| m.max(r[0].abs())), rf.iter().fold(0.0f64, |m, r| m.max(r[1].abs())), rf.iter().fold(0.0f64, |m, r| m.max(r[2].abs())));
+    for solo_z in [false, true] {
+        let mut tutte: Vec<Vec<[f64; 3]>> = vec![];
+        for c in COLORI {
+            let mut a = Atomo::new_in(Some(c));
+            a.imposta(zz::estrai_colore(&xf.phi1s, c)); // its share, not renormalised
+            let mut r = vec![];
+            for e in &campi {
+                a.campo_est = if solo_z { [0.0, 0.0, e[2]] } else { *e };
+                a.avanti();
+                r.push(a.posizione());
+            }
+            tutte.push(r);
+        }
+        let somma: Vec<[f64; 3]> = (0..ticks).map(|t| { let mut s = [0.0; 3]; for r in &tutte { for k in 0..3 { s[k] += r[t][k]; } } s }).collect();
+        for k in 0..3 {
+            let a: Vec<f64> = somma.iter().map(|r| r[k]).collect();
+            let b: Vec<f64> = rf.iter().map(|r| r[k]).collect();
+            eprintln!("field {}: Σ colours vs whole cube, component {k}: max |Δ| {:.2e}", if solo_z { "z only" } else { "x,y,z" }, abs_max(&a, &b));
+        }
+        // half lattices: two colours with the same (i+j) parity, or the same (j+k) parity, or the "diagonal" pair
+        for (nome, a, b) in [("00+01 (i+j even)", 0, 1), ("10+11 (i+j odd)", 2, 3), ("00+10 (j+k even)", 0, 2), ("00+11", 0, 3)] {
+            let d: Vec<String> = (0..3).map(|k| {
+                let h: Vec<f64> = (0..ticks).map(|t| 2.0 * (tutte[a][t][k] + tutte[b][t][k])).collect();
+                let w: Vec<f64> = rf.iter().map(|r| r[k]).collect();
+                format!("{:.2e}", abs_max(&h, &w))
+            }).collect();
+            eprintln!("  field {}: half lattice {nome}: max |Δ⟨x⟩|, |Δ⟨y⟩|, |Δ⟨z⟩| vs whole cube {:?}", if solo_z { "z only" } else { "x,y,z" }, d);
+        }
+        for c in 0..4 { for k in 0..3 {
+            let m = tutte[c].iter().fold(0.0f64, |m, r| m.max((4.0 * r[k]).abs()));
+            let d: f64 = (0..ticks).map(|t| (tutte[c][t][k] - tutte[0][t][k]).abs() * 4.0).fold(0.0, f64::max);
+            eprintln!("  field {}: colour {:?} comp {k}: max |4⟨·⟩| {m:.3e}, max |Δ vs 00| {d:.3e}", if solo_z { "z only" } else { "x,y,z" }, COLORI[c]);
+        }}
+    }
+}

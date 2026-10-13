@@ -56,11 +56,24 @@ pub const H: usize = N / 2;
 /// The colour of the Laboratorio (default after the exam of docs/SOTTORETICOLO.md): i ≡ j ≡ k (mod 2). It sees the
 /// nucleus along the (1,1,1) diagonal: its nearest sites are (23,23,23) and (24,24,24).
 pub const COLORE_LAB: [u8; 2] = [0, 0];
-/// Whether the Laboratorio runs one colour (true, default if the exam passed) or the whole cube. The environment
-/// variable ATOMO_RETICOLO=pieno forces the whole cube (for checking).
+/// Whether the Laboratorio runs one colour or the whole cube by default. OFF: the exam of docs/SOTTORETICOLO.md
+/// found that one colour alone is ANISOTROPIC (a z field also moves it along x and y by 5 % and 14 % of ⟨z⟩; the 4
+/// colours cancel each other), so the coupled Laboratorio changes by 0.4 % in the dipole (E2 FAIL). The one-colour
+/// rule itself is exact (E1). Overrides: RETICOLO (set by `--reticolo colore|pieno` or `--stati colore`) or the
+/// environment variable ATOMO_RETICOLO=colore|pieno.
 pub const SOTTORETICOLO: bool = false;
+/// 0: default; 1: one colour; 2: whole cube.
+pub static RETICOLO: std::sync::atomic::AtomicU8 = std::sync::atomic::AtomicU8::new(0);
 pub fn colore_lab() -> Colore {
-    if !SOTTORETICOLO || std::env::var("ATOMO_RETICOLO").map(|v| v == "pieno").unwrap_or(false) { None } else { Some(COLORE_LAB) }
+    let env = std::env::var("ATOMO_RETICOLO").unwrap_or_default();
+    let uno = match (RETICOLO.load(std::sync::atomic::Ordering::Relaxed), env.as_str()) {
+        (1, _) => true,
+        (2, _) => false,
+        (_, "colore") => true,
+        (_, "pieno") => false,
+        _ => SOTTORETICOLO,
+    };
+    if uno { Some(COLORE_LAB) } else { None }
 }
 pub fn n_siti(col: Colore) -> usize { if col.is_some() { N * N * N / 4 } else { N * N * N } }
 #[inline]
@@ -90,10 +103,12 @@ pub fn indice(c: [usize; 3], col: Colore) -> Option<usize> {
 #[inline]
 fn gira(l: [u8; 2], j: usize) -> [u8; 2] { match j { 0 => [l[0] ^ 1, l[1]], 1 => [l[0] ^ 1, l[1] ^ 1], _ => [l[0], l[1] ^ 1] } }
 /// A whole-cube wave restricted to one colour (compact storage), not renormalised.
+#[allow(dead_code)]
 pub fn estrai_colore(full: &[[C; 4]], col: [u8; 2]) -> Vec<[C; 4]> {
     (0..N * N * N / 4).map(|s| full[indice(decodifica(s, col), None).unwrap()]).collect()
 }
 /// A one-colour wave put back on the whole cube (zero on the other colours).
+#[allow(dead_code)]
 pub fn espandi_colore(v: &[[C; 4]], col: [u8; 2]) -> Vec<[C; 4]> {
     let mut out = vec![[C::ZERO; 4]; N * N * N];
     for (s, p) in v.iter().enumerate() { out[indice(decodifica(s, col), None).unwrap()] = *p; }
@@ -137,11 +152,13 @@ pub fn x_of(i: usize) -> f64 { (i as f64 - N as f64 / 2.0 + 0.5) * A }
 impl Atomo {
     /// The atom in its ground state: the 1s (m = +½) wave of the radial form of the same rule (same a,
     /// same Zα), put on the cubic lattice.
+    #[allow(dead_code)]
     pub fn new() -> Self { Self::con_stato(-1, 1) }
     /// The same on one colour (`None`: the whole cube).
     pub fn new_in(col: Colore) -> Self { Self::con_stato_in(-1, 1, col) }
 
     /// The atom started in level (κ, n) of the radial rule (κ = −1: s½; κ = +1: p½), m = +½.
+    #[allow(dead_code)]
     pub fn con_stato(kappa: i32, nn: u32) -> Self { Self::con_stato_in(kappa, nn, None) }
 
     /// The same, on one colour (the radial wave restricted to its sites and renormalised) or on the whole cube.

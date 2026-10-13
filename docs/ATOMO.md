@@ -107,6 +107,12 @@ Tolto dal laboratorio in questa versione (resta nella storia di git, commit `a84
 * **La luce che esce**: gusci di palline con la direzione sin²θ e la luminosità del dipolo dell'onda stessa al
   tempo ritardato.
 * **Indietro nel tempo esatto**: 60 tick avanti con l'impulso e 60 indietro: |Δψ|² = 1,5·10⁻²⁷.
+* **Un colore del cubo (13/10/2026, `docs/SOTTORETICOLO.md`).** Il cubo sono 4 reticoli che non si scambiano niente
+  ("colori"): `Atomo::new_in(Some(c))` / `Esperimento::nuovo(600, Some(c))` ne calcolano uno solo, esatto come algoritmo
+  (4·10⁻¹⁵ contro il cubo intero con lo stesso stato), regola **×4,09**, passo con la luce **×1,99**, preparazione ×4,35.
+  **Ma è spento di default**: lo stato del Lab sta su tutti e 4 i colori e un colore da solo è anisotropo (campo lungo z →
+  anche ⟨x⟩ 5 %, ⟨y⟩ 14 %; i 4 si cancellano), il Lab accoppiato cambierebbe dello 0,44 % nel dipolo (E2 FAIL). Si accende
+  con `--reticolo colore` (o `--stati colore`, `ATOMO_RETICOLO=colore`). Per livelli e spettri è identico (ω₁ₛ a 10⁻¹⁶).
 
 ### 3.2 Il nucleo: il protone come nodo che gira e respira
 

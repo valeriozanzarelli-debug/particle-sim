@@ -270,6 +270,13 @@ fn main() {
     if let Some(p) = arg("--polar") {
         par.polar = match p.as_str() { "h" => Polar::Orizzontale, "v" => Polar::Verticale, "c-" => Polar::CircolareMeno, _ => Polar::CircolarePiu };
     }
+    // the atom on one colour of the cube (docs/SOTTORETICOLO.md: 4× less work, but one colour alone is anisotropic):
+    // `--reticolo colore|pieno`, or `--stati colore` (the name the bridge already accepts)
+    match (arg("--reticolo").as_deref(), arg("--stati").as_deref()) {
+        (Some("colore"), _) | (None, Some("colore")) => zz::RETICOLO.store(1, std::sync::atomic::Ordering::Relaxed),
+        (Some("pieno"), _) => zz::RETICOLO.store(2, std::sync::atomic::Ordering::Relaxed),
+        _ => {}
+    }
     let mut lab = Lab::new(par);
     if let Some(v) = arg("--stati") { if let Some(s) = orbitali::scelta_da(&v) { lab.orb_scelta = s; } }
     if let Some(v) = arg("--lambda-m").and_then(|v| v.parse().ok()) { lab.lambda_m = v; }

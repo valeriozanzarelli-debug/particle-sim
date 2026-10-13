@@ -1,0 +1,2 @@
+{"azione":"foto","args":{"scena":"atomo","frames":600,"pannello":true,"stati":"colore"},
+ "nota":"SOTTORETICOLO: Laboratorio Atomo su UN colore del cubo (--stati colore). Leggere ms/tick nel log; confrontare con 2026-10-13_foto_sottoreticolo_pieno (cubo intero, stesso commit; prima ~42 ms/tick)"}
