@@ -51,7 +51,9 @@ la luce classica non fa?
    quello che il calcolo prevede: il Wigner troncato "ibrido" parte a **0,48 A** (previsto 0,5) e **pompa lo stato
    fondamentale a 0,34** (previsto 0,29): non va bene per noi. **T1–T4 PASS.**
 
-**Conteggio (21 prove pre-registrate):** **11 PASS, 6 FAIL, 2 informative, 2 non eseguite** (tabella §5). Parametri fisici nuovi: **0**.
+**Fase 2 (§11, pre-registrazione v4):** con il nucleo imparato di NUCLEO_1S e livelli esatti sul cubo intero E1 (rapporto e σ⁻) e R1 **passano** (E4a/b/c/s, R4 0,997, R4b); il ritardo dagli stati della regola dà **+0,89 %** da Dirac completo (N2); nel Laboratorio con l'1s pulito il battito è sparito (L1b 0,0009). 8 PASS, 1 FAIL (S4, stesso difetto di progetto di S1).
+
+**Conteggio fase 1 (21 prove pre-registrate):** **11 PASS, 6 FAIL, 2 informative, 2 non eseguite** (tabella §5). Parametri fisici nuovi: **0**.
 
 ---
 
