@@ -1,0 +1,68 @@
+warning: constant `N_TRACCIANTI` is never used
+  --> src\atomo\fotdisegno.rs:29:11
+   |
+29 | pub const N_TRACCIANTI: usize = 32_000;
+   |           ^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: method `nome` is never used
+   --> src\atomo\zz.rs:158:12
+    |
+157 | impl Nucleo {
+    | ----------- method in this implementation
+158 |     pub fn nome(self) -> &'static str { match self { Nucleo::Nudo => "nudo", Nucleo::Imparato => "imparato (s0 0.554593, s1 1.00354...
+    |            ^^^^
+
+warning: function `dipolo_tra` is never used
+   --> src\atomo\zz.rs:722:8
+    |
+722 | pub fn dipolo_tra(a: &[[C; 4]], b: &[[C; 4]], col: Colore) -> [C; 3] {
+    |        ^^^^^^^^^^
+
+warning: struct `LivelloDipolo` is never constructed
+   --> src\atomo\zz.rs:732:12
+    |
+732 | pub struct LivelloDipolo { pub lv: Livello3D, pub d: [C; 3] }
+    |            ^^^^^^^^^^^^^
+
+warning: method `d2` is never used
+   --> src\atomo\zz.rs:734:12
+    |
+733 | impl LivelloDipolo {
+    | ------------------ method in this implementation
+734 |     pub fn d2(&self) -> f64 { self.d.iter().map(|c| c.norm2()).sum() }
+    |            ^^
+
+warning: method `livelli_di_dipolo` is never used
+   --> src\atomo\zz.rs:742:12
+    |
+737 | impl Atomo {
+    | ---------- method in this implementation
+...
+742 |     pub fn livelli_di_dipolo(&self, phi: &[[C; 4]], asse: usize, lo: f64, hi: f64, dw: f64, ticks: usize, tol: f64) -> Vec<LivelloD...
+    |            ^^^^^^^^^^^^^^^^^
+
+warning: method `avanti_flusso` is never used
+   --> src\atomo\zz.rs:788:12
+    |
+785 | impl Atomo {
+    | ---------- method in this implementation
+...
+788 |     pub fn avanti_flusso(&mut self) -> [Vec<f64>; 3] {
+    |            ^^^^^^^^^^^^^
+
+warning: function `vphi_rapporto` is never used
+   --> src\atomo\zz.rs:811:8
+    |
+811 | pub fn vphi_rapporto(at: &mut Atomo) -> f64 {
+    |        ^^^^^^^^^^^^^
+
+warning: function `peso_valle_zero` is never used
+   --> src\atomo\zz.rs:877:8
+    |
+877 | pub fn peso_valle_zero(psi: &[[C; 4]]) -> f64 {
+    |        ^^^^^^^^^^^^^^^
+
+warning: `particle_sim` (bin "atomo") generated 9 warnings
+    Finished `dev` profile [optimized + debuginfo] target(s) in 1.17s
