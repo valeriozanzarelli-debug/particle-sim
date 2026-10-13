@@ -922,30 +922,56 @@ lineare: la scelta della retta nella pre-registrazione era sbagliata. Lo dico ma
 
 ---
 
-## 15. Fase 5: la legge a^{2γ} messa alla prova su a = 0,2 (IN PAUSA)
+## 15. Fase 5: la legge a^{2γ} regge su a = 0,2
 
 Pre-registrazione: `lab/surf_f5_prereg.py` → `lab/out/surf_f5_prereg.json` (commit e1c8f3b, prima della corsa).
-La legge d(a) = d0 + c·a^{2γ}, con 2γ = 1,798, era stata trovata dopo la fase 4 (D1). Qui è scritta prima e messa
-alla prova su un reticolo mai usato: a = 0,2 (120³). In un test di 6 tick con 200 000 surfisti la memoria è
-arrivata al massimo a 1,3 GB, quindi ci sta (limite 2,5 GB). Un tick costa circa 1 s.
+Corsa: `lab/surf_f4.py prep 0.2` e `run 0.2 600` (driver `lab/surf_f5_drive.sh`, a pezzi da 590 s con checkpoint;
+interrotta una volta per il limite di 2 agenti e ripresa dal checkpoint). Giudizio: `lab/surf_f5_judge.py` →
+`lab/out/surf_f5_results.json`, `lab/out/surf_f5_figure.png`. **Esiti: PASS 4, FAIL 0.**
 
-**Previsione scritta prima:** dal fit dei 4 punti della fase 4 (d0 = 0,0058, c = 0,4412), a a = 0,2 manca
-**d = 0,0302**, cioè i surfisti dovrebbero girare a **0,970 Zα c sinθ**.
+![fase 5](../lab/out/surf_f5_figure.png)
 
-**Esami:**
-- H1: |d misurato − 0,0302| ≤ 0,005;
-- H2: limite del fit a 5 punti |d0| ≤ 1 %;
-- H3: R² ≥ 0,999;
-- H4: corsa sana (valle 0 ≥ 0,99, ⟨Σz⟩ ≥ 0,9, fedeltà ≥ 0,9, 3 finestre in [0,75; 1,25], |z| ≤ 4).
+### 15.1 In breve
 
-**Scelta dichiarata:** per stare nei tempi la corsa dura 600 λ_C/c (3000 tick) invece di 2000, con le finestre a 250,
-500 e una alla fine. La velocità v(0,2) si prende dalle finestre a 250 e 500, come nella fase 4.
+La legge d(a) = d0 + c·a^{2γ} (2γ = 1,798, la legge del contatto di NUCLEO_1S) era stata trovata **dopo** la fase 4
+(D1). Qui l'ho scritta **prima**, insieme alla previsione per un reticolo mai usato: a = 0,2, 120³. Memoria
+massima misurata 1,3 GB su 2,5 permessi, quindi niente ripiego su 0,22. La previsione era che i surfisti
+girassero a **0,970** Zα c sinθ. **Misurato: 0,9706 / 0,9707 / 0,9706** (finestre a 250, 500 e 595 λ_C/c).
 
-**Stato (pausa per il limite di 2 agenti alla volta):** la preparazione a = 0,2 è a metà della prima passata
-(spettro). Il checkpoint è in `lab/out/surf_ckpt/f4_prep_0.20.pkl` (non nel repo). Mancano circa 3 ore di
-preparazione e circa 1 ora di corsa. Nessun risultato ancora: niente esiti.
+| esame | cosa | misura | soglia | esito |
+|---|---|---|---|---|
+| H1 | previsione per a = 0,2 | manca 0,0293 contro 0,0302 previsto (differenza −0,0008) | ± 0,005 | **PASS** |
+| H2 | limite continuo, fit a 5 punti d0 + c·a^{2γ} | d0 = **+0,0053** (cioè 0,5 %) | \|d0\| ≤ 0,01 | **PASS** |
+| H3 | la legge descrive i dati | R² = 0,99993 | ≥ 0,999 | **PASS** |
+| H4 | corsa sana | valle 0 = 1,000, ⟨Σz⟩ 0,935; fedeltà ≥ 0,9997; 3 finestre in [0,75; 1,25]; \|z\| ≤ 2,4 | | **PASS** |
 
-**Per riprendere** (riparte dal checkpoint; poi il giudizio e la figura):
+Per confronto, senza giudizio: con d0 + c·a² il limite è +1,1 % (R² 0,9992); con la retta −4,4 % (R² 0,992).
+La potenza del contatto è la migliore e la sola che sia stata pre-registrata.
 
-    lab/surf_f5_drive.sh > lab/out/surf_f5.log 2>&1      # prep 0.2 a pezzi da 590 s, poi run 0.2 600
-    python lab/surf_f5_judge.py                           # -> lab/out/surf_f5_results.json, surf_f5_figure.png
+**Scelta dichiarata (nella pre-registrazione):** corsa di 600 λ_C/c invece di 2000, per il tempo (circa 1 s per tick
+a 120³). A a = 0,2 la rotazione è ferma: 0,9706 dall'inizio alla fine, fedeltà 0,9997. Quindi accorciare non ha
+cambiato nulla.
+
+### 15.2 Cosa vuol dire
+
+* **Validazione, adesso pre-registrata.** Il giro dei surfisti esatti dell'1s (stato nella valle k = 0, nucleo
+  trasferito) tende a Bohm–Dirac quando la cella si rimpicciolisce. La parte che manca va come a^{2γ}, e il limite
+  continuo è a **0,5 %** da Zα c sinθ.
+* Quello 0,5 % che resta può essere l'errore della regola lontano dal nucleo. NUCLEO_1S dice che il livello di
+  questo nucleo sta sulla coppia U, a −0,4 … −0,8 % da Dirac. Può anche essere la parte "quasi stazionaria"
+  dello stato. Non l'ho separato.
+* La stessa potenza a^{2γ} governa sia l'errore del legame (NUCLEO_1S) sia quello della corrente (qui). È un
+  indizio che "tutto ciò che sbaglia vicino al nucleo va come a^{2γ}". È una regola utile per l'agglomeratore, ma
+  vista su due grandezze sole.
+
+### 15.3 Debiti e parametri
+
+* Parametri nuovi: **0** (la legge non ha manopole: d0 e c sono un fit, e il fit è stato messo alla prova con una
+  previsione fatta prima, H1).
+* Chiuso: G6 della fase 4 (legge sbagliata nella pre-registrazione). La legge giusta, pre-registrata, passa.
+* Aperto: lo 0,5 % residuo non è spiegato; lo stato resta quasi stazionario e non stazionario (§13.5).
+
+### 15.4 Come rifare
+
+    lab/surf_f5_drive.sh > lab/out/surf_f5.log 2>&1      # ~4 h a pezzi da 590 s (riparte dai checkpoint)
+    python lab/surf_f5_judge.py
