@@ -1,0 +1,7 @@
+{
+ "A1": {
+  "when": "after seeing E3 partial numbers (slice-0 anisotropy), BEFORE running fw1vuoto_slice.py",
+  "what": "E3g as registered compares pit(0) along x and z at the stroboscopic slice 0; there the frozen rule ALSO has x != z (Debiti V2f: the two slices swap x and z), so a PASS says nothing about the symmetry breaking of FW1. Added run: the same pit(0) at the other slice (period started with tick 1) for F0 + projector and FW1 whole sea at theta 0.025, 0.0125; the slice average must give x = z for F0 (control) and is predicted x != z for FW1. Also the slice-averaged pit_e of the sea-energy method (already in the plan) answers the same question. E3g remains in the table as registered (trivial PASS, declared).",
+  "thresholds": "F0 slice average |z - x| <= 1e-6 L (control); FW1 slice average |z - x| > 1e-4 L ('x <-> z broken')."
+ }
+}
