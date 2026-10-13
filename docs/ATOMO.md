@@ -311,6 +311,63 @@ tempo ha una trama del reticolo (celle quasi vuote ripetute ogni 4 celle = 2 λ_
 dati veri, non nella compressione; per le palline conviene nascere con jitter dentro la cella (come fa
 `Atomo::nascite`) o smussare su ~2 λ_C, dichiarandolo.
 
+### 3.7 L'accoppiamento giusto, il nucleo imparato e la partenza nella valle k = 0 (14 ottobre 2026)
+
+Studio `emissione_lab` (test in `src/atomo/test_emissione.rs`). Pre-registrazione `lab/out/emissione_lab_prereg.json`
+(commit d8b42de, prima delle corse), emendamenti `lab/out/emissione_lab_amend1.json` (71f4913) e `_amend2.json` (f3f8292),
+ognuno scritto prima delle sue corse; risultati `lab/out/emissione_lab_results.json`. Diagnosi e cura da
+`docs/EMISSIONE.md` §3.2 e §7 (l'altro thread, in Python); nucleo da `docs/NUCLEO_1S.md` §13–14; valle k = 0 da
+`docs/SURFISTI_ESATTI.md` §13.
+
+**Il difetto (come a un ventenne).** L'atomo leggeva il campo della luce *prima* del tick della luce e ci versava la sua
+corrente *dopo*, nella stessa nuvoletta gaussiana. Il campo che l'elettrone ha appena fatto (il suo campo vicino, grande e
+quasi tutto non luce) gli tornava addosso mezzo tick in ritardo: un ritardo su una molla è un attrito finto. **Cura**
+(`Accoppiamento::CENTRATO`): (1) l'atomo vede la media fra prima e dopo il tick (predittore della corrente + correzione di
+fase); (2) si versa solo la parte **trasversa** della corrente, cioè la luce vera: la regola della luce sa da sola qual è
+la parte longitudinale (Coulomb), è l'asse della sua rotazione a due tick n(k); il proiettore 1 − n nᵀ si applica una volta
+con una FFT 128³ (tabella intera: la coda longitudinale va come 1/r³, non si tronca).
+
+**Prima / dopo, stesso stato** ((1s + 2p3/2)/√2 con livelli esatti, K = 10, σ = 2 celle, T = 2000; formula
+A = (4/3) α ω³ |D|² K² W², D dal dipolo misurato):
+
+| accoppiamento | A misurato / A formula (3 finestre) | luce guadagnata / energia persa dall'atomo |
+|---|---|---|
+| ritardato (prima) | **1,223** (1,219 / 1,216 / 1,234) | **0,803** |
+| solo centrato (info) | 0,995 | 0,989 |
+| **centrato + trasverso (ora)** | **1,004** (1,003 / 1,004 / 1,006) | **0,968** |
+
+A σ = 2 il difetto vale +22 % (stima a priori +8…17 %; EMISSIONE, σ = 1: ×2,29): il campo proprio scala come σ⁻³.
+
+**Esiti v1** (nucleo nudo): P0 il difetto si vede (1,22 > 1,10) **PASS** · D1 ritmo 1,004 **PASS** · E1 bilancio 0,968 **PASS** ·
+F1 1s fermo con l'accoppiamento acceso (p_exc max 0) **PASS** · L1 riga forte 0,078895 contro 1s→2p3/2 0,079255 (−0,45 %,
+soglia 0,3 %) **FAIL** · L2 seconda riga 0,076414 contro 1s→2p½ 0,076442 (−0,04 %) **PASS** · K1 **carica vera K = 1**:
+ritmo 1,006 della formula, deriva senza luce 3·10⁻¹⁵ (misurabile), bilancio 0,975 **PASS**. Con l'accoppiamento vecchio
+(info) tutte e due le righe escono spostate di +0,27 % (spostamento reattivo del campo ritardato).
+**Regola del default cambiata dopo i risultati (dichiarato, emendamento 1)**: L1 misura i livelli 2p3/2 del reticolo nudo,
+non il tempo; il default dell'accoppiamento si decide con D1/E1/F1/K1 → `ACCOPPIAMENTO = CENTRATO`. L1 resta FAIL.
+
+**Nucleo imparato** (`zz::Nucleo::Imparato`, 2 numeri presi da NUCLEO_1S, debito) **con 1s liscio** (emendamento 1):
+scacchiera di periodo 4 /450 (**NC PASS**), ma l'1s liscio non è un livello (split residuo ~2·10⁻⁴): p_exc senza luce 0,020
+(**NF1 FAIL**), ritmo 0,72 e bilancio 1,32 (**ND1, NE1 FAIL**), righe con le forze scambiate (**NL1, NL2 FAIL**). Non adottato.
+
+**Nucleo imparato + partenza nella valle k = 0** (emendamento 2, `zz::proietta_valle_zero`): fedeltà minima 0,965 e peso in
+k = 0 ≥ 0,965 in 4000 tick (**VF1 PASS**; la soglia stretta 10⁻³ di F1 no: 0,035, previsto); flusso azimutale esatto dei
+link v_φ/(Zα sinθ) = **0,878 / 0,872 / 0,865 / 0,855 / 0,834** a t = 0…4000 (SURFISTI: 0,877 … 0,834) (**VJ PASS**: le palline
+girano); scacchiera C4 = 1,1·10⁻⁵ contro 0,90 del vecchio 1s (**VC PASS**). Ritmo, bilancio e righe **FAIL** come con l'1s
+liscio (VD1 0,72, VE1 1,32, VL1/VL2): con questo 1s **p_exc non è una misura pulita** dell'eccitazione (contiene la deriva
+dell'1s). Per la regola dell'emendamento 2 (gli esami di ciò che si vede) **nucleo imparato + valle k = 0 + CENTRATO sono
+il default** del Laboratorio, della scena dal vivo e dell'esportazione.
+
+**Esportazione rigenerata** (seconda volta il 14/10, `manifest.json` → `versioni`, `scacchiera_C4`): ω₂₁ = 0,07590;
+p_exc sale a **0,127 a t = 208**, poi 0,108 (448), 0,094 (800), 0,098 (1200), 0,100 (1590): la discesa vera (luce) si somma
+alla deriva lenta dell'1s, quindi da t ≈ 800 p_exc non scende più. La misura pulita dell'emissione è l'energia della luce:
+da t = 450 a 1600 la luce guadagna 2,06·10⁻³ mc² (vecchia: 2,22·10⁻³, gonfiata dall'attrito finto). Scacchiera: C4 =
+1,1·10⁻⁵ / 1,9·10⁻³ / 6,5·10⁻³ (fotogrammi 0, 100, 200) contro 0,90 / 0,79 / 0,84 prima: **sparita**.
+
+**Debiti**: predittore lineare della corrente; tabella trasversa 75 MB in RAM; nucleo imparato (2 numeri, Z = 60, a = 0,5);
+proiezione k = 0 fatta a mano una volta; il gruppo 1s largo ~2·10⁻⁴ (deriva 0,035 in 4000 tick); due test del fotone
+(`fotone_f2_elicita`, `fotone_divergenza_come_la_regola`) falliscono su master anche senza queste modifiche (non miei, segnalati).
+
 ## 4. Il fotone libero: pre-registrazione (scritta prima delle corse) e risultati
 
 Corse di sviluppo già viste (dichiarate): nel visore, qualità 8 celle per λ, w0 = λ, circolare +: velocità del

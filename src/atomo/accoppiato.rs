@@ -63,6 +63,9 @@ impl Accoppiamento {
 /// lab/out/emissione_lab_amend1.json, changed after the results and declared).
 pub const ACCOPPIAMENTO: Accoppiamento = Accoppiamento::CENTRATO;
 
+/// The 1s of `Esperimento::new` / `nuovo` kept in the electron's valley k = 0 (whole cube only; docs/ATOMO.md §3.7).
+pub const VALLE_ZERO: bool = true;
+
 pub fn alpha() -> f64 { crate::zz::ALPHA }
 /// The coupling charge e = K √(4πα) (Heaviside–Lorentz, ħ = c = m = 1).
 pub fn e_eff() -> f64 { K_ACC * (4.0 * std::f64::consts::PI * alpha()).sqrt() }
@@ -277,7 +280,7 @@ impl Esperimento {
 
     /// The same on one colour of the cube (`Some`, docs/SOTTORETICOLO.md: 4 times less work, the colours never
     /// exchange amplitude) or on the whole cube (`None`).
-    pub fn nuovo(ascolto: usize, col: crate::zz::Colore) -> Self { Self::nuovo_nucleo(ascolto, col, crate::zz::NUCLEO) }
+    pub fn nuovo(ascolto: usize, col: crate::zz::Colore) -> Self { Self::nuovo_prep(ascolto, col, crate::zz::NUCLEO, VALLE_ZERO && col.is_none()) }
 
     /// The same with the nucleus `nu` (docs/NUCLEO_1S.md §13–14).
     pub fn nuovo_nucleo(ascolto: usize, col: crate::zz::Colore, nu: crate::zz::Nucleo) -> Self { Self::nuovo_prep(ascolto, col, nu, false) }

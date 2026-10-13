@@ -530,8 +530,8 @@ fn accoppiato_esporta() {
   "tick_atomo": {a}, "tick_luce": {bl}, "tick_atomo_per_tick_luce": {sub},
   "tick_per_fotogramma": {ogni}, "dt_fotogramma": {dtf}, "fotogrammi": {fotogrammi}, "tick_totali": {ticks},
   "t_sparo": {t_sparo}, "omega_21": {w21}, "omega_1s": {o1}, "omega_2p": {o2}, "periodo_luce": {per},
-  "stato_1s": "1s ESATTO della regola 3-D (Atomo::uno_s_esatto, diagonalizzazione del filtro, docs/BATTIMENTO_1S.md): un livello del multipletto 1s del reticolo cubico (4 valli mescolate dal nucleo), fermo senza luce a 1e-16. Rigenerato il 14/10/2026; i dati del 13/10 usavano l'1s ascoltato (miscuglio di 3 livelli: p_exc batteva 0.2-0.88 con periodo 476 anche senza luce)",
-  "accoppiamento": "{accn}", "accoppiamento_nota": "centrato+trasverso = campo centrato 1/2(U F_n + F_n+1) con predittore/correttore e deposito trasverso P_perp(k) dall'asse di Bloch della luce (docs/ATOMO.md par. 3.7, docs/EMISSIONE.md par. 3.2); ritardato = quello di prima (smorzamento finto in piu')",
+  "stato_1s": "dal 14/10/2026 (seconda rigenerazione): nucleo imparato (NUCLEO_1S par. 13-14: potenziale x0.554593 sugli 8 siti a sqrt3/2 a, x1.003549 sui 24 a sqrt11/2 a) + 1s liscio (stato radiale proiettato sul gruppo dei 4 livelli quasi degeneri, Atomo::uno_s_liscio) + tenuto nella sola valle k = 0 (zz::proietta_valle_zero, SURFISTI_ESATTI par. 13). Niente scacchiera (C4 1e-5 contro 0.90 dell'1s esatto nudo), corrente che gira (v_phi/(Z alpha sin theta) 0.88 -> 0.83 in 4000 tick), ma NON e' un livello esatto: senza luce la fedelta' scende a 0.965 in 4000 tick, quindi p_exc = 1 - |<1s|psi>|^2 contiene anche questa deriva (fino a ~0.035) oltre all'eccitazione vera (docs/ATOMO.md par. 3.7). Prima: 1s esatto nudo (0.89960, 13/10 sera) e 1s ascoltato (13/10 mattina)",
+  "nucleo": "{nuc}", "partenza_1s_valle_k0": {vk0}, "accoppiamento": "{accn}", "accoppiamento_nota": "centrato+trasverso = campo centrato 1/2(U F_n + F_n+1) con predittore/correttore e deposito trasverso P_perp(k) dall'asse di Bloch della luce (docs/ATOMO.md par. 3.7, docs/EMISSIONE.md par. 3.2); ritardato = quello di prima (smorzamento finto in piu')",
   "e_eff": {ee}, "K_ACC": {k}, "E0_ACC": {e0}, "alpha": {al}, "Z": {z},
   "griglia_atomo": {{"n": {n}, "passo": {a}, "coordinate": "x_i = (i - {n}/2 + 0.5) * {a} lambda_C, i = 0..{n}-1 (stesse per y, z); centro = nucleo = origine"}},
   "griglia_luce_originale": {{"n": {nl}, "passo": {bl}, "coordinate": "x_i = (i - {nl}/2) * {bl} lambda_C; la cella {h} e' l'origine (nucleo); spugna assorbente {sp} celle ai bordi"}},
@@ -554,12 +554,13 @@ fn accoppiato_esporta() {
     "forma di dipolo e E mediato su una gaussiana sigma = 2 celle di luce intorno all'atomo (riduce la potenza irradiata di W^2)",
     "tempo dell'accoppiamento: con 'ritardato' l'atomo legge il campo prima del tick di luce e deposita dopo (attrito finto); con 'centrato+trasverso' il predittore della corrente e' lineare (errore residuo misurato in docs/ATOMO.md par. 3.7)",
     "ione Z = 60 invece dell'idrogeno (la cella deve essere << raggio di Bohr)",
-    "l'1s del reticolo cubico e' un multipletto di 4 livelli (0.8404, 0.8863, 0.8993, 0.8996): lo stato usato (0.89960) e' un ibrido delle 4 valli del cammino, con una trama di densita' di periodo 4 celle (2 lambda_C): smussare su ~2 lambda_C per le palline, dichiarandolo"
+    "nucleo imparato: 2 numeri presi da docs/NUCLEO_1S.md (imparati con un criterio interno, validi per Z = 60, a = 0.5); chiude le 4 valli (split /98) ma il gruppo 1s resta largo ~2e-4: lo stato di partenza deriva piano (fedelta' 0.965 in 4000 tick) e p_exc non e' una misura pulita dell'eccitazione (esami VD1/VE1/VL1/VL2 FAIL, docs/ATOMO.md par. 3.7)",
+    "partenza in valle k = 0: proiezione fatta a mano una volta (2 FFT) sullo stato di partenza"
   ],
   "comando": "ESPORTA_DIR=<dir> TICKS={ticks} OGNI={ogni} cargo test --bin atomo accoppiato_esporta -- --ignored --nocapture"
 }}
 "#, z = crate::zz::Z_ION, lc = crate::zz::LAMBDA_C_M, tu = crate::zz::T_UNIT_S, mc2 = crate::zz::MC2_KEV, a = a, bl = B_LUCE, sub = SUB,
-        dtf = ogni as f64 * a, per = std::f64::consts::TAU / w21, o1 = x.omega1s, o2 = x.omega2p, k = K_ACC, e0 = crate::zzscena::E0_ACC, al = alpha(), accn = x.acc.nome(),
+        dtf = ogni as f64 * a, per = std::f64::consts::TAU / w21, o1 = x.omega1s, o2 = x.omega2p, k = K_ACC, e0 = crate::zzscena::E0_ACC, al = alpha(), accn = x.acc.nome(), nuc = crate::zz::NUCLEO.nome(), vk0 = VALLE_ZERO,
         h = nl / 2, sp = SPUGNA, bd = 2.0 * B_LUCE, ia = (nl / 2) as f64 / 2.0 - 0.25, la = n as f64 * a, ll = nl as f64 * B_LUCE,
         am = -(n as f64) * a / 2.0, ap = n as f64 * a / 2.0, so = SONDA, sod = SONDA as f64 * B_LUCE);
     std::fs::write(format!("{dir}/manifest.json"), man).unwrap();

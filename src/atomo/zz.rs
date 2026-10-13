@@ -166,7 +166,7 @@ impl Nucleo {
     }
 }
 /// The nucleus of every new `Atomo` (Laboratorio, export).
-pub const NUCLEO: Nucleo = Nucleo::Nudo;
+pub const NUCLEO: Nucleo = Nucleo::Imparato;
 
 /// Coulomb potential at a site, with the nucleus `nu`.
 pub fn potenziale(x: [f64; 3], nu: Nucleo) -> f64 {
