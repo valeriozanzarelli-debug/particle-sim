@@ -20,25 +20,25 @@ fig, ax = plt.subplots(2, 2, figsize=(13, 9.5))
 
 # (a)
 a = ax[0, 0]
-for div, mk in ((4, "o"), (2, "s")):
+for div, mk, ref in ((2, "s", None), (4, "o", None)):
     Ls = sorted({box[k]["L_a0"] for k in box if k.startswith(f"d{div}_")})
     r = lambda L, tw: box[f"d{div}_N{int(L * div)}_tw{tw}"]["2s"] / (-RY / 4) - 1
     E0 = np.array([r(L, "000") for L in Ls])
     E3 = np.array([r(L, "111") for L in Ls])
-    ref = r(max(Ls), "000") if div == 2 else 0.5 * (r(32, "000") + r(32, "111"))
-    lab = f"celle a0/{div}"
-    a.plot(Ls, 100 * (E0 - ref), mk + "-", color="C3", label=f"periodico ({lab})")
-    a.plot(Ls, 100 * (E3 - ref), mk + "-", color="C0", label=f"antiperiodico ({lab})")
-    a.plot(Ls, 100 * (0.5 * (E0 + E3) - ref), mk + "-", color="k", label=f"media ({lab})")
-if "K2s_band_eV" in V["numbers"]:
-    E4 = np.array(V["numbers"]["K2s_band_eV"])
-    Ea = 0.5 * (E4[0] + E4[3])
-    a.plot([32] * 4, 100 * (E4 / Ea - 1), "D", color="C2", ms=8, label="regola imparata K, a0/8 (4 torsioni)")
-a.axhline(0, color="gray", lw=0.5)
-a.set_yscale("symlog", linthresh=1e-3)
+    if div == 4:            # reference: the contact runs (a0/4, L = 48 a0, pair average)
+        Ls = Ls + [48.0]
+        E0 = np.append(E0, ct["S2s_000"]["E_rel"]); E3 = np.append(E3, ct["S2s_111"]["E_rel"])
+    Lr = np.array(Ls)
+    refv = 0.5 * (E0[-1] + E3[-1])
+    m = Lr < Lr.max()
+    a.plot(Lr[m], 100 * np.abs(E0[m] - refv), mk + "-", color="C3", label=f"scatola periodica (celle a0/{div})")
+    a.plot(Lr[m], 100 * np.abs(0.5 * (E0[m] + E3[m]) - refv), mk + "--", color="k", label=f"media periodico + antiperiodico (a0/{div})")
+if "box_2s_K" in V["numbers"]:
+    a.plot([32], [100 * V["numbers"]["box_2s_K"]], "D", color="C2", ms=9, label="regola imparata K, a0/8: periodico − media")
+a.set_yscale("log")
 a.set_xlabel("lato della scatola L (a0)")
-a.set_ylabel("2s: errore della scatola (%)")
-a.set_title("(a) la scatola = un cristallo di immagini dell'atomo")
+a.set_ylabel("|errore della scatola| sul 2s (%)")
+a.set_title("(a) la scatola = un cristallo di immagini; i bordi ritorti la tolgono")
 a.legend(fontsize=7)
 
 # (b)
@@ -70,14 +70,14 @@ for div in (2, 4, 8):
 rows = np.array(rows)
 c.plot(hs, 100 * (1 - rows[:, 0]), "o-", color="C0", label="1s: contatto perso dalla cella |ψ(0)|²")
 c.plot(hs, 100 * (1 - rows[:, 2]), "s-", color="C1", label="1s: ⟨p⁴⟩ perso dalla cella")
-c.plot(hs, 100 * np.abs(1 - rows[:, 1]), "o--", color="C0", label="dopo la coda di Born (|errore|)")
-c.plot(hs, 100 * np.abs(1 - rows[:, 3]), "s--", color="C1", label="dopo la coda di Born (|errore|)")
+c.plot(hs, 100 * np.abs(1 - rows[:, 1]), "o--", color="C0", label="|ψ(0)|² dopo la coda di Born (|errore|)")
+c.plot(hs, 100 * np.abs(1 - rows[:, 3]), "s--", color="C1", label="⟨p⁴⟩ dopo la coda di Born (|errore|)")
 for s, mk in (("1s", "^"), ("2s", "v"), ("3s", "D")):
     nm = f"BORN_a4_{s}"
     if nm in V["numbers"]:
         q = V["numbers"][nm]
         c.plot([0.25], [100 * (1 - q["rho_c_ratio"])], mk, color="C2", ms=8)
-        c.plot([0.25], [100 * abs(1 - q["rho_B_ratio"])], mk, color="C2", ms=8, mfc="none", label=f"{s} (cieco per il 3s), L = 48 a0")
+        c.plot([0.25], [100 * abs(1 - q["rho_B_ratio"])], mk, color="C2", ms=8, mfc="none", label=f"{s}, a0/4, L = 48 a0" + (" (cieco)" if s == "3s" else ""))
 c.set_xscale("log"); c.set_yscale("log")
 c.set_xlabel("cella h (a0)")
 c.set_ylabel("%")

@@ -224,5 +224,45 @@ for X in ("T", "K"):
         check(f"F3S_{X}", worst <= 0.05, det)
         check(f"F3Sstrong_{X}", worst <= 0.015, f"worst {100 * worst:.2f} %")
 
+
+# ------------------------------------------------------------------ diagnostics (not exams)
+# (1) first-order cancellation of the cusp truncation between mass-velocity and Darwin (exact Schroedinger states:
+#     MV = -<p^4>/8, D = (pi/2) rho in alpha^4 mc^2 units, 1s: -5/8 + 1/2 = -1/8)
+DC = ld("agg2s_dev_contact.json")
+canc = {}
+for nm, rc, k4 in [(f"a0/{d} (dev)", DC[f"d{d}_N{N}_1s"]["rho_c"], DC[f"d{d}_N{N}_1s"]["k4_c"]) for d, N in ((2, 32), (4, 64), (8, 128))] + \
+        ([("a0/8 (S runs)", avg("S1s", "rho_c_a0"), avg("S1s", "k4_c_a0"))] if have("S1s_000", "S1s_111") else []):
+    h_a0 = 1 / int(nm.split("/")[1].split()[0])
+    MV, D = -k4 / 8, np.pi / 2 * rc
+    rB = bornrho(rc, h_a0); kB = bornk4(k4, rB, h_a0)
+    canc[nm] = dict(MV_ratio=MV / (-5 / 8), D_ratio=D / 0.5, A_plain_err=(MV + D) / (-1 / 8) - 1,
+                    A_born_err=(-kB / 8 + np.pi / 2 * rB) / (-1 / 8) - 1,
+                    MV_tail_term=-8 * np.pi ** 2 * rc * BC["I_coef"] * h_a0, D_tail_term=8 * np.pi ** 2 * rc * BC["I_coef"] * h_a0)
+num["cusp_cancellation_1s"] = canc
+for k, v in canc.items():
+    print(f"  cancellation {k}: MV x {v['MV_ratio']:.4f}, Darwin x {v['D_ratio']:.4f}, sum {100 * v['A_plain_err']:+.2f} %, with Born {100 * v['A_born_err']:+.2f} %")
+# (2) where the aggfull-style F3 error of the s states comes from (1s and 2s at a0/8): band shape at high k, coupling at high q
+for X in ("T", "K"):
+    for s, n, d in (("1s", 1, dV["s1"]), ("2s", 2, dV["s2"])):
+        if not (have(f"{X}{s}_000", f"{X}{s}_111") and PO.get(f"{X}{s}_000")):
+            continue
+        be = 0.5 * (PO[f"{X}{s}_000"]["band_err_eV"] + PO[f"{X}{s}_111"]["band_err_eV"])
+        kd = 0.5 * (PO[f"{X}{s}_000"]["krem_D_eV"] + PO[f"{X}{s}_111"]["krem_D_eV"])
+        rc = avg(f"{X}{s}", "rho_c_a0")
+        Dc = 4 * np.pi * (-GK[512]) * AL ** 4 * rc * MC2
+        Ae = A_ex(n)
+        num[f"F3_split_{X}{s}"] = dict(band_shape=be / Ae, coupling_high_q=(d - Dc) / Ae, contact_plain=(kd + Dc) / Ae - 1,
+                                      total_aggfull_style=(be + kd + d) / Ae - 1)
+        print(f"  F3 split {X}{s}: band shape {100 * be / Ae:+.1f} %, coupling at high q {100 * (d - Dc) / Ae:+.1f} %, "
+              f"contact (exact band, contact Darwin) {100 * ((kd + Dc) / Ae - 1):+.1f} %")
+# (3) 2p alpha^4 shifts with the converged states of this study (aggfull F3P used a |kappa| < 0.8 filter)
+for X in ("K", "T"):
+    if have(f"{X}2p_000", f"{X}2p_111"):
+        kr = avg(f"{X}2p", "kin_remainder_eV")
+        r = {"2p1/2": (kr + dV["p_lo"]) / (dirac(2, 1) + RY / 4) - 1, "2p3/2": (kr + dV["p_hi"]) / (dirac(2, -2) + RY / 4) - 1,
+             "MV": kr / (-(4 * 2 / 1.5 - 3) * AL ** 4 * MC2 / (8 * 16)) - 1}
+        num[f"F3P_diag_{X}"] = r
+        print(f"  2p alpha^4 ({X}, no filter): " + ", ".join(f"{k} {100 * v:+.1f} %" for k, v in r.items()))
+
 json.dump(out, open(os.path.join(OUT, "agg2s_verdict.json"), "w"), indent=1, default=float)
 print(f"\n{sum(v['passed'] for v in ex.values())} PASS / {sum(not v['passed'] for v in ex.values())} FAIL")
