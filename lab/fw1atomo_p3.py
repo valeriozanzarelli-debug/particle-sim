@@ -103,8 +103,85 @@ def run(step):
     print("DONE", step, time.time() - T0)
 
 
+def groups_of(lv, wmin_rel=0.05, lo=0.78, hi=0.95, tol=2e-3):
+    ex = [l for l in lv if l["resid"] < 1e-6 and lo <= l["omega"] <= hi]
+    tot = sum(l["w"] for l in ex)
+    ex = sorted([l for l in ex if l["w"] >= wmin_rel * tot], key=lambda l: l["omega"])
+    gr = []
+    for l in ex:
+        if gr and l["omega"] - gr[-1][-1]["omega"] <= tol:
+            gr[-1].append(l)
+        else:
+            gr.append([l])
+    return [{"omega": [round(l["omega"], 5) for l in g], "w_rel": round(sum(l["w"] for l in g) / tot, 4),
+             "Gamma": round(float(np.mean([l["val_Gamma"] for l in g])), 3), "r": round(float(np.mean([l["r_mean"] for l in g])), 2)} for g in gr]
+
+
+def summary():
+    res = {"B_dirac": B_DIRAC, "per_a": {}}
+    fn = os.path.join(RES, "v0.json")
+    if os.path.exists(fn):
+        v0 = json.load(open(fn))
+        res["V0"] = dict(v0, PASS=bool(abs(v0["binding"] - v0["ref_zz_atom3d"]) <= 2e-4))
+    for a in AS:
+        W = zz.RadialWalk(-1, a, 40.0, ZA)
+        om_rad = float(W.eigen(1 - 0.5 * ZA**2 * 1.2)[0])
+        e = {"n": AS[a], "radial_omega": om_rad, "radial_B": 1 - om_rad}
+        for rule in ("FW1", "F0"):
+            for st in ("dirac_0.%s_c0", "dirac_0.%s_c1", "cieca_0.%s_c0"):
+                key = f"ritz_{rule}_{st.split('_')[0]}_{a}_{st.split('_')[-1]}"
+                f = os.path.join(RES, key + ".json")
+                if not os.path.exists(f):
+                    continue
+                d = json.load(open(f))
+                lv = [l for l in d["levels"] if l["resid"] < 1e-6]
+                g = groups_of(lv)
+                r = {"groups": g, "s_per_period": d["s_per_period"]}
+                if lv and st.startswith("dirac"):
+                    m = max(lv, key=lambda l: l["w"])
+                    r.update(main_omega=m["omega"], main_B=1 - m["omega"], main_w=m["w"], main_Gamma=m["val_Gamma"], main_r=m["r_mean"],
+                             main_spin=m["spin"])
+                    near = [l for l in lv if abs(l["omega"] - m["omega"]) < 0.03 and l is not m and l["w"] > 0.01]
+                    # spin partner (pre-registration: "coppia di spin mediata"): nearest level with opposite spin
+                    part = [l for l in near if np.dot(l["spin"], m["spin"]) < 0]
+                    if part:
+                        q = min(part, key=lambda l: abs(l["omega"] - m["omega"]))
+                        r.update(partner_omega=q["omega"], split=abs(q["omega"] - m["omega"]),
+                                 pair_omega=0.5 * (q["omega"] + m["omega"]))
+                        r["main_B"] = 1 - r["pair_omega"]
+                    r["others_near"] = [(round(l["omega"], 5), round(l["w"], 3), round(l["val_Gamma"], 3)) for l in near]
+                e[key] = r
+        res["per_a"][str(a)] = e
+    # extrapolation of FW1 binding (sublattice 0) and of the radial rule
+    aa = np.array([a for a in AS if f"ritz_FW1_dirac_{a}_c0" in res["per_a"][str(a)]])
+    if len(aa) >= 3:
+        B = np.array([res["per_a"][str(a)][f"ritz_FW1_dirac_{a}_c0"]["main_B"] for a in aa])
+        gam = np.sqrt(1 - ZA**2)
+        fin = np.argsort(aa)[:3]
+        for nm, p in (("a2gamma", 2 * gam), ("a2", 2.0)):
+            X = np.vstack([np.ones(3), aa[fin]**p]).T
+            c = np.linalg.lstsq(X, B[fin], rcond=None)[0]
+            res[f"extrap_FW1_{nm}"] = {"B0": float(c[0]), "rel": float(c[0] / B_DIRAC - 1)}
+        res["A1"] = {"PASS": abs(res["extrap_FW1_a2gamma"]["rel"]) <= 0.01}
+        res["A1b"] = {"PASS": abs(res["extrap_FW1_a2gamma"]["rel"]) <= 0.03}
+        res["A1c"] = {str(a): float(res["per_a"][str(a)][f"ritz_FW1_dirac_{a}_c0"]["main_B"] / res["per_a"][str(a)]["radial_B"] - 1) for a in aa}
+    A3 = {}
+    for a in AS:
+        e = res["per_a"][str(a)]
+        for rule in ("FW1", "F0"):
+            k = f"ritz_{rule}_cieca_{a}_c0"
+            if k in e:
+                A3[f"{rule}_{a}"] = len(e[k]["groups"])
+    res["A3_groups"] = A3
+    json.dump(res, open(OUT, "w"), indent=1)
+    print(json.dumps({k: v for k, v in res.items() if k != "per_a"}, indent=1))
+
+
 if __name__ == "__main__":
     if sys.argv[1] == "list":
         print(" ".join(STEPS))
+    elif sys.argv[1] == "sum":
+        summary()
     else:
         run(sys.argv[1])
+
