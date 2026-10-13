@@ -13,10 +13,10 @@ OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "out", "supercrit
 DZMAX = 0.5          # amendment A1 (after the first pass): max step 0.5 (4.0 skipped over a dive at a = 1e-4, 3e-5)
 
 
-def track_to_critical(make_walk, Z0, log=print, om_stop=-0.9995, Zmax=260.0):
+def track_to_critical(make_walk, Z0, log=print, om_stop=-0.9995, Zmax=260.0, sigma0=0.3):
     """follow the lowest localized gap level from Z0 upward until omega -> -1. returns Z_cr and the track."""
     w = make_walk(Z0)
-    L = [x for x in gap_levels(w, 0.3, k=12) if x[2] > 0.99]
+    L = [x for x in gap_levels(w, sigma0, k=12) if x[2] > 0.99]
     om, nodes = L[0][0], L[0][1]
     track = [(Z0, om, nodes)]
     Z = Z0
