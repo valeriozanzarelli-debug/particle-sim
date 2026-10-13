@@ -1,0 +1,12 @@
+{
+ "study": "Emissione vera phase 2, declarations after the pre-registration v4 (lab/out/emiss_prereg2.json, commit cc95d92)",
+ "thresholds_changed": "none",
+ "configuration_changes": "none (the Ritz settings 1200 ticks / 0.005 were kept; a development check with 2400 ticks showed the 2p3/2 is itself a near-degenerate doublet 0.97870/0.97887, inside the pre-registered cluster tolerance 0.0015, so the chosen state is the same cluster projection)",
+ "declarations": [
+  "R4 = 0.997 PASSES partly by compensation: the rate in windows over the INSTANTANEOUS dipole is 1.035 (the same 3.5 % excess as phase 1, a near-field residual not closed), and the dipole |D|^2 drops by ~3.5 % over the run (1s drift V4 = 0.07). Declared, not hidden.",
+  "S4 fails for the same reason as S1: the semiclassical 1 - p_2p(T) = 0.0356 equals the free drift of the 2p state (V4 = 0.0356, near-degenerate 2p doublet), the energy given to the light is 4e-33. The test was written on the projection, not on the emitted energy: design error of the test, verdict stands.",
+  "E4 spectra keep two weak lines at +0.0131 from the main ones (0.0897, 0.0925; ~20 % in amplitude); not explained (candidate: upper members of 2p valley multiplets, which the nucleus learned on the 1s does not close). Not a test.",
+  "D4: dipoles 1.37-1.55 x Dirac continuum; even the radial start states give 1.22 x. Not understood (candidates: periodic 24 lambda_C box cutting the 2p, 24 % of its weight beyond r = 10; coarse a = 0.5). Informative only.",
+  "E4s: the judge prints a lattice prediction of the sigma- line ratio (1.67) vs measured 1.11; not a test (the formula is approximate)."
+ ]
+}
