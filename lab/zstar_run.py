@@ -58,14 +58,19 @@ def z0_for(name, sp_):
 
 
 def run_dive(name, alist, res, t0):
-    sp_ = spec(name)
+    fine = name.endswith(":fine")          # AMENDMENT A1 (lab/zstar_amend.py): narrow dive windows (2 gamma* > 1)
+    base_name = name[:-5] if fine else name
+    sp_ = spec(base_name)
+    if fine:
+        import supercrit_run_c1
+        supercrit_run_c1.DZMAX = 0.01 if abs(sp_["kappa"]) == 1 else 0.002     # A1 / A2
     rmax = PRE["configs"]["rmax"]
     for a in alist:
         key = f"{name}|{a:.6g}"
         if key in res or time.time() - t0 > 400:
             continue
         mk = lambda Z: ZWalk(sp_["kappa"], a, rmax, Z * ALPHA, sp_["s"], sp_["refl0"], sp_["refl1"], sp_["variant"])
-        Z0 = z0_for(name, sp_)
+        Z0 = z0_for(base_name, sp_) if not fine else PRE["predictions"][base_name]["Z_roots"][-1] - (1.0 if abs(sp_["kappa"]) == 1 else 0.3)
         print(name, "a =", a, "Z0 =", Z0, flush=True)
         t1 = time.time()
         Zcr, track = track_to_critical(mk, Z0, log=lambda *x: None, Zmax=300.0)
@@ -88,11 +93,11 @@ def contact_levels(w, sigma=0.0, k=8, rin=50):
     return out
 
 
-def run_contact(alist, res, t0):
+def run_contact(alist, res, t0, fine=False):
     """K+2: find Z where the localized contact state crosses omega = 0"""
     rmax = 10.0
     for a in alist:
-        key = f"K+2|{a:.6g}"
+        key = f"K+2{':fine' if fine else ''}|{a:.6g}"
         if key in res or time.time() - t0 > 400:
             continue
         def om_contact(Z):
@@ -100,7 +105,7 @@ def run_contact(alist, res, t0):
             L = [x for x in contact_levels(w) if x[1] > 0.5]
             return L
         scan = []
-        Zs = np.linspace(40.0, 44.0, 41)
+        Zs = np.linspace(40.0, 44.0, 41) if not fine else np.linspace(41.85, 42.35, 251)   # A2: step 0.002
         for Z in Zs:
             L = om_contact(Z)
             scan.append((float(Z), [float(o) for o, f in L]))
@@ -123,7 +128,7 @@ def run_contact(alist, res, t0):
                             hi = mid
                     Zx = 0.5 * (lo + hi)
                     break
-        res[key] = dict(variant="K+2", a=a, Zx=Zx, scan=scan)
+        res[key] = dict(variant=key.split("|")[0], a=a, Zx=Zx, scan=scan)
         print(f"  K+2 a={a}: Z_x = {Zx}", flush=True)
         json.dump(res, open(OUT, "w"), indent=1)
 
@@ -133,8 +138,8 @@ if __name__ == "__main__":
     alist = [float(x) for x in sys.argv[2:]] or PRE["configs"]["a"]
     res = json.load(open(OUT)) if os.path.exists(OUT) else {}
     t0 = time.time()
-    if name == "K+2":
-        run_contact(alist, res, t0)
+    if name in ("K+2", "K+2:fine"):
+        run_contact(alist, res, t0, fine=name.endswith(":fine"))
     elif name == "order":
         # W = M S versus W' = S M at a = 1e-3, Z = 132 (identical spectrum: similar matrices)
         a, Z = 1e-3, 132.0
