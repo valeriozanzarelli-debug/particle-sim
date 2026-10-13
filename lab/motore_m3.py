@@ -95,7 +95,7 @@ for k0a in (1.0, 2.0):
         Fc = np.fft.fft(pc, axis=-1)
         Ff = np.zeros((2, nf), complex)
         mf = np.fft.fftfreq(nc) * nc
-        idx = (mf.astype(int)) % nf
+        idx = np.rint(mf).astype(int) % nf
         Ff[:, idx] = Fc * np.sqrt(B) / S
         back_sp = np.fft.ifft(Ff, axis=-1)
         back_pc = np.repeat(pc, B, axis=-1) / np.sqrt(B)
