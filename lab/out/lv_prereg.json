@@ -1,0 +1,86 @@
+{
+ "studio": "LIMITI_LORENTZ (lv_)",
+ "data": "2026-10-13",
+ "regola": "lab/zz_core.py congelata (bloch_two_ticks / bloch_batch), nessuna modifica",
+ "parametri_liberi": 0,
+ "ingressi": [
+  "c, hbar, m_e (theta = m c a/hbar)",
+  "passo a = incognita da limitare",
+  "limiti sperimentali (solo come esame)"
+ ],
+ "derivazione_prima_dei_dati": {
+  "luce": "cos(omega dt) = cos(kx a) cos(ky a) cos(kz a)  (composizione di rotazioni: quaternioni, sympy)",
+  "elettrone": "cos(2 omega dt) = cos^2 th cos(2kx a)cos(2ky a)cos(2kz a) - sin^2 th (trovata con una prova numerica rapida su 4 punti prima della pre-registrazione: dichiarato)",
+  "identita'": "omega_e(k; th=0) = omega_gamma(2k)/2",
+  "sviluppo luce": "omega = k [1 - (A/6)(ka)^2 + O((ka)^4)], A = nx^2ny^2+ny^2nz^2+nz^2nx^2",
+  "sviluppo elettrone": "E^2 = m^2 + p^2 - (4/3) A p^4 a^2 - m^2 p^2 a^2/3",
+  "ordine atteso": "nessun termine lineare in E (n=1) grazie al tick palindromico; primo termine n=2 (dimensione 6), anisotropo con simmetria cubica, nullo sugli assi, massimo in diagonale; NESSUNA birifrangenza (W(k) reale per la luce => |omega| uguale per le due elicita'); elettrone 4 volte piu' anisotropo del fotone",
+  "un tick solo (diagnosi)": "omega = k [1 -+ (nx ny nz)(ka)/2 + ...] : termine n=1 dispari in k",
+  "cinematica": "gamma -> e+e- PERMESSO sopra k_th = 2 sqrt(m E_a) A^(-1/4); e -> e gamma VIETATO; gamma -> 3 gamma VIETATO"
+ },
+ "previsioni_coefficienti": {
+  "asse (1,0,0)": {
+   "A": 0.0,
+   "luce: coeff k^3 di omega": -0.0,
+   "elettrone m=0: coeff k^3": -0.0
+  },
+  "faccia (1,1,0)": {
+   "A": 0.24999999999999992,
+   "luce: coeff k^3 di omega": -0.04166666666666665,
+   "elettrone m=0: coeff k^3": -0.1666666666666666
+  },
+  "corpo (1,1,1)": {
+   "A": 0.33333333333333354,
+   "luce: coeff k^3 di omega": -0.05555555555555559,
+   "elettrone m=0: coeff k^3": -0.22222222222222235
+  },
+  "generica (1,2,3)": {
+   "A": 0.25000000000000006,
+   "luce: coeff k^3 di omega": -0.04166666666666668,
+   "elettrone m=0: coeff k^3": -0.1666666666666667
+  },
+  "generica (3,-1,2)": {
+   "A": 0.2500000000000001,
+   "luce: coeff k^3 di omega": -0.041666666666666685,
+   "elettrone m=0: coeff k^3": -0.16666666666666674
+  }
+ },
+ "esami": {
+  "E1 forma chiusa luce": "max |omega_num - arccos(prod cos)| < 1e-12 su 2000 k casuali in [-pi/2, pi/2]^3",
+  "E2 forma chiusa Dirac": "stesso con theta casuale in [0,1], < 1e-12; doppietto di spin degenere < 1e-12",
+  "E3 coefficiente k^3": "dalla regola numerica (Richardson su eps = 1e-2, 5e-3, 2.5e-3): |c3_num - c3_analitico| < 1e-6 per le 5 direzioni, luce ed elettrone (theta=0)",
+  "E4 birifrangenza": "| |omega_+| - |omega_-| | < 1e-12 (luce, 2000 k); elettrone: spin degenere (E2)",
+  "E5 niente termine n=1": "omega(k) = omega(-k) < 1e-12 e coefficiente di k^2 in omega/k-1 (fit) < 1e-8; diagnosi un tick: coefficiente = -+ nx ny nz / 2 entro 1e-6",
+  "E6 simmetria cubica": "omega invariante sotto le 48 operazioni del cubo < 1e-12 (luce e Dirac theta=0.3)",
+  "E7 identita'": "|omega_e(k) - omega_gamma(2k)/2| < 1e-12 per theta=0",
+  "E8 soglie": "soglia numerica di gamma->ee con le dispersioni esatte (max su x) entro 1 % da k_th analitica per 3 direzioni e 3 valori di E_a; e->e gamma e gamma->3 gamma: max Delta E < 0 su griglia",
+  "E9 limiti": "a_max per ogni esperimento con A=1/3 e A=1/5; si dichiara il piu' severo (robusto) e quelli condizionati a parte"
+ },
+ "previsione_limiti": {
+  "A=0.3333": {
+   "tempo di volo GRB 221009A (E_QG2>6e-8 E_Pl), a_max [m]": 8.081275973224453e-28,
+   "in l_P": 50000006.02147838,
+   "decadimento del fotone 1.21 PeV, a_max [m]": 4.771515688126396e-31,
+   "in l_P ": 29522.047499474993,
+   "cavita' ottica dc/c<1e-17 a 1.165 eV, a_max [m]": 2.2724628777738883e-15,
+   "in l_P  ": 1.4060051648866597e+20
+  },
+  "A=0.2000": {
+   "tempo di volo GRB 221009A (E_QG2>6e-8 E_Pl), a_max [m]": 1.0432882420134814e-27,
+   "in l_P": 64549730.210485436,
+   "decadimento del fotone 1.21 PeV, a_max [m]": 6.160000265426985e-31,
+   "in l_P ": 38112.79943713699,
+   "cavita' ottica dc/c<1e-17 a 1.165 eV, a_max [m]": 2.933736960164283e-15,
+   "in l_P  ": 1.8151448627625486e+20
+  }
+ },
+ "previsione_piu_severo": "decadimento del fotone (fotoni PeV di LHAASO): a_max ~ 2-4e4 l_P ~ 5e-31 m; tempo di volo GRB ~ 5e7 l_P; cavita' ottiche ~ 1e20 l_P",
+ "criteri_esclusione": {
+  "STRUTTURALE (esclusa per ogni a)": "un termine d=4 (anisotropia che non sparisce a k->0) o d=5 (lineare in E, o birifrangenza) nella dispersione libera",
+  "esclusa per a >= l_P": "a_max (esperimento robusto, A = 1/5) < l_P",
+  "in tensione": "l_P <= a_max < 10 l_P",
+  "compatibile": "a_max >= 10 l_P",
+  "fuori esame (dichiarato)": "correzioni radiative (Collins et al. 2004): servono le interazioni; si stima solo l'ordine di grandezza a parole; limiti adronici di Auger e protoni compositi: condizionati al modo in cui l'agglomeratore eredita la dispersione"
+ },
+ "laboratorio": "a = 0.05-1 lambda_C (1.9e-14 - 3.9e-13 m): previsto escluso da tutto, ~17-18 ordini sopra a_max"
+}
