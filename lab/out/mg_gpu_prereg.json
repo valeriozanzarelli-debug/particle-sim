@@ -1,0 +1,25 @@
+{
+ "studio": "motore_grafico_gpu",
+ "data": "2026-10-13",
+ "scopo": "Debito 1 di docs/MOTORE_GRAFICO.md: la regola della luce sulla GPU collegata alla scena del fotone per i preset alta e ultra, con palline di energia (traccianti) e misure tenute sulla GPU; le palline passano dal buffer della GPU al disegno a istanze senza tornare sulla CPU. Bassa e media restano sulla CPU (Intel UHD). Interruttore --regola gpu|cpu (default: gpu per alta e ultra, cpu per bassa e media).",
+ "regola_di_progetto": "Valerio (vincolante): i preset cambiano solo risoluzione, numero di palline e precisione, mai QUALI fenomeni si vedono ('una mela in 4K e in 480p marciscono tutte e due'). Ogni misura nuova (spin dalle palline, flusso di Poynting totale, energia) esiste in tutti e due i cammini, CPU e GPU.",
+ "cosa_resta_uguale": "La regola (Fotone3D::tick), il moto delle palline (Traccianti::avanza: passo di Eulero con v = 2 E x B / (E^2 + B^2) letta per interpolazione trilineare dal campo dopo il tick, |v| <= 1), i colori e le scie del disegno (fotdisegno::palline). Nota: il brief parlava di Heun, ma il codice del Laboratorio (fotdisegno.rs) usa Eulero; la GPU rifa' esattamente quello della CPU.",
+ "differenza_dichiarata": "Rinascita delle palline perse (u < 1e-4 del picco): sulla CPU nascono di nuovo con probabilita' proporzionale a |F|^2 per blocchi 2^3; sulla GPU prendono il posto di una pallina viva scelta a caso (che e' gia' distribuita come u) piu' uno spostamento uniforme di +-1 cella. Per questo G2 confronta solo le palline mai rinate (ne' sulla CPU ne' sulla GPU) e riporta quante sono rinate.",
+ "misure_nuove_in_tutti_e_due_i_cammini": {
+  "energia": "U = somma |F|^2 sulle celle",
+  "poynting": "P = somma E x B sulle celle (vettore); direzione del flusso = P/|P|",
+  "spin_palline": "S = (2 pi / lambda) * media sulle palline di ((p - c) x v) . d, c = centro dell'energia misurato, v = ultimo passo della pallina, d = direzione di volo (come FOTONE_PALLINE F2 e mg_r3.py)",
+  "gia_presenti": "centro e covarianza dell'energia, elicita' da E(t-1) x E(t)"
+ },
+ "esami": {
+  "G1_campo": "preset alta (24 celle per lambda, 192^3), impulso di default del Laboratorio (w0 = 1 lambda, circolare +, lungo x): 96 tick su CPU e su GPU (cammino della scena, buffer divisi per componente), max|F_gpu - F_cpu| / max|F_cpu| <= 1e-4",
+  "G2_palline": "preset alta, 250 000 palline seminate sulla CPU con lo stesso seme e caricate sulla GPU, 48 tick: scarto medio |p_gpu - p_cpu| sulle palline mai rinate <= 0.01 lambda; riportati anche scarto massimo e numero di palline rinate (se le rinate superano l'1 % l'esame si dichiara non informativo)",
+  "G3_misure": "stessa corsa di G2, a ogni tick 1..48: energia |U_gpu/U_cpu - 1| <= 1e-4; Poynting |P_gpu - P_cpu|/|P_cpu| <= 1e-4; spin dalle palline |S_gpu - S_cpu| / |S_cpu| <= 0.5 % (al tick 48 e come massimo sui tick 24..48). Riportati: centro dell'energia, elicita', larghezza.",
+  "G4_cloud_headless": "il Laboratorio Atomo gira nel cloud (llvmpipe sotto Xvfb) con --qualita alta (regola gpu di default) in modalita' --foto fino alla fine, scrive la foto e dice nel log che la regola e' sulla GPU; bassa con --regola cpu gira anche lei. Riportato (non soglia): PSNR della foto alta gpu contro alta --regola cpu allo stesso --tick.",
+  "G5_stessi_fenomeni": "regola di Valerio: la stessa scena (impulso di default, circolare +, circolare -, lineare orizzontale) al preset bassa sul cammino CPU e al preset alta sul cammino GPU, 48 tick, medie sui tick 24..48. Soglie scritte prima: (a) direzione del flusso: coseno tra P e d >= 0.99 in tutti e due; (b) spin dalle palline circolare +-: segno giusto in tutti e due, |S| entro 5 % di 1 ad alta ed entro 10 % di 1 a bassa, |S_alta - S_bassa| <= 0.10; (c) lineare: |S| <= 0.05 ad alta e <= 0.10 a bassa; (d) elicita' media: segno giusto e entro 0.05 di +-1 / 0 in tutti e due.",
+  "tempi": "solo riportati: ms per tick della regola+palline+misure su CPU e GPU nel cloud (llvmpipe: Vulkan su CPU, non dice niente di una GPU vera) e, se il ponte risponde, sul portatile (Intel UHD) al preset alta"
+ },
+ "limiti_wgpu": "Il campo e' diviso in tre buffer per componente (n^3 x 8 byte: 56 MB ad alta, 453 MB a ultra) invece di uno solo (170 MB / 1.36 GB): alta sta nel limite minimo di WebGPU (128 MB per binding); ultra chiede all'adattatore max_storage_buffer_binding_size >= 453 MB, altrimenti la scena torna sulla CPU e lo dice.",
+ "manopole": "fisica 0; disegno: le stesse del Laboratorio; nuove: 0 (lo spostamento +-1 cella della rinascita sulla GPU e' copiato dalla semina della CPU)",
+ "nessuna_misura_fatta_prima_di_questo_file": true
+}
