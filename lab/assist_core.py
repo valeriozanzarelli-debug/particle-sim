@@ -288,3 +288,76 @@ def S_wi(gamma, gs, m=1.0):
     tau_e = min(PI / (2 * gamma), tau_s)
     f = lambda tau: np.sqrt(max(0.0, 1 - (np.tan(gs * tau) / gs if gs > 0 else tau) ** 2))
     return 4 * quad(f, 0, tau_e, epsabs=1e-13, epsrel=1e-12, limit=200)[0]
+
+
+# ------------------------------------------------------------------ Floquet (one oscillating field, p = 0)
+@njit(cache=True)
+def _walk_floquet(Aa, th):
+    c, s = np.cos(th), np.sin(th)
+    U = np.eye(2).astype(np.complex128)
+    for i in range(Aa.size):
+        q = Aa[i]
+        e1 = np.cos(q) - 1j * np.sin(q); e2 = np.conj(e1)
+        # tick = C diag(e1, e2)
+        T00 = c * e1; T01 = -1j * s * e2; T10 = -1j * s * e1; T11 = c * e2
+        U = np.array([[T00 * U[0, 0] + T01 * U[1, 0], T00 * U[0, 1] + T01 * U[1, 1]],
+                      [T10 * U[0, 0] + T11 * U[1, 0], T10 * U[0, 1] + T11 * U[1, 1]]])
+    return U
+
+
+def floquet_split_walk(omega, xi, N, p=0.0, m=1.0):
+    """zig-zag walk, A(t) = xi m sin(omega t), N ticks per period (a = 2 pi/(omega N), th = m a).
+    Returns the Floquet quasi-energy splitting delta in [0, pi] (eigenphase difference of the period operator)."""
+    a = 2 * PI / (omega * N)
+    t = (np.arange(N) + 0.5) * a
+    Aa = a * (p + xi * m * np.sin(omega * t))
+    U = _walk_floquet(Aa, m * a)
+    lam = np.linalg.eigvals(U)
+    return float(abs(np.angle(lam[0] / lam[1])))
+
+
+@njit(cache=True)
+def _magnus_floquet(a1g, a2g, dt, m):
+    r3 = np.sqrt(3.0) / 6.0
+    U = np.eye(2).astype(np.complex128)
+    for i in range(a1g.size):
+        a1 = a1g[i]; a2 = a2g[i]
+        nz = 0.5 * dt * (a1 + a2); nx = dt * m; ny = r3 * dt * dt * (a2 - a1) * m
+        nn = np.sqrt(nx * nx + ny * ny + nz * nz)
+        cc = np.cos(nn); ss = np.sin(nn) / nn
+        m00 = cc - 1j * ss * nz; m11 = cc + 1j * ss * nz
+        m01 = -1j * ss * (nx - 1j * ny); m10 = -1j * ss * (nx + 1j * ny)
+        U = np.array([[m00 * U[0, 0] + m01 * U[1, 0], m00 * U[0, 1] + m01 * U[1, 1]],
+                      [m10 * U[0, 0] + m11 * U[1, 0], m10 * U[0, 1] + m11 * U[1, 1]]])
+    return U
+
+
+def floquet_split_dirac(omega, xi, M=4000, p=0.0, m=1.0):
+    P = 2 * PI / omega
+    dt = P / M
+    t0 = np.arange(M) * dt
+    g = 0.5 - np.sqrt(3) / 6
+    a1g = p + xi * m * np.sin(omega * (t0 + g * dt)); a2g = p + xi * m * np.sin(omega * (t0 + (1 - g) * dt))
+    U = _magnus_floquet(a1g, a2g, dt, m)
+    lam = np.linalg.eigvals(U)
+    return float(abs(np.angle(lam[0] / lam[1])))
+
+
+def resonance(n, xi, split, m=1.0, scan=400):
+    """locate the n-photon resonance: minimum of the Floquet splitting near omega = 2 qbar / n.
+    split(omega) -> delta.  Returns (omega_n, Delta_n = delta_min * omega / (2 pi))."""
+    from scipy.optimize import minimize_scalar
+    q0 = qbar(xi, m)
+    lo, hi = 2 * q0 / (n + 0.45), 2 * q0 / (n - 0.45)
+    ws = np.linspace(lo, hi, scan)
+    d = np.array([split(w) for w in ws])
+    i = int(np.argmin(d))
+    a, b = ws[max(i - 1, 0)], ws[min(i + 1, scan - 1)]
+    r = minimize_scalar(split, bounds=(a, b), method="bounded", options=dict(xatol=1e-14))
+    return float(r.x), float(r.fun * r.x / (2 * PI))
+
+
+def qbar(xi, m=1.0):
+    """adiabatic dressed energy at p = 0: time average of sqrt(m^2 + A^2), A = xi m sin(phi)."""
+    ph = np.linspace(0, 2 * PI, 20001)[:-1]
+    return float(np.mean(np.sqrt(m * m + (xi * m * np.sin(ph)) ** 2)))

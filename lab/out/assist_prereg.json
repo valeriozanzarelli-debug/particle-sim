@@ -1,0 +1,419 @@
+{
+ "study": "assist_ (Schwinger assistito dinamicamente)",
+ "date": "2026-10-13",
+ "units": "hbar = c = m = 1, e absorbed: E in units of E_S = m^2/e; lattice spacing a = theta / m",
+ "free_parameters": 0,
+ "inputs": "m (through theta = m a), field shapes and amplitudes (the experiment being simulated)",
+ "rule": "lab/assist_core.py walk_pairs: zig-zag 1+1 D (R1 method), mode by mode, Peierls phase at mid-tick",
+ "reference": "lab/assist_core.py dirac_pairs: continuum 1+1 Dirac, 4th-order Magnus, dt = 0.01 (0.005 check)",
+ "richardson": "f_extrap = (4 f(theta=0.025) - f(theta=0.05)) / 3  (assumes O(theta^2), checked by the 0.1/0.05 ratio)",
+ "V1_schwinger": {
+  "configs": [
+   {
+    "E": 0.25,
+    "gs": 0.05,
+    "N_LCFA": 5.259592454913131e-06,
+    "N_exact": 5.311551578327765e-06,
+    "f0_exact": 3.514805266701767e-06,
+    "f0_schwinger": 3.4873423562089973e-06
+   },
+   {
+    "E": 0.16,
+    "gs": 0.05,
+    "N_LCFA": 3.6482401926919878e-09,
+    "N_exact": 3.700420633593329e-09,
+    "f0_exact": 3.0058737239033885e-09,
+    "f0_schwinger": 2.969256996564822e-09
+   },
+   {
+    "E": 0.1,
+    "gs": 0.05,
+    "N_LCFA": 2.2344667103613275e-14,
+    "N_exact": 2.2830922550529416e-14,
+    "f0_exact": 2.3160779462527994e-14,
+    "f0_schwinger": 2.2711010683240965e-14
+   }
+  ],
+  "thetas": [
+   0.05,
+   0.025,
+   0.0125
+  ],
+  "p_grid": "p in [-16, 16], dp = 0.02",
+  "exams": {
+   "V1a": "max_p |f_lat(theta=0.0125)/f_exact - 1| <= 0.03 over modes with f_exact > 1e-3 f_exact(0), and Richardson(0.025, 0.0125) <= 0.01",
+   "V1b": "|N_lat(theta=0.0125) / N_LCFA - 1| <= 0.10, N_LCFA = int dt E(t)/(2 pi) exp(-pi/E(t)) (local Schwinger-Nikishov rate)"
+  }
+ },
+ "V2_keldysh": {
+  "configs": [
+   {
+    "gamma": 0.1,
+    "E": 0.2,
+    "f0_exact": 1.567069258109237e-07,
+    "f0_schwinger": 1.5070172753900654e-07
+   },
+   {
+    "gamma": 0.3,
+    "E": 0.2,
+    "f0_exact": 2.1138248974628818e-07,
+    "f0_schwinger": 1.5070172753900654e-07
+   },
+   {
+    "gamma": 1.0,
+    "E": 0.2,
+    "f0_exact": 2.2313520725007296e-06,
+    "f0_schwinger": 1.5070172753900654e-07
+   },
+   {
+    "gamma": 3.0,
+    "E": 0.1,
+    "f0_exact": 2.77511121886011e-07,
+    "f0_schwinger": 2.2711010683240965e-14
+   },
+   {
+    "gamma": 10.0,
+    "E": 0.05,
+    "f0_exact": 5.889990694823235e-06,
+    "f0_schwinger": 5.157900062542853e-28
+   }
+  ],
+  "thetas": [
+   0.1,
+   0.05,
+   0.025
+  ],
+  "p_grid": "p in [-(1/gamma + 3), 1/gamma + 3], dp = 0.01",
+  "exams": {
+   "V2": "for every gamma: |f_lat(0)/f_exact(0) - 1| <= 0.03 and |N_lat/N_exact - 1| <= 0.03 at theta = 0.025; Richardson(0.05, 0.025) within 0.01"
+  }
+ },
+ "V3_multiphoton": {
+  "field": "A(t) = xi m sin(omega t), p = 0; resonances n = 1..5 located as minima of the Floquet splitting",
+  "xis": [
+   0.1,
+   0.2
+  ],
+  "walk_ticks_per_period": "N even, a ~ 0.025 (also a ~ 0.05)",
+  "dirac_steps": 3000,
+  "exams": {
+   "V3a": "selection rule at p = 0: Delta_n(even) / Delta_{n+1}(odd) <= 1e-2 for n = 2, 4 (both xi), walk",
+   "V3b": "multiphoton law Delta_n ~ xi^n: log2(Delta_n(0.2)/Delta_n(0.1)) within 5% of n, n = 1, 3, 5, walk",
+   "V3c": "|omega_n(walk, a~0.025) / omega_n(Dirac) - 1| <= 1e-3 for n = 1..5"
+  },
+  "report": "omega_n vs the adiabatic dressed-energy estimate n omega = 2 qbar (not graded)",
+  "qbar": {
+   "0.1": 1.0024953319251069,
+   "0.2": 1.0099262233269
+  }
+ },
+ "A_sauter": {
+  "field": "E(t) = E1 sech^2(gs E1 t) + eps E1 sech^2(gamma E1 t)  (gamma = m omega/E1 combined Keldysh)",
+  "gs": 0.2,
+  "gammas": [
+   0.5,
+   1.0,
+   1.3,
+   1.5,
+   1.6,
+   1.7,
+   1.8,
+   2.0,
+   2.5,
+   3.0,
+   4.0,
+   6.0,
+   10.0
+  ],
+  "E1_fit": [
+   0.16,
+   0.125,
+   0.1,
+   0.08,
+   0.0625
+  ],
+  "eps_response": 0.01,
+  "eps_finite": [
+   0.01,
+   0.1
+  ],
+  "thetas": [
+   0.2,
+   0.1,
+   0.05,
+   0.025
+  ],
+  "observables": {
+   "f0": "pair number in the mode p = 0 (crosses the gap at the pulse peak)",
+   "Q": "eps -> 0 response Q = [f(+eps) + f(-eps) - 2 f(0)] / (2 eps^2), eps = 0.01 (0.005 check)",
+   "S_fit": "fit ln Q = -S/E1 + nu ln(1/E1) + c over E1_fit (3 parameters, 5 points)",
+   "N": "int dp/2pi f(p), p in [-4, 4], dp = 0.01, at E1 = 0.1; with E1 only, eps pulse only, both"
+  },
+  "predictions": {
+   "S_wi": {
+    "0.5": 3.110789764651274,
+    "1.0": 3.110789764651274,
+    "1.3": 3.110789764651274,
+    "1.5": 3.110789764651274,
+    "1.6": 3.1093363720426845,
+    "1.7": 3.050648053182681,
+    "1.8": 2.965011267802141,
+    "2.0": 2.7745822408118754,
+    "2.5": 2.3351404582963364,
+    "3.0": 1.9938435152184464,
+    "4.0": 1.529328072715292,
+    "6.0": 1.0350956879097184,
+    "10.0": 0.6257239963157293
+   },
+   "S_wi_gs0": {
+    "0.5": 3.141592653589793,
+    "1.0": 3.141592653589793,
+    "1.3": 3.141592653589793,
+    "1.5": 3.141592653589793,
+    "1.6": 3.132318647756974,
+    "1.7": 3.0634822999564397,
+    "1.8": 2.9735446671132517,
+    "2.0": 2.778986841707737,
+    "2.5": 2.336388426273582,
+    "3.0": 1.9943148039152634,
+    "4.0": 1.5294340038139063,
+    "6.0": 1.035109155844088,
+    "10.0": 0.6257250259159189
+   },
+   "gamma_crit_gs0": 1.5707963267948966,
+   "gamma_crit_gs": 1.5915228383290518,
+   "note": "S_wi = eps->0 worldline instanton (Schuetzhold-Gies-Dunne 2008) with the slow field sech^2(Om t) kept: instanton cut at tau = pi/(2 omega); gs -> 0 gives eq. 15"
+  },
+  "exams": {
+   "A1": "rule vs continuum: |f_lat(theta=0.025)/f_Dirac - 1| <= 0.03 and Richardson <= 0.01 for f(0) at every (gamma, E1, eps in {0, +-0.01, 0.1}); and |Q_lat/Q_Dirac - 1| <= 0.05 (Q from Richardson values)",
+   "A2": "exponent: |S_fit(rule)/S_wi(gamma, gs) - 1| <= 0.03 for gamma <= 6 (gamma = 10, omega = m: reported)",
+   "A3": "threshold: one-parameter fit S(gamma) = S_wi(gamma * gc_pred/gc, gs) to S_fit(rule), gamma <= 6 -> |gc/gc_pred - 1| <= 0.05 (gc_pred = 1.5915; = pi/2 for gs -> 0)",
+   "A4": "report only (prediction of the model): f(0), N, enhancement N_both/(N_E1 + N_eps) at E1 = 0.1, eps = 0.01, 0.1, all gamma and gamma = 20 (omega = 2m); compared with WKB (finite eps) and with zeroth+first order in eps (Torgrimsson et al. 2017: should suffice for Sauter)"
+  }
+ },
+ "O_cos": {
+  "field": "A(t) = (E1/Om) tanh(Om t) + (eps E1/omega) sin(omega t) sech^2(Om t), Om = gs E1",
+  "gs": 0.2,
+  "gammas": [
+   1.0,
+   2.0,
+   3.0,
+   4.0,
+   5.0,
+   6.0,
+   8.0,
+   10.0,
+   12.0
+  ],
+  "E1_fit": [
+   0.16,
+   0.125,
+   0.1,
+   0.08,
+   0.0625
+  ],
+  "eps": [
+   0.001,
+   0.01
+  ],
+  "thetas": [
+   0.2,
+   0.1,
+   0.05,
+   0.025
+  ],
+  "observables": {
+   "S_fit": "fit ln f(0) = -S/E1 + nu ln(1/E1) + c over E1_fit; S0_fit same with eps = 0"
+  },
+  "predictions": {
+   "eps0.001_g1.0": {
+    "first_order_corr": 0.0011303182079849701,
+    "graded_O2": true,
+    "graded_O3": true,
+    "S_WKB": 3.107288158220788,
+    "S0_WKB": 3.110789728096539,
+    "s_ratio_WKB": 0.9988743791185483,
+    "s_Linder": 0.9988696817920151,
+    "n_turning_points": 1
+   },
+   "eps0.001_g2.0": {
+    "first_order_corr": 0.001590636854637329,
+    "graded_O2": true,
+    "graded_O3": true,
+    "S_WKB": 3.1059054528189236,
+    "S0_WKB": 3.110789728096539,
+    "s_ratio_WKB": 0.9984298921802716,
+    "s_Linder": 0.9984093631453627,
+    "n_turning_points": 1
+   },
+   "eps0.001_g3.0": {
+    "first_order_corr": 0.0026355801449350733,
+    "graded_O2": true,
+    "graded_O3": true,
+    "S_WKB": 3.102811702376611,
+    "S0_WKB": 3.110789728096539,
+    "s_ratio_WKB": 0.997435369659392,
+    "s_Linder": 0.997364419855065,
+    "n_turning_points": 1
+   },
+   "eps0.001_g4.0": {
+    "first_order_corr": 0.004879732576852224,
+    "graded_O2": true,
+    "graded_O3": true,
+    "S_WKB": 3.0963522945799915,
+    "S0_WKB": 3.110789728096539,
+    "s_ratio_WKB": 0.9953589169379887,
+    "s_Linder": 0.9951202674231477,
+    "n_turning_points": 1
+   },
+   "eps0.001_g5.0": {
+    "first_order_corr": 0.00973425685698021,
+    "graded_O2": true,
+    "graded_O3": true,
+    "S_WKB": 3.083161373345444,
+    "S0_WKB": 3.110789728096539,
+    "s_ratio_WKB": 0.9911185399316589,
+    "s_Linder": 0.9902657431430197,
+    "n_turning_points": 1
+   },
+   "eps0.001_g6.0": {
+    "first_order_corr": 0.020447312259213406,
+    "graded_O2": true,
+    "graded_O3": true,
+    "S_WKB": 3.0573702966413983,
+    "S0_WKB": 3.110789728096539,
+    "s_ratio_WKB": 0.9828276945327874,
+    "s_Linder": 0.9795526877407866,
+    "n_turning_points": 3
+   },
+   "eps0.001_g8.0": {
+    "first_order_corr": 0.09996828419564,
+    "graded_O2": true,
+    "graded_O3": false,
+    "S_WKB": 2.941684316993969,
+    "S0_WKB": 3.110789728096539,
+    "s_ratio_WKB": 0.9456390737132708,
+    "s_Linder": 0.90003171580436,
+    "n_turning_points": 19
+   },
+   "eps0.001_g10.0": {
+    "first_order_corr": 0.5341976607402509,
+    "graded_O2": false,
+    "graded_O3": false,
+    "S_WKB": 2.7456792609229685,
+    "S0_WKB": 3.110789728096539,
+    "s_ratio_WKB": 0.8826309397012899,
+    "s_Linder": 0.4658023392597491,
+    "n_turning_points": 23
+   },
+   "eps0.001_g12.0": {
+    "first_order_corr": 3.023558130273139,
+    "graded_O2": false,
+    "graded_O3": false,
+    "S_WKB": 2.5239501840767558,
+    "S0_WKB": 3.110789728096539,
+    "s_ratio_WKB": 0.811353516208611,
+    "s_Linder": -2.023558130273139,
+    "n_turning_points": 29
+   },
+   "eps0.01_g1.0": {
+    "first_order_corr": 0.011303182079849702,
+    "graded_O2": true,
+    "graded_O3": true,
+    "S_WKB": 3.0762168430938948,
+    "S0_WKB": 3.110789728096539,
+    "s_ratio_WKB": 0.9888861388828749,
+    "s_Linder": 0.9886968179201503,
+    "n_turning_points": 1
+   },
+   "eps0.01_g2.0": {
+    "first_order_corr": 0.01590636854637329,
+    "graded_O2": true,
+    "graded_O3": true,
+    "S_WKB": 3.0632288215622987,
+    "S0_WKB": 3.110789728096539,
+    "s_ratio_WKB": 0.9847109863760086,
+    "s_Linder": 0.9840936314536267,
+    "n_turning_points": 1
+   },
+   "eps0.01_g3.0": {
+    "first_order_corr": 0.026355801449350735,
+    "graded_O2": true,
+    "graded_O3": true,
+    "S_WKB": 3.035850853169462,
+    "S0_WKB": 3.110789728096539,
+    "s_ratio_WKB": 0.9759100159518236,
+    "s_Linder": 0.9736441985506492,
+    "n_turning_points": 1
+   },
+   "eps0.01_g4.0": {
+    "first_order_corr": 0.04879732576852225,
+    "graded_O2": true,
+    "graded_O3": true,
+    "S_WKB": 2.98578684416737,
+    "S0_WKB": 3.110789728096539,
+    "s_ratio_WKB": 0.9598163505555686,
+    "s_Linder": 0.9512026742314778,
+    "n_turning_points": 1
+   },
+   "eps0.01_g5.0": {
+    "first_order_corr": 0.0973425685698021,
+    "graded_O2": true,
+    "graded_O3": false,
+    "S_WKB": 2.9058952253435937,
+    "S0_WKB": 3.110789728096539,
+    "s_ratio_WKB": 0.9341342486435692,
+    "s_Linder": 0.9026574314301979,
+    "n_turning_points": 7
+   },
+   "eps0.01_g6.0": {
+    "first_order_corr": 0.20447312259213404,
+    "graded_O2": true,
+    "graded_O3": false,
+    "S_WKB": 2.797289480123673,
+    "S0_WKB": 3.110789728096539,
+    "s_ratio_WKB": 0.8992216525786544,
+    "s_Linder": 0.795526877407866,
+    "n_turning_points": 15
+   },
+   "eps0.01_g8.0": {
+    "first_order_corr": 0.9996828419564,
+    "graded_O2": false,
+    "graded_O3": false,
+    "S_WKB": 2.5353082851972157,
+    "S0_WKB": 3.110789728096539,
+    "s_ratio_WKB": 0.8150047116005315,
+    "s_Linder": 0.00031715804359999655,
+    "n_turning_points": 23
+   },
+   "eps0.01_g10.0": {
+    "first_order_corr": 5.341976607402509,
+    "graded_O2": false,
+    "graded_O3": false,
+    "S_WKB": 2.2753580614922875,
+    "S0_WKB": 3.110789728096539,
+    "s_ratio_WKB": 0.7314406502443211,
+    "s_Linder": -4.341976607402509,
+    "n_turning_points": 23
+   },
+   "eps0.01_g12.0": {
+    "first_order_corr": 30.23558130273139,
+    "graded_O2": false,
+    "graded_O3": false,
+    "S_WKB": 2.0475888610695594,
+    "S0_WKB": 3.110789728096539,
+    "s_ratio_WKB": 0.6582215578815281,
+    "s_Linder": -29.23558130273139,
+    "n_turning_points": 27
+   }
+  },
+  "exams": {
+   "O1": "rule vs continuum: |f_lat(0.025)/f_Dirac - 1| <= 0.03, Richardson <= 0.01, all configs",
+   "O2": "where the first-order correction 2 eps I1(gamma)/gamma <= 0.3: |S_fit/S_WKB - 1| <= 0.03 (S_WKB = exact-field WKB exponent at p = 0, dominant turning point)",
+   "O3": "where 2 eps I1(gamma)/gamma <= 0.05 (first order trustworthy): |(S_fit/S0_fit) / s_Linder - 1| <= 0.03 (Linder et al. 2015 eq. 37)",
+   "O4": "report only: points beyond (gamma ~ |ln eps|, nonperturbative / omega ~ m)"
+  }
+ },
+ "limits_report": "1+1 vs 3+1: via m -> m_perp identity (spin factor 2, integral over p_perp) for one config; real lasers: table of E/E_S, omega/m, gamma and exponent for ELI-class + XFEL (not graded)",
+ "amendments": "any change after this commit goes to lab/out/assist_amend.json, declared in the document"
+}

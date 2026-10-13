@@ -78,3 +78,44 @@ principio (equazione cinetica). Quello che possiamo dare:
 * **numeri dove la semiclassica non vale** (vicino alla soglia, ω ~ m): previsioni esatte del modello 1+1,
   che però **coincidono** con quelle della QED 1+1 continua (la regola converge a Dirac). Non sono "scoperte":
   sono numeri controllati, confrontabili con la numerica di letteratura quando i parametri coincidono.
+
+---
+
+## 3. Previsione prima dei dati (fase 2)
+
+Pre-registrazione: `lab/out/assist_prereg.json` (script `lab/assist_prereg.py`), committata **prima** delle corse di
+produzione. Parametri liberi: **0**. Le prove di sviluppo fatte prima (parametri diversi da quelli di produzione:
+E1 = 0,125 con ε = 0,05; impulsi singoli (0,15; 22), (0,05; 2), (0,3; 3); Floquet a ξ = 0,05–0,3; fit sul solo
+Dirac continuo a ε = 0,01) sono dichiarate nello script. Mi hanno insegnato due cose che hanno cambiato gli esami:
+
+1. **Il WKB "esatto" a ε finito non è affidabile** per l'impulso di Sauter: il punto di svolta sta attaccato al polo
+   dell'impulso veloce e lì il passaggio è brusco, non adiabatico (parametro locale c = ε m²/(γ² E1) < 1 ai campi
+   raggiungibili). Quindi la soglia si esamina sulla **risposta a ε → 0**,
+   Q = [f(+ε) + f(−ε) − 2 f(0)]/(2ε²) (la parte "un fotone del campo veloce + tunnel nel campo forte"), il cui
+   esponente è proprio l'azione dell'istantone di Schützhold–Gies–Dunne.
+2. Le separazioni di Floquet sotto ~10⁻⁸ sono al pavimento numerico → ξ = 0,1 e 0,2.
+
+**Previsioni (dalla teoria, calcolate prima):**
+* soglia: con il campo lento sech²(Ωt), γ_s = mΩ/E1 = 0,2, la soglia degli istantoni sale da π/2 = 1,571 a
+  **γ_crit = 1,5915**; esponente × E1: 3,111 (sotto soglia) → 2,775 (γ = 2) → 1,994 (γ = 3) → 1,035 (γ = 6) →
+  0,626 (γ = 10). Quindi a E1 = 0,1 E_S l'aumento previsto a γ = 6 è e^(20,8) ≈ 10⁹ in esponente (prefattore a parte).
+* Schwinger (impulso lento γ_s = 0,05): N per lunghezza, regola locale (LCFA) 2,234·10⁻¹⁴ contro esatto 2,283·10⁻¹⁴
+  a E = 0,1 (differenza 2%: entro la soglia del 10%).
+* Coseno debole: esponente WKB e formula di Linder (primo ordine) coincidono entro l'1% dove la correzione
+  2εI₁(γ)/γ ≤ 0,05; si separano oltre (γ ≳ |ln ε|).
+
+| esame | cosa | soglia |
+|---|---|---|
+| V1a | spettro Schwinger (impulso lento) regola vs esatto | 3% (θ = 0,0125), Richardson 1% |
+| V1b | N regola vs tasso locale di Schwinger | 10% |
+| V2 | passaggio di Keldysh γ = 0,1…10, f(0) e N vs formula esatta | 3%, Richardson 1% |
+| V3a | regola di selezione: a p = 0 niente risonanze pari | Δ_pari/Δ_dispari ≤ 10⁻² |
+| V3b | legge multifotone Δ_n ∝ ξⁿ | pendenza entro 5% di n |
+| V3c | posizione risonanze regola vs Dirac | 10⁻³ |
+| A1 | assistito Sauter: regola vs Dirac continuo | 3% (θ = 0,025), Richardson 1%; Q entro 5% |
+| A2 | esponente di Q vs istantone, γ ≤ 6 | 3% |
+| A3 | soglia γ_crit dal fit | 5% di 1,5915 |
+| O1 | assistito coseno: regola vs Dirac | 3%, Richardson 1% |
+| O2 | esponente vs WKB (dove 2εI₁/γ ≤ 0,3) | 3% |
+| O3 | esponente vs Linder eq. 37 (dove 2εI₁/γ ≤ 0,05) | 3% |
+| A4, O4 | numeri vicino a soglia e a ω ~ m: **previsione** del modello | solo riportati |
