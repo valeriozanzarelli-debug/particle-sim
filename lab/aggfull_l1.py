@@ -51,8 +51,9 @@ def taylor(prev, b, D):
     return np.array(out)
 
 
-def taylor6(prev, b, D, kmax=0.12, npts=24, nfit=7):
-    """c2, c4, c6 (phase 4): G(kappa d) = sum_n c_2n kappa^2n fitted with nfit even powers on kappa in [kmax/30, kmax]"""
+def taylor6(prev, b, D, kmax=0.12, npts=24, nfit=7, nkeep=3):
+    """c2, c4, c6 (phase 4; c8 too with nkeep = 4, phase 5): G(kappa d) = sum_n c_2n kappa^2n fitted with nfit even powers
+    on kappa in [kmax/30, kmax]"""
     kk = np.linspace(kmax / 30, kmax, npts)
     out = []
     for d in D:
@@ -60,7 +61,7 @@ def taylor6(prev, b, D, kmax=0.12, npts=24, nfit=7):
         V = np.stack([kk ** (2 * n) for n in range(1, nfit + 1)], 1)
         sc = np.abs(V).max(0)
         c = np.linalg.lstsq(V / sc, g, rcond=None)[0] / sc
-        out.append(c[:3])
+        out.append(c[:nkeep])
     return np.array(out)
 
 
@@ -113,6 +114,8 @@ def fit(kap, Gs, sw, phi0, w, mode, cons=None, D=None):
         Crow.append(mult * dj ** 4); crhs.append(24 * cc[1])
         if len(cc) > 2:                                   # phase 4: k^6 pinned too
             Crow.append(mult * dj ** 6); crhs.append(-720 * cc[2])
+        if len(cc) > 3:                                   # phase 5: k^8 pinned too
+            Crow.append(mult * dj ** 8); crhs.append(40320 * cc[3])
     Cm, cv = np.array(Crow), np.array(crhs)
     if mode == "T":
         # null-space solution of min |Aw x - yw| s.t. C x = c

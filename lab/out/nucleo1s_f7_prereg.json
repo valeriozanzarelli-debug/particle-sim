@@ -1,0 +1,51 @@
+{
+ "study": "NUCLEO_1S phase 7",
+ "date": "2026-10-13",
+ "config": {
+  "theta_out": [
+   0.025,
+   0.0125,
+   0.00625
+  ],
+  "zoom_levels": 14,
+  "n_per_level": 16,
+  "rmax_a0": 45,
+  "Z_exam": [
+   3,
+   5
+  ],
+  "diag": {
+   "box": {
+    "rmax_a0": 90
+   },
+   "levels": {
+    "zoom_levels": 18
+   },
+   "per_level": {
+    "n_per_level": 32
+   },
+   "theta4": {
+    "theta_out": [
+     0.025,
+     0.0125,
+     0.00625,
+     0.003125
+    ]
+   }
+  }
+ },
+ "exams": {
+  "B1": {
+   "what": "Z = 3 and Z = 5 (blind): alpha^4 shift of 1s and 2s within 1 % of Dirac's",
+   "tol": 0.01
+  },
+  "B2": {
+   "what": "Z = 3 and 5: the 1s and 2s shifts are better than 0.5 %",
+   "tol": 0.005
+  },
+  "B3": {
+   "what": "3s diagnosis: at least one of the four single changes brings the Z = 1 3s shift within 2 %",
+   "tol": 0.02
+  }
+ }
+}

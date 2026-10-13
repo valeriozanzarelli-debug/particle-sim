@@ -71,13 +71,18 @@ def kinetic_mass(rec, h, m_ref=1.0):
 
 # ------------------------------------------------------------------ the atom
 class Atom:
-    def __init__(self, T, field, gamma0=1.0, real=True, sym=None):
+    def __init__(self, T, field, gamma0=1.0, real=True, sym=None, clean=False):
         """sym: None, 'even' (even in x, y, z about the nucleus) or 'oddz' (odd in z, even in x, y): the parity sector
         is kept exactly (the operator conserves it; projecting stops round-off from sliding into the ground state)"""
         self.T, self.f, self.g0, self.real, self.sym = T, field, gamma0, real, sym
         self.N = T.shape[0]
         self.pre = 1.0 / (T - T.min() + 0.5 * ALPHA ** 2)
         self.napply = 0
+        # phase 5 ('clean'): the wrong-parity part is annihilated by H (H = P H P), so it has eigenvalue 0 > E and LOBPCG
+        # leaves it in the Ritz vector (the 2p high-k 'tail' and the residual floor |E| |junk|); a penalty sigma (1 - P)
+        # pushes it to the top of the spectrum, and the returned vector is projected
+        self.clean = clean
+        self.sigma = float(np.max(T)) if clean else 0.0
 
     def project(self, v):
         if self.sym is None:
@@ -105,6 +110,8 @@ class Atom:
 
     def A(self, X):
         self.napply += 1
+        if self.clean:
+            return self._apply(X, lambda v: self.H(v) + self.sigma * (v - self.project(v)))
         return self._apply(X, self.H)
 
     def P(self, X):
@@ -136,7 +143,11 @@ def solve(atom, x0, Y=None, tol=1e-10, maxiter=40):
     x0 = x0.astype(dt)[:, None]
     if Y is not None:
         x0 = x0 - Y @ (Y.conj().T @ x0)
+    if getattr(atom, "clean", False):
+        x0 = atom.project(x0[:, 0].reshape((atom.N,) * 3)).reshape(-1, 1)
     w, v, hist = spl.lobpcg(Aop, x0, M=Pop, Y=Y, tol=tol, maxiter=maxiter, largest=False, retResidualNormsHistory=True)
+    if getattr(atom, "clean", False):
+        v = atom.project(v[:, 0].reshape((atom.N,) * 3)).reshape(-1, 1)
     return v[:, 0], (float(np.max(np.abs(hist[-1]))) if len(hist) else float("nan")), len(hist)
 
 
