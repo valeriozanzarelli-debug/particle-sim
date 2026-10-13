@@ -870,7 +870,7 @@ uguale dall'inizio alla fine: la discesa lenta, cioè il battimento residuo dell
 
 | esame | cosa | misura | soglia | esito |
 |---|---|---|---|---|
-| G1 | stato preparato: valle 0, spin | peso in k = 0 = 1,000 a tutti gli a; ⟨Σz⟩ 0,933 / 0,935 / 0,935 / 0,934 (circa) | ≥ 0,99; ≥ 0,9 | **PASS** |
+| G1 | stato preparato: valle 0, spin | peso in k = 0 = 1,000 a tutti gli a; ⟨Σz⟩ 0,933 / 0,935 / 0,935 / 0,935 | ≥ 0,99; ≥ 0,9 | **PASS** |
 | G2 | quasi stazionario | fedeltà minima 0,965 / 0,985 / 0,994 / 0,997 | ≥ 0,9 | **PASS** |
 | G3 | i surfisti girano in tutte e 5 le finestre (anche quella finale) | da 0,825 a 0,958 (tabella sopra) | [0,75; 1,25] | **PASS** |
 | G4 | i surfisti restano \|ψ\|² | max \|z\| 1,9 / 2,0 / 2,1 / 2,6 | ≤ 4 | **PASS** |
