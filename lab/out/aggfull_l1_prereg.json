@@ -1,0 +1,32 @@
+{
+ "written": "2026-10-13T04:04:46",
+ "git_head": "bf9e31bbfe485f5687f76355c001a2dac19d2423",
+ "symptoms (from docs/MOLTI_ELETTRONI.md and docs/IDROGENO_BOHR.md, origin/master)": {
+  "S1": "m_kin(theta -> 0) = 1.0000138 +- 2.6e-6 (systematic +1e-5 over tan(theta)/theta); the Z = 10 Pauli candidate has a constant -4.6e-5 relative error at small k (mass) and fails the 3e-5 budget",
+  "S2": "below beta_min = 5e-5 a.u. the walker kernel of level 1 has 42 wrong-sign taps (H_j > 0 off site)",
+  "S3": "the band carries ~40 % of the -alpha^2 k^4/8 (axis/face/body 24/44/48 %): '-0.28 mEh' on helium",
+  "S4": "parity: the learned stencil has an odd part (|Im g| up to ~2e-3): s-p mixing (parity 0.994) and a spurious current"
+ },
+ "diagnosis (development, lab/aggfull_l1.py dev -> lab/out/dev_aggfull_l1.json)": [
+  "reproduced S1-S3 with the plain learner (learn_h, w = 2): m/m_fine - 1 = +1.1e-5, k^4 fraction 0.22/0.44/0.51, 40 wrong taps, kernel negative weight 1e-2..3e-2 for beta <= 2e-5, positive from 5e-5",
+  "the fine walk's own band (the teacher) has m = tan(theta)/theta to 5e-13 and its k^4 coefficient = Dirac x 1.0017",
+  "cause S1 + S3 (one cause): the least squares fit of G(k) leaves the low-order Taylor coefficients free; with 125 taps and the uniform share it trades the k^2 and k^4 coefficients for high-k accuracy",
+  "cause S2: a POSITIVE kernel at every beta needs a Markov ('Metzler') generator: all off-site taps g_j <= 0. Then the quartic is fixed by the hop lengths: |c4|/c2 = sum a (d.j)^4 / (12 sum a (d.j)^2) <= w^2/12, while the fine walk needs |c4|/c2 = 1/(4 h^2) (h = cell in lambda_C; h = 0.535 at level 1): w >= sqrt(3)/h = 3.24 -> w = 2 (125 taps) CANNOT be positive and carry the relativistic k^4; it carries ~40 % with wrong-sign taps instead. Relativity = jumps of ~1.7 lambda_C.",
+  "cause S4: the fit is not constrained to G(-k) = G(k); the odd part is least-squares noise (fine walk parity exact to 2e-16)",
+  "dev numbers (seed 20261014): Taylor-pinned w = 4, Z = 10 observable: mass exact (1e-14), k^4 1.000, Z = 10 check energy 2.7e-5 (PASS at 3e-5), bz 0.06; Metzler w = 4: zero wrong taps, kernel positive at every beta (1e-14), mass and k^4 exact, but bz 0.92 and Z = 10 energy 2.4e-4 (the high-k band cannot follow the fine walk); on helium-size states (Zeff 1.6875) Metzler - Taylor band = 0.0008 mEh; Metzler w = 2: infeasible (mass off by -56 %)"
+ ],
+ "cures (inside the agglomerator, no new inputs: the constraints are read off the fine walk, the teacher)": {
+  "T": "Taylor-pinned learner: G(0) = 0, c2 and c4 along 13 directions (3 axes, 6 face, 4 body diagonals) equal to the fine walk's (exact linear constraints, null-space least squares); parity imposed exactly (G_-j = G_j, with Hermiticity: G_j Hermitian)",
+  "M": "T + Markov sign constraint (off-site g_j <= 0, bounded least squares, constraints as heavy rows)"
+ },
+ "production": "lab/aggfull_l1.py run: chain A (theta = a0/4096), b = 16 (cell a0/256), uniform weight 1e-3, nk = 8000; seeds 1, 2, 3 (NOT the dev seed); chains A2 and B (theta/2, theta x 8) for the theta -> 0 law",
+ "exams": {
+  "M1": "mass: T learner, |m_kin/m_fine - 1| <= 1e-9 for every chain/seed; and m0 from the fit m(theta) = m0 + a th^2 + b th^4 over A2, A, B (T, w = 2): |m0 - 1| <= 3e-6 (old: 1.38e-5)",
+  "M2": "Z = 10 Pauli level (b = 16, w = 4, T) passes the 3e-5 budget check (packet <= 1e-3, energy and rest <= 3e-5, bz_rel90 <= 0.2, neg_gen <= 0.01) for ALL 3 seeds",
+  "K1": "k^4 fraction (vs the fine walk) along axis/face/body within [0.99, 1.01] (T, w = 4, Z = 10, 3 seeds); and the band piece on a 1s(Zeff = 1.6875) state = Dirac's -alpha^2<k^4>/8 within 2 %",
+  "P1": "Metzler level (M, w = 4, Z = 2 observable, 3 seeds): zero wrong-sign taps (g_j > 1e-12 |g_0|), kernel negative weight <= 1e-12 at beta = 1e-6 ... 1e-2 a.u. (beta_min = 0), mass and c4 within 1e-6 of the fine walk, and |<G_M - G_T>| on 1s(Zeff = 1.6875) <= 0.01 mEh per electron",
+  "P2": "the hop-length bound (prediction written above): M with w = 2 and w = 3 cannot meet the mass/k^4 constraints (max relative deviation of c2 or c4 > 1e-3) while w = 4 can (<= 1e-6)",
+  "PA1": "parity (added after the Bohr-hydrogen input): T and M levels: ||G(k) - G(-k)|| / ||G(k) - G(0)|| <= 1e-12 at kh = 0.01, 0.1, 1; reported for U (the old learner) for comparison"
+ },
+ "reported, not exams": "Z = 10 check of M (expected to fail: high-k band); mass anisotropy over 13 directions; beta_min of U and T"
+}

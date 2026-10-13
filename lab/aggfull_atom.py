@@ -149,15 +149,15 @@ def shifted(phi, l):
 def coupling_blocks(field, phis, offs):
     """W[p][l] = V_G (T_l phi_p) for all sites l of the stencil (Galerkin field), and the overlaps
     S[p', j, p, l] = <T_j phi_p' | V_G | T_l phi_p>"""
-    W = [[field.apply(shifted(ph, o)) for o in offs] for ph in phis]
     n, P = len(offs), len(phis)
     S = np.zeros((P, n, P, n), complex)
-    for p2 in range(P):
-        for j, oj in enumerate(offs):
-            a = shifted(phis[p2], oj)
-            for p in range(P):
-                for l in range(n):
-                    S[p2, j, p, l] = np.vdot(a, W[p][l])
+    for p in range(P):                      # one V_G(T_l phi_p) at a time (memory: N = 256 needs <= ~2 GB)
+        for l, ol in enumerate(offs):
+            w = field.apply(shifted(phis[p], ol))
+            for p2 in range(P):
+                for j, oj in enumerate(offs):
+                    S[p2, j, p, l] = np.vdot(shifted(phis[p2], oj), w)
+            del w
     return S
 
 
