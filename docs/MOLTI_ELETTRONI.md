@@ -366,7 +366,18 @@ ma è una diagnosi post hoc, non un PASS. (Correzione di bias presa da un'altra 
 5. **La massa dell'agglomeratore.** Ti torna l'idea di imparare la massa a parte (§7.4)? È un cambio
    dell'algoritmo, quindi va pre-registrato.
 
+**Decisioni prese (13/10, dalla sessione principale, su regola di Valerio: "si sceglie il default ragionevole, si
+dichiara e si va avanti").** (1) Emendamento G1 sì, come proposto; (2) D6' sì, come proposto (con la scelta dello
+stimatore spiegata nella v2); (3) massa imparata a parte: esame opzionale, solo dopo M1/E1, il risultato attuale resta
+il riferimento; (4) niente litio finché l'elio non è capito voce per voce, compreso il pezzo di banda non quadratico
+(Q1). Tutto scritto in `lab/out/multi_e_prereg_v2.json`, committato **prima** delle corse.
+
 ## 9. Cambi dopo la pre-registrazione (tutti dichiarati)
+
+- **Pre-registrazione v2** (`lab/multi_e_prereg_v2.py` → `lab/out/multi_e_prereg_v2.json`): G1', produzione ECG
+  dell'elio con D1 e G4, Q1 (banda non quadratica sull'elio, con la previsione −0,28 mEh ± 30 % scritta prima), D6'
+  (cuspide del misto, stimatore a rapporto I_mix/I_VMC scelto prima dei dati per bias e rumore, semi nuovi), L1m
+  opzionale. Nota d'onestà: G1'-Hooke rifà la ricetta della diagnosi, il suo esito era già noto.
 
 - G1-MC: 10⁸ campioni per elemento invece di 4·10⁶ (deciso prima di lanciare G1(d), dopo aver capito che 4·10⁶ dà
   σ ~ 4·10⁻⁴ > soglia; la soglia è rimasta 10⁻⁴).
