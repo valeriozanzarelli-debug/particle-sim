@@ -16,5 +16,32 @@
    "F0_E2": 9.45
   },
   "effect": "PAW: R = 1,025 e 0,977 (PASS); la prima corsa avrebbe dato FAIL per l'errore di metodo"
+ },
+ "A3": {
+  "when": "dopo r2, r3 e la prima r4 (theta = 0,5), PRIMA delle corse r5-r7",
+  "seen": [
+   "r4 a theta = 0,5: F0 ritrova il multipletto del Laboratorio (0,8990 / 0,8861 / 0,8403, come BATTIMENTO 0,8993 / 0,8863 / 0,8404); PAW NON passa E7 (riga principale 0,9143 con peso 0,25, altre 0,807 e 0,800 con 0,12 e 0,10). Possibile causa: a theta = 0,5 la moneta una volta per periodo ha massa cinetica +56 % (tan(2 theta)/(2 theta) - 1), il continuo 1s non e' vicino all'1s del reticolo.",
+   "bug corretto prima della r4 valida: il potenziale andava passato in unita' di reticolo (V a); la corsa sbagliata e' stata buttata",
+   "esplorazione dopo la pre-registrazione: moneta theta a ogni tick (congelata) + UN Wilson ritorto attorno alla sola moneta dei tick pari (h = 0,3, collegamenti +-2 e_j): E0 0,443, Epi 0,298, massa cinetica identica alla congelata (3,372e-3), isotropia 1,27 %. Con le due meta' del Wilson su tick diversi invece le valli pi restano senza massa (si cancellano come le monete).",
+   "esplorazione: moneta che respira theta(1 +- b) con lo stesso Wilson: Epi 0,298-0,314 per b = 0-1, massa cinetica 3,4e-3 -> 1,36e-2"
+  ],
+  "new_candidate": {
+   "FW1": "regola congelata (ordini xyz/zyx, moneta theta a ogni tick) + Wilson ritorto (asse Y di chiralita', collegamenti +-2 e_j, meta' prima e meta' dopo) attorno alla moneta dei soli tick pari",
+   "h_production": 0.4,
+   "why_h": "con h = 0,3 Epi = 0,298 e' sulla soglia 0,3; h = 0,4 e' fissato ORA senza averne visto i numeri (scelta dichiarata, non un principio). Si riporta anche h = 0,3."
+  },
+  "exams_for_FW1": "gli stessi E4 (C1-C8, theta = 0,1 e 0,02), E5 (Kramers: previsto rotto), E6 (coppie senza proiettore: |R - 1| <= 0,1), E7 (battimento) con le stesse soglie",
+  "E7_diagnostic_added": "E7 ripetuto (diagnosi, non cambia il verdetto di PAW a theta = 0,5) a theta = 0,25 (80^3, stessa scatola fisica 20 lambda_C, 1600 periodi) per F0, PAW e FW1, piu' il contenuto di valle delle righe principali (stato filtrato alla riga, trasformata di Fourier, peso entro 0,3 dai punti Gamma+{0,pi}^3, dalle valli N e dalle valli pi). Soglie come E7.",
+  "predictions_FW1": {
+   "C1": "PASS",
+   "C2": "PASS (Epi ~0,35)",
+   "C3": "PASS",
+   "C4": "PASS (~1,3 %)",
+   "C5": "PASS (= congelata)",
+   "C6": "PASS o ~1",
+   "E5": "rotta (Wilson Y)",
+   "E6": "R = 1 +- 0,1",
+   "E7_theta0.5": "PASS o vicino (massa cinetica come la congelata)"
+  }
  }
 }
