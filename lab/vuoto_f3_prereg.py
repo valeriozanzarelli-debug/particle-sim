@@ -1,0 +1,70 @@
+"""vuoto_f3_prereg.py - PRE-REGISTRATION of phase 3 of 'Vuoto che polarizza' (docs/VUOTO_POLARIZZA.md section 14),
+written and committed BEFORE the production runs.  Writes lab/out/vuoto_f3_prereg.json."""
+import os, json
+OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "out")
+P = {
+ "study": "VUOTO_POLARIZZA phase 3: is the anisotropic dressed c (phase 2, G3/G4) the Collins-Perez-Sudarsky-Urrutia-"
+          "Vucetich effect (PRL 93, 191301 (2004), cited from memory by the coordinator, NOT verified)? scaling with a, "
+          "symmetry argument, cyclic axis order as a PROPOSAL (the frozen rule is not touched)",
+ "date": "2026-10-13",
+ "engine": "lab/vuoto_f3_core.py: one-loop self-energy computed EXACTLY in the discrete time of the walk (period = list "
+           "of hops and coins; light = the light walk itself, positive-frequency Riemann-Silberstein modes; Peierls coupling "
+           "at each hop, -e dT_j/dk_j at the midpoint momentum; second-order eigenvalue perturbation of the period operator; "
+           "hole theory; Coulomb 4 pi alpha/q^2 applied where the rule applies the potential, i.e. after each coin). "
+           "dv_j from the dressed dispersion along axis j: dv/v = [E0(p) dE_sym(p) - m dE_sym(0)]/(E0^2 - m^2), "
+           "dE_sym = (dE_+ - dE_-)/2, p = 0.05 m. Spectral, independent of the time slice.",
+ "development_observations_declared": [
+   "the bare quasi-energies of the frozen rule are invariant under ALL 6 axis permutations (1e-15); a LOCAL symmetry "
+   "(time shift by one tick + spin rotation + L<->R) exists only for x<->z (search over the 24 Clifford rotations x "
+   "L/R x transposition/conjugation x 8 slices x sign flips): so the dressed tensor must be diag(a, b, a)",
+   "exact engine at theta 0.05: dm_T/m agrees with the phase-2 H_eff loop to 4e-5 (0.14 % at 0.0125); dm_C identical; "
+   "single-particle (no hole) imaginary part 1e-15 with the seagull (unitarity check of all normalizations); results "
+   "independent of the starting operation (representation free) and of tau (the A_j component is unchanged by the "
+   "light's own hop along j)",
+   "exact dv at theta 0.05 (alpha units), cutoff K12 = (0.6, 1.05): x = z = -0.0365, y = -0.1286 (T part -0.77/-0.86, "
+   "Coulomb part +0.73: large cancellation); grid (64,12,16)->(128,24,40) and p = 0.025..0.1 m change < 1e-4. The "
+   "phase-2 H_eff numbers (-0.005, 0.044, 0.072) were therefore an artifact of the effective-Hamiltonian vertex.",
+   "cutoff K12/3 = (0.2, 0.35): R dv = (0.0440, 0.0343, 0.0440); proposal C dv = 0.03964 on all axes",
+   "bare bands of C: same rest mass and same small-k velocity as R, but its Floquet zone is 3 times smaller: |Omega| "
+   "reaches pi already at |k| = 0.51 (axis) - 0.56 (diagonal) instead of 1.55 for R (within the phase-2 cutoff K12): "
+   "C is studied with K12/3 (and R too, for a like-for-like comparison)",
+   "Floquet resonance scan of the full Brillouin zone (72^3, theta 0.05): R has none for the electron at rest (closest "
+   "0.23 single-particle, 0.05 sea); C has a near-resonance of the sea (0.0023) at |q| = 3.4"],
+ "runs": {
+   "dv": "rule R with K12 and K12/3, proposal C with K12/3, theta = 0.05, 0.025, 0.0125, 0.00625, 0.003125 (5 lattice "
+         "spacings at fixed m), grid (nr, nct, nph) = (96, 20, 32), kmin = 1e-4 theta, p = 0.05 m",
+   "continuum_control": "phase-2 continuum Dirac loop (exact there) with the same cutoffs, same theta list: dv",
+   "g2": "phase-2 H_eff machinery (approximate vertex, declared): add theta = 0.00625 (4th lattice spacing) on slice 0; "
+         "and theta = 0.0125 on slice 1 (the other time slice) as a representation-dependence diagnostic",
+   "bands": "bare bands of R and C"},
+ "exams": {
+   "A1 (symmetry of R)": {"what": "exact dv_j of the rule", "pass": "|dv_x - dv_z| <= 1e-3 alpha at every theta and both "
+                          "cutoffs, AND |dv_y - dv_x| >= 1e-2 alpha at every theta with K12 (y is the distinguished axis)"},
+   "A2 (anisotropy vs a)": {"what": "D(theta) = dv_y - (dv_x + dv_z)/2, rule R, K12 and K12/3; fit D = d0 + d1 theta "
+                            "(5 points); decision rule: SURVIVES a -> 0 if |d0| >= 0.01 alpha", "pass": "no threshold: a "
+                            "measurement with a pre-declared decision rule"},
+   "A3 (isotropic part vs a)": {"what": "I(theta) = mean_j dv_j (electron side; the light's own dressing is NOT in this "
+                                "phase), rule R, both cutoffs, and the continuum control; fit I = i0 + i1 theta; SURVIVES "
+                                "if |i0| >= 0.01 alpha", "pass": "no threshold (measurement + decision rule)"},
+   "A4 (cure: isotropy of C)": {"pass": "max_j dv_j - min_j dv_j <= 1e-3 alpha at every theta (K12/3)"},
+   "A5 (cure: mass unchanged)": {"pass": "|dm_C/dm_R - 1| <= 1 % at every theta (K12/3, transverse + Coulomb)"},
+   "A6 (cure: isotropic part)": {"what": "I_C(theta) and its a -> 0 fit; does it remain? same decision rule as A3",
+                                 "pass": "no threshold"},
+   "A7 (cure: free dispersion not worse)": {"pass": "(i) rest mass of C = theta within 1e-12; (ii) v^2 at k = 0.01 m "
+                                            "equal to R within 1e-8 along x, y, z, (111), (110); (iii) |E^2 - m^2 - k^2| "
+                                            "at k = 0.2 along (111) and (110) <= 1.1 x the value of R; (iv) Floquet zone: "
+                                            "first |k| (axis and (111)) where a band comes within 0.05 of |Omega| = pi "
+                                            "is >= 0.8 x that of R  [development already shows (iv) failing: declared]"},
+   "A8 (g-2 orientation spread vs a, H_eff vertex)": {"what": "spread (max - min over the 6 pairs, lambda -> 0) at theta "
+                       "= 0.05, 0.025, 0.0125, 0.00625; fit s0 + s1 theta; SURVIVES if s0 >= 0.02 (alpha/2pi units); "
+                       "slice 1 at 0.0125: |mean(slice 1) - mean(slice 0)| reported (representation dependence of the "
+                       "approximate vertex)", "pass": "no threshold"},
+   "A9 (code check)": {"pass": "single-particle imaginary part <= 1e-12 (relative to dT) for R and C at theta 0.05"}},
+ "knobs": "no new knob. Inherited: species weight K1, K2 (also varied by a factor 3 here), Coulomb kernel (input), "
+          "pd = 0.05 (checked). Proposal C has no parameter.",
+ "not_done_declared": ["the light's own O(alpha) dressing (photon self-energy): with the species weight it is not "
+                       "gauge invariant (it would give the photon a mass); with the full sea it contains the doublers "
+                       "and cones that phase 1 found to polarize wrongly", "exact (discrete-time) g-2 vertex",
+                       "the full Brillouin zone without the species weight (the 'bare' rule)"]}
+json.dump(P, open(os.path.join(OUT, "vuoto_f3_prereg.json"), "w"), indent=1)
+print("written")
