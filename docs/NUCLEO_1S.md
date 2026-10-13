@@ -445,7 +445,7 @@ riguarda**. Risultati: `lab/out/nucleo1s_3d_results.json` (chiave `judge`). Figu
   lungo y e uno lungo z: va sempre da una cella con indici (pari, pari, pari) a una (dispari, dispari, dispari) e così via.
   Le 8 classi di parità formano 4 coppie che non si scambiano mai niente, nemmeno con il nucleo. Controllato: la regola
   su un colore è identica a quella completa a **3·10⁻¹⁵**, la perdita verso gli altri colori è **0**, e i 4 colori danno
-  le stesse righe a **5·10⁻⁸** (B2 PASS). Effetto pratico: **si calcola un quarto del reticolo** (4 volte più veloce).
+  le stesse righe a **5·10⁻⁸** (B2 PASS). Effetto pratico: **per livelli e spettri** basta un quarto del reticolo (4 volte più veloce). *[Correzione, fase 4, dal thread principale, `docs/SOTTORETICOLO.md` su master 178743d: lo stato atomico vive nei 4 colori insieme e un colore da solo è anisotropo (in un campo lungo z si muove del 5 % in x e del 14 % in y). Quindi correnti, dipoli e accoppiamento alla luce richiedono i 4 colori; il colore solo vale solo per livelli e spettri.]*
 * **In ogni colore l'elettrone ha 4 copie** ("valli": k = 0 e k = (π/2, π/2, 0)/a con le permutazioni; il thread
   principale le ha trovate da solo, `docs/BATTIMENTO_1S.md`). Il nucleo puntiforme sull'angolo di 8 celle le mescola:
   l'1s diventa **un multipletto di 4 livelli** (a = 0,5: 0,84037 / 0,88627 / 0,89930 / 0,89960). Lo stato 1s del
@@ -560,7 +560,9 @@ crea un errore della stessa taglia.
   tinta mostra due "punte" opposte lungo una diagonale diversa del cubo: si **vede** che ogni colore ha un nucleo assiale
   e che i 4 insieme ricostruiscono la simmetria cubica. *Perché*: è la struttura esatta della regola (§12.1). *Costo*:
   nullo (un indice di parità per pallina). *Regole*: sì. Bonus pratico: un motore che simula un colore solo fa **4 volte
-  meno lavoro** con gli stessi livelli (proposta per `src/atomo/zz.rs`: `N³/4` siti, stesso tick).
+  meno lavoro** con gli stessi livelli (proposta per `src/atomo/zz.rs`: `N³/4` siti, stesso tick), **ma solo per livelli
+  e spettri**: correnti, dipoli e accoppiamento alla luce richiedono i 4 colori, perché un colore da solo è anisotropo
+  (correzione della fase 4, da `docs/SOTTORETICOLO.md`, master 178743d).
 * **Le valli come un moiré.** *A schermo*: la densità di un livello del multipletto ha una trama a periodo 4 celle
   (2 λ_C, già vista nelle esportazioni del Lab); il livello U ha un **buco** esattamente sulle due celle del nucleo, i
   livelli bassi ci hanno un **picco**. *Perché*: è l'interferenza fra valli (k = π/2a). *Costo*: nullo. *Regole*: sì.
