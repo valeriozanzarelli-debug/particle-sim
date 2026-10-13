@@ -112,6 +112,14 @@ pub fn aggiorna(
                 None => (None, 0),
             }
         }
+        Scena::Tavola => {
+            let out = lab.tav.out();
+            match out {
+                Some(o) if vis.versione != o.versione || vis.scena != Some(scena) => (Some(((*o.palline).clone(), (*o.onde).clone(), vec![])), o.versione),
+                Some(o) => (None, o.versione),
+                None => (None, 0),
+            }
+        }
         Scena::Elettrone => {
             let out = lab.el.as_ref().map(|c| c.lock().unwrap().out.clone());
             match out {
@@ -178,7 +186,7 @@ pub fn aggiorna(
     vis.scena = Some(scena);
     // sizes: screen-constant, capped
     let fm = 1e-15 / lab.metri_per_unita();
-    let g_nodo = if lab.mostra_protone && scena != Scena::Fotone && scena != Scena::Elettrone {
+    let g_nodo = if lab.mostra_protone && scena != Scena::Fotone && scena != Scena::Elettrone && scena != Scena::Tavola {
         let x = (r_cam / (300.0 * fm)).ln();
         (1.0 - x / 2.0).clamp(0.0, 1.0) as f32
     } else { 0.0 };
@@ -186,6 +194,8 @@ pub fn aggiorna(
         Scena::Fotone => ((0.0032 * r_cam).min(0.9), lab.luce),
         Scena::Atomo => ((0.0035 * r_cam).min(0.12), lab.luce * (1.0 - 0.8 * g_nodo)),
         Scena::Elettrone => ((0.0035 * r_cam).min(0.12), lab.luce),
+        // the periodic-table scene is in bohr: glows ~1/30 of the view, at most 0.08 a0 (drawing choice)
+        Scena::Tavola => ((0.004 * r_cam).min(0.08 * lab.tav.raggio_cam.max(1.0)), lab.luce),
         // balls about half a grid step at the full view (the grid step is 2R/64), smaller when zooming in
         Scena::Orbitali => ((0.0045 * r_cam).min(0.018 * lab.orb_r), lab.luce * (1.0 - 0.8 * g_nodo)),
     };

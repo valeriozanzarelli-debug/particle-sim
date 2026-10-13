@@ -1,0 +1,98 @@
+{
+ "formato": "particle-sim/esportazione-v1",
+ "nome": "H2",
+ "simbolo": "H2",
+ "tipo": "molecola",
+ "Z": 0,
+ "carica": 0,
+ "livello": "esatto",
+ "metodo": "ECG a due centri (180 gaussiane correlate) sulla regola a molti elettroni del thread principale, stato fondamentale a R = 1,4 a0 (nuclei fermi)",
+ "fonte": "lab/aggmol_h2.py (Debiti, aggmol fase 2) ricostruita con lab/h2v_wf.py (E identica, diff 2e-13 Eh); 16000 coppie Metropolis (seme 2026)",
+ "nuclei": [
+  {
+   "Z": 1,
+   "pos": [
+    0.0,
+    0.0,
+    0.7
+   ]
+  },
+  {
+   "Z": 1,
+   "pos": [
+    0.0,
+    0.0,
+    -0.7
+   ]
+  }
+ ],
+ "n_elettroni": 2,
+ "campioni": {
+  "file": "campioni.f32",
+  "n": 16000,
+  "unita": "bohr",
+  "ordine": "n x n_elettroni x 3, float32 little endian"
+ },
+ "simmetria": "assiale_z",
+ "energia_Eh": -1.1744677,
+ "riferimento_Eh": -1.174475714,
+ "esami": [
+  {
+   "id": "H0",
+   "cosa": "E(R = 1,4) -1,1744677 contro -1,1744757 Eh",
+   "PASS": true
+  },
+  {
+   "id": "H1",
+   "cosa": "lunghezza di legame 1,40090 contro 1,401 a0",
+   "PASS": true
+  },
+  {
+   "id": "H2",
+   "cosa": "energia di legame 4,7477 contro 4,747 eV",
+   "PASS": true
+  },
+  {
+   "id": "H3",
+   "cosa": "quanto vibrazionale 4419 contro 4401 cm-1",
+   "PASS": true
+  },
+  {
+   "id": "H4",
+   "cosa": "salto 0-1 4167 contro 4161 cm-1, D0 4,4772 eV",
+   "PASS": true
+  },
+  {
+   "id": "H5",
+   "cosa": "Hartree-Fock sulla griglia a0/4 +0,94 mEh",
+   "PASS": true
+  },
+  {
+   "id": "G1",
+   "cosa": "cancello della macchina ECG (soglia 1e-6 troppo stretta)",
+   "PASS": false
+  },
+  {
+   "id": "V3",
+   "cosa": "palline contro densita' (Pearson 0,99990)",
+   "PASS": true
+  },
+  {
+   "id": "V4",
+   "cosa": "elettroni da parti opposte 0,5749 (HF 0,5): la correlazione",
+   "PASS": true
+  }
+ ],
+ "controlli_campioni": {
+  "P_opposti": 0.5740625,
+  "P_opposti_rif": 0.574871665125156,
+  "abs_z": 0.7991532683372498,
+  "abs_z_rif": 0.7977708301775607,
+  "accettazione": 0.61009
+ },
+ "note": [
+  "nuclei fermi a R = 1,4 a0 (Born-Oppenheimer; la vibrazione non e' in questa esportazione)",
+  "bagliori = coppie pescate da |Psi|^2 (il moto e' il campionatore, non una traiettoria)",
+  "singoletto: parte spaziale simmetrica"
+ ]
+}

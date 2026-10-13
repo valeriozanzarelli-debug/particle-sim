@@ -596,3 +596,92 @@ Debiti:
   soglia 1 % per 1s, 2p3/2, 3d5/2), l'atomo, il nodo, e i due della mesh graduata in `walk.rs`; F1b e F3 sono
   segnati "ignored" perché registrati come FAIL) e `cargo test --bin atomo -- --ignored` (lunghi e i FAIL registrati:
   risonanza dell'atomo, direzioni oblique del fotone, `bench_fotone`).
+
+## 10. Modalità tavola periodica (`tavola.rs`, `esportazioni.rs`, 13 ottobre 2026)
+
+Un solo programma: nella barra in alto c'è **"tavola periodica"**. Si apre la tavola intera (118 caselle). Si preme un
+elemento acceso, appare nella scena, e lo si usa. La regola è quella di sempre: **si accende solo ciò che ha dati veri
+dietro**. Tutto il resto è grigio con scritto "in arrivo": niente orbitali di tabella, niente nuvole finte.
+
+### 10.1 Che cosa è acceso oggi
+
+| casella | da dove vengono i dati | livello | esami (come dichiarati dallo studio) |
+|---|---|---|---|
+| **H** | scena calcolata dal programma: la forma radiale della regola zig-zag con Z = 1 (§10.4, cascata) | esatto | IDROGENO_BOHR 8/8 PASS; i suoi esami in §10.4 |
+| **He** | `assets/esportazioni/He/`: 16 000 coppie di posizioni dei due elettroni pescate da \|Ψ(r₁, r₂)\|² dell'ECG dell'elio (studio MOLTI_ELETTRONI, `ripresa/dati/elio/`) | esatto | M1v5, E1v5, Q1v5 PASS; D6' FAIL (cuspide del DMC, non tocca l'ECG) |
+| **H₂** (molecole) | `assets/esportazioni/H2/`: 16 000 coppie da \|Ψ\|² dell'ECG a due centri di Debiti (aggmol fase 2), ricostruito con `lab/h2v_wf.py` (energia identica, differenza 2·10⁻¹³ Eh) a R = 1,4 a₀ | esatto | H0–H5 PASS, V3 V4 PASS, G1 FAIL (cancello della macchina) |
+| **Nd⁵⁹⁺** (ioni) | la scena "atomo zig-zag" dal vivo (premendolo si passa a quella scena, dove c'è il fotone F) | esatto | orbitali entro 0,36 %, K PASS; L1 FAIL, 1s 3-D +40 % (debito 12) |
+| tutti gli altri | — | — | "in arrivo" (Li: catena di Debiti avviata) |
+
+Ogni casella accesa ha un **badge**: **E** su fondo verde = livello *esatto*, **A** su fondo ambra = *approssimato*
+(Hartree–Fock + correlazione imparata, il secondo livello di Debiti). Passandoci sopra si leggono validazione, fonte
+dei dati e la lista PASS/FAIL dichiarata.
+
+**Come si vede un'esportazione.** I bagliori sono "fotografie" di tutti gli elettroni insieme. Ogni fotografia resta
+8 passi, si accende e si spegne dolcemente, poi ne arriva una nuova; ogni volta è girata a caso con una rotazione che
+la simmetria dello stato permette (sferica per l'elio, attorno all'asse per H₂), così 16 000 fotografie ne valgono
+infinite. **Il moto è il campionatore, non una traiettoria** (scritto sullo schermo). **Buca di Coulomb** (casella nel
+pannello, `--buca`): un elettrone (oro) viene girato su +z tenendolo tra 0,35 e 0,75 a₀ dal nucleo (per H₂: nella
+metà destra, vicino all'asse); gli altri (blu) si vede che gli stanno lontano. È la correlazione, senza nessuna regola
+aggiunta: viene tutta dalle coppie.
+
+**Lancia.** Il fotone è attivo solo dove la luce è simulata (idrogeno, §10.4; Nd⁵⁹⁺ nella sua scena). Elettrone,
+protone e neutrone sono bottoni **spenti con scritto "non ancora simulato"**: nessuna regola calcolata per l'urto.
+
+**Costruisci molecole.** Clic destro su un elemento (o "+ simbolo") lo mette sul banco. "Unisci" si accende **solo se
+esiste un'esportazione di molecola con esattamente quei nuclei** (oggi: H + H → H₂). Ogni altra combinazione mostra
+"non ancora calcolata: nessun legame disegnato".
+
+Scelte di disegno (non fisica): colori, nucleo come bagliore caldo grande ~0,1 a₀ (quello vero è 10⁻⁵ volte più
+piccolo), dimensione dei bagliori ~1/30 della vista, durata di una fotografia.
+
+### 10.2 Il formato delle esportazioni (per Debiti e per ogni studio che vuole accendere una casella)
+
+Una cartella per oggetto: `assets/esportazioni/<nome>/` (nel repo, file piccoli) — il programma cerca anche nella
+cartella dell'ambiente `ATOMO_ESPORTAZIONI` (per esempio `/mnt/project-files/debiti/export`, da copiare poi nel repo
+per il portatile). Basta aggiungere la cartella: **non serve ricompilare**.
+
+`manifest.json`:
+
+| campo | cosa | esempio |
+|---|---|---|
+| `formato` | sempre `"particle-sim/esportazione-v1"` | |
+| `nome`, `simbolo` | nome e simbolo (per le molecole la formula) | `"litio"`, `"Li"` · `"H2O"`, `"H2O"` |
+| `tipo` | `"atomo"` o `"molecola"` | |
+| `Z`, `carica` | numero atomico (atomi; 0 per le molecole) e carica totale | `3`, `0` |
+| `livello` | `"esatto"` o `"approssimato"` | |
+| `metodo`, `fonte` | come è calcolato; file, script, commit da cui viene | |
+| `nuclei` | lista di `{"Z": …, "pos": [x, y, z]}` in **bohr** (per gli atomi il nucleo nell'origine) | |
+| `n_elettroni` | quanti elettroni ha ogni fotografia | `10` per H₂O |
+| `campioni` | `{"file": "campioni.f32", "n": …, "unita": "bohr", "ordine": "n x n_elettroni x 3, float32 little endian"}` | |
+| `simmetria` | quali rotazioni lasciano lo stato uguale: `"sferica"`, `"assiale_z"` (molecola lineare lungo z), `"nessuna"` | |
+| `energia_Eh`, `riferimento_Eh` | facoltativi, mostrati sullo schermo | |
+| `esami` | lista di `{"id", "cosa", "PASS": true/false}`: tutti, anche i FAIL | |
+| `note` | lista di frasi (debiti, cosa manca) | |
+
+`campioni.f32`: n fotografie × n_elettroni × 3 numeri float32 little endian, in bohr: ogni riga sono **tutti** gli
+elettroni insieme pescati da \|Ψ(r₁…r_N)\|² (Metropolis o simile), non densità a un elettrone. Così la correlazione
+(buca di Coulomb, elettroni che si evitano) arriva gratis. 16 000 righe bastano (He e H₂ sono 384 kB). Uno stato con
+spin diverso per elettrone: per ora l'ordine è libero (nessun colore di spin), si potrà aggiungere un file `spin.u8`.
+
+In Python:
+
+```python
+c = np.ascontiguousarray(X.astype("<f4"))      # X: (n, n_el, 3) in bohr
+c.tofile(cartella + "/campioni.f32")
+json.dump(manifest, open(cartella + "/manifest.json", "w"), indent=1, ensure_ascii=False)
+```
+
+Esempi completi: `assets/esportazioni/He/` e `assets/esportazioni/H2/`. Una cartella che non si legge non sparisce in
+silenzio: l'errore compare in rosso in fondo alla tavola.
+
+`assets/tavola_stato.json` tiene le caselle che non sono esportazioni (H con la sua scena, gli ioni, le note "in
+arrivo" delle molecole attese: LiH, N₂, O₂, H₂O, NH₃, CH₄, CO₂). Un elemento con un'esportazione si accende da solo:
+non serve toccarlo.
+
+### 10.3 Debiti della tavola
+
+- He e H₂ sono **stati fermi** (stazionari, nuclei fermi): niente luce che li colpisce, niente vibrazione di H₂ (c'è
+  nello studio h2v ma non in questa esportazione).
+- L'urto con elettroni e protoni non è simulato: bottoni spenti.
+- I bagliori mostrano fotografie, non traiettorie.
