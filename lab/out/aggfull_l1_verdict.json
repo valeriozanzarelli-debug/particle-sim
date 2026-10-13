@@ -1,0 +1,47 @@
+{
+ "verdict": [
+  [
+   "M1 mass pinned to the fine walk",
+   true,
+   "max |m/m_fine - 1| over 9 T fits 3.4e-14; m0 (theta -> 0) = 1.000000001 (old learner, same fit: 1.0000128)"
+  ],
+  [
+   "M2 Z = 10 Pauli level within the 3e-5 budget (3 seeds)",
+   false,
+   "s1: energy 4.13e-05 rest 3.2e-11 packet 3.1e-14 bz 0.07; s2: energy 1.84e-05 rest 3.5e-11 packet 2.2e-14 bz 0.06; s3: energy 7.90e-05 rest 3.3e-11 packet 1.9e-14 bz 0.06 | old learner U: 3.73e-05, 1.49e-05, 5.98e-05"
+  ],
+  [
+   "K1 k^4 carried by the band",
+   true,
+   "axis/face/body [1.0, 1.0, 1.0] [1.0, 1.0, 1.0] [1.0, 1.0, 1.0]; band/Dirac on 1s(1.6875) [0.9989, 0.9993, 0.9992] (old level-1 learner: 0.410)"
+  ],
+  [
+   "P1 Markov level: positive kernel at every beta",
+   true,
+   "wrong taps [0, 0, 0]; max negative weight beta = 1e-6..1e-2: 1.3e-14; c2/c4 dev 4.4e-12/5.0e-09; <G_M - G_T> on 1s(1.6875) [-0.00128, 0.00013, -0.00017] mEh; (Z = 10 check of M, reported: [0.000455, 0.000153, 0.000204], bz [0.91, 0.92, 0.91])"
+  ],
+  [
+   "P2 hop-length bound w >= sqrt(3)/h = 3.24",
+   true,
+   "max constraint deviation w=2 1.29e+00, w=3 1.55e-01, w=4 5.0e-09"
+  ],
+  [
+   "PA1 parity exact in T and M",
+   true,
+   "max odd/even over all T and M fits 5.2e-13; old learner U (raw): {'A_Z10_w4_U_s1': 0.111589, 'A_Z10_w4_U_s2': 0.0707262, 'A_Z10_w4_U_s3': 0.0899845, 'A_Z1_w2_U_s1': 0.0078502, 'A2_Z1_w2_U_s1': 0.009581, 'B_Z1_w2_U_s1': 0.0141873}"
+  ]
+ ],
+ "beta_min": {
+  "A_Z1_w2_U_s1": 5e-05,
+  "A_Z10_w4_U_s1": 0.001,
+  "A_Z10_w4_T_s1": 0.001,
+  "A_Z2_w4_M_s1": 1e-06
+ },
+ "dG_M_T_mEh": [
+  -0.0012794563501514718,
+  0.0001328523980210739,
+  -0.00017427065835564048
+ ],
+ "m0": 1.000000001259072,
+ "m0_old": 1.0000127918043467
+}

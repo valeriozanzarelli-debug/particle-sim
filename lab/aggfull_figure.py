@@ -13,7 +13,9 @@ VD = json.load(open(os.path.join(OUT, "aggfull_verdict.json")))
 GEO = json.load(open(os.path.join(OUT, "aggfull_geo_bz.json")))
 ST = pickle.load(open(os.path.join(OUT, "aggfull_learn.pkl"), "rb"))
 MC2, HEV = ac.MC2, 4.135667696e-15
-fig, ax = plt.subplots(2, 3, figsize=(16, 9.5))
+fig, ax = plt.subplots(3, 3, figsize=(17, 14.5))
+L1 = json.load(open(os.path.join(OUT, "aggfull_l1.json")))
+L1V = json.load(open(os.path.join(OUT, "aggfull_l1_verdict.json")))
 
 # (a) the spin-orbit part of the coupling: fine-walk data vs the learned stencil vs Dirac sigma.(k' x k)/4
 a = ax[0, 0]
@@ -26,8 +28,6 @@ Gd = ac.coarse_from_fine(k, kp, ac.TH_A, B)[3]
 s = [x for x in ST if x["B"] == B][0]
 Gl = ac.eval_coupling(s["C"], s["offs"], k * h, kp * h)
 cr = np.cross(kp, k)
-for S, c, nm in ((ac.PAULI[2], "C0", "z")):
-    pass
 sod = np.einsum("nab,ba->n", Gd, ac.PAULI[2]).imag / 2
 sol = np.einsum("nab,ba->n", Gl, ac.PAULI[2]).imag / 2
 a.plot(cr[:, 2] / 4, sod, ".", ms=4, label="fine zig-zag walk (data)")
@@ -100,12 +100,45 @@ a.set_xlabel("fraction of the cube's modes kept"); a.set_ylabel("|1s error| (exa
 a.set_yscale("log"); a.legend(fontsize=8)
 a.set_title("(e) a rounder zone (bcc/fcc) would save only ~10 %")
 
-# (f) verdict table
+# (f) level 1 for the helium study: mass, k^4, parity - old learner vs Taylor-pinned
 a = ax[1, 2]
+lab = ["m/m$_{fine}$-1\n(x1e5)", "k$^4$ axis", "k$^4$ face", "k$^4$ body", "odd part\n(kh=1, x10)"]
+def row(k):
+    v = L1[k]
+    return [1e5 * v["m_over_mfine_minus_1"], v["k4frac"]["axis"], v["k4frac"]["face"], v["k4frac"]["body"], 10 * v["parity_odd_rel"]["1"]]
+x = np.arange(5)
+a.bar(x - 0.2, row("A_Z1_w2_U_s1"), 0.4, label="old learner (level 1 as used by helium)")
+a.bar(x + 0.2, row("A_Z10_w4_T_s1"), 0.4, label="Taylor-pinned + parity (T)")
+a.axhline(1, color="k", lw=0.6); a.axhline(0, color="k", lw=0.6)
+a.set_xticks(x); a.set_xticklabels(lab, fontsize=8); a.legend(fontsize=8)
+a.set_title("(f) level 1 (cell a$_0$/256): one cure, three symptoms")
+
+# (g) walker kernel: negative weight vs beta
+a = ax[2, 0]
+for k, nm in (("A_Z1_w2_U_s1", "old, 125 taps"), ("A_Z10_w4_T_s1", "T, 729 taps"), ("A_Z2_w4_M_s1", "Markov M, 729 taps")):
+    kn = L1[k]["kernel_neg"]
+    b = np.array(sorted(map(float, kn))); v = np.array([max(kn[f"{x:g}"], 1e-16) for x in b])
+    a.loglog(b, v, "o-", label=nm)
+a.axvline(16 * ac.TH_A * ac.zz.ALPHA ** 2, color="gray", ls=":", lw=0.8); a.text(3e-5, 1e-3, "1 tick", fontsize=8, color="gray")
+a.set_xlabel(r"$\beta$ (a.u.)"); a.set_ylabel(r"negative weight of K$_\beta$")
+a.legend(fontsize=8); a.set_title("(g) the walkers' kernel: a probability at every $\\beta$ only for M")
+
+# (h) the hop-length bound
+a = ax[2, 1]
+ws = [2, 3, 4]
+dv = [max(L1[f"A_Z2_w{w}_M_s1"]["max_c2_rel_dev"], L1[f"A_Z2_w{w}_M_s1"]["max_c4_rel_dev"]) for w in ws]
+a.semilogy(ws, np.maximum(dv, 1e-12), "s-", ms=9)
+a.axvline(np.sqrt(3) / (16 * ac.TH_A), color="r", ls="--", label=r"bound $w \geq \sqrt{3}\,\lambda_C/h$ = 3.24")
+a.set_xlabel("stencil half-width w (cells)"); a.set_ylabel("max error of mass / k$^4$ (positive stencil)")
+a.legend(fontsize=8); a.set_title("(h) positive + relativistic needs jumps of ~1.7 $\\lambda_C$")
+
+# (i) verdict table
+a = ax[2, 2]
 a.axis("off")
-txt = "\n".join(f"{'PASS' if ok else 'FAIL'}  {nm}" for nm, ok, _ in VD["verdict"])
-a.text(0, 1, txt, va="top", family="monospace", fontsize=9)
-a.set_title("(f) pre-registered exams")
+allv = VD["verdict"] + L1V["verdict"]
+txt = "\n".join(f"{'PASS' if ok else 'FAIL'}  {nm[:58]}" for nm, ok, _ in allv)
+a.text(0, 1, txt, va="top", family="monospace", fontsize=8)
+a.set_title("(i) pre-registered exams (phases 2, amendments, 3)")
 plt.tight_layout()
 plt.savefig(os.path.join(OUT, "aggfull_figure.png"), dpi=110)
 print("saved")
