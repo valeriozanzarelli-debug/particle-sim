@@ -15,7 +15,8 @@ from PIL import Image, ImageDraw, ImageFont
 from scipy.interpolate import RegularGridInterpolator
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from h2v_render import camera, project, splat, blur, expose, FONT, FONTB  # noqa: E402  (same glow recipe)
+from h2v_render import camera, project, FONT, FONTB  # noqa: E402
+import h2v_zzlook as ZZ  # noqa: E402  (the zig-zag atom look, parameters copied from src/atomo)
 
 DATA = os.environ.get("HEV_DATA", "/mnt/project-files/ripresa/dati/elio")
 SCR = os.environ.get("HEV_SCR", os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "he_v_scr"))
@@ -29,12 +30,12 @@ NF = NA + NB
 NPAIR = 12000          # pairs drawn per frame
 NT = 5                 # tail: persistence of the last 5 frames (0.21 s)
 TAIL_W, TAIL_TAU = 0.5, 1.4
-SPOT, GLOW, GAIN, GLOW_MIX, GAMMA = 1.25, 14.0, 1.9, 0.42, 0.65
-DEPTH, CAM_D, FOV = 5.0, 6.0, 40.0
+CAM_D, FOV = 6.0, float(np.degrees(0.8))
+HUE_S, HUE0 = 8.0, 3.6      # colour turn: one per 8 s of video (slowed, declared); start at the blue-cyan end
+N_ALPHA, R_ALPHA = 3.0, 2.0  # nucleus and reference electron brightness (choice)
+ESPOSIZIONE = float(os.environ.get("HEV_ESPO", 1.0))
 R_REF = 1.0            # a0: the reference electron sits on a chosen loop at this radius (the map is for |r1| = 1.0)
-G_COL = 0.3
-C_E_DEEP = np.array([0.20, 0.38, 1.00]); C_E_HOT = np.array([0.70, 0.95, 1.00]); C_E = np.array([0.36, 0.62, 1.00])
-C_O = np.array([1.00, 0.60, 0.16]); C_REF = np.array([0.55, 1.00, 1.00]); C_N = np.array([1.00, 0.78, 0.55])
+G_COL = 0.15          # colour contrast of g (choice): g = 1.15 fully gold, 0.85 fully blue
 REFS_F = os.path.join(SCR, "he_v_refs.json")
 REFS = json.load(open(REFS_F)) if os.path.exists(REFS_F) else {}
 ES_F = os.path.join(LAB, "out", "he_v_esami.json")
@@ -94,57 +95,51 @@ def cam_for(f, w, h):
     return camera(eye, (0, 0, 0), FOV, w, h)
 
 
-def colori(P):
-    edg = np.linspace(-4, 4, 41)
-    hh, _ = np.histogramdd(P, [edg] * 3)
-    ii = np.clip(((P + 4) / 0.2).astype(int), 0, 39)
-    k = np.clip((hh[ii[:, 0], ii[:, 1], ii[:, 2]] / max(hh.max(), 1)) ** 0.5, 0, 1)[:, None]
-    return (1 - k) * C_E_DEEP + k * C_E_HOT
-
-
 def luce(d, P):
-    """colour and light of a set of balls (B: light = g, the exact conditional density over balls that follow rho1)"""
-    col = colori(P); amp = np.ones(len(P))
+    """colour and alpha of a set of balls, zig-zag atom rule (h2v_zzlook): alpha from the EXACT one-electron density at the
+    ball (rho1 of the export); colour = phase of the state (nodeless ground state: one phase, turning, shown slowed).
+    B: colour from g (blue = less, gold = more, as in the main thread's still) and alpha times g"""
+    dd = dati()["dens"]
+    r = np.linalg.norm(P, axis=1)
+    rho = np.interp(r, dd["rho1_esatta_r"], dd["rho1_esatta"], right=0.0)
+    a = ZZ.alpha(rho / dd["rho1_esatta"].max())
+    ph = 2 * np.pi * d["f"] / (FPS * HUE_S) + HUE0
+    col = np.tile(ZZ.tinta(np.array([ph]))[0], (len(P), 1))
     if d["meta"]["seg"] == "B":
         g = g_of(np.array(d["meta"]["ref"]), P)
         kk = np.clip((g - 1) / G_COL, -1, 1)[:, None]
-        col = np.where(kk > 0, (1 - kk) * C_E + kk * C_O, (1 + kk) * C_E + (-kk) * C_E_DEEP * 0.6)
-        amp = g
-        return col, amp, g
-    return col, amp, None
+        mid = 0.5 * (ZZ.STOPS[1] + ZZ.STOPS[4])
+        col = np.where(kk > 0, (1 - kk) * mid + kk * ZZ.STOPS[4], (1 + kk) * mid + (-kk) * ZZ.STOPS[1])
+        return col, a * g, g
+    return col, a, None
 
 
 def disegna(d, w, h, cam=None):
-    s = h / H0
+    """draw function: data from carica() -> (3, h, w) in [0, 1]"""
     cam = cam or cam_for(d["f"], w, h)
+    f_px = 0.5 * h / np.tan(ZZ.FOV / 2)
+    size = ZZ.size_world(CAM_D)
     P = d["P"]
-    col, amp, g = luce(d, P)
+    col, a, g = luce(d, P)
     if g is not None:
         d["meta"]["g_mean"] = float(g.mean())
+    T = ZZ.Tela(w, h)
     sx, sy, zc = project(P.T, cam)
-    dw = np.exp(-np.clip(zc - CAM_D, 0, None) / DEPTH) * np.exp(np.clip(CAM_D - zc, 0, None) / (2 * DEPTH))
-    sharp = np.zeros((4, h, w)); tail = np.zeros((4, h, w)); big = np.zeros((4, h, w))
-    splat(sharp, sx, sy, amp * dw, col, w, h)
+    T.balls(sx, sy, size * f_px / np.maximum(zc, 0.3), col, a)
+    # tail: the glows of the last NT frames stay where they were and fade/shrink (fresh pairs: no path to smear)
     for k, Pk in enumerate(d["past"]):
         ck, ak, _ = luce(d, Pk)
         tx, ty, tz = project(Pk.T, cam)
-        tw = TAIL_W * np.exp(-(k + 1) / TAIL_TAU)
-        splat(tail, tx, ty, tw * ak * np.exp(-np.clip(tz - CAM_D, 0, None) / DEPTH), ck, w, h)
+        age = k + 1
+        T.balls(tx, ty, max(0.4, 1 - 0.12 * age) * size * f_px / np.maximum(tz, 0.3), ck, ak * TAIL_W * np.exp(-age / TAIL_TAU))
     nx, ny, nz = project(np.zeros((3, 1)), cam)
-    splat(big, nx, ny, np.array([1600.0]), C_N[None], w, h)          # the nucleus (He, Z = 2), fixed
+    T.balls(nx, ny, 4 * size * f_px / nz, np.ones((1, 3)), np.array([N_ALPHA]))       # the nucleus, fixed
     if d["meta"]["seg"] == "B":
-        r = np.array(d["meta"]["ref"])[:, None]
-        rx, ry, rz = project(r, cam)
-        splat(big, rx, ry, np.array([500.0]), C_REF[None], w, h)
-    img = np.stack([blur(sharp[c], SPOT * s) + 0.35 * blur(sharp[c], 2.6 * SPOT * s) + blur(tail[c], 2.2 * SPOT * s)
-                    for c in range(4)])
-    pimg = np.stack([blur(big[c], 4.0 * s) + 0.3 * blur(big[c], 12 * s) for c in range(4)])
-    wide = sharp + tail
-    balls = expose(img + pimg, GAIN, REFS.get("b", 1.0) * s ** -2)
-    glow = expose(np.stack([blur(wide[c] + 0.05 * big[c], GLOW * s) for c in range(4)]), 1.0, REFS.get("g", 1.0) * s ** -2)
-    out = 1 - (1 - np.clip(balls, 0, 1)) * (1 - GLOW_MIX * np.clip(glow, 0, 1))
-    raw = dict(b=float(np.percentile(img[3][img[3] > 0], 99.7)) * s ** 2, g=float(np.percentile(blur(wide[3], GLOW * s), 99.9)) * s ** 2)
-    return out, raw
+        rx, ry, rz = project(np.array(d["meta"]["ref"])[:, None], cam)
+        T.balls(rx, ry, 4 * size * f_px / rz, ZZ.STOPS[3][None], np.array([R_ALPHA]))
+    img = T.hdr()
+    out = ZZ.finisci(img, h / H0, ESPOSIZIONE).transpose(2, 0, 1) / 255.0
+    return out, dict(b=float(np.percentile(img.sum(0)[img.sum(0) > 0], 99.7)), g=0.0)
 
 
 def font(sz, bold=False):
@@ -157,7 +152,7 @@ def num(x, fmt="{:.3f}"):
 
 ONESTA = ["Stato dell'elio dal thread principale: gaussiane correlate (ECG, 200 funzioni) con la regola a molti elettroni, non ancora palline zig-zag.",
           "Nucleo fermo. Lo stato è fermo: ogni fotogramma pesca coppie nuove (il tremolio non è moto). Scia = ultimi 5 fotogrammi che si spengono.",
-          "Bagliori allargati e luminosità compressa: estetica."]
+          "Aspetto dell'atomo zig-zag: bagliori additivi, colore = fase dello stato (senza nodi: una sola, gira rallentata), tono approssimato."]
 
 
 def testi(meta):
@@ -167,8 +162,8 @@ def testi(meta):
                 [f"24 000 palline per fotogramma = 12 000 coppie (elettrone 1, elettrone 2) pescate dallo stato calcolato",
                  f"energia {num(MAN['sorgente']['E_Eh'], '{:.6f}').replace('-', '−')} Eh (esatta −2,903724) · raggio medio {num(E2.get('mean_r', float('nan')))} a₀ (noto 0,9295)"])
     return ("Dove sta un elettrone, l'altro si scansa (buca di Coulomb)",
-            ["pallina azzurra: un elettrone messo da noi a 1 a₀ dal nucleo (giro scelto) · luce delle palline = dove sta allora l'altro",
-             "arancio: l'altro ci sta più del solito · blu scuro: meno (scala dei colori scelta)",
+            ["pallina rosa: un elettrone messo da noi a 1 a₀ dal nucleo (giro scelto) · luce delle palline = dove sta allora l'altro",
+             "giallo: l'altro ci sta più del solito · blu: meno (scala dei colori scelta)",
              f"vicini (meno di 0,5 a₀): {num(100 * E3.get('P_real', float('nan')), '{:.1f}')} % delle coppie vere contro "
              f"{num(100 * E3.get('P_shuffled', float('nan')), '{:.1f}')} % se fossero indipendenti"])
 
@@ -206,10 +201,10 @@ if __name__ == "__main__":
         dd = os.path.join(SCR, f"he_v_png_{H}"); os.makedirs(dd, exist_ok=True)
         t0 = time.time()
         for f in range(int(a[2]), int(a[3])):
-            fn = os.path.join(dd, f"{f:04d}.png")
+            fn = os.path.join(dd, f"{f:04d}.jpg")
             if os.path.exists(fn):
                 continue
             if time.time() - t0 > 540:
                 print("checkpoint: run again", flush=True); break
-            frame(f, W, H)[0].save(fn)
+            frame(f, W, H)[0].save(fn, quality=94)
         print("batch done", flush=True)

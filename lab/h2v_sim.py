@@ -20,7 +20,8 @@ NA, NB, NC = 240, 288, 384
 NF = NA + NB + NC
 NW = 12000                 # pair walkers -> 24000 electron balls
 NO = 8000                  # orange walkers (other electron given the reference one)
-STEP = 0.07                # a0 per coordinate per Metropolis move during the video (shimmer)
+STEP = 0.03                # a0 per coordinate per Metropolis move during the video (v2: 0.03 x 3 moves, so the
+NMOVE = 3                  # short glow tails stay short smears; v1 was 0.07 x 2, declared)
 SLOW_PERIOD_S = 4.0        # one vibration period shown in 4 s
 JE = os.path.join(OUT, "h2v_esami.json")
 esami = json.load(open(JE)) if os.path.exists(JE) else {}
@@ -153,7 +154,7 @@ def job_frames():
         X, _, _ = metropolis(X, lambda Q: tgt(Q, w14), 0.35, rng, 200)
         Y = None; f0 = 0
     xR = V["x"]
-    for f in range(f0, NF):
+    for f in range(f0, int(os.environ.get("H2V_STOP", NF))):
         need_wait = f == NA + NB and not all(os.path.exists(os.path.join(OUT, f"h2v_basis_R{R:.2f}.npz")) for R in C.RGRID)
         if time.time() - t0 > 420 or f % 120 == 0 or need_wait:
             np.savez(st_file, X=X, Y=Y if Y is not None else np.zeros(0), f=f, rng=json.dumps(rng.bit_generator.state))
@@ -162,9 +163,9 @@ def job_frames():
         meta = dict(f=f)
         if f < NA + NB:
             w = w14; R = 1.4
-            X, _, acc = metropolis(X, lambda Q: tgt(Q, w), STEP, rng, 2)
+            X, _, acc = metropolis(X, lambda Q: tgt(Q, w), STEP, rng, NMOVE)
             balls = [X.reshape(-1, 3)]; cls = [np.zeros(2 * NW, np.uint8)]
-            meta.update(seg="A" if f < NA else "B", R=R, Rmean=R)
+            meta.update(seg="A" if f < NA else "B", R=R, Rmean=R, version="AB2")
             if f >= NA:
                 u = (f - NA) / NB
                 r1 = ref_path(u)

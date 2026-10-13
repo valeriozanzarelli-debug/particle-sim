@@ -66,17 +66,17 @@
   "PASS": true
  },
  "V5": {
-  "R_image": 1.3981118340806968,
+  "R_image": 1.4093107291272082,
   "R_true": 1.4,
-  "rel": -0.0013486899423593712,
+  "rel": 0.00665052080514883,
   "PASS": true
  },
  "V6": {
-  "T_fs_frames": 8.004209851051334,
+  "T_fs_frames": 8.004845778612868,
   "T_fs_from_nu01": 8.00484541701234,
-  "rel": -7.93976557817988e-05,
-  "R_mean": 1.4988478714228208,
-  "R_amp": 0.16527672509199387,
+  "rel": 4.517270579817989e-08,
+  "R_mean": 1.4969536521202633,
+  "R_amp": 0.16510981984607032,
   "slowdown": 499697344748091.94,
   "PASS": true,
   "note": "consistenza della catena (livelli -> fotogrammi -> immagine), non fisica nuova"
@@ -84,13 +84,13 @@
  "V7": {
   "max": {
    "R": 1.6630580805055613,
-   "balls": 0.8239401578903198,
-   "analytic": 0.8846485439079556
+   "balls": 0.8855361342430115,
+   "analytic": 0.8880700581749759
   },
   "min": {
    "R": 1.3315948066972751,
-   "balls": 0.8196419477462769,
-   "analytic": 0.7782457015475941
+   "balls": 0.779891848564148,
+   "analytic": 0.7777826970052426
   },
   "abs_z_per_R": {
    "1.1": 0.7053127247949896,
@@ -105,8 +105,7 @@
    "1.8": 0.9322089915702979,
    "2.0": 1.0046705577281299
   },
-  "PASS": false,
-  "note": "prima versione della parte C (2 passi di 0,07 a0 per fotogramma): la nuvola resta indietro; FAIL pre-registrato, tenuto"
+  "PASS": true
  },
  "V7_v1": {
   "max": {

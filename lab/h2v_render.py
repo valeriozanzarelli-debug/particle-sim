@@ -32,7 +32,7 @@ GLOW_MIX = 0.42
 GAMMA = float(os.environ.get("H2V_GAMMA", 0.65))
 DEPTH = 6.0          # a0
 CAM_D = 7.5          # a0
-FOV = 40.0
+FOV = float(np.degrees(0.8))   # camera.rs: 0.8 rad
 C_E = np.array([0.36, 0.62, 1.00])        # electron balls
 C_E_DEEP = np.array([0.20, 0.38, 1.00])   # sparse electron balls
 C_E_HOT = np.array([0.70, 0.95, 1.00])    # dense electron balls
@@ -43,6 +43,12 @@ REFS_F = os.path.join(SCR, "h2v_refs.json")
 REFS = json.load(open(REFS_F)) if os.path.exists(REFS_F) else {}
 ESAMI = json.load(open(os.path.join(LAB, "out", "h2v_esami.json"))) if os.path.exists(os.path.join(LAB, "out", "h2v_esami.json")) else {}
 SOLO_P = False
+import h2v_zzlook as ZZ  # noqa: E402
+HUE_S = 8.0          # s of video per turn of the colour (phase), declared
+HUE0 = 3.6           # starting phase: the blue-cyan end of the palette (choice)
+P_ALPHA = 2.5        # proton glow brightness (choice)
+R_ALPHA = 2.0        # reference electron brightness (choice)
+ESPOSIZIONE = float(os.environ.get("H2V_ESPO", 1.0))
 G_COL = 0.3          # colour contrast of g (aesthetic): g = 1.3 is fully orange
 G_POW = float(os.environ.get("H2V_GPOW", 1.0))   # light of a ball = g ** G_POW (1 = exact conditional density)
 _GM = []
@@ -141,7 +147,7 @@ def carica(f):
 def tail_points(cur, past, interp=True):
     """the short fading tail (Valerio's rule of 13 Oct: 0.2-0.4 s): the same glow re-splatted along the last NT frames,
     NS sub-steps between consecutive frames so it reads as one smear; weight decays with age. Returns points, weights"""
-    pts, wts = [], []
+    pts, wts, ages = [], [], []
     prev = cur
     ns = NS if interp else 1
     for k, Pk in enumerate(past):
@@ -150,67 +156,57 @@ def tail_points(cur, past, interp=True):
             age = k + u
             pts.append(prev + (Pk - prev) * u)
             wts.append(np.full(len(Pk), TAIL_W * np.exp(-age / TAIL_TAU) / ns))
+            ages.append(age)
         prev = Pk
-    return pts, wts
+    return pts, wts, ages
 
 
 def disegna(d, w, h, cam=None):
-    """draw function: data from carica() -> image (3, h, w)"""
-    s = h / H0
+    """draw function: data from carica() -> (3, h, w) image in [0, 1], zig-zag atom look (lab/h2v_zzlook.py)"""
     P, cl, prot, meta = d["P"], d["cl"], d["prot"], d["meta"]
     cam = cam or cam_for(d["f"], w, h)
     segB = meta["seg"] == "B"
-    # colour by local ball density (3-D histogram of the balls themselves, 0.25 a0 cells): dense -> white-cyan (aesthetic)
+    f_px = 0.5 * h / np.tan(ZZ.FOV / 2)
+    size = ZZ.size_world(CAM_D)
     e0 = cl == 0
+    Pe = P[e0]
+    # brightness from the local density (zzscena.rs rule), density from a 3-D histogram of the balls (0.25 a0 cells)
     edg = np.linspace(-5, 5, 41)
-    hh, _ = np.histogramdd(P[e0], [edg] * 3)
-    ii = np.clip(((P + 5) / 0.25).astype(int), 0, 39)
-    loc = hh[ii[:, 0], ii[:, 1], ii[:, 2]] / max(hh.max(), 1)
-    k = np.clip(loc ** 0.5, 0, 1)[:, None]
-    ce = (1 - k) * C_E_DEEP + k * C_E_HOT
-    col = np.where(cl[:, None] == 0, ce, np.where(cl[:, None] == 1, C_O, C_REF))
-    amp = np.where(cl == 0, 1.0, 0.0)          # class 1 (orange walkers of the exam V4b) not drawn
-    if meta.get("version") == "C2":
-        amp = amp * 1.5                        # 16 000 balls instead of 24 000: same total light (aesthetic)
+    hh, _ = np.histogramdd(Pe, [edg] * 3)
+    ii = np.clip(((Pe + 5) / 0.25).astype(int), 0, 39)
+    a = ZZ.alpha(hh[ii[:, 0], ii[:, 1], ii[:, 2]] / max(hh.max(), 1)) * (1.5 if meta.get("version") == "C2" else 1.0)
+    # colour = phase of the state: nodeless real ground state -> one phase everywhere, turning at its energy frequency
+    # (shown slowed: one turn every HUE_S seconds of video, declared)
+    ph = 2 * np.pi * d["f"] / (FPS * HUE_S) + HUE0
+    col = np.tile(ZZ.tinta(np.array([ph]))[0], (len(Pe), 1))
     if segB:
-        # the same electron balls; light weighted with g(r2 | r_ref): total light = where the other electron is
-        g = gmap().g(np.array(meta["ref"]), P[e0])
+        g = gmap().g(np.array(meta["ref"]), Pe)
         meta["g_mean"] = float(g.mean())
         kk = np.clip((g - 1) / G_COL, -1, 1)[:, None]
-        cB = np.where(kk > 0, (1 - kk) * C_E + kk * C_O, (1 + kk) * C_E + (-kk) * C_E_DEEP * 0.6)
-        col[e0] = cB
-        amp[e0] = g ** G_POW
-    sx, sy, zc = project(world(P), cam)
-    dw = np.exp(-np.clip(zc - CAM_D, 0, None) / DEPTH) * np.exp(np.clip(CAM_D - zc, 0, None) / (2 * DEPTH))
-    wt = amp * dw
-    sharp = np.zeros((4, h, w)); wide = np.zeros((4, h, w)); tail = np.zeros((4, h, w))
+        mid = 0.5 * (ZZ.STOPS[1] + ZZ.STOPS[4])
+        col = np.where(kk > 0, (1 - kk) * mid + kk * ZZ.STOPS[4], (1 + kk) * mid + (-kk) * ZZ.STOPS[1])
+        a = a * g ** G_POW
+    T = ZZ.Tela(w, h)
     if not SOLO_P:
-        splat(sharp, sx, sy, wt, col, w, h)
-        splat(wide, sx, sy, wt, col, w, h)
-        # part C v2: walkers jump ~0.5 a0 per frame -> no interpolated smear, only an in-place afterglow (declared)
-        for pt, tw in zip(*tail_points(P[e0], [p for p, _ in d["past"]], meta.get("version") != "C2")):
+        sx, sy, zc = project(world(Pe), cam)
+        T.balls(sx, sy, size * f_px / np.maximum(zc, 0.3), col, a)
+        for pt, tw, age in zip(*tail_points(Pe, [p for p, _ in d["past"]], meta.get("version") != "C2")):
             tx, ty, tz = project(world(pt), cam)
-            splat(tail, tx, ty, tw * wt[e0], col[e0], w, h)
-    # protons: one bright glow each (many weight at one point, then the same blur chain) + the reference electron
-    big = np.zeros((4, h, w))
+            shrink = max(0.4, 1 - 0.12 * age)          # older glow: dimmer and smaller
+            T.balls(tx, ty, shrink * size * f_px / np.maximum(tz, 0.3), col, a * tw)
+    # protons: one bright white glow each (4x the sprite), with their own short tail when they move
     px, py, pz = project(world(prot), cam)
-    splat(big, px, py, np.full(2, 900.0) * (CAM_D / pz) ** 2, np.tile(C_P, (2, 1)), w, h)
-    for pt, tw in zip(*tail_points(prot, [q for _, q in d["past"]])):
+    T.balls(px, py, 4 * size * f_px / pz, np.ones((2, 3)), np.full(2, P_ALPHA))
+    for pt, tw, age in zip(*tail_points(prot, [q for _, q in d["past"]])):
         qx, qy, qz = project(world(pt), cam)
-        splat(big, qx, qy, 900.0 * tw * (CAM_D / qz) ** 2, np.tile(C_P, (2, 1)), w, h)
+        T.balls(qx, qy, 4 * size * f_px / qz, np.ones((2, 3)), P_ALPHA * tw)
     if segB and not SOLO_P:
-        i = np.where(cl == 2)[0]
-        splat(big, sx[i], sy[i], np.full(len(i), 500.0), col[i], w, h)
-    img = np.stack([blur(sharp[c], SPOT * s) + blur(sharp[c], 2.6 * SPOT * s) * 0.35 + blur(tail[c], 3.5 * SPOT * s)
-                    for c in range(4)])
-    pimg = np.stack([blur(big[c], 4.0 * s) + 0.3 * blur(big[c], 12 * s) for c in range(4)])
-    ref_b = REFS.get("b", 1.0) * s ** -2
-    ref_g = REFS.get("g", 1.0) * s ** -2
-    balls = expose(img + pimg, GAIN, ref_b)
-    glow = expose(np.stack([blur(wide[c] + 0.05 * big[c], GLOW * s) for c in range(4)]), 1.0, ref_g)
-    out = 1 - (1 - np.clip(balls, 0, 1)) * (1 - GLOW_MIX * np.clip(glow, 0, 1))
-    raw = dict(b=float(np.percentile(img[3][img[3] > 0], 99.7)) * s ** 2 if (img[3] > 0).any() else 1.0,
-               g=float(np.percentile(blur(wide[3], GLOW * s)[wide[3] >= 0], 99.9)) * s ** 2)
+        r1 = np.array(meta["ref"])[None]
+        rx, ry, rz = project(world(r1), cam)
+        T.balls(rx, ry, 4 * size * f_px / rz, ZZ.STOPS[3][None], np.array([R_ALPHA]))
+    img = T.hdr()
+    out = ZZ.finisci(img, h / H0, ESPOSIZIONE).transpose(2, 0, 1) / 255.0
+    raw = dict(b=float(np.percentile(img.sum(0)[img.sum(0) > 0], 99.7)) if (img > 0).any() else 1.0, g=0.0)
     return out, meta, cam, raw
 
 
@@ -236,8 +232,8 @@ def testi(meta):
                  "legame calcolato: R_e = 1,4009 a₀ · energia di legame D_e = 4,748 eV (noti: 1,401 a₀ e 4,747 eV)"])
     if seg == "B":
         return ("Dove sta l'altro elettrone? (la correlazione)",
-                ["pallina azzurra: un elettrone messo da noi qui (giro scelto) · luce delle palline = dove sta allora l'altro (calcolato)",
-                 "arancio: l'altro elettrone ci sta più del solito · blu scuro: ci sta meno (scala dei colori scelta)",
+                ["pallina rosa: un elettrone messo da noi qui (giro scelto) · luce delle palline = dove sta allora l'altro (calcolato)",
+                 "giallo: l'altro elettrone ci sta più del solito · blu: ci sta meno (scala dei colori scelta)",
                  f"si evitano: lati opposti nel {num(100 * popp, '{:.1f}')} % dei casi (senza correlazione sarebbe il 50 %)"])
     return ("Il legame vibra",
             [f"stato scelto: metà v = 0, metà v = 1 (livelli calcolati) · periodo 8,0 fs mostrato in 4 s",
@@ -246,7 +242,7 @@ def testi(meta):
 
 ONESTA = ["Stato a due elettroni dal risolutore ECG di Debiti (gaussiane correlate esplicite), non ancora palline zig-zag sulla griglia.",
           "Protoni fermi mentre si calcolano gli elettroni (Born–Oppenheimer). Il moto delle palline è campionamento, non traiettoria.",
-          "Bagliori allargati e luminosità compressa: estetica."]
+          "Aspetto dell'atomo zig-zag: bagliori additivi, colore = fase dello stato (senza nodi: una sola, gira rallentata), scia corta, tono approssimato."]
 
 
 def ui(out, meta, w, h):
@@ -297,10 +293,10 @@ if __name__ == "__main__":
         d = os.path.join(SCR, f"h2v_png_{H}"); os.makedirs(d, exist_ok=True)
         t0 = time.time()
         for f in range(int(sys.argv[2]), int(sys.argv[3])):
-            fn = os.path.join(d, f"{f:04d}.png")
+            fn = os.path.join(d, f"{f:04d}.jpg")
             if os.path.exists(fn):
                 continue
             if time.time() - t0 > 540:
                 print("checkpoint: run again", flush=True); break
-            frame(f, W, H)[0].save(fn)
+            frame(f, W, H)[0].save(fn, quality=94)
         print("batch done", flush=True)

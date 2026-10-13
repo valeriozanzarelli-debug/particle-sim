@@ -6,20 +6,42 @@ File: `lab/he_v_prereg.py` → `lab/out/he_v_prereg.json` (committata **prima** 
 
 ## Cosa si vede (detto semplice)
 
-Un nucleo fermo (il bagliore caldo al centro) e due elettroni. Ogni pallina azzurra è **una posizione possibile di un
+Un nucleo fermo (il bagliore bianco al centro) e due elettroni. Ogni pallina è **una posizione possibile di un
 elettrone**, presa dallo stato fondamentale dell'elio calcolato dal thread principale. Le palline vengono **a coppie**
 (elettrone 1, elettrone 2 nello stesso momento): 12 000 coppie per fotogramma, 24 000 palline.
 
 - **Parte A (8 s)**: la nuvola intera, la camera gira piano. È densa vicino al nucleo e sfuma fuori (raggio medio 0,93 a₀).
-- **Parte B (10 s)**: la **buca di Coulomb**. Mettiamo noi un elettrone (pallina azzurra brillante) a 1 a₀ dal nucleo
+- **Parte B (10 s)**: la **buca di Coulomb**. Mettiamo noi un elettrone (pallina rosa) a 1 a₀ dal nucleo
   e lo facciamo girare su un giro scelto. Le palline restano le stesse, ma la loro **luce è pesata con g** = quanto
-  l'altro elettrone sta lì *rispetto al solito*, sapendo dove sta il primo. Arancio: più del solito (dalla parte opposta);
-  blu scuro: meno (vicino all'elettrone azzurro). È la cosa che solo uno stato a **due** elettroni ha: gli elettroni si
+  l'altro elettrone sta lì *rispetto al solito*, sapendo dove sta il primo. Giallo: più del solito (dalla parte opposta);
+  blu: meno (vicino all'elettrone rosa). Stessi colori della foto del thread principale (`2026-10-13_elio_bagliori.png`). È la cosa che solo uno stato a **due** elettroni ha: gli elettroni si
   scansano. Vicino all'elettrone azzurro l'altro c'è circa la metà (g minimo 0,49 sulla mappa a celle).
 
 Il tremolio **non è moto**: lo stato è stazionario, ogni fotogramma pesca coppie nuove dalle 200 000 esportate.
 La **scia corta** (regola di Valerio del 13/10) è la persistenza dei bagliori degli ultimi 5 fotogrammi (0,21 s) che si
 spengono: niente linee, niente segmenti.
+
+## L'aspetto: quello dell'atomo zig-zag (regola di Valerio del 13/10)
+
+Il disegno copia i parametri della scena dal vivo (`src/atomo/zzscena.rs`, `render_zz.rs`, `balls.wgsl`, `main.rs`),
+in `lab/h2v_zzlook.py` (condiviso con il video H₂):
+- sprite additivo `exp(−3q²)(1−q²) + 0,3·exp(−14q²)`, guadagno 1, grandezza `min(0,004·r_cam, 0,08)` a₀ (regola della scena Tavola);
+- luminosità di ogni pallina `0,03 + 0,30·(ρ/ρ_max)^0,35`, con ρ = densità **esatta** di un elettrone nel punto;
+- colore = **fase dello stato** con la tavolozza ciclica `tinta()`: lo stato fondamentale dell'elio non ha nodi, quindi la
+  fase è una sola ovunque e gira alla frequenza della sua energia; nel video gira una volta ogni 8 s (rallentata, dichiarato);
+- fondo sRGB (0,008; 0,01; 0,02), campo visivo 0,8 rad, HDR con bloom 0,18.
+- **Approssimati** (dichiarato): il bloom (tre sfocature gaussiane) e il tono (TonyMcMapface è una tabella 3-D di Bevy:
+  qui una curva x/(1+x) sulla luminanza).
+- scia corta: le palline degli ultimi 5 fotogrammi restano dov'erano, più deboli e più piccole (12 % per fotogramma).
+
+### Interfaccia per il programma unico (modalità tavola periodica)
+
+Lo script è diviso in `carica(f)` (dati di un fotogramma: posizioni delle coppie, passato per la scia, meta) e
+`disegna(d, w, h)` (immagine). Per portarlo sul renderer del thread principale serve solo che `disegna` emetta una lista
+di `Ball` = `([f32; 3], f32, [f32; 4])` come `render.rs`: posizione in a₀ (passata da `schermo`), fattore di grandezza
+(1 per gli elettroni, 4 per nucleo ed elettrone di riferimento), rgba con alpha = luminosità sopra. Servono in più:
+le 200 000 coppie e la mappa `rapporto_r1_1.0` (già nell'esportazione) e un orologio per la fase del colore.
+I file del thread principale non sono stati toccati.
 
 ## Da dove vengono i dati (onestà)
 
@@ -49,7 +71,7 @@ le nostre palline la portano dentro senza trucchi: le coppie vere stanno vicine 
 
 ## Cosa è scelto (manopole, tutte estetiche)
 
-Colori (azzurro per densità, arancio/blu scuro per g con scala 0,3), dimensioni e aloni dei bagliori, guadagno, camera,
+Colori di g (blu/giallo della tavolozza, scala 0,15), giro del colore di fase (8 s), luminosità di nucleo e riferimento, camera,
 12 000 coppie per fotogramma, scia di 5 fotogrammi, giro dell'elettrone di riferimento (a r = 1 a₀ perché la mappa è
 per |r₁| = 1,0). **Parametri di fisica: zero.**
 
