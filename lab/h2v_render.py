@@ -21,10 +21,14 @@ W0, H0 = 1920, 1080
 SCALA = 1.0
 FONT = "/usr/share/fonts/opentype/inter/Inter-Regular.otf"
 FONTB = "/usr/share/fonts/opentype/inter/Inter-SemiBold.otf"
-SPOT = 1.6           # px at 1080p, sharp ball blur
+SPOT = 1.25          # px at 1080p, sharp ball blur (crisper after Valerio's note of 13 Oct)
+NT = 5               # tail: past frames re-splatted (5 frames = 0.21 s at 24 fps)
+NS = 10              # sub-steps between consecutive frames (one smear, no chain of dots)
+TAIL_W = 0.5         # tail weight at age 0
+TAIL_TAU = 1.4       # tail decay (frames)
 GLOW = 16.0          # px at 1080p, wide halo
-GAIN = float(os.environ.get("H2V_GAIN", 1.3))
-GLOW_MIX = 0.55
+GAIN = float(os.environ.get("H2V_GAIN", 1.9))
+GLOW_MIX = 0.42
 GAMMA = float(os.environ.get("H2V_GAMMA", 0.65))
 DEPTH = 6.0          # a0
 CAM_D = 7.5          # a0
@@ -117,12 +121,44 @@ def world(p):
     return np.stack([p[:, 2], p[:, 0], p[:, 1]])
 
 
-def scena(f, w, h, cam=None):
+def carica(f):
+    """data loader (separable from drawing): one frame of balls + the past NT frames of the same walkers (for the tail)"""
+    def one(k):
+        z = np.load(os.path.join(FR, f"f_{k:04d}.npz"))
+        return z["p"].astype(float), z["c"], z["prot"], json.loads(str(z["meta"]))
+    P, cl, prot, meta = one(f)
+    past = []
+    for k in range(1, NT + 1):
+        if f - k < 0:
+            break
+        Pk, ck, pk, mk = one(f - k)
+        if (ck == 0).sum() != (cl == 0).sum():
+            break                       # different walker set (part C v2 starts fresh): no tail across it
+        past.append((Pk[ck == 0], pk))
+    return dict(P=P, cl=cl, prot=prot, meta=meta, past=past, f=f)
+
+
+def tail_points(cur, past, interp=True):
+    """the short fading tail (Valerio's rule of 13 Oct: 0.2-0.4 s): the same glow re-splatted along the last NT frames,
+    NS sub-steps between consecutive frames so it reads as one smear; weight decays with age. Returns points, weights"""
+    pts, wts = [], []
+    prev = cur
+    ns = NS if interp else 1
+    for k, Pk in enumerate(past):
+        for j in range(1, ns + 1):
+            u = j / ns
+            age = k + u
+            pts.append(prev + (Pk - prev) * u)
+            wts.append(np.full(len(Pk), TAIL_W * np.exp(-age / TAIL_TAU) / ns))
+        prev = Pk
+    return pts, wts
+
+
+def disegna(d, w, h, cam=None):
+    """draw function: data from carica() -> image (3, h, w)"""
     s = h / H0
-    z = np.load(os.path.join(FR, f"f_{f:04d}.npz"))
-    P, cl, prot = z["p"].astype(float), z["c"], z["prot"]
-    meta = json.loads(str(z["meta"]))
-    cam = cam or cam_for(f, w, h)
+    P, cl, prot, meta = d["P"], d["cl"], d["prot"], d["meta"]
+    cam = cam or cam_for(d["f"], w, h)
     segB = meta["seg"] == "B"
     # colour by local ball density (3-D histogram of the balls themselves, 0.25 a0 cells): dense -> white-cyan (aesthetic)
     e0 = cl == 0
@@ -134,6 +170,8 @@ def scena(f, w, h, cam=None):
     ce = (1 - k) * C_E_DEEP + k * C_E_HOT
     col = np.where(cl[:, None] == 0, ce, np.where(cl[:, None] == 1, C_O, C_REF))
     amp = np.where(cl == 0, 1.0, 0.0)          # class 1 (orange walkers of the exam V4b) not drawn
+    if meta.get("version") == "C2":
+        amp = amp * 1.5                        # 16 000 balls instead of 24 000: same total light (aesthetic)
     if segB:
         # the same electron balls; light weighted with g(r2 | r_ref): total light = where the other electron is
         g = gmap().g(np.array(meta["ref"]), P[e0])
@@ -145,19 +183,27 @@ def scena(f, w, h, cam=None):
     sx, sy, zc = project(world(P), cam)
     dw = np.exp(-np.clip(zc - CAM_D, 0, None) / DEPTH) * np.exp(np.clip(CAM_D - zc, 0, None) / (2 * DEPTH))
     wt = amp * dw
-    sharp = np.zeros((4, h, w)); wide = np.zeros((4, h, w))
+    sharp = np.zeros((4, h, w)); wide = np.zeros((4, h, w)); tail = np.zeros((4, h, w))
     if not SOLO_P:
         splat(sharp, sx, sy, wt, col, w, h)
         splat(wide, sx, sy, wt, col, w, h)
+        # part C v2: walkers jump ~0.5 a0 per frame -> no interpolated smear, only an in-place afterglow (declared)
+        for pt, tw in zip(*tail_points(P[e0], [p for p, _ in d["past"]], meta.get("version") != "C2")):
+            tx, ty, tz = project(world(pt), cam)
+            splat(tail, tx, ty, tw * wt[e0], col[e0], w, h)
     # protons: one bright glow each (many weight at one point, then the same blur chain) + the reference electron
     big = np.zeros((4, h, w))
     px, py, pz = project(world(prot), cam)
     splat(big, px, py, np.full(2, 900.0) * (CAM_D / pz) ** 2, np.tile(C_P, (2, 1)), w, h)
+    for pt, tw in zip(*tail_points(prot, [q for _, q in d["past"]])):
+        qx, qy, qz = project(world(pt), cam)
+        splat(big, qx, qy, 900.0 * tw * (CAM_D / qz) ** 2, np.tile(C_P, (2, 1)), w, h)
     if segB and not SOLO_P:
         i = np.where(cl == 2)[0]
         splat(big, sx[i], sy[i], np.full(len(i), 500.0), col[i], w, h)
-    img = np.stack([blur(sharp[c], SPOT * s) + blur(sharp[c], 2.6 * SPOT * s) * 0.5 for c in range(4)])
-    pimg = np.stack([blur(big[c], 4.5 * s) + 0.35 * blur(big[c], 12 * s) for c in range(4)])
+    img = np.stack([blur(sharp[c], SPOT * s) + blur(sharp[c], 2.6 * SPOT * s) * 0.35 + blur(tail[c], 3.5 * SPOT * s)
+                    for c in range(4)])
+    pimg = np.stack([blur(big[c], 4.0 * s) + 0.3 * blur(big[c], 12 * s) for c in range(4)])
     ref_b = REFS.get("b", 1.0) * s ** -2
     ref_g = REFS.get("g", 1.0) * s ** -2
     balls = expose(img + pimg, GAIN, ref_b)
@@ -166,6 +212,10 @@ def scena(f, w, h, cam=None):
     raw = dict(b=float(np.percentile(img[3][img[3] > 0], 99.7)) * s ** 2 if (img[3] > 0).any() else 1.0,
                g=float(np.percentile(blur(wide[3], GLOW * s)[wide[3] >= 0], 99.9)) * s ** 2)
     return out, meta, cam, raw
+
+
+def scena(f, w, h, cam=None):
+    return disegna(carica(f), w, h, cam)
 
 
 def font(sz, bold=False):
@@ -191,7 +241,7 @@ def testi(meta):
                  f"si evitano: lati opposti nel {num(100 * popp, '{:.1f}')} % dei casi (senza correlazione sarebbe il 50 %)"])
     return ("Il legame vibra",
             [f"stato scelto: metà v = 0, metà v = 1 (livelli calcolati) · periodo 8,0 fs mostrato in 4 s",
-             f"t = {num(meta['t_fs'], '{:.2f}')} fs   ⟨R⟩ = {num(meta['R'], '{:.3f}')} a₀   la nuvola segue i protoni (Born–Oppenheimer)"])
+             f"t = {num(meta['t_fs'], '{:.2f}')} fs   R medio = {num(meta['R'], '{:.3f}')} a₀   la nuvola segue i protoni (Born–Oppenheimer)"])
 
 
 ONESTA = ["Stato a due elettroni dal risolutore ECG di Debiti (gaussiane correlate esplicite), non ancora palline zig-zag sulla griglia.",
