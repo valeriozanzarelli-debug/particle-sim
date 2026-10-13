@@ -27,7 +27,7 @@ def planck(x):
         return 1 / (1 + np.exp(1 / (1 - x) - 1 / x))
 
 
-def solve_glue(c, Z, nst, J0, window=12, tau=True, rmax=None):
+def solve_glue(c, Z, nst, J0, window=12, tau=True, rmax=None, mode="window"):
     Za = Z * ALPHA
     Eref = -dirac_binding(nst, -1, Za)
     rmax = rmax or (24 if nst == 1 else 40) * A0 / Z
@@ -39,13 +39,24 @@ def solve_glue(c, Z, nst, J0, window=12, tau=True, rmax=None):
     Rw1, Rw2 = (J0 + 0.5) * h, (Jw + 0.5) * h
 
     def wf(rr):
-        return np.where(rr <= Rw1, 1.0, np.where(rr >= Rw2, 0.0, 1 - planck((rr - Rw1) / (Rw2 - Rw1))))
+        return np.where(rr <= Rw1, 1.0, np.where(rr >= Rw2, 0.0, planck((rr - Rw1) / (Rw2 - Rw1))))
+
+    lam = 2 * c.m_kin * Za                         # any decay works; the cusp function u_c = r e^{-lam r}
+    uc = rj * np.exp(-lam * rj)
+    tauc = K @ uc + (-2 * lam + lam**2 * rj) * np.exp(-lam * rj) / (2 * c.m_kin)
 
     def parts(E):
         r, g, f = zz_regular(hy.mesh, -1, Za, 1 + E)
         G = g.real
         inside = rj <= r[-1]
         ui = np.where(inside, CubicSpline(r, G)(np.minimum(rj, r[-1])), 0.0)
+        if mode == "cusp":
+            # slope at the origin from the inner solution (r in [0.5, 4] lambda_C: well inside the first coarse cell)
+            sel = (r > 0.5) & (r < 4.0)
+            a1, a2 = np.polyfit(r[sel], G[sel] / r[sel], 1)[::-1]
+            upp0 = -2 * c.m_kin * Za * a1            # Kato: u''(0+) = -2 m Z alpha u'(0) (the continuum equation at r -> 0)
+            s = upp0 / (-2 * lam)
+            return ui, s * tauc
         v = wf(rj) * ui
         Tc = -CubicSpline(r, wf(r) * G)(np.minimum(rj, r[-1]), 2) / (2 * c.m_kin) * inside
         return ui, (K @ v - Tc) if tau else np.zeros(N)
@@ -73,6 +84,7 @@ def glue_scan(cfg, log=print):
         rec = {}
         for J0 in cfg["J0"]:
             rec[f"J0={J0}"] = solve_glue(c, Z, nst, J0, cfg["window"], tau=True)
+            rec[f"J0={J0}_cusp"] = solve_glue(c, Z, nst, J0, cfg["window"], tau=True, mode="cusp")
             rec[f"J0={J0}_phase1"] = solve_glue(c, Z, nst, J0, cfg["window"], tau=False)
         out[f"Z{Z}_{nst}s"] = rec
         log(f"Z{Z} {nst}s", {k: (None if v is None else f"{100 * v:+.4f}%") for k, v in rec.items()})
