@@ -1,7 +1,8 @@
 // Weighted blended order-independent transparency for the photon's energy balls (oit_palline.rs,
 // docs/MOTORE_GRAFICO_OIT.md). McGuire & Bavoil 2013: every ball adds c·a·w and a·w to ACCUM and multiplies
 // REVEAL by exp(-k a); the composite pass shows the w-weighted mean colour with coverage 1 − REVEAL.
-// w = exp(−(z − z_rif)/D): the balls nearest to the eye count most, so the colours do not average to white.
+// w = exp(−(z − z_fronte)/D), z_fronte = the nearest ball core on the pixel (pass 0, a depth-only pass):
+// the nearest layer of light gives the colour, so the colours do not average to white.
 // Same 32-byte instances as istanze.wgsl; the quad corners come from the vertex index (no extra buffer).
 // Only balls: no lines, no surfaces.
 
@@ -10,11 +11,11 @@ struct Par {
     right: vec4<f32>,      // camera right (xyz)
     up: vec4<f32>,         // camera up (xyz)
     eye: vec4<f32>,        // camera position (xyz), w = view alignment |fwd · axis|
-    fwd: vec4<f32>,        // camera forward (xyz), w = z_rif
+    fwd: vec4<f32>,        // camera forward (xyz), w unused
     offset: vec4<f32>,     // layer translation (xyz), w = D (depth of the transparency)
     // size, gain, soft, k (exposure)
     a: vec4<f32>,
-    // tail samples ns, visible tail fraction from the side, colour gain of the composite, unused
+    // tail samples ns, visible tail fraction from the side, colour gain of the composite, z_max of pass 0
     b: vec4<f32>,
 };
 
@@ -31,8 +32,12 @@ struct VOut {
     @builtin(position) clip: vec4<f32>,
     @location(0) corner: vec2<f32>,
     @location(1) color: vec4<f32>,
-    @location(2) w: f32,
+    // distance of the ball from the eye along the view (world units)
+    @location(2) z: f32,
 };
+
+// the front of the light on this pixel (pass 0), linear depth z / z_max
+@group(0) @binding(3) var t_fronte: texture_depth_2d;
 
 // Visible weight of a tail ball (j = 0 newest) of `ns`, seen with alignment c = |fwd · axis|.
 // From the side only the newest quarter of the tail (as before); along the axis the whole tail (2 λ/c),
@@ -46,8 +51,7 @@ fn coda(j: f32, ns: f32, c: f32) -> f32 {
     return vis * mix(lato, dietro, smoothstep(0.55, 0.95, c));
 }
 
-@vertex
-fn vertex(v: VIn) -> VOut {
+fn calcola(v: VIn) -> VOut {
     var out: VOut;
     var cs = array<vec2<f32>, 6>(vec2<f32>(-1.0, -1.0), vec2<f32>(1.0, -1.0), vec2<f32>(1.0, 1.0),
                                  vec2<f32>(-1.0, -1.0), vec2<f32>(1.0, 1.0), vec2<f32>(-1.0, 1.0));
@@ -82,10 +86,26 @@ fn vertex(v: VIn) -> VOut {
     if (col.a < 1e-3) { out.clip = vec4<f32>(0.0, 0.0, -2.0, 1.0); }
     out.corner = corner;
     out.color = col;
-    // depth weight (McGuire–Bavoil): nearer balls cover farther ones
-    let z = dot(world - par.eye.xyz, par.fwd.xyz);
-    out.w = exp(-clamp((z - par.fwd.w) / max(par.offset.w, 1e-3), -3.0, 14.0));
+    out.z = dot(world - par.eye.xyz, par.fwd.xyz);
     return out;
+}
+
+// pass 0: the nearest ball core on each pixel writes its linear depth (z / z_max, par.b.w = z_max)
+@vertex
+fn vertex(v: VIn) -> VOut { return calcola(v); }
+
+@vertex
+fn vertex_fronte(v: VIn) -> VOut {
+    var out = calcola(v);
+    out.clip.z = clamp(out.z / par.b.w, 0.0, 1.0) * out.clip.w;
+    return out;
+}
+
+@fragment
+fn fragment_fronte(in: VOut) {
+    let r2 = dot(in.corner, in.corner);
+    // only the bright core of a visible ball defines the front (not the soft rim, not a faded tail)
+    if (r2 > 0.45 || in.color.a * par.a.y < 0.08) { discard; }
 }
 
 struct FOut {
@@ -101,8 +121,14 @@ fn fragment(in: VOut) -> FOut {
     let rim = 1.0 - smoothstep(0.55, 1.0, r2);
     let f = mix(rim, exp(-par.a.z * r2), 0.6);
     let a = clamp(in.color.a * par.a.y * f, 0.0, 1.0);
+    // depth weight (McGuire–Bavoil), measured from the FRONT OF THE LIGHT ON THIS PIXEL (pass 0), not from a global
+    // depth: a ball D behind the front counts e times less, so the colour is the colour of the nearest layer
+    // whatever the number of balls (with a global depth the weight times the Gaussian cloud is again a Gaussian as
+    // thick as the cloud: every hue, white, and whiter with more balls)
+    let zf = textureLoad(t_fronte, vec2<i32>(in.clip.xy), 0) * par.b.w;
+    let w = exp(-clamp((in.z - zf) / max(par.offset.w, 1e-3), 0.0, 14.0));
     var o: FOut;
-    o.accum = vec4<f32>(in.color.rgb * a * in.w, a * in.w);
+    o.accum = vec4<f32>(in.color.rgb * a * w, a * w);
     o.reveal = vec4<f32>(exp(-par.a.w * a), 0.0, 0.0, 1.0);
     return o;
 }

@@ -5,8 +5,9 @@
 //! thousands of balls of every hue pile up on each pixel: the result was a white fog that hid the spin swirl.
 //! Now: weighted blended order-independent transparency (McGuire & Bavoil 2013), the method of the Python
 //! prototype lab/fp_render.py:
+//!   pass 0 (offscreen, depth only): the nearest bright ball core on each pixel = the FRONT of the light there;
 //!   pass 1 (offscreen, one draw call): every ball adds (c·a·w, a·w) to ACCUM (Rgba16Float) and multiplies
-//!          REVEAL (R16Float) by exp(−k a); w = exp(−(z − z_rif)/D) favours the balls nearest to the eye;
+//!          REVEAL (R16Float) by exp(−k a); w = exp(−(z − z_fronte)/D) favours the nearest layer of light;
 //!   pass 2 (full screen): colour = Σ c a w / Σ a w, coverage = 1 − exp(−k Σ a), premultiplied over the scene,
 //!          before the additive glow layers (surfers, box) of the transparent pass.
 //! The exposure k comes from the expected column density of the balls (no read-back, same rule on every preset);
@@ -15,7 +16,7 @@
 //!
 //! Why not Bevy 0.15's built-in OIT: it stores per-pixel linked lists in storage buffers (fragment-writable
 //! storage, ~8 layers × 8 bytes per pixel) and is wired to the mesh materials; ours are instanced quads, and the
-//! weighted blend costs two small render targets and two passes, which the Intel UHD runs at the same cost.
+//! weighted blend costs three small render targets and three passes, which the Intel UHD runs at the same cost.
 
 use bevy::{
     asset::load_internal_asset,
@@ -28,7 +29,7 @@ use bevy::{
     render::{
         extract_resource::{ExtractResource, ExtractResourcePlugin},
         render_graph::{NodeRunError, RenderGraphApp, RenderGraphContext, RenderLabel, ViewNode, ViewNodeRunner},
-        render_resource::{binding_types::{texture_2d, uniform_buffer_sized}, *},
+        render_resource::{binding_types::{texture_2d, texture_depth_2d, uniform_buffer_sized}, *},
         renderer::{RenderContext, RenderDevice},
         texture::{CachedTexture, TextureCache},
         view::{ExtractedView, Msaa, ViewTarget},
@@ -44,6 +45,7 @@ pub const OIT_SHADER: Handle<Shader> = Handle::weak_from_u128(0x3b8e_91d2_5c47_4
 
 const ACCUM: TextureFormat = TextureFormat::Rgba16Float;
 const REVEAL: TextureFormat = TextureFormat::R16Float;
+const FRONTE: TextureFormat = TextureFormat::Depth32Float;
 
 /// What the OIT layer draws this frame (main world, extracted every frame). `attivo` false = layer off.
 #[derive(Resource, Clone, ExtractResource)]
@@ -206,13 +208,15 @@ impl Plugin for OitPlugin {
 }
 
 #[derive(Resource)]
-pub struct PipelineOit { layout_disegno: BindGroupLayout, layout_comp: BindGroupLayout, disegno: CachedRenderPipelineId }
+pub struct PipelineOit { layout_fronte: BindGroupLayout, layout_disegno: BindGroupLayout, layout_comp: BindGroupLayout, fronte: CachedRenderPipelineId, disegno: CachedRenderPipelineId }
 
 impl FromWorld for PipelineOit {
     fn from_world(world: &mut World) -> Self {
         let device = world.resource::<RenderDevice>();
-        let layout_disegno = device.create_bind_group_layout("oit palline",
+        let layout_fronte = device.create_bind_group_layout("oit fronte",
             &BindGroupLayoutEntries::single(ShaderStages::VERTEX_FRAGMENT, uniform_buffer_sized(false, None)));
+        let layout_disegno = device.create_bind_group_layout("oit palline",
+            &BindGroupLayoutEntries::with_indices(ShaderStages::VERTEX_FRAGMENT, ((0, uniform_buffer_sized(false, None)), (3, texture_depth_2d()))));
         let layout_comp = device.create_bind_group_layout("oit composizione",
             &BindGroupLayoutEntries::sequential(ShaderStages::VERTEX_FRAGMENT, (
                 uniform_buffer_sized(false, None),
@@ -221,22 +225,35 @@ impl FromWorld for PipelineOit {
             )));
         let somma = BlendComponent { src_factor: BlendFactor::One, dst_factor: BlendFactor::One, operation: BlendOperation::Add };
         let per = BlendComponent { src_factor: BlendFactor::Zero, dst_factor: BlendFactor::Src, operation: BlendOperation::Add };
+        let istanze = || vec![VertexBufferLayout {
+            array_stride: std::mem::size_of::<Istanza>() as u64,
+            step_mode: VertexStepMode::Instance,
+            attributes: vec![
+                VertexAttribute { format: VertexFormat::Float32x4, offset: 0, shader_location: 0 },
+                VertexAttribute { format: VertexFormat::Float32x3, offset: 16, shader_location: 1 },
+                VertexAttribute { format: VertexFormat::Unorm8x4, offset: 28, shader_location: 2 },
+            ],
+        }];
+        // pass 0: depth only, the front of the light on each pixel
+        let desc_fronte = RenderPipelineDescriptor {
+            label: Some("oit fronte".into()),
+            layout: vec![layout_fronte.clone()],
+            push_constant_ranges: vec![],
+            vertex: VertexState { shader: OIT_SHADER, shader_defs: vec![], entry_point: "vertex_fronte".into(), buffers: istanze() },
+            primitive: PrimitiveState { cull_mode: None, ..default() },
+            depth_stencil: Some(DepthStencilState {
+                format: FRONTE, depth_write_enabled: true, depth_compare: CompareFunction::Less,
+                stencil: StencilState::default(), bias: DepthBiasState::default(),
+            }),
+            multisample: MultisampleState::default(),
+            fragment: Some(FragmentState { shader: OIT_SHADER, shader_defs: vec![], entry_point: "fragment_fronte".into(), targets: vec![] }),
+            zero_initialize_workgroup_memory: false,
+        };
         let desc = RenderPipelineDescriptor {
             label: Some("oit palline".into()),
             layout: vec![layout_disegno.clone()],
             push_constant_ranges: vec![],
-            vertex: VertexState {
-                shader: OIT_SHADER, shader_defs: vec![], entry_point: "vertex".into(),
-                buffers: vec![VertexBufferLayout {
-                    array_stride: std::mem::size_of::<Istanza>() as u64,
-                    step_mode: VertexStepMode::Instance,
-                    attributes: vec![
-                        VertexAttribute { format: VertexFormat::Float32x4, offset: 0, shader_location: 0 },
-                        VertexAttribute { format: VertexFormat::Float32x3, offset: 16, shader_location: 1 },
-                        VertexAttribute { format: VertexFormat::Unorm8x4, offset: 28, shader_location: 2 },
-                    ],
-                }],
-            },
+            vertex: VertexState { shader: OIT_SHADER, shader_defs: vec![], entry_point: "vertex".into(), buffers: istanze() },
             primitive: PrimitiveState { cull_mode: None, ..default() },
             depth_stencil: None,
             multisample: MultisampleState::default(),
@@ -249,8 +266,10 @@ impl FromWorld for PipelineOit {
             }),
             zero_initialize_workgroup_memory: false,
         };
-        let disegno = world.resource::<PipelineCache>().queue_render_pipeline(desc);
-        PipelineOit { layout_disegno, layout_comp, disegno }
+        let cache = world.resource::<PipelineCache>();
+        let fronte = cache.queue_render_pipeline(desc_fronte);
+        let disegno = cache.queue_render_pipeline(desc);
+        PipelineOit { layout_fronte, layout_disegno, layout_comp, fronte, disegno }
     }
 }
 
@@ -282,6 +301,8 @@ impl SpecializedRenderPipeline for PipelineOit {
 /// Per view: the two offscreen targets, the bind groups, the composite pipeline.
 #[derive(Component)]
 pub struct VistaOit {
+    fronte: CachedTexture,
+    bg_fronte: BindGroup,
     accum: CachedTexture,
     reveal: CachedTexture,
     bg_disegno: BindGroup,
@@ -332,6 +353,7 @@ fn prepara(
             mip_level_count: 1, sample_count: 1, dimension: TextureDimension::D2, format,
             usage: TextureUsages::RENDER_ATTACHMENT | TextureUsages::TEXTURE_BINDING, view_formats: &[],
         });
+        let fronte = tex(&mut texture_cache, "oit fronte", FRONTE);
         let accum = tex(&mut texture_cache, "oit accum", ACCUM);
         let reveal = tex(&mut texture_cache, "oit reveal", REVEAL);
         // camera
@@ -346,7 +368,8 @@ fn prepara(
         // z_rif: the front of the light seen from the eye (its centre minus its half-extent along the view)
         let centro = Vec3::from(o.centro);
         let mezza = ((2.5 * o.sigma * c).powi(2) + (1.5 * o.w0).powi(2) * (1.0 - c * c)).sqrt();
-        let z_rif = (centro - eye).dot(fwd) - mezza;
+        // depth range of pass 0: everything up to well beyond the light
+        let z_max = (centro - eye).length() * 2.0 + 4.0 * mezza + 1.0;
         let ss = |e0: f32, e1: f32, x: f32| { let t = ((x - e0) / (e1 - e0)).clamp(0.0, 1.0); t * t * (3.0 - 2.0 * t) };
         let lungo = ss(0.55, 0.95, c);
         let k = esposizione(&o, right, up, c) * (LATO_ESPOSIZIONE + (1.0 - LATO_ESPOSIZIONE) * lungo);
@@ -356,19 +379,21 @@ fn prepara(
             right: right.extend(0.0).to_array(),
             up: up.extend(0.0).to_array(),
             eye: [eye.x, eye.y, eye.z, c],
-            fwd: [fwd.x, fwd.y, fwd.z, z_rif],
+            fwd: [fwd.x, fwd.y, fwd.z, 0.0],
             offset: [o.offset[0], o.offset[1], o.offset[2], prof * o.lambda],
             a: [o.size, o.gain, o.soft, k],
-            b: [o.ns, o.coda_lato, o.guadagno, 0.0],
+            b: [o.ns, o.coda_lato, o.guadagno, z_max],
         };
         let ub = device.create_buffer_with_data(&BufferInitDescriptor { label: Some("oit parametri"), contents: bytemuck::bytes_of(&p), usage: BufferUsages::UNIFORM });
-        let bg_disegno = device.create_bind_group("oit palline", &pipeline.layout_disegno, &BindGroupEntries::single(ub.as_entire_binding()));
+        let bg_fronte = device.create_bind_group("oit fronte", &pipeline.layout_fronte, &BindGroupEntries::single(ub.as_entire_binding()));
+        let bg_disegno = device.create_bind_group("oit palline", &pipeline.layout_disegno,
+            &BindGroupEntries::with_indices(((0, ub.as_entire_binding()), (3, &fronte.default_view))));
         let bg_comp = device.create_bind_group("oit composizione", &pipeline.layout_comp,
             &BindGroupEntries::sequential((ub.as_entire_binding(), &accum.default_view, &reveal.default_view)));
         let campioni = msaa.map(|m| m.samples()).unwrap_or(1);
         let formato = if view.hdr { ViewTarget::TEXTURE_FORMAT_HDR } else { target.main_texture_format() };
         let comp = pipelines.specialize(&cache, &pipeline, ChiaveComp { formato, campioni });
-        commands.entity(e).insert(VistaOit { accum, reveal, bg_disegno, bg_comp, comp, buffer: buffer.clone(), n });
+        commands.entity(e).insert(VistaOit { fronte, bg_fronte, accum, reveal, bg_disegno, bg_comp, comp, buffer: buffer.clone(), n });
     }
 }
 
@@ -382,7 +407,24 @@ impl ViewNode for NodoOit {
         if v.n == 0 { return Ok(()); }
         let cache = world.resource::<PipelineCache>();
         let pip = world.resource::<PipelineOit>();
-        let (Some(disegno), Some(comp)) = (cache.get_render_pipeline(pip.disegno), cache.get_render_pipeline(v.comp)) else { return Ok(()) };
+        let (Some(fronte), Some(disegno), Some(comp)) = (cache.get_render_pipeline(pip.fronte), cache.get_render_pipeline(pip.disegno), cache.get_render_pipeline(v.comp)) else { return Ok(()) };
+        {
+            let mut pass = rc.begin_tracked_render_pass(RenderPassDescriptor {
+                label: Some("oit fronte"),
+                color_attachments: &[],
+                depth_stencil_attachment: Some(RenderPassDepthStencilAttachment {
+                    view: &v.fronte.default_view,
+                    depth_ops: Some(Operations { load: LoadOp::Clear(1.0), store: StoreOp::Store }),
+                    stencil_ops: None,
+                }),
+                timestamp_writes: None,
+                occlusion_query_set: None,
+            });
+            pass.set_render_pipeline(fronte);
+            pass.set_bind_group(0, &v.bg_fronte, &[]);
+            pass.set_vertex_buffer(0, v.buffer.slice(..));
+            pass.draw(0..6, 0..v.n);
+        }
         {
             let mut pass = rc.begin_tracked_render_pass(RenderPassDescriptor {
                 label: Some("oit palline"),
