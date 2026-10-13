@@ -7,8 +7,8 @@ zig-zag vera. Dati: `/mnt/project-files/ripresa/dati/idrogeno_bohr/` (manifest c
 Pre-registrazione: `lab/out/vl_idro_prereg.json` (commit 958dc5a, **prima di ogni pallina**). Risultati:
 `lab/out/vl_idro_esami.json`, `lab/out/vl_idro_profilo.json` (controllo dopo, dichiarato).
 
-Video e fermo-immagine: `/mnt/project-files/modello-standard/video_idrogeno_bohr_1080p.mp4`, `..._720p.mp4`,
-`video_idrogeno_bohr_lontano.png`, `video_idrogeno_bohr_zoom.png`, `video_idrogeno_bohr_protone.png`.
+Video e fermo-immagine: **in rendering** (verranno copiati in `/mnt/project-files/modello-standard/` appena finiti;
+questo paragrafo sarà aggiornato con i nomi verificati).
 
 ---
 

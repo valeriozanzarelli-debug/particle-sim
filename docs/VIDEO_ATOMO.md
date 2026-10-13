@@ -17,8 +17,8 @@ prima di muovere qualunque pallina**) + emendamento 1 `lab/out/vl_amend1.json` (
 palline). Risultati: `lab/out/vl_campi.json`, `lab/out/vl_esami.json`,
 `lab/out/vl_serie.json` (prima versione, col giro finto: `*_v1.json`).
 
-Video e fermo-immagine: `/mnt/project-files/modello-standard/video_atomo_1080p.mp4`, `video_atomo_720p.mp4`,
-`video_atomo_assorbe.png`, `video_atomo_oscilla.png`, `video_atomo_riemette.png`, `video_atomo_si_svuota.png`.
+Video e fermo-immagine: **in rendering** (verranno copiati in `/mnt/project-files/modello-standard/` appena finiti;
+questo paragrafo sarà aggiornato con i nomi verificati).
 
 ![figura](fig/video_atomo.png)
 
