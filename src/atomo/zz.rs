@@ -781,3 +781,101 @@ impl Atomo {
         (v, om / wsum, wsum)
     }
 }
+
+impl Atomo {
+    /// One tick forward that also returns the EXACT probability flux of the walk across every link (x, x + e_j) during
+    /// the tick (whole cube only; docs/SURFISTI_ESATTI.md: the amplitude moving +1 at x minus the one moving −1 at x+e_j).
+    pub fn avanti_flusso(&mut self) -> [Vec<f64>; 3] {
+        assert!(self.colore.is_none(), "flux only on the whole cube");
+        let n = N;
+        let t = self.t();
+        let mut f = [vec![0.0; self.psi.len()], vec![0.0; self.psi.len()], vec![0.0; self.psi.len()]];
+        for j in order(self.ticks) {
+            self.shift(j, 1);
+            let tmp = &self.tmp;
+            f[j].par_iter_mut().enumerate().for_each(|(s, v)| {
+                let a = tmp[s][1].norm2() + tmp[s][2].norm2();
+                let b = { let q = &tmp[nb(s, j, 1, n)]; q[0].norm2() + q[3].norm2() };
+                *v = a - b;
+            });
+        }
+        self.ruota(t, 1.0);
+        self.ticks += 1;
+        f
+    }
+}
+
+/// Azimuthal flow of the 1s as in docs/SURFISTI_ESATTI.md (`vphi_from_flux`): link fluxes over two ticks centred on the
+/// cells, J_φ = (−y F_x + x F_y)/r_c, mask 1 < r < 6, |z| < r/2: Σ J_φ r/r_c / Σ ρ / (Zα). Dirac's Bohm–Dirac flow of the
+/// 1s gives 1 (v_φ = Zα c sinθ). The atom is advanced by two ticks.
+pub fn vphi_rapporto(at: &mut Atomo) -> f64 {
+    let n = N;
+    let rho: Vec<f64> = at.psi.iter().map(|p| p.iter().map(|c| c.norm2()).sum()).collect();
+    let f1 = at.avanti_flusso();
+    let f2 = at.avanti_flusso();
+    let (mut num, mut den) = (0.0, 0.0);
+    for s in 0..rho.len() {
+        let c = sito(s, None);
+        let x = [x_of(c[0]), x_of(c[1]), x_of(c[2])];
+        let r = (x[0] * x[0] + x[1] * x[1] + x[2] * x[2]).sqrt();
+        let rc = (x[0] * x[0] + x[1] * x[1]).sqrt();
+        if !(r > 1.0 && r < 6.0 && x[2].abs() < 0.5 * r) { continue; }
+        let fc = |j: usize| 0.25 * (f1[j][s] + f2[j][s] + f1[j][nb(s, j, -1, n)] + f2[j][nb(s, j, -1, n)]);
+        let jp = (-x[1] * fc(0) + x[0] * fc(1)) / rc;
+        num += jp * r / rc;
+        den += rho[s];
+    }
+    num / den / z_alpha()
+}
+
+/// Keep only the electron's own valley k = 0 (the Fourier cells nearer to k ∈ {0, π}³ than to the other three valleys
+/// (π/2, π/2, 0)+{0, π}³ and permutations, as `valley_split` in lab/surf_f2_valli.py), renormalised. Whole cube.
+pub fn proietta_valle_zero(psi: &[[C; 4]]) -> Vec<[C; 4]> {
+    let n = N;
+    let tw = std::f64::consts::TAU / n as f64;
+    let dft = |a: &mut Vec<[C; 4]>, segno: f64| {
+        let m: Vec<C> = (0..n * n).map(|q| C::expi(segno * tw * ((q / n) * (q % n)) as f64)).collect();
+        for ax in 0..3 {
+            let stride = [n * n, n, 1][ax];
+            let starts: Vec<usize> = (0..n * n * n).filter(|s| (s / stride) % n == 0).collect();
+            let lines: Vec<Vec<[C; 4]>> = starts.par_iter().map(|&s0| {
+                (0..n).map(|k| { let mut o = [C::ZERO; 4]; for i in 0..n { let w = m[k * n + i]; let v = a[s0 + i * stride]; for q in 0..4 { o[q] += w * v[q]; } } o }).collect()
+            }).collect();
+            for (s0, l) in starts.iter().zip(lines) { for i in 0..n { a[s0 + i * stride] = l[i]; } }
+        }
+    };
+    let mut a = psi.to_vec();
+    dft(&mut a, -1.0);
+    let h = std::f64::consts::FRAC_PI_2;
+    let valli = [[0.0, 0.0, 0.0], [h, h, 0.0], [h, 0.0, h], [0.0, h, h]];
+    let kv = |i: usize| { let k = tw * i as f64; if k > std::f64::consts::PI { k - std::f64::consts::TAU } else { k } };
+    a.par_iter_mut().enumerate().for_each(|(s, p)| {
+        let k = [kv(s / (n * n)), kv((s / n) % n), kv(s % n)];
+        let dist = |q: [f64; 3]| {
+            let mut best = f64::MAX;
+            for m in 0..8 {
+                let mut d = 0.0;
+                for c in 0..3 {
+                    let qq = q[c] + std::f64::consts::PI * ((m >> c) & 1) as f64;
+                    let x = (k[c] - qq + std::f64::consts::PI).rem_euclid(std::f64::consts::TAU) - std::f64::consts::PI;
+                    d += x * x;
+                }
+                best = best.min(d);
+            }
+            best
+        };
+        let d0 = dist(valli[0]);
+        if valli[1..].iter().any(|v| dist(*v) < d0) { *p = [C::ZERO; 4]; }
+    });
+    dft(&mut a, 1.0);
+    let nv = norma(&a);
+    a.par_iter_mut().for_each(|p| for c in p.iter_mut() { *c = c.scale(1.0 / nv); });
+    a
+}
+
+/// Weight of a whole-cube wave in valley k = 0.
+pub fn peso_valle_zero(psi: &[[C; 4]]) -> f64 {
+    let p = proietta_valle_zero(psi);
+    let nn: f64 = psi.iter().map(|q| q.iter().map(|c| c.norm2()).sum::<f64>()).sum();
+    sovrapp(&p, psi).norm2() / nn
+}

@@ -1,0 +1,16 @@
+{
+  "studio": "emissione_lab, emendamento 2 (scritto DOPO i risultati dell'emendamento 1, PRIMA di ogni corsa con la partenza in valle k = 0)",
+  "data": "2026-10-14",
+  "esito_emendamento_1": "Nucleo imparato con 1s liscio: NC PASS (scacchiera /450), ma NF1 FAIL (p_exc 0.020 senza luce), ND1 FAIL (0.72), NE1 FAIL (1.32), NL1/NL2 FAIL (righe scambiate in forza). Per la sua regola il nucleo NON diventa il default. Lettura: l'1s liscio non e' un livello (split residuo ~1e-4), quindi p_exc = 1 - |<1s|psi>|^2 misura anche il battito e non solo la luce.",
+  "nuova_configurazione": "richiesta del coordinatore (docs/SURFISTI_ESATTI.md par. 13): nucleo imparato + 1s liscio proiettato sulla valle k = 0 (zz::proietta_valle_zero, celle di Fourier piu' vicine a {0, pi}^3 che alle altre 3 valli, come valley_split di lab/surf_f2_valli.py) + accoppiamento CENTRATO. 2p3/2*, 2p1/2* come prima ma da z*(1s proiettato). Codice controllato prima (test veloce emissione_valle_e_flusso: P0 idempotente a 1e-10, flusso esatto dei link chiude la continuita' a 1e-12).",
+  "esami": {
+    "VF1": {"cosa": "1s proiettato da solo, nessuna luce, 4000 tick: fedelta' minima |<psi0|psi(t)>|^2 e peso minimo in k = 0", "soglia": ">= 0.9 tutti e due (come F2 di SURFISTI)", "in_piu": "p_exc max contro 1e-3 (soglia F1 della v1) riportato: previsto FAIL (SURFISTI: fedelta' 0.965 in 4000)"},
+    "VJ": {"cosa": "flusso azimutale esatto dei link v_phi/(Z alpha sin theta) (come vphi_from_flux di SURFISTI) a t = 0, 1000, 2000, 3000, 4000", "soglia": "tutti in [0.75, 1.25]", "info": "scarto dal loro 0.877 a t = 0"},
+    "VC": {"cosa": "scacchiera C4 dell'1s proiettato / C4 dell'1s esatto nudo (0.90)", "soglia": "< 0.1"},
+    "VD1": {"cosa": "come D1 su (1s proiettato + 2p3/2*)/sqrt2, CENTRATO", "soglia": "|r-1| < 0.05", "previsione": "probabile FAIL per la stessa ragione di ND1 (lo stato di riferimento batte), detto prima"},
+    "VE1": {"cosa": "come E1", "soglia": "|r-1| < 0.05"},
+    "VL1": {"cosa": "come L1", "soglia": "0.3 %"},
+    "VL2": {"cosa": "come L2", "soglia": "0.3 %"}
+  },
+  "regola": "Esportazione unica e default del Laboratorio (anche la scena dal vivo): nucleo imparato + partenza k = 0 si adottano insieme a CENTRATO se VF1, VJ e VC passano (sono gli esami di cio' che si vede: atomo fermo, palline che girano, niente scacchiera). VD1, VE1, VL1, VL2 si riportano: se falliscono, nel manifest e nel documento si scrive che p_exc e il ritmo con questo 1s NON sono misure pulite. Se VF1, VJ o VC falliscono: esportazione con CENTRATO e nucleo nudo."
+}

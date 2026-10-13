@@ -53,12 +53,14 @@ fn leggi_v(b: &[u8], off: &mut usize, n: usize) -> Vec<[C; 4]> {
     (0..n).map(|_| { let mut p = [C::ZERO; 4]; for c in p.iter_mut() { let re = f(); let im = f(); *c = C::new(re, im); } p }).collect()
 }
 
-fn nucleo_env() -> crate::zz::Nucleo { if std::env::var("NUCLEO").as_deref() == Ok("imparato") { crate::zz::Nucleo::Imparato } else { crate::zz::Nucleo::Nudo } }
+fn nucleo_env() -> crate::zz::Nucleo { if std::env::var("NUCLEO").as_deref().map(|v| v.starts_with("imparato")).unwrap_or(false) { crate::zz::Nucleo::Imparato } else { crate::zz::Nucleo::Nudo } }
+fn valle_env() -> bool { std::env::var("NUCLEO").as_deref() == Ok("imparato_k0") }
+fn prefisso() -> String { match std::env::var("NUCLEO").as_deref() { Ok("imparato") => "imparato_".into(), Ok("imparato_k0") => "k0_".into(), _ => String::new() } }
 
 pub fn stati() -> Stati {
     let nu = nucleo_env();
     let n = crate::zz::n_siti(None);
-    let file = if nu == crate::zz::Nucleo::Nudo { format!("{}/stati.bin", dir()) } else { format!("{}/stati_imparato.bin", dir()) };
+    let file = format!("{}/{}stati.bin", dir(), prefisso());
     if let Ok(b) = std::fs::read(&file) {
         let mut off = 0;
         let mut f = |o: &mut usize| { let x = f64::from_le_bytes(b[*o..*o + 8].try_into().unwrap()); *o += 8; x };
@@ -70,7 +72,7 @@ pub fn stati() -> Stati {
         let d12 = crate::zz::dipolo_tra(&s1, &p12, None);
         return Stati { s1, w1, p32, w32, d32, p12, w12, d12, res32, res12 };
     }
-    let x = Esperimento::nuovo_nucleo(600, None, nu);
+    let x = Esperimento::nuovo_prep(600, None, nu, valle_env());
     let lv = x.at.livelli_di_dipolo(&x.phi1s, 2, 0.966, 0.986, 0.0015, 6000, 1e-3);
     for l in &lv { eprintln!("  level ω {:.6} resid {:.1e} |d_z|² {:.4}", l.lv.omega, l.lv.resid, l.d[2].norm2()); }
     let p32 = lv.iter().find(|l| l.lv.omega > 0.977 && l.lv.omega < 0.981).expect("no 2p3/2 level");
@@ -123,14 +125,14 @@ fn json_righe(r: &[[f64; 8]]) -> String {
 
 fn salva(nome: &str, testo: &str) {
     std::fs::create_dir_all(dir()).unwrap();
-    let nome = &if nucleo_env() == crate::zz::Nucleo::Imparato { format!("imparato_{nome}") } else { nome.to_string() };
+    let nome = &format!("{}{nome}", prefisso());
     std::fs::write(format!("{}/{nome}", dir()), testo).unwrap();
     eprintln!("{nome}: {testo}");
 }
 
 fn serie_csv(nome: &str, x: &Esperimento) {
     use std::io::Write;
-    let nome = &if nucleo_env() == crate::zz::Nucleo::Imparato { format!("imparato_{nome}") } else { nome.to_string() };
+    let nome = &format!("{}{nome}", prefisso());
     let mut f = std::io::BufWriter::new(std::fs::File::create(format!("{}/{nome}", dir())).unwrap());
     writeln!(f, "t,p_exc,z_fine_tick,energia_luce_piu_assorbita,sonda_Ez").unwrap();
     for (i, (t, p)) in x.serie_p.iter().enumerate() {
@@ -292,4 +294,58 @@ fn emissione_esame_scacchiera() {
     let (cb, ci, cr) = (scacchiera(&b.s1), scacchiera(&i.s1), scacchiera(&r.psi));
     let (pb, pi) = (scacchiera(&b.p32), scacchiera(&i.p32));
     salva("scacchiera.json", &format!("{{\"C4_1s_nudo\": {cb:.4e}, \"C4_1s_imparato\": {ci:.4e}, \"C4_radiale\": {cr:.4e}, \"rapporto\": {:.4e}, \"C4_2p32_nudo\": {pb:.4e}, \"C4_2p32_imparato\": {pi:.4e}, \"w1s_imparato\": {:.6}, \"w32\": {:.6}, \"w12\": {:.6}, \"d32\": {:.4}, \"d12\": {:.4}}}", ci / cb, i.w1, i.w32, i.w12, i.d32[2].norm2(), i.d12[2].norm2()));
+}
+
+/// Exam V (amendment 2): the start 1s with the learned nucleus kept in valley k = 0, no light, 4000 ticks: fidelity,
+/// weight in k = 0, azimuthal flow v_φ/(Zα sinθ) (docs/SURFISTI_ESATTI.md §13), checkerboard.
+#[test]
+#[ignore]
+fn emissione_esame_valle() {
+    let st = stati();
+    let mut a = crate::zz::Atomo::new();
+    a.con_nucleo(nucleo_env());
+    a.imposta(st.s1.clone());
+    let (mut fmin, mut pmax, mut kmin): (f64, f64, f64) = (1.0, 0.0, 1.0);
+    let mut vphi = vec![];
+    let t0 = std::time::Instant::now();
+    while a.ticks < 4000 {
+        if a.ticks % 1000 == 0 {
+            kmin = kmin.min(crate::zz::peso_valle_zero(&a.psi));
+            let mut b = a.clone();
+            vphi.push((a.ticks, crate::zz::vphi_rapporto(&mut b)));
+        }
+        a.avanti();
+        if a.ticks % SUB as u64 == 0 { let f = sovrapp(&st.s1, &a.psi).norm2(); fmin = fmin.min(f); pmax = pmax.max(1.0 - f); }
+    }
+    kmin = kmin.min(crate::zz::peso_valle_zero(&a.psi));
+    { let mut b = a.clone(); vphi.push((a.ticks, crate::zz::vphi_rapporto(&mut b))); }
+    salva("valle.json", &format!("{{\"fedelta_min\": {fmin:.5}, \"p_exc_max\": {pmax:.4e}, \"peso_k0_min\": {kmin:.5}, \"peso_k0_inizio\": {:.5}, \"vphi\": {:?}, \"C4\": {:.4e}, \"w1s\": {:.6}, \"secondi\": {:.0}}}",
+        crate::zz::peso_valle_zero(&st.s1), vphi.iter().map(|v| (v.0, format!("{:.4}", v.1))).collect::<Vec<_>>(), scacchiera(&st.s1), st.w1, t0.elapsed().as_secs_f64()));
+}
+
+/// The valley projector is a projector, and the exact link flux closes the continuity equation (fast checks).
+#[test]
+fn emissione_valle_e_flusso() {
+    let mut a = crate::zz::Atomo::new();
+    let p = crate::zz::proietta_valle_zero(&a.psi);
+    let w = crate::zz::peso_valle_zero(&p);
+    assert!((w - 1.0).abs() < 1e-10, "P0 P0 = P0: {w}");
+    let n = crate::zz::N;
+    for _ in 0..2 {
+        let r0: Vec<f64> = a.psi.iter().map(|q| q.iter().map(|c| c.norm2()).sum()).collect();
+        let f = a.avanti_flusso();
+        let mut err: f64 = 0.0;
+        for s in 0..r0.len() {
+            let c = crate::zz::sito(s, None);
+            let r1: f64 = a.psi[s].iter().map(|c| c.norm2()).sum();
+            let mut div = 0.0;
+            for j in 0..3 {
+                let mut q = c;
+                q[j] = (q[j] + n - 1) % n;
+                div += f[j][s] - f[j][(q[0] * n + q[1]) * n + q[2]];
+            }
+            err = err.max((r1 - r0[s] + div).abs());
+        }
+        assert!(err < 1e-12, "continuity {err:e}");
+    }
 }

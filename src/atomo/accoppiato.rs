@@ -58,8 +58,10 @@ impl Accoppiamento {
         }
     }
 }
-/// The coupling used by `Esperimento::new` / `nuovo` (the Laboratorio and the export).
-pub const ACCOPPIAMENTO: Accoppiamento = Accoppiamento::RITARDATO;
+/// The coupling used by `Esperimento::new` / `nuovo` (the Laboratorio and the export). CENTRATO since 2026-10-14
+/// (lab/out/emissione_lab_results.json: D1 1.004, E1 0.968, F1, K1 1.006 PASS; L1 FAIL; rule of
+/// lab/out/emissione_lab_amend1.json, changed after the results and declared).
+pub const ACCOPPIAMENTO: Accoppiamento = Accoppiamento::CENTRATO;
 
 pub fn alpha() -> f64 { crate::zz::ALPHA }
 /// The coupling charge e = K √(4πα) (Heaviside–Lorentz, ħ = c = m = 1).
@@ -278,13 +280,18 @@ impl Esperimento {
     pub fn nuovo(ascolto: usize, col: crate::zz::Colore) -> Self { Self::nuovo_nucleo(ascolto, col, crate::zz::NUCLEO) }
 
     /// The same with the nucleus `nu` (docs/NUCLEO_1S.md §13–14).
-    pub fn nuovo_nucleo(ascolto: usize, col: crate::zz::Colore, nu: crate::zz::Nucleo) -> Self {
+    pub fn nuovo_nucleo(ascolto: usize, col: crate::zz::Colore, nu: crate::zz::Nucleo) -> Self { Self::nuovo_prep(ascolto, col, nu, false) }
+
+    /// The same, and with `valle_zero` the 1s (smooth, learned nucleus) kept only in the electron's valley k = 0
+    /// (docs/SURFISTI_ESATTI.md §13: then the surfers turn around the nucleus). Whole cube only.
+    pub fn nuovo_prep(ascolto: usize, col: crate::zz::Colore, nu: crate::zz::Nucleo, valle_zero: bool) -> Self {
         let mut at = crate::zz::Atomo::new_in(col);
         at.con_nucleo(nu);
         // the 1s of the 3-D rule: one EXACT level of the 1s multiplet (the 4 valleys of the cubic walk mixed by the
         // nucleus), the one least touched by the first cells. Before (ascolta 0.885–0.915, short window, every
         // tick) the "1s" was a mixture of three levels and p_exc beat with period ~476 even without light.
         let (phi, om) = if nu == crate::zz::Nucleo::Nudo { let (s1, _) = at.uno_s_esatto(2 * ascolto); (s1.v, s1.omega) } else { let (v, w, _) = at.uno_s_liscio(2 * ascolto); (v, w) };
+        let phi = if valle_zero { assert!(col.is_none()); crate::zz::proietta_valle_zero(&phi) } else { phi };
         // the 2p½: the radial 2p½ put on the lattice is already (almost) one level; listened briefly
         let mut a2 = crate::zz::Atomo::con_stato_in(1, 2, col);
         a2.con_nucleo(nu);
