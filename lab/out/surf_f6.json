@@ -1,0 +1,10 @@
+{
+ "theta": 0.1,
+ "n": 4000,
+ "surfers": 2000,
+ "T": 40.0,
+ "quantile_err_flow": 2.886579864025407e-15,
+ "quantile_err_old_reader": 0.01259995116088175,
+ "max_cells_per_tick_flow": 1.0000000000002274,
+ "note": "flow = S4 (exact); old = zz_free F6 reader (linear interp + RK4)"
+}

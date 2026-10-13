@@ -16,8 +16,18 @@ TH_VAC = float(sys.argv[1]) if len(sys.argv) > 1 else 0.0125
 
 
 # ------------------------------------------------------------------ the lattice polarization (xyz average)
+def load_3d():
+    """merge the two workers' checkpoint files"""
+    D = {}
+    for fn in ("vuoto_3d.json", "vuoto_3d_b.json"):
+        p = os.path.join(OUT, fn)
+        if os.path.exists(p):
+            D.update(json.load(open(p)))
+    return D
+
+
 def load_pitR(th, K=(0.6, 1.05), n=64):
-    D = json.load(open(os.path.join(OUT, "vuoto_3d.json")))
+    D = load_3d()
     beta = 6.0 if th < 0.02 else 5.0
 
     def g(dn, qm):

@@ -278,8 +278,9 @@ class Runner:
 
 
 if __name__ == "__main__":
-    from emiss_configs import CONFIGS
     name = sys.argv[1]
+    os.environ["EMISS_CFG"] = name
+    from emiss_configs import CONFIGS
     r = Runner(CONFIGS[name])
     ok = r.run(float(sys.argv[2]) if len(sys.argv) > 2 else 540)
     sys.exit(0 if ok else 3)

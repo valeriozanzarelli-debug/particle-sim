@@ -265,6 +265,9 @@ pub fn avvia() -> Arc<Mutex<Condiviso>> {
         let (tx, rx) = std::sync::mpsc::channel();
         std::thread::spawn(move || { let _ = tx.send(Esperimento::new(600)); });
         let mut riserva: Option<Esperimento> = None;
+        // the clean 1s (an exact level of the 3-D rule, docs/BATTIMENTO_1S.md), taken from the coupled experiment when
+        // it is ready: the atom without coupling restarts from it too (the radial start beats with period ~476)
+        let mut uno_s: Option<Vec<[crate::cplx::C; 4]>> = None;
         let mut p2p = 0.0;
         let mut opz_prima = Opzioni::default();
         loop {
@@ -278,14 +281,23 @@ pub fn avvia() -> Arc<Mutex<Condiviso>> {
                 s
             };
             if fine { break; }
-            if let Ok(e) = rx.try_recv() { riserva = Some(e); }
             let mut cambio = false;
+            if let Ok(e) = rx.try_recv() {
+                uno_s = Some(e.phi1s.clone());
+                if m.esp.is_none() { m.at.imposta(e.phi1s.clone()); cambio = true; }
+                riserva = Some(e);
+            }
             if accoppiato && m.esp.is_none() && riserva.is_some() { m.esp = riserva.take(); cambio = true; }
             if !accoppiato && m.esp.is_some() { riserva = m.esp.take(); cambio = true; }
             if ric {
                 match m.esp.as_mut() {
                     Some(e) => e.ricomincia(),
-                    None => { let esp = m.esp.take(); m = nuovo_mondo(); m.esp = esp; }
+                    None => {
+                        let esp = m.esp.take();
+                        m = nuovo_mondo();
+                        if let Some(v) = &uno_s { m.at.imposta(v.clone()); }
+                        m.esp = esp;
+                    }
                 }
                 cambio = true;
             }

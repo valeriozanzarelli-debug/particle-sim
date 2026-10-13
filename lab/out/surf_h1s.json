@@ -1,0 +1,48 @@
+{
+ "omega": 0.9999709491615323,
+ "dirac": 0.999993343469912,
+ "a": 0.5,
+ "ticks": 10000,
+ "surfers": 20000,
+ "time_s": 189.0733778476715,
+ "flow": {
+  "max_dq": 7.260858581048524e-14,
+  "rms_dq": 3.473434523772258e-14,
+  "jumps_per_surfer_per_tick": 0.0,
+  "bits_per_surfer_per_tick": 0.0,
+  "fraction_ever_jumped": 0.0,
+  "chi2_z": -0.20195621734679642
+ },
+ "bellflux": {
+  "max_dq": 1.1463052729254741e-13,
+  "rms_dq": 7.020325049498354e-14,
+  "jumps_per_surfer_per_tick": 0.0,
+  "bits_per_surfer_per_tick": 0.0,
+  "fraction_ever_jumped": 0.0,
+  "chi2_z": 0.5216270805084865
+ },
+ "bell": {
+  "max_dq": 1.1463052729254741e-13,
+  "rms_dq": 7.017197401056217e-14,
+  "jumps_per_surfer_per_tick": 0.0,
+  "bits_per_surfer_per_tick": 1.9059294092014324e-13,
+  "fraction_ever_jumped": 0.0,
+  "chi2_z": -0.6151795668637156
+ },
+ "ballistic": {
+  "max_dq": 0.6327632705779066,
+  "rms_dq": 0.15254318650416027,
+  "jumps_per_surfer_per_tick": 0.999999985,
+  "bits_per_surfer_per_tick": 0.9999893665960791,
+  "fraction_ever_jumped": 1.0,
+  "chi2_z": -1.6365898050730288
+ },
+ "old": {
+  "max_dq": 0.06840494107017882,
+  "rms_dq": 0.026697370208048573,
+  "jumps_per_surfer_per_tick": 0.0,
+  "bits_per_surfer_per_tick": 0.0,
+  "fraction_ever_jumped": 0.0,
+  "chi2_z": 103.81863384030345
+ }
+}
