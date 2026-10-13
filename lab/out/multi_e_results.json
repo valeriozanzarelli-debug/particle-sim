@@ -1,0 +1,210 @@
+{
+ "G0": {
+  "verdict": "PASS",
+  "max_eigphase_diff": 5.551115123125783e-16,
+  "band_diff": 1.1102230246251565e-15,
+  "learned_odd": {
+   "0.01": 0.0006626112357721699,
+   "0.1": 0.0066884124598257585,
+   "1.0": 0.057677860371663024
+  }
+ },
+ "G1": {
+  "verdict": "FAIL",
+  "parts": {
+   "H": {
+    "PASS": true,
+    "err": 5.5366605744566755e-09
+   },
+   "Hooke": {
+    "PASS": false,
+    "err": 2.7169546612526574e-08
+   },
+   "Li_nonint": {
+    "PASS": true,
+    "diff": 3.071320975323033e-11
+   },
+   "Be_nonint": {
+    "PASS": true,
+    "diff": -7.958078640513122e-13
+   },
+   "MC": {
+    "PASS": false,
+    "worst_rel": 0.00013417263403658897
+   }
+  },
+  "diagnosis_posthoc": {
+   "Hooke": {
+    "rows": [
+     {
+      "K": 100,
+      "E_minus_2": 7.260343783954681e-07,
+      "cond_S": 99546873319.04024,
+      "sec": 8.384568691253662
+     },
+     {
+      "K": 200,
+      "E_minus_2": 1.6098900879057965e-08,
+      "cond_S": 1587594995650.5786,
+      "sec": 28.22836208343506
+     },
+     {
+      "K": 300,
+      "E_minus_2": 6.333420010662394e-09,
+      "cond_S": 3380561647105.004,
+      "sec": 69.92821979522705
+     },
+     {
+      "K": 400,
+      "E_minus_2": 5.751843445978011e-09,
+      "cond_S": 5754004953193.323,
+      "sec": 197.33890414237976
+     }
+    ],
+    "note": "stesso seme di G1; ogni K: crescita + 3 giri; post hoc"
+   },
+   "MC": {}
+  }
+ },
+ "G2": {
+  "verdict": "RINVIATO (DV6)"
+ },
+ "G3": {
+  "verdict": "PARZIALE: Ne non finito",
+  "rel_err": {
+   "He": -5.6384037439016765e-09,
+   "H-": 6.611336234030318e-08,
+   "Li": 2.349547223445825e-10,
+   "Be": -5.924987167560403e-09,
+   "Ne": null
+  },
+  "random_starts": {
+   "He": 3.82804898890754e-13,
+   "He3S": 3.2107649872159527e-13,
+   "Li": 7.425171588693047e-13,
+   "H-": 1.1707301794672276e-12
+  }
+ },
+ "G5": {
+  "verdict": "FAIL (al livello dell'arrotondamento, vedi diagnosi)",
+  "worst_step": 1.4432899320127035e-15,
+  "diagnosis": "passi non monotoni solo per r < 4.2e-7 a0, ampiezza <= 1.4e-15: il rapporto e' c0 + c2 r^2 vicino al nucleo (le due cuspidi uguali cancellano il termine lineare), piatto sotto l'arrotondamento"
+ },
+ "G4": {
+  "verdict": "NON VALUTABILE (serve la base ECG, ferma per G1)"
+ },
+ "R1": {
+  "verdict": "PASS",
+  "fine_E50": -30.424139590840618,
+  "pauli_rel": 4.747521485066409e-09
+ },
+ "R2": {
+  "verdict": "PASS",
+  "beta_min": 5e-05,
+  "D": 0.4998084422482244,
+  "D_real": 0.4998084421733292,
+  "kurtosis": 0.003782740709898101,
+  "chosen": "B16"
+ },
+ "R3": {
+  "verdict": "PASS",
+  "m0": 1.0000138225248774,
+  "sigma": 2.6216112856401276e-06
+ },
+ "R4a": {
+  "verdict": "FAIL",
+  "imag_rel": 0.00018558607210655633,
+  "real_rel": 0.00019697257017314788,
+  "diagnosis_posthoc": {
+   "imag_rel": 5.488654492997539e-08,
+   "real_rel": 1.2518653144186813e-09,
+   "c2_imag": -29152867.56693203,
+   "c2_real": 29229886.884147324
+  }
+ },
+ "R4b": {
+  "verdict": "PASS",
+  "beta0.0002": {
+   "E": -129.01808781087115,
+   "sigma": 0.0037415789584138845,
+   "det": -129.02108119203072,
+   "z": 0.8000315355735939
+  },
+  "beta0.0001": {
+   "E": -128.8524686108778,
+   "sigma": 0.005806403650073748,
+   "det": -128.85448527091032,
+   "z": 0.3473165411947158
+  }
+ },
+ "relearned_level": {
+  "verdict": "IL RISCHIO 4 SI E' AVVERATO: nessun livello Pauli passa il controllo a 3e-5; la macchina sceglie dirac4 B=2",
+  "chosen": {
+   "B": 2,
+   "b": 2,
+   "w": 1,
+   "desc": "dirac4",
+   "check": {
+    "packet": 8.094246879491915e-20,
+    "H": 500,
+    "energy_rel": 5.11197581376781e-09,
+    "rest_rel": 4.170890192895736e-12,
+    "kmax_cells": 0.0048828125,
+    "energy_mode": "state",
+    "bz_rel90": 6.680270635078907e-10,
+    "neg_gen": 0.0
+   },
+   "cell_a0": 0.00048828125
+  },
+  "best_pauli_check": {
+   "packet": 9.14936580682003e-12,
+   "H": 63,
+   "energy_rel": 0.00023773936347249206,
+   "rest_rel": 1.2515338267358852e-07,
+   "kmax_cells": 0.0390625,
+   "energy_mode": "state",
+   "bz_rel90": 0.06284558450438026,
+   "neg_gen": 0.0
+  }
+ },
+ "R5": {
+  "verdict": "FERMO (G1 FAIL: produzione ECG sospesa)"
+ },
+ "R6": {
+  "verdict": "FERMO (G1 FAIL: produzione ECG sospesa)"
+ },
+ "M1 He 1^1S": {
+  "verdict": "FERMO (G1 FAIL: produzione ECG sospesa)"
+ },
+ "M2 He 2^3S": {
+  "verdict": "FERMO (G1 FAIL: produzione ECG sospesa)"
+ },
+ "M3 H-": {
+  "verdict": "FERMO (G1 FAIL: produzione ECG sospesa)"
+ },
+ "E1": {
+  "verdict": "FERMO (G1 FAIL: produzione ECG sospesa)"
+ },
+ "E2": {
+  "verdict": "FERMO (G1 FAIL: produzione ECG sospesa)"
+ },
+ "D1": {
+  "verdict": "FERMO (G1 FAIL: produzione ECG sospesa)"
+ },
+ "D2": {
+  "verdict": "FERMO (G1 FAIL: produzione ECG sospesa)"
+ },
+ "D6": {
+  "verdict": "NON FATTO"
+ },
+ "He_DMC_report_only": {
+  "verdict": "RIPORTATO (non pre-registrato come esame: D1 e E1 vanno con l'ECG)",
+  "points": [
+   [
+    0.02,
+    -2.9047932249615513,
+    5.674071384387896e-05
+   ]
+  ]
+ }
+}
