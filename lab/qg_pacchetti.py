@@ -45,7 +45,17 @@ def build(ym, packets):
     E = ym.E
     E[:] = 0
     for p in packets:
-        A, Ad = packet(ym.shape, p["centre"], p["k0"], p["pol"], p["sig_par"], p["sig_perp"], p["amp"], p["direction"])
+        ax = p.get("asse", 0)                      # propagation axis (0 = x, 1 = y, 2 = z)
+        perm = [ax] + [i for i in range(3) if i != ax]
+        lshape = tuple(ym.shape[i] for i in perm)
+        lcentre = [p["centre"][i] for i in perm]
+        Al, Adl = packet(lshape, lcentre, p["k0"], p["pol"], p["sig_par"], p["sig_perp"], p["amp"], p["direction"])
+        inv = np.argsort(perm)
+        A = np.zeros((3,) + tuple(ym.shape))
+        Ad = np.zeros_like(A)
+        for i in range(3):                        # local component i = world component perm[i]
+            A[perm[i]] = np.transpose(Al[i], inv)
+            Ad[perm[i]] = np.transpose(Adl[i], inv)
         T = TA[p["gen"]]
         for i in range(3):
             H = np.einsum("...,jk->jk...", A[i], T)
