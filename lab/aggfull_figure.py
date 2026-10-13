@@ -43,7 +43,7 @@ a.legend(fontsize=8)
 a = ax[0, 1]
 lev = VD.get("levels", {})
 names, old, new = [], [], []
-pairs = [("1s", "ca8_1s_N192", "e8_1s", 1), ("2s", "ca8_2s_N192", "e8_2s", 2), ("2p", None, "e8_2p", 2)]
+pairs = [("1s", "ca8_1s", "e8_1s", 1), ("2s", "ca8_2s", "e8_2s", 2), ("2p", None, "e8_2p", 2)]
 for nm, o, n_, n in pairs:
     names.append(nm)
     old.append(abs(R[o]["rel_to_schroedinger"]) if o and o in R else np.nan)
@@ -51,7 +51,7 @@ for nm, o, n_, n in pairs:
 oldA = {"1s": 0.00426, "2s": 0.01003, "2p": 0.00289}      # AGGLOMERATO_ZIGZAG A2 (old box +-12 a0, cell average)
 x = np.arange(3)
 a.bar(x - 0.27, [oldA[n] for n in names], 0.27, label="old study (cell average, box $\\pm$12 a$_0$)")
-a.bar(x, old, 0.27, label="cell average, this run")
+a.bar(x, old, 0.27, label="cell average, same box $\\pm$16 a$_0$")
 a.bar(x + 0.27, new, 0.27, label="learned coupling + Galerkin field (box $\\pm$16 a$_0$)")
 a.set_yscale("log"); a.set_xticks(x); a.set_xticklabels(names)
 a.axhline(0.01, color="r", ls="--", lw=0.8); a.axhline(0.001, color="g", ls="--", lw=0.8)
