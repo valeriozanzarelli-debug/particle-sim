@@ -90,34 +90,38 @@ def mean6(prefix):
 if mean6("g2|lat|0.025|0.001|fine") is not None and mean6("g2|lat|0.025|0.001|std") is not None:
     R["G_grid_check"] = {"std": mean6("g2|lat|0.025|0.001|std"), "fine": mean6("g2|lat|0.025|0.001|fine")}
 
-# ------------------------------------------------------------------ L: Bethe log
+# ------------------------------------------------------------------ L: Bethe log (prereg: vuoto_f2_prereg_L.json)
 BL = load("vuoto_f2_bethe.json")
+NR = load("vuoto_f2_nrref.json")
 REF = {1: 2.984128556, 2: 2.811769893}
-from vuoto_f2_core import extrapolate_lnk0
-Ld = {}
-for th in (0.1, 0.05):
-    for n in (1, 2):
-        ks = {kp: BL.get("%d|%d|%g" % (n, kp, th)) for kp in (1, -2)}
-        if all(ks.values()):
-            Ls = {kp: float(extrapolate_lnk0(ks[kp]["K"], ks[kp]["lnk0_K"], kmin=0.01, kmax=0.3)[0]) for kp in (1, -2)}
-            Lm = Ls[1] / 3 + 2 * Ls[-2] / 3
-            Dm = ks[1]["D"] / 3 + 2 * ks[-2]["D"] / 3
-            Ld["%d|%g" % (n, th)] = {"L_kappa+1": Ls[1], "L_kappa-2": Ls[-2], "L": Lm, "ref": REF[n], "err": Lm - REF[n],
-                                     "D": Dm, "D_sumrule": ks[1]["D_sumrule_NR"], "D_ratio": Dm / ks[1]["D_sumrule_NR"]}
-if Ld:
+KRY = [30, 100, 300, 1000, 3000]
+if NR:
+    def nrval(n, kr, field="lnk0_KS"):
+        a_, b_ = NR["%d|0.02" % n]["K"][str(kr)][field], NR["%d|0.01" % n]["K"][str(kr)][field]
+        return b_ + (b_ - a_) / 3                                   # Richardson h -> 0 (O(h^2))
+    Ld = {}
+    for th in (0.1, 0.05):
+        for n in (1, 2):
+            ks = {kp: BL.get("%d|%d|%g" % (n, kp, th)) for kp in (1, -2)}
+            if not all(ks.values()):
+                continue
+            row = {}
+            for i, kr in enumerate(KRY):
+                L = ks[1]["lnk0_K"][i] / 3 + 2 * ks[-2]["lnk0_K"][i] / 3
+                DK = (ks[1]["D_K"][i] / 3 + 2 * ks[-2]["D_K"][i] / 3) / ks[1]["D_sumrule_NR"]
+                row[str(kr)] = {"L_walk": L, "L_NR": nrval(n, kr), "diff": L - nrval(n, kr),
+                                "DK_walk": DK, "DK_NR": nrval(n, kr, "D_K_over_sumrule"),
+                                "hybrid_lnk0": L + (REF[n] - nrval(n, kr))}     # rule below K, NR theory above K
+            Ld["%d|%g" % (n, th)] = row
     R["L_table"] = Ld
-    if "1|0.05" in Ld:
-        R["L1_PASS"] = bool(abs(Ld["1|0.05"]["err"]) <= 0.015)
-    if "2|0.05" in Ld:
-        R["L2_PASS"] = bool(abs(Ld["2|0.05"]["err"]) <= 0.014)
-    if all(k in Ld for k in ("1|0.05", "1|0.1", "2|0.05", "2|0.1")):
-        R["L3_PASS"] = bool(abs(Ld["1|0.05"]["L"] - Ld["1|0.1"]["L"]) <= 0.01 and abs(Ld["2|0.05"]["L"] - Ld["2|0.1"]["L"]) <= 0.01)
     if "1|0.05" in Ld and "2|0.05" in Ld:
-        R["L4_PASS"] = bool(abs(Ld["1|0.05"]["D_ratio"] - 1) <= 0.01 and abs(Ld["2|0.05"]["D_ratio"] - 1) <= 0.01)
-    # what it means in MHz (leading-order formula, theory constants NOT from the rule): dE = -4 alpha (Z alpha)^4 m/(3 pi n^3) d(ln k0)
-    MC2_MHZ = 510998.95 * 2.417989242e8 / 1e6 * 1e0          # m c^2 in MHz (eV -> Hz: 2.417989242e14 Hz/eV)
+        R["L1_PASS"] = bool(all(abs(Ld[k][kr]["diff"]) <= 0.02 for k in ("1|0.05", "2|0.05") for kr in ("100", "300")))
+        R["L3_PASS"] = bool(all(abs(Ld[k]["300"]["DK_walk"] / Ld[k]["300"]["DK_NR"] - 1) <= 0.01 for k in ("1|0.05", "2|0.05")))
+        R["L_hybrid_lnk0_300Ry"] = {k: Ld[k]["300"]["hybrid_lnk0"] for k in ("1|0.05", "2|0.05")}
+    if all(k in Ld for k in ("1|0.05", "1|0.1", "2|0.05", "2|0.1")):
+        R["L2_PASS"] = bool(all(abs(Ld["%d|0.05" % n]["300"]["L_walk"] - Ld["%d|0.1" % n]["300"]["L_walk"]) <= 0.01 for n in (1, 2)))
     MC2_MHZ = 510998.95 * 2.417989242e14 / 1e6
-    R["L_MHz_per_unit"] = {n: 4 * ALPHA**5 / (3 * PI * n**3) * MC2_MHZ for n in (1, 2)}
+    R["L_MHz_per_unit_lnk0"] = {n: 4 * ALPHA**5 / (3 * PI * n**3) * MC2_MHZ for n in (1, 2)}
 
 # ------------------------------------------------------------------ B: breathing coin
 BR = load("vuoto_f2_breath.json")

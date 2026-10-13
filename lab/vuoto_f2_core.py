@@ -23,7 +23,9 @@ Three engines, all built on the FROZEN rule of lab/zz_core.py (nothing in the ru
    sign K = (1/pi) int_{-inf}^{inf} ds e^s [ (K + i e^s)^{-1} + (K - i e^s)^{-1} ]  (trapezoid in s, sparse LU).
    T = i(W/lam_n - 1)(W/lam_n + 1)^{-1}: eigenvalues tan(dOmega/2) (= a dE/2 for small dE);
    S(k) = <uv|T (T + a k/2)^{-1}|uv>,  D = (2/a)<uv|T|uv> = sum |<m|v|n>|^2 dE = sum dE^3 |<m|r|n>|^2
-   ln k0(K) = ln K - (1/D) int_0^K S dk  -> ln k0 for K -> inf (extrapolation in K^{-1/2}, K^{-1}); in Rydberg units.
+   ln k0(K) = ln K - int_0^K S dk / (K S(K))  -> ln k0 for K -> inf (extrapolation in K^{-1/2}, K^{-1}); Rydberg units.
+   K S(K) = sum w dE K/(dE + K) is a smooth-cutoff D: states far above K (relativistic / band-top lattice states, whose
+   tan-mapped dE^3 weight would dominate the full D) drop out; their effect vanishes like K/dE.
 
 3. BREATHING COIN (exploration, NOT the rule): flip angle theta - mu on even ticks, theta + mu on odd ticks
    (vuoto_core.floquet_seq(mu=...)); here only the band analysis (masses of the species, of the cones, dispersion).
@@ -189,8 +191,23 @@ class RadialResolvent:
         sgn = acc * h / PI
         return 0.5 * (x - sgn), len(ss)
 
+    def band_filter(self, x, omega_c, h=0.5, smin=-4.0, smax=4.0):
+        """keep the states with quasi-energy Omega < omega_c (mod 2 pi, on the positive side): (1 + sign K_c) x / 2,
+        K_c = Cayley of e^{i omega_c} W (eigenvalues -cot((Omega - omega_c)/2): > 0 for Omega in (omega_c - pi, omega_c)).
+        The finite s range makes it a SMOOTH step of width ~ e^{smin} rad around omega_c (declared filter)."""
+        ss = np.arange(smin, smax + h / 2, h)
+        W = np.exp(1j * omega_c) * self.W
+        I = self.I
+        Wm1 = W - I
+        acc = np.zeros_like(x)
+        for s in ss:
+            t = np.exp(s)
+            lu = self.lu((1 + t) * W + (1 - t) * I)
+            acc += t * (-1j * (Wm1 @ lu.solve(x)) + 1j * lu.solve(Wm1.getH() @ x, trans="H"))
+        return 0.5 * (x + acc * h / PI), len(ss)
 
-def bethe_log(n, l_kappa, th, Z=1, rmax_bohr=50.0, Ks=None, h=0.5, nk=240, verbose=False, return_raw=False, species=True):
+
+def bethe_log(n, l_kappa, th, Z=1, rmax_bohr=50.0, Ks=None, h=0.5, nk=240, verbose=False, return_raw=False, species=True, omega_cut=0.6):
     """ln k0 for the s state n (kappa = -1) with intermediate channel kappa' (= +1 or -2). Physical units (m = 1).
     Returns dict with K list, lnk0(K), D, and the reference sum-rule value."""
     import scipy.sparse.linalg as spl
@@ -221,6 +238,11 @@ def bethe_log(n, l_kappa, th, Z=1, rmax_bohr=50.0, Ks=None, h=0.5, nk=240, verbo
     v *= np.sqrt(th)                                               # normalization of sum |.|^2 a
     RR = RadialResolvent(rw_p)
     up, nlu = RR.project_positive(v, h=h)
+    if omega_cut is not None:
+        # keep only the physical band (quasi-energy below Omega_n + omega_cut): the band-top states of the 1-D walk
+        # (doubler side, k a ~ pi) would otherwise dominate the dE^3-weighted sums
+        up, n2 = RR.band_filter(up, om * th + omega_cut)
+        nlu += n2
     lam_n = np.exp(-1j * om * th)
     W, I = RR.W, RR.I
     # T = i (W/lam - 1)(W/lam + 1)^{-1};  T (T + kap)^{-1} = i(W/lam - 1) [ i (W/lam - 1) + kap (W/lam + 1) ]^{-1}
@@ -235,7 +257,7 @@ def bethe_log(n, l_kappa, th, Z=1, rmax_bohr=50.0, Ks=None, h=0.5, nk=240, verbo
     if Ks is None:
         Ks = np.geomspace(1e-5, 0.3, 61)
     # S(k) on a log grid (trapezoid of k S(k) in ln k) plus the piece [0, k_0] with S(0) = <u|u>
-    kg = np.geomspace(1e-8, max(Ks), nk)
+    kg = np.unique(np.concatenate([np.geomspace(1e-8, max(Ks), nk), np.asarray(Ks, float)]))
     S = np.zeros(len(kg))
     for i, k in enumerate(kg):
         kap = th * k / 2.0
@@ -246,14 +268,18 @@ def bethe_log(n, l_kappa, th, Z=1, rmax_bohr=50.0, Ks=None, h=0.5, nk=240, verbo
     lk = np.log(kg)
     cum = kg[0] * S0 + np.concatenate([[0.0], np.cumsum(0.5 * (kg[1:] * S[1:] + kg[:-1] * S[:-1]) * np.diff(lk))])
     Ry = 0.5 * Za**2                                               # Rydberg (times Z^2), units m c^2
-    lnk = []
+    lnk, lnk_D, DK = [], [], []
     for K in Ks:
-        IK = np.interp(np.log(K), lk, cum)
-        lnk.append(np.log(K / Ry) - IK / D)
+        i = int(np.argmin(np.abs(kg - K)))
+        IK = cum[i]
+        DK.append(K * S[i])                                        # smooth-cutoff D: sum w dE K/(dE + K)
+        lnk.append(np.log(K / Ry) - IK / DK[-1])                   # USED: the lattice states far above K drop out
+        lnk_D.append(np.log(K / Ry) - IK / D)                      # with the full D (sensitive to the band top)
     sumrule = 2 * PI * Za * (Za**3 / (PI * n**3))                  # NR: sum dE^3 |<m|r|n>|^2 = 2 pi Z alpha |psi(0)|^2
     out = {"n": n, "kappa_p": l_kappa, "theta": th, "Z": Z, "rmax_bohr": rmax_bohr, "N": rw_p.N, "omega_n": om,
            "eig_resid": float(res), "D": D, "D_sumrule_NR": sumrule, "neg_weight": norm_neg, "n_lu_proj": nlu,
-           "K": list(map(float, Ks)), "lnk0_K": list(map(float, lnk))}
+           "K": list(map(float, Ks)), "lnk0_K": list(map(float, lnk)), "lnk0_K_fullD": list(map(float, lnk_D)),
+           "D_K": list(map(float, DK))}
     if return_raw:
         out["kg"] = kg.tolist(); out["S"] = S.tolist()
     return out
