@@ -1,0 +1,6 @@
+{
+ "written": "2026-10-13T17:01:21",
+ "git_head": "fb6518d2108da975e16b327708150ba46218bae0",
+ "what_happened": "the 2p at N = 192 (float64 field) did not reach the convergence criterion with any kinetic (residual stuck at 6.2e-8 for 5 calls; E = -3.39108 / -3.39098 / -3.39098 eV, -0.30 % vs Schroedinger, while the N = 256 2p is +0.024 %); its weight at kappa > 1.6 is 4.4e-5 (vs 1.9e-6 for the float32 N = 256 run). So N1 is FAILED as pre-registered: the high-k tail is NOT the float32 field, it is unconverged eigen-vector content (LOBPCG stagnation; a bound state has |psi(k)|^2 decreasing with k, these tails grow).",
+ "change": "F3P is evaluated on the converged N = 256 vectors (e8_2p for the original kinetic, eK8_2p for K; the T kinetic is applied to the eK8_2p vector at first order, since T - K is a small perturbation), with the kinetic remainder restricted to |kappa| < 0.8 per cell (k < 6.4/a0; the analytic 2p weight beyond is ~1e-6) and the vector renormalised there; the unrestricted values are reported next to them. dV (spin-orbit and Darwin) from q8_2p / qK8_2p unchanged. Threshold unchanged (5 %)."
+}
