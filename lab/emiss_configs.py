@@ -153,3 +153,45 @@ if os.path.exists(os.path.join(CK, "level_96_2p3_2+3.npy")) and os.path.exists(o
 add(radial_cfg("P_N1", 60, 0.025, 40.0, 25, cells_per_lambda=30))
 add(radial_cfg("P_H1a", 1, 0.5, 4000.0, 12, cells_per_lambda=30))
 add(radial_cfg("P_H1b", 1, 0.25, 4000.0, 12, cells_per_lambda=30))
+
+# =============================================================== PHASE 2 (pre-registration v4, lab/out/emiss_prereg2.json)
+_L4F = os.path.join(os.path.dirname(os.path.abspath(__file__)), "out", "emiss_levels4_48.json")
+
+
+def level4(st):
+    k = ("v4", st)
+    if k not in LEVELS:
+        LEVELS[k] = np.load(os.path.join(CK, f"level4_48_{st.replace('/', '_')}.npy"))
+    return LEVELS[k]
+
+
+def atom4():
+    from emiss_v4_dev import make_atom, S_LEARNED
+    return make_atom(s=S_LEARNED)
+
+
+if os.path.exists(_L4F):
+    _L4 = _json.load(open(_L4F))
+    if all(s in _L4 for s in ("1s+", "2p1/2+", "2p3/2+3")):
+        def _e14(name, pol):
+            wd = _L4["2p1/2+"]["omega"] - _L4["1s+"]["omega"]
+            tau = 2 * np.pi / wd
+            c = base(name, "sc", 48, 10000.0, K=1.0,
+                     psi0_factory=lambda at: level4("1s+").copy(),
+                     excited=lambda at: [], ground=lambda at: level4("1s+"),
+                     drive=dict(eE0=0.004, omega=wd, tau=tau, t0=4 * tau, pol=pol))
+            c["atom_factory"] = atom4
+            return c
+        add(_e14("P4_E1pi", "z"))
+        add(_e14("P4_E1sig", "sigma-"))
+        c = base("P4_R1", "qe", 48, 3000.0, K=1.0, centered=True, transverse=True,
+                 psi0_factory=lambda at: level4("2p3/2+3").copy(),
+                 excited=lambda at: [level4("2p3/2+3")], ground=lambda at: level4("1s+"),
+                 channels=lambda at: [level4("1s+")])
+        c["atom_factory"] = atom4
+        add(c)
+        c = base("P4_S1sc", "sc", 48, 3000.0, K=1.0, centered=True, transverse=True,
+                 psi0_factory=lambda at: level4("2p3/2+3").copy(),
+                 excited=lambda at: [level4("2p3/2+3")], ground=lambda at: level4("1s+"))
+        c["atom_factory"] = atom4
+        add(c)

@@ -465,3 +465,112 @@ Bilancio: Intel UHD, ~42 ms per passo di fisica con ~33 800 palline (la GTX 1650
 - La cipolla/zoom in 3-D (insieme a NUCLEO_1S): togliere il multipletto, poi ripetere R1 contro Dirac nel 3-D (era R2_96).
 - Portare la patch §7 nel Laboratorio e ripetere il decadimento 0,097 → 0,064 con K = 1 e tempi lunghi (ponte).
 - Termine non di dipolo (ritardo) nell'accoppiamento: −8,3 % a Z = 60.
+
+---
+
+## 11. Fase 2: livelli esatti con il nucleo imparato, il ritardo, il Laboratorio pulito
+
+Pre-registrazione v4: `lab/emiss_prereg2.py` → `lab/out/emiss_prereg2.json` (**commit cc95d92, prima delle corse**;
+soglie della v3 riusate senza cambiarle). Dichiarazioni dopo: `lab/out/emiss_amend2.json` (nessuna soglia cambiata).
+File: `lab/emiss_v4_dev.py` (sviluppo dichiarato), `lab/emiss_ritz.py` (livelli esatti), `lab/emiss_v4_checks.py`,
+`lab/emiss_retard.py`, `lab/emiss_l1b.py`, `lab/emiss_judge2.py` → `lab/out/emiss_results2.json`,
+`lab/emiss_figure2.py` → `lab/out/emiss_figure2.png`.
+
+![figura fase 2](../lab/out/emiss_figure2.png)
+
+### 11.0 In breve
+
+**8 PASS, 1 FAIL, 3 informativi.** Con il **nucleo imparato** di `docs/NUCLEO_1S.md` §13 (fase della carica × 0,554593
+sugli 8 siti a √3/2·a e × 1,003549 sui 24 a √11/2·a: 2 numeri imparati altrove, non ritoccati) e i livelli presi con la
+**diagonalizzazione del filtro** (come `uno_s_esatto` del thread principale) sul **cubo intero** (somma dei 4 colori), le
+prove che in fase 1 fallivano per le valli **passano**:
+
+| prova | fase 1 (nucleo nudo) | fase 2 (nucleo imparato) | soglia | esito fase 2 |
+|---|---|---|---|---|
+| E4a riga forte (luce z) = 1s→2p3/2 | −0,06 % | **0,07939 / 0,07937 (+0,02 %)** | 0,5 % | **PASS** |
+| E4b seconda = 1s→2p½ | +0,31 % | **0,07653 / 0,07651 (+0,02 %)** | 0,5 % | **PASS** |
+| E4c rapporto delle righe | +29 % (FAIL) | **1,989 / 2,122 (−6,3 %)** | 20 % | **PASS** |
+| E4s luce σ⁻: riga forte = 1s→2p½ | era la 2p3/2 (FAIL) | **0,07654 / 0,07651 (+0,03 %)** | 0,5 % | **PASS** |
+| R4 ritmo QE / ritmo della regola | 0,674 (FAIL) | **0,997** (vedi avvertenza) | 3 % | **PASS** |
+| R4b fotoni / norma | 0,972 | **0,979** | 3 % | **PASS** |
+| S4 2p puro: QE parte, semiclassico fermo | FAIL | QE 4,77·10⁻² ≥ 2,44·10⁻²; SC 1 − p_2p = 3,6·10⁻² | 1 % del QE | **FAIL** |
+| N2 ritardo: (A_N1/W²) × F_ret(regola) vs Dirac A_EX | — | **1,0067·10⁻⁵ contro 9,979·10⁻⁶ (+0,89 %)** | 3 % | **PASS** |
+| L1b battito nell'export nuovo del Laboratorio | — | **0,0009** (1s vecchio: 0,324) | < 0,01 | **PASS** |
+| D4 dipoli / Dirac (info) | 0,14–0,36 | 1,37–1,55 | — | info |
+| V4 deriva libera in 3000 (info) | — | 1s 0,070; 2p3/2 0,036 | — | info |
+| N2x F_ret regola / Dirac (info) | — | 0,91678 / 0,91662 | — | info |
+
+### 11.1 Che cosa è cambiato (come a un ventenne)
+
+Lo sviluppo (dichiarato) ha mostrato subito il punto: con il nucleo nudo lo stato radiale dell'1s nel 48³ suona su **tre**
+righe (0,8994; 0,8863; 0,8404), quello dei 2p su **una sola**. Il problema di fase 1 era quindi soprattutto l'**1s**: il
+livello esatto dell'1s è un miscuglio 25/25/25/25 delle 4 valli, mentre il 2p sta quasi tutto nella valle "liscia"; il
+dipolo tra i due prende solo il pezzo in comune (~1/4) e gli angoli si storcono. Con il nucleo imparato l'1s suona su
+**una riga** (0,89946, peso 0,98): le 4 copie dell'elettrone diventano quasi uguali (separate di 0,0003) e l'1s liscio
+può stare fermo. Allora tornano le regole di selezione di §1.1: **2p3/2 : 2p½ = 2,41 : 1,21 = 2,00** (il 2 : 1 del conto
+degli angoli) e |x| ≈ |y| per m = 3/2 (1,371 e 1,345).
+
+**I livelli** (`emiss_levels4_48.json`, criterio cieco scritto prima: il vettore di Ritz con più peso nello stato radiale
+più i suoi vicini entro 0,0015): 1s+ 0,899453 (gruppo 0,89933/0,89951/0,89964, peso nello stato di partenza 0,984);
+2p½ 0,975967; 2p3/2 0,978823 (residui 1–5·10⁻⁴: anche il 2p3/2 è un doppietto quasi degenere, 0,97870/0,97887, visto con
+2400 tick; dichiarato).
+
+**Un colore o quattro?** Tutto è calcolato sul cubo intero (somma dei 4 colori): niente scorciatoie a un colore
+(avviso di `docs/SOTTORETICOLO.md`).
+
+### 11.2 Avvertenze oneste
+
+- **R4 = 0,997 passa anche per compensazione.** Finestra per finestra, contro il dipolo **del momento**, il rapporto è
+  **1,035** (lo stesso 3,5 % in più di fase 1: un residuo del campo vicino 3-D che non ho chiuso); il dipolo cala di ~3,5 %
+  nella corsa (l'1s deriva di 0,07 in 3000, V4). L'esame pre-registrato usa il dipolo a t = 0 e passa; il residuo resta un debito.
+- **S4 fallisce come S1, per lo stesso errore di progetto dell'esame**: 1 − p_2p del semiclassico = 0,0356 = la deriva libera
+  del 2p (doppietto quasi degenere), mentre la luce emessa dal 2p semiclassico è **4·10⁻³³**. Il quantistico invece si svuota
+  di 4,8 % e manda fuori i fotoni corrispondenti (R4b 0,979).
+- **Righe deboli in più**: negli spettri E4 restano due righe a **+0,0131** da quelle principali (0,0897 e 0,0925, ~20 % in
+  ampiezza). È la stessa distanza del vecchio battito. Non spiegate; candidato: membri alti dei multipletti dei 2p, che il
+  nucleo imparato sull'1s non chiude.
+- **D4: dipoli 1,4–1,5 volte Dirac.** Anche gli stati radiali di partenza danno 1,22×: probabilmente la scatola periodica da
+  24 λ_C taglia il 2p (24 % del suo peso oltre r = 10 λ_C) e la cella 0,5. Il ritmo della regola lo segue (R4), ma il
+  confronto con Dirac nel 3-D resta da fare con una scatola più grande (serve il nucleo imparato a 96³ o la cipolla).
+
+### 11.3 Il ritardo (−8 % a Z = 60)
+
+Nel 3-D la cella della luce (4 λ_C a 20 celle per λ) è più grande dell'atomo (⟨r⟩ = 2,7 λ_C): la luce del reticolo non può
+"vedere" la fase e^{−ik·r} che cambia attraverso l'atomo. Per avere celle di luce più piccole dell'atomo e insieme il campo
+lontano servirebbero ~160 celle per λ: una scatola 128³ coprirebbe meno di una lunghezza d'onda. Allora ho fatto la cosa
+pulita che si può fare: ho messo gli **stati radiali della regola stessa** (a = 0,025, gli stessi della corsa N1) nella
+regola d'oro completa con α·ε e^{−ik·r} (stesso codice di `emiss_exact.py`, che con le funzioni di Dirac ridà 9,97873·10⁻⁶).
+
+- Fattore di ritardo della regola **F_ret = 0,91678** contro Dirac **0,91662** (+0,02 %).
+- Controllo interno: forma "velocità" a k → 0 contro forma "lunghezza" sugli stati della regola: **1,00035**.
+- **N2 PASS**: ritmo misurato in N1 (dipolo, dinamico) × F_ret della regola = **1,0067·10⁻⁵ = 7,82·10¹⁵ s⁻¹** contro Dirac
+  completo **9,979·10⁻⁶ (+0,89 %)**.
+
+Onestà: qui il ritardo è **calcolato** con gli stati della regola, non **emerso** dalla corsa (la dinamica resta di dipolo).
+Debito: un accoppiamento multipolare dinamico (il campo letto in più punti della nuvola, o la corrente di transizione
+depositata cella per cella) con celle di luce ≲ 1 λ_C vicino all'atomo: una "cipolla" anche per la luce.
+
+### 11.4 Il Laboratorio con l'1s pulito (L1b)
+
+L'export rigenerato dal thread principale (1s esatto 0,8996036): la riga più forte di p_exc in [0,010; 0,016] ha ampiezza
+**0,0009**, contro **0,324** dello stesso stimatore sull'1s vecchio lasciato solo: il battito è sparito (÷ 360). p_exc per
+t > 400 sta fra 0,064 e 0,101: è l'atomo che si svuota (semiclassico, K = 10). **L1b PASS.** Il numero di L1 (477,8) resta
+quello dell'export vecchio.
+
+### 11.5 Debiti dopo la fase 2
+
+- **#20**: per l'emissione nel 48³ il problema delle valli è **curato con il nucleo imparato** (2 numeri presi da NUCLEO_1S,
+  imparati sull'1s con un criterio interno). Restano: righe deboli a +0,0131, doppietto quasi degenere del 2p3/2, deriva
+  0,07 dell'1s in 3000, dipoli 1,4× Dirac (scatola).
+- **Ritardo**: calcolato con gli stati della regola (N2 PASS), non dinamico.
+- **Residuo del campo vicino 3-D**: 3,5 % (radiale 0,1–0,6 %).
+- **S1/S4**: esami scritti male (proiezione invece di energia emessa): da riscrivere in una v5 come "energia data alla luce dal
+  2p puro semiclassico < 1 % di quella del QE" (oggi sarebbe 4·10⁻³³ contro 2,9·10⁻⁴: lo dico, ma non lo conto).
+- Parametri fisici nuovi della fase 2: **0**. Numeri presi da un altro studio: **2** (s0, s1 del nucleo imparato). Scelte
+  numeriche nuove: finestra e passo dei filtri (1200 tick, 0,005), tolleranza del gruppo (0,0015).
+
+### 11.6 Patch proposta (in più a §7)
+
+`src/atomo/zz.rs`: nel Laboratorio (Z = 60, a = 0,5) applicare il nucleo imparato di NUCLEO_1S §13.2 e prendere 1s **e 2p**
+con la diagonalizzazione del filtro e il criterio "più peso nello stato radiale, più i vicini entro 0,0015". Effetto atteso
+(da questa fase): la riga del Laboratorio con luce lungo z è la 1s→2p3/2 con il 2 : 1 giusto, e con luce σ⁻ la 1s→2p½.
