@@ -1,0 +1,9 @@
+{
+ "EM1": {
+  "date": "2026-10-13",
+  "written_before": "la corsa lvloop_sym.py v2 (dopo la v1 e dopo due prove esplorative dichiarate sotto)",
+  "what_happened": "La v1 di lvloop_sym.py (configurazione pre-registrata: 4 impurezze in (0,0,0),(1,2,0),(0,1,3),(2,0,1)) ha dato 48 operazioni simmetriche a n = 6 e 3 a n = 8. Due difetti trovati dopo: (i) la metrica (angoli ordinati) salta quando un autovalore passa per +-pi: falsi 'diversi' (n = 8: distanze 1,39 tutte uguali); (ii) l'operatore di due tick collega solo siti a distanza pari su ogni asse (8 sottoreticoli disgiunti; verificato: 27 siti su 216 raggiungibili da 0): le 4 impurezze cadevano ognuna su un sottoreticolo diverso, quindi ogni sottoreticolo vede una sola impurezza e lo spettro non puo' dipendere dalle posizioni (configurazione NON generica). Prove esplorative fatte PRIMA di scrivere questo emendamento (scratchpad, non committate): con metrica di Hausdorff la config. pre-registrata da' uguaglianza 1e-14 per tutte le permutazioni (conferma del difetto ii); con V casuale su tutti i siti (n = 6, seme 5) x<->y 4,3e-2, x<->z 2,3e-14, y<->z 2,4e-2, C3 2,4e-2.",
+  "pre_registered_result": "S1 FAIL formale (48 a n = 6, non 16); S3 non valutabile con la metrica v1. Restano riportati cosi'.",
+  "amendment": "S1', S2', S4': stessa domanda con V casuale uniforme in [0,1) su TUTTI i siti (semi 11 e 12), metrica di Hausdorff fra gli spettri complessi (soglia di uguaglianza 1e-9), n = 6 per 'rule', 'fixed', 'six' e n = 8 per 'rule'. S3': coppie di impurezze sullo STESSO sottoreticolo: separazioni (2,0,0),(0,2,0),(0,0,2) e (2,2,0),(0,2,2),(2,0,2), metrica di Hausdorff. Previsioni invariate (16 con permutazioni {id, x<->z}; 48 per 'six'; x = z != y)."
+ }
+}

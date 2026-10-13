@@ -72,12 +72,21 @@ def check_against_zz(n=6, theta=0.37, seed=1):
     return float(np.max(np.abs(W @ psi.ravel() - out.ravel())))
 
 
+def spectrum_v1(W):
+    return np.sort(np.angle(np.linalg.eigvals(W)))
+
+
 def spectrum(W):
-    ph = np.sort(np.angle(np.linalg.eigvals(W)))
-    return ph
+    return np.linalg.eigvals(W)
 
 
 def spec_dist(a, b):
+    """Hausdorff distance between two complex spectra (EM1)"""
+    D = np.abs(a[:, None] - b[None, :])
+    return float(max(D.min(1).max(), D.min(0).max()))
+
+
+def spec_dist_v1(a, b):
     # both sorted angles in (-pi, pi]; compare as multisets on the circle via sorted lists (generic, no wrap issue
     # when no eigenvalue sits at +-pi within 1e-8; checked)
     return float(np.max(np.abs(a - b)))
@@ -101,50 +110,56 @@ def config_potential(n, pts, vals):
     return V
 
 
+def group_test(n, rule, theta, V, G48):
+    s0 = spectrum(period_op(n, rule, theta, V))
+    rows = []
+    for G in G48:
+        Vg = transform_V(V, G)
+        rows.append({"G": G.tolist(), "dist": spec_dist(s0, spectrum(period_op(n, rule, theta, Vg)))})
+    sym = [r for r in rows if r["dist"] < 1e-9]
+    perms = sorted({tuple(int(np.argmax(np.abs(np.array(r["G"])[i]))) for i in range(3)) for r in sym})
+    return {"n_sym": len(sym), "axis_perms_in_group": perms,
+            "min_dist_nonsym": float(min([r["dist"] for r in rows if r["dist"] >= 1e-9], default=0)),
+            "max_dist_sym": float(max([r["dist"] for r in sym], default=0))}
+
+
+def transform_V(V, G):
+    """V'(G r) = V(r) on the periodic box (origin at site 0)"""
+    n = V.shape[0]
+    idx = np.indices(V.shape).reshape(3, -1)
+    new = np.mod(G @ idx, n)
+    Vg = np.zeros_like(V)
+    Vg[tuple(new)] = V[tuple(idx)]
+    return Vg
+
+
 def main():
     t0 = time.time()
-    res = {"check_vs_zz_core": check_against_zz()}
+    out = os.path.join(os.path.dirname(os.path.abspath(__file__)), "out", "lvloop_sym.json")
+    res = {"check_vs_zz_core": check_against_zz(), "version": "v2 (EM1)"}
     theta = 0.37
-    pts = np.array([[0, 0, 0], [1, 2, 0], [0, 1, 3], [2, 0, 1]])
-    vals = [0.9, 0.55, 0.31, 0.73]
     G48 = signed_perms()
-    for n in (6, 8):
-        for rule in ("rule", "fixed", "six"):
-            if n == 8 and rule == "six":
-                pass
-            W0 = period_op(n, rule, theta, config_potential(n, pts, vals))
-            s0 = spectrum(W0)
-            rows = []
-            for G in G48:
-                Vg = config_potential(n, pts @ G.T, vals)
-                d = spec_dist(s0, spectrum(period_op(n, rule, theta, Vg)))
-                rows.append({"G": G.tolist(), "dist": d})
-            sym = [r for r in rows if r["dist"] < 1e-9]
-            # describe the symmetric subgroup: which axis permutations appear
-            perms = sorted({tuple(int(np.argmax(np.abs(np.array(r["G"])[i]))) for i in range(3)) for r in sym})
-            res[f"{rule}_n{n}"] = {"n_sym": len(sym), "axis_perms_in_group": perms,
-                                   "min_dist_nonsym": float(min([r["dist"] for r in rows if r["dist"] >= 1e-9], default=0)),
-                                   "max_dist": float(max(r["dist"] for r in rows))}
-            print(rule, n, len(sym), perms, "%.1fs" % (time.time() - t0), flush=True)
-            if n == 8 and rule == "rule":
-                break
-        if n == 8:
-            break
-    # free check: with V = 0 everywhere, the spectrum is trivially invariant; with a single impurity too (translations)
-    # pair-separation test, rule, n=8: separations along the three axes
+    # pre-registered configuration (non-generic, see EM1), Hausdorff metric, n = 6
+    pts = np.array([[0, 0, 0], [1, 2, 0], [0, 1, 3], [2, 0, 1]])
+    res["prereg_config_rule_n6"] = group_test(6, "rule", theta, config_potential(6, pts, [0.9, 0.55, 0.31, 0.73]), G48)
+    print("prereg config", res["prereg_config_rule_n6"]["n_sym"], flush=True)
+    for n, rule, seed in ((6, "rule", 11), (6, "rule", 12), (6, "fixed", 11), (6, "six", 11), (8, "rule", 11)):
+        V = np.random.default_rng(seed).random((n, n, n))
+        res[f"{rule}_n{n}_seed{seed}"] = r = group_test(n, rule, theta, V, G48)
+        print(rule, n, seed, r["n_sym"], r["axis_perms_in_group"], "min nonsym %.2e" % r["min_dist_nonsym"],
+              "%.0fs" % (time.time() - t0), flush=True)
+        json.dump(res, open(out, "w"), indent=1)
     n = 8
     sep = {}
     for lab, d in (("x2", (2, 0, 0)), ("y2", (0, 2, 0)), ("z2", (0, 0, 2)),
-                   ("xy", (1, 1, 0)), ("yz", (0, 1, 1)), ("xz", (1, 0, 1)),
-                   ("x1", (1, 0, 0)), ("y1", (0, 1, 0)), ("z1", (0, 0, 1))):
+                   ("xy", (2, 2, 0)), ("yz", (0, 2, 2)), ("xz", (2, 0, 2))):
         V = config_potential(n, [np.zeros(3, int), np.array(d)], [0.8, 0.8])
         sep[lab] = spectrum(period_op(n, "rule", theta, V))
     res["pair_rule_n8"] = {f"{a}-{b}": spec_dist(sep[a], sep[b]) for a, b in
-                           (("x2", "z2"), ("x2", "y2"), ("z2", "y2"), ("xy", "yz"), ("xy", "xz"),
-                            ("x1", "z1"), ("x1", "y1"))}
+                           (("x2", "z2"), ("x2", "y2"), ("z2", "y2"), ("xy", "yz"), ("xy", "xz"))}
     print(res["pair_rule_n8"])
     res["time_s"] = time.time() - t0
-    json.dump(res, open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "out", "lvloop_sym.json"), "w"), indent=1)
+    json.dump(res, open(out, "w"), indent=1)
 
 
 if __name__ == "__main__":
