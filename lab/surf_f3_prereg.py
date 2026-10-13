@@ -1,0 +1,49 @@
+"""surf_f3_prereg.py -> lab/out/surf_f3_prereg.json : PHASE 3 of SURFISTI_ESATTI, written BEFORE the production runs
+(prep and run of surf_f3.py). Development done before (declared): surf_f3.py check (lab/out/surf_f3_check.json)."""
+import json
+import os
+
+OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "out")
+P = dict(
+    study="SURFISTI_ESATTI fase 3", date="2026-10-13",
+    question="do the doubler valleys kill the current of a polarised 1s? (hypothesis of phase 2, sec. 12.8)",
+    argument_before_runs=(
+        "Phase 2 found: net two-tick flux = F1(psi) - F1(Theta W2 psi) for ANY psi (identity from the exact time reversal; "
+        "checked again on a 4^3 random-potential lattice: 5e-17), and F1(psi) = F1(Theta psi) inside ONE Kramers doublet, so "
+        "every stationary state has zero net flux. This does NOT cover combinations of different doublets: two doublets on "
+        "the same colour give net flux 0.31 (check), and the old E5 state (2 doublets, split 3e-4) circulated (0.23). A "
+        "valley-k=0 state is a combination of the 4 doublets of the 1s quartet; with the learned nucleus the quartet is "
+        "split by ~2e-4 (beat ~6e4 ticks), so the state is quasi-stationary over 4000 ticks AND is allowed to carry "
+        "current. The test can work; it is run."),
+    setup=dict(
+        lattice="Walk3D 48^3, a = theta = 0.5 lambda_C, Z = 60 (Za = 0.4378), point nucleus on the corner of 8 cells",
+        nuclei=dict(learned="NUCLEO_1S sec. 13 (learn2): Coulomb potential x 0.554593 on the 8 cells at r0 = sqrt3/2 a, "
+                            "x 1.003549 on the 24 cells at r1 = sqrt11/2 a (2 + 6 per colour); everything else -Za/r",
+                    bare="-Za/r everywhere (control)"),
+        preparation="seed = radial Dirac 1s (kappa = -1, m = +1/2) on the cube; listening pass 1: 2048 ticks, Hann, "
+                    "candidates 0.86..0.94 step 0.0025, peak of the autocorrelation spectrum; pass 2: 2048 ticks at the "
+                    "peak from the pass-1 state; then projection P0 on valley k = 0 (Fourier cells nearest to k = 0 or its "
+                    "pi copies, the same valley_split as phase 2), normalised. The same recipe for both nuclei.",
+        run="4000 ticks, 2e5 exact surfers (S4-2 two-tick flow, Pollock), Born start; records every 100 ticks: fidelity "
+            "|<psi0|psi(t)>|^2, valley-0 weight, <Sigma_z>, flux v_phi of the state, z of the surfers (2^3 blocks); surfer "
+            "v_phi over 10-tick windows starting at 500, 1000, 2000, 3000, 3990, measured exactly as E5 "
+            "(v_phi = r_c dphi / (10 a), divided by sin = r_c/r, mean over 1 < r < 6, |z| < 0.5 r, divided by Za)."),
+    exams=dict(
+        F1=dict(what="learned: the prepared state is a polarised k = 0 electron: valley-0 weight >= 0.99 and <Sigma_z> >= 0.9",
+                thr=dict(valley0=0.99, sigma_z=0.9)),
+        F2=dict(what="(a) learned: quasi-stationary: fidelity >= 0.9 and valley-0 weight >= 0.9 at every record up to 4000",
+                thr=0.9),
+        F3=dict(what="(b) learned: surfers rotate like Bohm-Dirac: v_phi/(Za sin) in [0.75, 1.25] in all 5 windows",
+                thr=[0.75, 1.25]),
+        F4=dict(what="learned: surfers stay |psi|^2: max |z| <= 4 over the run", thr=4.0),
+        F5=dict(what="(c) bare control behaves differently: valley-0 weight < 0.5 at some record OR surfer v_phi outside "
+                     "[0.75, 1.25] in at least 2 of the 5 windows (prediction of the doubler hypothesis)"),
+        F6=dict(what="learned: flux v_phi of the state at t = 0 in [0.75, 1.25] (the current is in the state, not made by "
+                     "the surfers)", thr=[0.75, 1.25])),
+    note="If F2-F4 and F6 pass while F5 passes too, the hypothesis 'the doublers kill the current' is supported: removing "
+         "the valley mixing (learned nucleus) and starting in k = 0 gives the Dirac rotation. The learned nucleus is NOT "
+         "removing the doublers, only their mixing: the state is still a combination of 4 lattice doublets.",
+)
+with open(os.path.join(OUT, "surf_f3_prereg.json"), "w") as f:
+    json.dump(P, f, indent=1)
+print("written lab/out/surf_f3_prereg.json")
