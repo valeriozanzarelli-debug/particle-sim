@@ -84,15 +84,20 @@ class Rule:
                 psi = link(psi, v, self.h / 4, YCHI)
         return psi
 
+    def tick(self, psi, n):
+        """tick number n (n % 2 chooses the axis order and, for FW1, the Wilson)"""
+        oR, oL = TICKS[n % 2]
+        L, R = psi[:2], psi[2:]
+        for j in oR:
+            R = axis_shift(R, j, +1)
+        for j in oL:
+            L = axis_shift(L, j, -1)
+        return self._coin(np.concatenate([L, R]), n % 2)
+
     def period(self, psi):
         psi = psi.copy()
-        for n, (oR, oL) in enumerate(TICKS):
-            L, R = psi[:2], psi[2:]
-            for j in oR:
-                R = axis_shift(R, j, +1)
-            for j in oL:
-                L = axis_shift(L, j, -1)
-            psi = self._coin(np.concatenate([L, R]), n)
+        for n in range(len(TICKS)):
+            psi = self.tick(psi, n)
         return psi
 
 
