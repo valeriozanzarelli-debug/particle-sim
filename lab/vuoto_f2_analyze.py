@@ -91,11 +91,13 @@ if mean6("g2|lat|0.025|0.001|fine") is not None and mean6("g2|lat|0.025|0.001|st
     R["G_grid_check"] = {"std": mean6("g2|lat|0.025|0.001|std"), "fine": mean6("g2|lat|0.025|0.001|fine")}
 
 # ------------------------------------------------------------------ L: Bethe log (prereg: vuoto_f2_prereg_L.json)
-BL = load("vuoto_f2_bethe.json")
 NR = load("vuoto_f2_nrref.json")
 REF = {1: 2.984128556, 2: 2.811769893}
 KRY = [30, 100, 300, 1000, 3000]
-if NR:
+
+
+def L_grade(BL, tag):
+    """grades exams L1-L3 on one Bethe file; tag '' = pre-registered verdict, '_A' = amendment A-L1 (report only)"""
     def nrval(n, kr, field="lnk0_KS"):
         a_, b_ = NR["%d|0.02" % n]["K"][str(kr)][field], NR["%d|0.01" % n]["K"][str(kr)][field]
         return b_ + (b_ - a_) / 3                                   # Richardson h -> 0 (O(h^2))
@@ -113,13 +115,20 @@ if NR:
                                 "DK_walk": DK, "DK_NR": nrval(n, kr, "D_K_over_sumrule"),
                                 "hybrid_lnk0": L + (REF[n] - nrval(n, kr))}     # rule below K, NR theory above K
             Ld["%d|%g" % (n, th)] = row
-    R["L_table"] = Ld
+    R["L_table" + tag] = Ld
     if "1|0.05" in Ld and "2|0.05" in Ld:
-        R["L1_PASS"] = bool(all(abs(Ld[k][kr]["diff"]) <= 0.02 for k in ("1|0.05", "2|0.05") for kr in ("100", "300")))
-        R["L3_PASS"] = bool(all(abs(Ld[k]["300"]["DK_walk"] / Ld[k]["300"]["DK_NR"] - 1) <= 0.01 for k in ("1|0.05", "2|0.05")))
-        R["L_hybrid_lnk0_300Ry"] = {k: Ld[k]["300"]["hybrid_lnk0"] for k in ("1|0.05", "2|0.05")}
+        R["L1_PASS" + tag] = bool(all(abs(Ld[k][kr]["diff"]) <= 0.02 for k in ("1|0.05", "2|0.05") for kr in ("100", "300")))
+        R["L3_PASS" + tag] = bool(all(abs(Ld[k]["300"]["DK_walk"] / Ld[k]["300"]["DK_NR"] - 1) <= 0.01 for k in ("1|0.05", "2|0.05")))
+        R["L_hybrid_lnk0_300Ry" + tag] = {k: Ld[k]["300"]["hybrid_lnk0"] for k in ("1|0.05", "2|0.05")}
     if all(k in Ld for k in ("1|0.05", "1|0.1", "2|0.05", "2|0.1")):
-        R["L2_PASS"] = bool(all(abs(Ld["%d|0.05" % n]["300"]["L_walk"] - Ld["%d|0.1" % n]["300"]["L_walk"]) <= 0.01 for n in (1, 2)))
+        R["L2_PASS" + tag] = bool(all(abs(Ld["%d|0.05" % n]["300"]["L_walk"] - Ld["%d|0.1" % n]["300"]["L_walk"]) <= 0.01
+                                      for n in (1, 2)))
+
+
+if NR:
+    L_grade(load("vuoto_f2_bethe.json"), "")
+    if load("vuoto_f2_bethe_A.json"):
+        L_grade(load("vuoto_f2_bethe_A.json"), "_A")
     MC2_MHZ = 510998.95 * 2.417989242e14 / 1e6
     R["L_MHz_per_unit_lnk0"] = {n: 4 * ALPHA**5 / (3 * PI * n**3) * MC2_MHZ for n in (1, 2)}
 
