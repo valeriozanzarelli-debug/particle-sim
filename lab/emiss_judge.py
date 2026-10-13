@@ -20,7 +20,11 @@ def verdict(name, ok, msg, value=None):
 
 
 def have(name):
-    return os.path.exists(os.path.join(CK, f"run_{name}.npz"))
+    """only runs that finished (the drive logs say '=== NAME finished rc=0')"""
+    if not os.path.exists(os.path.join(CK, f"run_{name}.npz")):
+        return False
+    import glob
+    return any(f"=== {name} finished rc=0" in open(f).read() for f in glob.glob(os.path.join(CK, "drive*.log")))
 
 
 def spectrum_peaks(t, y, lo=0.06, hi=0.10):
