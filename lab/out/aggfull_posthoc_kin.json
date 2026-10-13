@@ -1,0 +1,35 @@
+{
+ "e8_1s": {
+  "m_kin_learned": 1.0003620365033281,
+  "R_learned_eV": -0.005966411937464601,
+  "R_fine_eV": -0.000986897171152786,
+  "R_dirac_eV": -0.0009841136106724776,
+  "R_learned_top1pct_share": 0.5114500395856558,
+  "learned_minus_fine_rel_at_top1pct": -0.0011160541113682946,
+  "m_kin_relearned": 1.000373427793675,
+  "R_relearned_eV": 0.002190529241050876,
+  "relearned_minus_fine_rel_at_top1pct": 0.000159452492960791
+ },
+ "e8_2s": {
+  "m_kin_learned": 1.0003620365033281,
+  "R_learned_eV": -0.0010719743801374496,
+  "R_fine_eV": -0.00012554130416677812,
+  "R_dirac_eV": -0.00012491949091002642,
+  "R_learned_top1pct_share": 0.6755144981554639,
+  "learned_minus_fine_rel_at_top1pct": -0.0005372119389759635,
+  "m_kin_relearned": 1.000373427793675,
+  "R_relearned_eV": -0.00013456879326647045,
+  "relearned_minus_fine_rel_at_top1pct": -7.328988168762738e-06
+ },
+ "e16_1s": {
+  "m_kin_learned": 1.000388571000185,
+  "R_learned_eV": -0.0003015422514984039,
+  "R_fine_eV": -0.00076500185148319,
+  "R_dirac_eV": -0.0007623580259245562,
+  "R_learned_top1pct_share": 0.8319351835025355,
+  "learned_minus_fine_rel_at_top1pct": 0.0001258596397445592,
+  "m_kin_relearned": 1.0003739765538462,
+  "R_relearned_eV": -0.0007442199215692748,
+  "relearned_minus_fine_rel_at_top1pct": 8.312743033310115e-06
+ }
+}
