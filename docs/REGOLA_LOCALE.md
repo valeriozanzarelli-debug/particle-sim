@@ -53,6 +53,10 @@ File: motore `lab/locale_core.py`, candidati `lab/locale_cands.py`, pre-registra
    Il Wilson ritorto spegne i 3 doppioni massivi: l'1s 3-D col nucleo sull'angolo passa da 25/25/25/25 % sulle valli
    a 92 % nella valle vera. Le coppie fisiche non cambiano (≤ 1,9 %). Ma i coni π restano senza massa e fanno coppie
    senza soppressione. Il protone vero non chiude il pavimento s di S4.
+8. **Fase 4 (§13):** nessun termine locale dà massa alle valli π senza toccare l'elettrone. La moneta che respira
+   (θ ∓ μ, di VUOTO) gliela dà, ma l'elettrone va a **c·cos μ** (legge misurata a 2·10⁻⁵). Lo 0,3 % storico di Schwinger
+   regge, perché contava solo il buco k = 0. La coppia 0,8811/0,8822 è il doppietto di spin dell'1s, spaccato perché la
+   regola non è simmetrica per inversione del tempo e il nucleo sta fuori centro nella sua copia.
 
 Tabellone: r1 **66 PASS / 1 FAIL**, r2 **33 PASS / 16 FAIL**, r3 **20 PASS / 12 FAIL**, emendamento 6/0.
 Molti FAIL sono **previsti nella pre-registrazione** (la regola congelata che fallisce gli esami dei doppioni); quelli
@@ -713,4 +717,111 @@ OMP_NUM_THREADS=1 timeout 590 python lab/locale_f3_valleys.py      # 6 configura
 OMP_NUM_THREADS=1 timeout 590 python lab/locale_f3_valleys.py vw   # contenuto di valle (2 pezzi)
 OMP_NUM_THREADS=1 python lab/locale_f3_stagger.py
 python lab/locale_f3_figure.py
+```
+
+---
+
+## 13. Fase 4: massa alle valli π, i conteggi storici di Schwinger, la coppia 0,8811/0,8822
+
+File: pre-registrazione `lab/locale_f4_prereg.py` → `lab/out/locale_f4_prereg.json` (commit **4dcb577**, prima delle
+corse), motore `lab/locale_f4_core.py`, corse `lab/locale_f4_run.py` → `lab/out/locale_f4_run.json` e
+`lab/locale_f4_pair.py` → `lab/out/locale_f4_pair.json`. Controllo fatto dopo (non pre-registrato)
+`lab/out/locale_f4_breath_speed.json`, prodotto da un comando in linea, riportato sotto. I file `vuoto_*` sono stati solo
+letti.
+
+### 13.1 In breve (per Valerio)
+
+1. **Nessun termine trovato** (0 candidati su 15 passano Q1–Q4). Il risultato più chiaro riguarda la **moneta che
+   respira** di VUOTO (θ − μ, θ + μ): dà davvero massa μ alle valli π e lascia esatta la massa a riposo. Però
+   **rallenta l'elettrone: la sua velocità limite diventa c·cos μ**. È una legge pulita:
+
+   | μ | 0,02 | 0,1 | 0,3 | 0,6 |
+   |---|---|---|---|---|
+   | v/c misurata (θ = 0,02) | 0,999800 | 0,995002 | 0,955318 | 0,825258 |
+   | cos μ | 0,999800 | 0,995004 | 0,955336 | 0,825336 |
+
+   A θ = 0,1 l'accordo è un po' meno stretto (0,8234 contro 0,8253 per μ = 0,6). Non è un errore del reticolo che sparisce
+   col passo: è **un'altra velocità della luce per l'elettrone** (la luce resta a c), cioè Lorentz rotto di μ²/2.
+   Perché: la moneta gira la chiralità avanti e indietro di μ tra un passo e l'altro, e il passo a velocità c lo fa
+   solo la proiezione cos μ. Nota per VUOTO_POLARIZZA: con μ = 0,1 l'elettrone va a 0,995 c (−0,5 %).
+2. Gli altri tentativi sono peggio:
+   - la moneta che respira lungo Y **sposta la massa** (2·10⁻³ a μ = 0,1);
+   - il Wilson alternato nel tempo dà una **deriva lineare in k** (2,4·10⁻³ c a h_s = 0,1) e una massa cinetica
+     anisotropa;
+   - la combinazione con h_s scelto per annullare il termine in k² lungo x lo annulla solo lungo x (le altre direzioni
+     restano a ±2,5·10⁻³) e si porta dietro la deriva.
+3. **Ipotesi di ostacolo (non è un teorema):** alle valli π i termini uguali sui due tick si cancellano, quindi per
+   dare massa lì serve un termine **dispari** tra i tick. Al secondo ordine quel termine tocca anche l'elettrone vero:
+   rallentamento ~(M_π a)²/2 se è pulito (moneta), deriva o anisotropia se no. Visto su 3 famiglie, non dimostrato.
+4. **Finestra pratica.** Massa delle valli π / m = μ/θ, errore di velocità μ²/2. Con un errore ≤ 10⁻⁴ serve μ ≤ 0,014,
+   quindi le valli π pesano ≥ 10 m solo con θ ≤ 0,0014. Per gli atomi del Laboratorio (θ = 0,1–0,5) **non serve a
+   niente**. Una strada che resta: rallentare **anche la luce** dello stesso cos μ (una "respirazione" del cammino della
+   luce), così tutte le velocità tornano uguali. Da provare in una fase 5, se Valerio vuole.
+5. **Conteggi storici di Schwinger: lo 0,3 % regge.** Sia R1 (IDEE_RIPRESE) sia COPPIE_IN_SCATOLA contavano
+   **solo il buco k = 0** (vedi 13.3).
+6. **La coppia 0,8811/0,8822 è il doppietto di spin dell'1s, spaccato.** Cambiando lo spin iniziale cambiano i pesi
+   ma non le energie, e i due livelli hanno spin **opposti** (±(0,145; 0,206; 0,382)) → X1 **PASS**. È come un piccolo
+   campo magnetico finto, di 1,1·10⁻³ m, che c'è solo quando il nucleo sta fuori centro nella sua copia (vedi 13.4).
+
+### 13.2 Tabellone Q1–Q4 (θ = 0,1)
+
+| candidato | min gap doppioni (≥ 0,3) | massa cinetica vs congelata (≤ 10⁻⁴) | pendenza di dE (≥ 3,5) | E(0), deriva | esito |
+|---|---|---|---|---|---|
+| C1 moneta che respira μ = 0,02 / 0,05 / 0,1 / 0,3 | 0,02 / 0,05 / 0,10 / 0,10 (le valli N restano a θ) | +4,0·10⁻⁴ / +2,5·10⁻³ / +1,0·10⁻² / +9,7·10⁻² (isotropa, = tan²μ) | 1,76 | esatti | FAIL |
+| C2 moneta che respira lungo Y μ = 0,05 / 0,1 | 0,05 / 0,10 | +2,5·10⁻³ / +1,0·10⁻² | 0,59 | **E(0) spostata** 4·10⁻⁴ / 2·10⁻³ | FAIL |
+| C3 Wilson alternato h_s = 0,02 / 0,05 / 0,1 | 0,08 / 0,10 / 0,10 | −8·10⁻⁴ … −0,10 (anisotropa) | 0,6–0,7 | **deriva** 2·10⁻⁵ / 3·10⁻⁴ / 2,4·10⁻³ | FAIL |
+| C4 moneta che respira + Wilson ritorto (μ = 0,1 / 0,3, h_u = 0,1) | 0,10 / **0,30** | +1,0·10⁻² / +9,7·10⁻² | 1,55 / 1,75 | esatti | FAIL |
+| C5 moneta che respira + Wilson alternato, h_s tarato (4 casi) | 0,10–0,32 | 0 lungo x, ±(0,4–2,5)·10⁻³ / ±(0,4–2,2)·10⁻² nelle altre | 1,7–1,9 | deriva 2·10⁻⁴ – 2·10⁻³ | FAIL |
+
+C4 con μ = 0,3 è l'unico che dà massa a **tutti** i doppioni (≥ 0,30/a: N 0,76, π 0,30). Il prezzo è la velocità
+dell'elettrone a 0,955 c.
+
+### 13.3 Come contavano le coppie gli studi storici (H2)
+
+- **R1 (`docs/IDEE_RIPRESE.md`, codice `lab/redo_r1.py`).** Regola 1+1 D a un tick. `crossing(th, E, 0)` fa partire
+  l'onda del mare a k = −π/2 e la fa correre per π/E tick, cioè fino a k = +π/2: attraversa **solo il buco k = 0**,
+  mai π. Il buco a π è stato misurato **a parte** (`crossing(th, E, π)`, R1b: P_π/P_0 = 1,000000) e dichiarato
+  "doppione da non contare". In 1+1 D quel doppione ha massa θ come l'elettrone (gap 2θ: P5b, fase 2), non è senza
+  massa.
+- **COPPIE_IN_SCATOLA (`lab/box_core.py`, `schwinger_strip`).** Mare preso a k_x = −K, campo fino a k_x = +K con
+  K = 1 (1,2 in un caso), più un taglio in quasi-energia W_CUT. Non arriva mai a k_x = π: **solo il buco k = 0**.
+- **Quindi: sì, erano proiettati sul buco k = 0, e lo 0,3 % di Schwinger regge** (rapporto 0,998–1,003 a θ = 0,05;
+  0,98–1,04 a θ = 0,1). È una validazione della specie fisica. Le valli π **senza massa** esistono solo nella regola
+  3-D a due tick: non toccano quei numeri. Un conto "tutto il mare" in 3-D invece sarebbe dominato da loro (§12: 23
+  volte Schwinger per valle a E = E_c).
+
+### 13.4 La coppia 0,8811 / 0,8822 (X1)
+
+Modello ridotto della fase 3 (48³, Z = 60, θ = 0,5, Wilson ritorto h = 0,1, nucleo sull'angolo):
+
+| spin iniziale | peso a 0,88112 | peso a 0,88220 | ⟨S⟩ di 0,88112 | ⟨S⟩ di 0,88220 |
+|---|---|---|---|---|
+| su (fase 3) | 0,783 | 0,073 | — | — |
+| giù | 0,073 | 0,789 | (+0,145; +0,206; +0,382) | (−0,145; −0,206; −0,382) |
+| lungo x | 0,566 | 0,292 | uguale | uguale |
+
+Le energie restano identiche (entro 10⁻⁵), i pesi seguono lo spin di partenza, e gli spin dei due livelli sono opposti
+(|⟨S⟩₁ − ⟨S⟩₂| = 0,91): **è il doppietto j = ½ dell'1s**, spaccato di 1,1·10⁻³ m lungo la direzione (0,32; 0,45; 0,84).
+Per il teorema di Kramers in un mondo simmetrico per inversione del tempo resterebbe degenere: qui no. Quindi la regola
+(ordine degli assi x, y, z poi z, y, x) **non** è simmetrica per inversione del tempo, e si comporta come un campo
+magnetico finto. Il campo si vede solo quando il nucleo sta **fuori centro nella sua copia**: sull'angolo di 8 celle il
+nucleo è a (¼, ¼, ¼) della cella della copia (passo 2). Col nucleo su un sito della copia (caso "centro", fase 3) lo
+split è 1·10⁻⁵. Le bande libere non spaccano lo spin (≤ 4·10⁻⁸ a h = 0,1), quindi serve il nucleo: è un effetto
+"nucleo fuori centro × regola senza inversione del tempo". La direzione (più z che x) segue l'ordine degli assi. Non
+ho misurato come scala col passo: debito.
+
+### 13.5 Debiti e parametri (fase 4)
+
+- Valli π senza massa: **ancora aperto**. La moneta che respira le chiude al prezzo v_e = c·cos μ (1 manopola μ più una
+  violazione di Lorentz di μ²/2). Proposta per una fase 5: la stessa respirazione anche per la luce.
+- Nuovo: la regola non è simmetrica per inversione del tempo. Col nucleo fuori centro nella copia l'1s si spacca come in
+  un campo magnetico (1,1·10⁻³ m a θ = 0,5). La scala col passo non è misurata.
+- Chiuso: lo 0,3 % storico di Schwinger è sul buco fisico k = 0, quindi regge.
+
+Come rifare la fase 4:
+
+```
+OMP_NUM_THREADS=1 python lab/locale_f4_prereg.py          # (già committata, 4dcb577)
+OMP_NUM_THREADS=1 timeout 590 python lab/locale_f4_run.py # 27 s
+OMP_NUM_THREADS=1 timeout 590 python lab/locale_f4_pair.py   # 2 pezzi da ~5 min
 ```
