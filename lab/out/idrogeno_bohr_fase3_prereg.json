@@ -52,5 +52,15 @@
   }
  },
  "manopole": "una nuova: K del filtro (48, scelta prima). NH e' configurazione.",
- "economia": "corse in coda seriale, 2 thread, nice; nessuna corsa oltre quelle elencate senza emendamento dichiarato"
+ "economia": "corse in coda seriale, 2 thread, nice; nessuna corsa oltre quelle elencate senza emendamento dichiarato",
+ "emendamento_1": {
+  "scritto": "dopo P1, P1b, P2, P3 (prima di questa corsa)",
+  "diagnostica_a_posteriori_dichiarata": "corrente spuria di P2 per zone (da j_grosso.f16): celle grosse coperte dal blocco max 1.66e-3, fuori dal blocco 2.66e-4, oltre 8 celle (0.5 a0) 1.29e-4 (fase 2: 1.72e-3 / 3.29e-4 / 2.33e-4). Il filtro cambia lo stato di 1.7e-9 soltanto: la corrente non e' un transitorio.",
+  "controllo": {
+   "corsa": "IDRO_ASSET=assets/atomo/agglomerato_zz_T_v1.json esame_ibrido 256 256 0 48 <scratch> (solo regola grossa, nessun blocco)",
+   "domanda": "quanta 'corrente spuria' ha la sola regola grossa partendo dal suo autostato? (pavimento della misura)",
+   "criterio": "descrittivo; se il pavimento e' >= 1e-4 la soglia 1e-6 di fase 2 era irraggiungibile con questa misura e lo si dichiara; il FAIL di P2 resta comunque registrato"
+  },
+  "nessun_altro_cambio": "criteri di P1, P1b, P2, P3 invariati"
+ }
 }
