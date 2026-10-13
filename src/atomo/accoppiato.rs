@@ -83,6 +83,10 @@ pub struct LuceAtomo {
     pub t: f64,
     /// transverse deposit patterns (None: the plain Gaussian deposit)
     pub trasv: Option<std::sync::Arc<Trasverso>>,
+    /// EXACT SCATTERED FIELD (docs/ATOMO.md §3.8): when Some, `f` holds only the FREE light (the pulse, no source) and
+    /// `sc` only the light sourced by the atom's current. The light rule, the sponge and the deposit are all linear,
+    /// so f + sc is the single-box field; the atom feels f + sc. `sc` IS the light the atom scatters and emits.
+    pub sc: Option<Fotone3D>,
 }
 
 impl LuceAtomo {
@@ -109,7 +113,7 @@ impl LuceAtomo {
         }}}
         let tot: f64 = pesi.iter().map(|p| p.1).sum();
         for p in pesi.iter_mut() { p.1 /= tot; }
-        LuceAtomo { f, maschera, pesi, sonda: vec![], assorbita: 0.0, serie_e: vec![], t: 0.0, trasv: None }
+        LuceAtomo { f, maschera, pesi, sonda: vec![], assorbita: 0.0, serie_e: vec![], t: 0.0, trasv: None, sc: None }
     }
 
     /// The same box with the transverse deposit (patterns computed once per process, then shared).
@@ -134,22 +138,36 @@ impl LuceAtomo {
         }
     }
 
+    /// Split the box into free light (`f`) + scattered light (`sc`, starts empty). Call before any source is deposited.
+    pub fn con_diffusa(&mut self) { if self.sc.is_none() { let mut g = Fotone3D::new(N_LUCE); g.ticks = self.f.ticks; self.sc = Some(g); } }
+
+    /// The total field at cell s (f + sc when split).
+    #[inline]
+    pub fn tot(&self, s: usize) -> [crate::fotone3d::Cf; 3] {
+        match &self.sc {
+            None => self.f.f[s],
+            Some(g) => { let (a, b) = (self.f.f[s], g.f[s]); [0, 1, 2].map(|c| crate::fotone3d::Cf { re: a[c].re + b[c].re, im: a[c].im + b[c].im }) }
+        }
+    }
+
     /// Free propagation of the light by one tick (no source, no sponge).
-    pub fn propaga(&mut self) { self.f.tick(); }
+    pub fn propaga(&mut self) { self.f.tick(); if let Some(g) = self.sc.as_mut() { g.tick(); } }
 
     /// The source of one light tick: F −= I w / b² (Gaussian) or F −= Σ_c I_c T_c / b² (transverse).
     pub fn deposita(&mut self, corrente: [f64; 3]) {
         let b2 = B_LUCE * B_LUCE;
+        // the source goes into the scattered box when the light is split
+        let campo = match self.sc.as_mut() { Some(g) => &mut g.f, None => &mut self.f.f };
         match &self.trasv {
             None => {
                 let b2 = b2 as f32;
                 for &(s, w) in &self.pesi {
-                    for c in 0..3 { self.f.f[s][c].re -= (corrente[c] * w) as f32 / b2; }
+                    for c in 0..3 { campo[s][c].re -= (corrente[c] * w) as f32 / b2; }
                 }
             }
             Some(t) => {
                 let k = [0, 1, 2].map(|c| (corrente[c] / b2) as f32);
-                self.f.f.par_iter_mut().zip(t.t.par_iter()).for_each(|(p, tt)| {
+                campo.par_iter_mut().zip(t.t.par_iter()).for_each(|(p, tt)| {
                     for q in 0..3 { p[q].re -= k[0] * tt[0][q] + k[1] * tt[1][q] + k[2] * tt[2][q]; }
                 });
             }
@@ -159,19 +177,28 @@ impl LuceAtomo {
     /// Sponge, energy bookkeeping, probe: the end of a light tick.
     pub fn chiudi_tick(&mut self) {
         let m = &self.maschera;
-        let (tolta, resta): (f64, f64) = self.f.f.par_iter_mut().zip(m.par_iter()).map(|(p, &w)| {
-            let e = p.iter().map(|c| c.norm2() as f64).sum::<f64>();
-            if w < 1.0 { for c in p.iter_mut() { c.re *= w; c.im *= w; } }
-            let w2 = (w as f64) * (w as f64);
-            ((1.0 - w2) * e, w2 * e)
-        }).reduce(|| (0.0, 0.0), |x, y| (x.0 + y.0, x.1 + y.1));
+        let (tolta, resta): (f64, f64) = match self.sc.as_mut() {
+            None => self.f.f.par_iter_mut().zip(m.par_iter()).map(|(p, &w)| {
+                let e = p.iter().map(|c| c.norm2() as f64).sum::<f64>();
+                if w < 1.0 { for c in p.iter_mut() { c.re *= w; c.im *= w; } }
+                let w2 = (w as f64) * (w as f64);
+                ((1.0 - w2) * e, w2 * e)
+            }).reduce(|| (0.0, 0.0), |x, y| (x.0 + y.0, x.1 + y.1)),
+            // split: the sponge multiplies both boxes (linear); the energy is that of the total field f + sc
+            Some(g) => self.f.f.par_iter_mut().zip(g.f.par_iter_mut()).zip(m.par_iter()).map(|((p, q), &w)| {
+                let e = (0..3).map(|c| { let (re, im) = ((p[c].re + q[c].re) as f64, (p[c].im + q[c].im) as f64); re * re + im * im }).sum::<f64>();
+                if w < 1.0 { for c in p.iter_mut().chain(q.iter_mut()) { c.re *= w; c.im *= w; } }
+                let w2 = (w as f64) * (w as f64);
+                ((1.0 - w2) * e, w2 * e)
+            }).reduce(|| (0.0, 0.0), |x, y| (x.0 + y.0, x.1 + y.1)),
+        };
         let v = 0.5 * B_LUCE.powi(3);
         self.assorbita += v * tolta;
         self.t += B_LUCE;
         self.serie_e.push((self.t, v * resta + self.assorbita));
         let n = N_LUCE;
         let s = (((n / 2 - SONDA) * n + n / 2) * n) + n / 2;
-        self.sonda.push((self.t, self.f.f[s][2].re as f64));
+        self.sonda.push((self.t, self.tot(s)[2].re as f64));
     }
 
     /// Fourier factor of the Gaussian average at wave number k (λ_C⁻¹): the radiated power is reduced by W².
@@ -179,6 +206,14 @@ impl LuceAtomo {
 
     /// Electric field of the light at the atom (Gaussian average).
     pub fn campo_atomo(&self) -> [f64; 3] {
+        let mut e = [0.0; 3];
+        for &(s, w) in &self.pesi { let p = self.tot(s); for c in 0..3 { e[c] += w * p[c].re as f64; } }
+        e
+    }
+
+    /// Electric field of the FREE light only at the atom (the pulse as it would be without the atom; = campo_atomo
+    /// when the box is not split).
+    pub fn campo_libero_atomo(&self) -> [f64; 3] {
         let mut e = [0.0; 3];
         for &(s, w) in &self.pesi { for c in 0..3 { e[c] += w * self.f.f[s][c].re as f64; } }
         e
@@ -209,8 +244,29 @@ impl LuceAtomo {
 
     /// Energy of the light in the box, ½ Σ |F|² b³ (units mc²/(e²)·…: only ratios are used).
     pub fn energia(&self) -> f64 {
-        0.5 * B_LUCE.powi(3) * self.f.f.par_iter().map(|p| p.iter().map(|c| c.norm2() as f64).sum::<f64>()).sum::<f64>()
+        match &self.sc {
+            None => 0.5 * B_LUCE.powi(3) * self.f.f.par_iter().map(|p| p.iter().map(|c| c.norm2() as f64).sum::<f64>()).sum::<f64>(),
+            Some(_) => 0.5 * B_LUCE.powi(3) * (0..self.f.f.len()).into_par_iter().map(|s| self.tot(s).iter().map(|c| c.norm2() as f64).sum::<f64>()).sum::<f64>(),
+        }
     }
+
+    /// Energy of the scattered light alone (0 when not split).
+    pub fn energia_diffusa(&self) -> f64 {
+        self.sc.as_ref().map(|g| 0.5 * B_LUCE.powi(3) * g.f.par_iter().map(|p| p.iter().map(|c| c.norm2() as f64).sum::<f64>()).sum::<f64>()).unwrap_or(0.0)
+    }
+}
+
+/// max |E| (real part of F) of a light box, over all cells or only farther than 8 light cells from the atom.
+pub fn e_max(f: &[[crate::fotone3d::Cf; 3]], lontano: bool) -> f64 {
+    let n = N_LUCE;
+    let h = (n / 2) as i64;
+    f.par_iter().enumerate().map(|(s, p)| {
+        if lontano {
+            let d = [(s / (n * n)) as i64 - h, ((s / n) % n) as i64 - h, (s % n) as i64 - h];
+            if d[0] * d[0] + d[1] * d[1] + d[2] * d[2] <= 64 { return 0.0; }
+        }
+        ((p[0].re * p[0].re + p[1].re * p[1].re + p[2].re * p[2].re) as f64).sqrt()
+    }).reduce(|| 0.0, f64::max)
 }
 
 /// Frequency of a signal from its zero crossings after time `da` (linear interpolation): π per half period.
@@ -271,6 +327,8 @@ pub struct Esperimento {
     campo_tick: [f64; 3],
     /// coupling boost actually used by `passo` (K_ACC by default; 1 = the true charge)
     pub k_acc: f64,
+    /// the light box split into free + scattered (docs/ATOMO.md §3.8); kept by `ricomincia`
+    pub diffusa: bool,
 }
 
 impl Esperimento {
@@ -301,7 +359,7 @@ impl Esperimento {
         let (phi2, om2) = a2.ascolta(0.96, 0.99, ascolto / 3);
         at.imposta(phi.clone());
         let mut x = Esperimento { at, luce: LuceAtomo::new(), phi1s: phi, omega1s: om, phi2p: phi2, omega2p: om2, serie_p: vec![], serie_d: vec![], serie_j: vec![],
-                      t_impulso: None, r0: None, sub: 0, acc: ACCOPPIAMENTO, jstoria: vec![], jpred: [0.0; 3], campo_tick: [0.0; 3], k_acc: K_ACC };
+                      t_impulso: None, r0: None, sub: 0, acc: ACCOPPIAMENTO, jstoria: vec![], jpred: [0.0; 3], campo_tick: [0.0; 3], k_acc: K_ACC, diffusa: false };
         x.ricomincia();
         x
     }
@@ -312,9 +370,16 @@ impl Esperimento {
         at.con_nucleo(nu);
         at.imposta(phi1s.clone());
         let mut x = Esperimento { at, luce: LuceAtomo::new(), phi1s, omega1s, phi2p, omega2p, serie_p: vec![], serie_d: vec![], serie_j: vec![],
-                      t_impulso: None, r0: None, sub: 0, acc: ACCOPPIAMENTO, jstoria: vec![], jpred: [0.0; 3], campo_tick: [0.0; 3], k_acc: K_ACC };
+                      t_impulso: None, r0: None, sub: 0, acc: ACCOPPIAMENTO, jstoria: vec![], jpred: [0.0; 3], campo_tick: [0.0; 3], k_acc: K_ACC, diffusa: false };
         x.ricomincia();
         x
+    }
+
+    /// Split the light into free + scattered (exact, the rule is linear) and start again from the 1s.
+    pub fn con_diffusa(mut self) -> Self {
+        self.diffusa = true;
+        self.ricomincia();
+        self
     }
 
     /// Change the coupling and start again from the 1s (empty light box).
@@ -334,6 +399,7 @@ impl Esperimento {
     pub fn ricomincia(&mut self) {
         self.at.imposta(self.phi1s.clone());
         self.luce = if self.acc.trasverso { LuceAtomo::new_trasversa() } else { LuceAtomo::new() };
+        if self.diffusa { self.luce.con_diffusa(); }
         self.jstoria.clear();
         self.jpred = [0.0; 3];
         self.campo_tick = [0.0; 3];

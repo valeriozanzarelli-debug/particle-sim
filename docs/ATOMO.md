@@ -368,6 +368,76 @@ da t = 450 a 1600 la luce guadagna 2,06·10⁻³ mc² (vecchia: 2,22·10⁻³, g
 proiezione k = 0 fatta a mano una volta; il gruppo 1s largo ~2·10⁻⁴ (deriva 0,035 in 4000 tick); due test del fotone
 (`fotone_f2_elicita`, `fotone_divergenza_come_la_regola`) falliscono su master anche senza queste modifiche (non miei, segnalati).
 
+### 3.8 Vedere l'interazione: la luce diffusa esatta e l'impulso π/2 (13 ottobre 2026)
+
+**Il problema (Valerio: "il fotone va per la sua strada senza modificarsi").** La fisica era giusta ma invisibile:
+l'atomo prende ~10⁻³ dell'energia dell'impulso e la luce che rimanda è 1/30–1/50 dell'impulso in ampiezza
+(10⁻³ in energia). Disegnate insieme, le palline dell'impulso coprono tutto. E l'impulso del Laboratorio era debole:
+eccitava solo ~12 % dell'atomo, quindi la nuvola quasi non si muoveva.
+
+**Cura 1: due scatole di luce, esatte.** La regola della luce è lineare (le rotazioni, la spugna e il deposito della
+corrente sono tutte operazioni lineari). Allora si possono far evolvere **due scatole**: F_libera (l'impulso, che non
+sente niente) e F_diffusa (che nasce solo dalla corrente dell'elettrone). L'atomo sente la somma. F_diffusa **è** la
+luce che l'atomo diffonde e riemette: non è una sottrazione (che sarebbe rumorosa), è una scatola sua, calcolata con
+la sua scala. Codice: `LuceAtomo::con_diffusa`, `Esperimento::con_diffusa` (`src/atomo/accoppiato.rs`), test in
+`src/atomo/test_diffusa.rs`. Costo: ×1,25 per tick (17,6 → 22,0 ms per tick atomo nel cloud con 2 thread).
+
+**Cura 2: l'impulso π/2 calcolato dalla regola.** Per far oscillare la nuvola al massimo serve metà atomo nel 2p
+(p = ½: il dipolo 2√(p(1−p)) è massimo). La teoria a due livelli dice p = sin²(θ/2), con l'"area" θ/2 =
+√(d₃₂² S₃₂² + d₁₂² S₁₂²): S = |∫ e·E_z(t) e^{iωt} dt| è il campo dell'impulso **misurato all'atomo** (nella scatola
+libera, la media gaussiana che l'atomo sente) alle due righe della regola, e d sono i dipoli 1s → 2p3/2 e 1s → 2p½
+della regola stessa (0,979 e 0,603 ħ/mc, dallo studio emissione_lab). Niente a occhio. La durata resta σ = 1 λ:
+una scatola di 6,5 λ non tiene un impulso più lungo (debito).
+
+**Pre-registrazione** `lab/out/diffusa_prereg.json` (commit d0b70a4, prima di ogni corsa). Risultati
+`lab/out/diffusa_results.json` (corsa del 13 ottobre, 112 s in tutto):
+
+| esame | che cosa | misurato | soglia | esito |
+|---|---|---|---|---|
+| X1 | ‖F_unica − (F_libera + F_diffusa)‖ / ‖F_unica‖, massimo su t ≤ 600 | **1,6·10⁻⁵** | ≤ 10⁻⁶ | **FAIL** |
+| X2 | differenza di p_exc fra scatola unica e divisa | **3,0·10⁻⁹** | ≤ 10⁻⁶ | **PASS** |
+| X3 | costo per tick atomo | 17,6 → 22,0 ms (×1,25) | — | info |
+| C0 | e·E dell'impulso π/2 | **0,01337** (era 0,004) | — | calcolo |
+| C1 | p_exc massimo con l'impulso π/2 | **0,753** | 0,35–0,65 | **FAIL** |
+
+**Che cosa vogliono dire i due FAIL (diagnosi dopo, dichiarata).**
+- X1: la differenza è arrotondamento in float32, non fisica. Mentre l'impulso è sull'atomo (t ≤ 200) vale
+  4–6·10⁻⁷; cresce dopo (1,3·10⁻⁶ a t = 300, 1,6·10⁻⁵ a t = 600) perché l'impulso esce nella spugna e il
+  denominatore ‖F‖ crolla, mentre gli errori di arrotondamento della scatola unica restano. Misurato rispetto alla
+  luce diffusa lo stesso scarto vale fino a **0,5 %**: è l'ordine del rumore che avrebbe la luce diffusa ottenuta per
+  sottrazione dalla scatola unica (piccola differenza su un numero grande); nella scatola sua è calcolata sulla sua scala. Quello che sente
+  l'atomo coincide a 3·10⁻⁹ (X2). La soglia andava scritta solo sul passaggio dell'impulso sull'atomo: non la cambio.
+- C1: la formula a due livelli prevedeva p = 0,054 con l'impulso vecchio, la regola fa **0,127** (misurato): la regola
+  risponde ~1,5 volte di più in ampiezza di quanto dicono i due dipoli. Così l'impulso "π/2" è in realtà ~0,66π e
+  porta p a 0,75. Cause possibili (non verificate): altri livelli raggiunti dall'1s (p_exc conta tutto ciò che non è
+  1s), il d₁₂ preso dal nucleo imparato senza valle k = 0. Con la risposta misurata (calibrazione dopo, **non**
+  pre-registrata) sarebbe e·E ≈ 0,0086. **Nel Laboratorio resta 0,01337 (C0 come scritto)**: p_exc sale a 0,75 e il
+  dipolo oscilla con ampiezza **1,41 ħ/mc** (0,92 con l'impulso vecchio): la nuvola ora si vede andare su e giù.
+
+**La vista diffusa** (scena atomo, accoppiata; casella "vista diffusa" nel pannello, accesa di default):
+- l'impulso libero: le stesse palline oro/azzurro di prima ma **attenuate ×0,25**;
+- la luce diffusa: palline rosa (E_z > 0) e verdi (E_z < 0), luminose dove la luce diffusa è più forte, sulla **sua**
+  scala: è amplificata di **A = (E massimo dell'impulso alla partenza) / (E massimo della luce diffusa lontano
+  dall'atomo, r > 32 ħ/mc)**, ricalcolato a ogni tick di luce (scende piano: −3 % per tick al massimo) e **scritto in
+  alto**: "LUCE DIFFUSA ×A". Nelle corse: A ≈ 33 (impulso vecchio) e **≈ 51 (impulso π/2)** in ampiezza, cioè
+  ~1 100–2 600 in energia;
+- 6 000 palline bianche **portate dalla corrente d'energia** della luce diffusa: ognuna si muove con la velocità
+  dell'energia v = S/u = (E × B)/u (|v| ≤ c), nasce dove la densità d'energia u è più alta (lontano dall'atomo,
+  r > 24 ħ/mc: il campo vicino è grande ma non viaggia), brilla come √u, rinasce dove u è più alta quando finisce nella
+  spugna o dove u è quasi zero (e lo 0,5 % per tick a caso). Niente scie: il moto è delle palline stesse.
+  Controllo senza finestra (`diffusa_vista`, non pre-registrato): dopo 400 ħ/(mc²) dall'impulso π/2 le palline di flusso vanno via dall'atomo con velocità radiale media **0,977 c**, A = 199 in quel momento (la luce diffusa lontana è già più debole del suo picco). Le palline di luce diffusa sono al massimo 30 000 per scatola (sottoinsieme fisso a caso: il portatile).
+
+Il fotone sparato aspetta l'atomo pronto (prima, se si premeva F durante la preparazione, andava all'atomo non
+accoppiato con la frequenza sbagliata). Per le foto dal ponte: `spara-al` ora aspetta la preparazione e la foto si fa
+(`frames` − `spara-al`) fotogrammi dopo lo sparo vero; flag nuovi (validati in `ponte/ponte.py`): `spara-pronto`,
+`foto-dopo T` (foto T ħ/(mc²) dopo lo sparo), `senza-diffusa`.
+
+**Debiti**: l'amplificazione A è grafica (dichiarata sullo schermo) e cambia nel tempo; l'impulso attenuato ×0,25 è una
+scelta di disegno; le palline di flusso nascono con probabilità ∝ u (campionamento, non fisica); la soglia r > 24 ħ/mc per
+il campo vicino è a mano; impulso lungo solo 1 λ (scatola piccola); C1 FAIL: la formula a due livelli sbaglia di ~1,5×
+l'ampiezza della risposta; X1 FAIL di arrotondamento; restano tutti i debiti di §3.5–3.7 (accoppiamento ×10, semiclassico,
+nucleo imparato, Z = 60).
+
 ## 4. Il fotone libero: pre-registrazione (scritta prima delle corse) e risultati
 
 Corse di sviluppo già viste (dichiarate): nel visore, qualità 8 celle per λ, w0 = λ, circolare +: velocità del
