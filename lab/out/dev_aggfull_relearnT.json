@@ -1,0 +1,60 @@
+[
+ {
+  "B": 256,
+  "b": 256,
+  "w_uniform": 0.001,
+  "c6_over_dirac": 1.0001807169988421,
+  "tried": [
+   {
+    "w": 4,
+    "check": {
+     "packet": 3.5466077476882025e-21,
+     "H": 4,
+     "energy_rel": 6.024663274935029e-07,
+     "rest_rel": 6.502611350575483e-10,
+     "kmax_cells": 0.0625,
+     "energy_mode": "state",
+     "bz_rel90": 0.04573738180722718,
+     "neg_gen": 0.0
+    },
+    "ok": true
+   }
+  ],
+  "markov_w4": {
+   "max_c2_dev": 0.258818437680296,
+   "max_c4_dev": 17.129872864105902,
+   "bound_ratio_needed": 0.003411249586307493,
+   "bound_min_positive": 0.08333333333333333
+  },
+  "w": 4
+ },
+ {
+  "B": 512,
+  "b": 2,
+  "w_uniform": 0.0003,
+  "c6_over_dirac": 0.7059012301550882,
+  "tried": [
+   {
+    "w": 4,
+    "check": {
+     "packet": 8.444599989166281e-24,
+     "H": 2,
+     "energy_rel": 3.4352305944230845e-05,
+     "rest_rel": 6.174825006227857e-10,
+     "kmax_cells": 0.0625,
+     "energy_mode": "state",
+     "bz_rel90": 0.0428638935596137,
+     "neg_gen": 0.0
+    },
+    "ok": true
+   }
+  ],
+  "markov_w4": {
+   "max_c2_dev": 0.27136130711158357,
+   "max_c4_dev": 70.29218444147389,
+   "bound_ratio_needed": 0.0008527065759184818,
+   "bound_min_positive": 0.08333333333333333
+  },
+  "w": 4
+ }
+]

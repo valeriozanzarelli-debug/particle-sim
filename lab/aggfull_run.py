@@ -13,8 +13,10 @@ OUT = ac.OUT
 PFX = "dev_" if DEV else ""
 # amendment runs (aggfull_amend.json, aggfull_amend2.json): jobs whose name has "K" in second place use the re-learned
 # kinetic (aggfull_relearn.pkl); they write to their own file aggfull_atomK.json
-KMODE = len(sys.argv) > 1 and all(len(a) > 1 and a[1] == "K" for a in sys.argv[1:])
-JS = os.path.join(OUT, PFX + ("aggfull_atomK.json" if KMODE else "aggfull_atom.json"))
+# phase 4: second letter "T" = the Taylor-pinned + parity kinetic (aggfull_relearnT.pkl), file aggfull_atomT.json
+KMODE = len(sys.argv) > 1 and all(len(a) > 1 and a[1] in "KT" for a in sys.argv[1:])
+KL = sys.argv[1][1] if KMODE else ""
+JS = os.path.join(OUT, PFX + {"K": "aggfull_atomK.json", "T": "aggfull_atomT.json", "": "aggfull_atom.json"}[KL])
 res = json.load(open(JS)) if os.path.exists(JS) else {}
 TH = ac.TH_A
 ALPHA = ac.zz.ALPHA
@@ -36,22 +38,25 @@ JOBS = {
     "ca8_2s_N192": (512, 192, "2s", False, "ca8_1s_N192", "cellavg"),
     "ca8_1s": (512, 256, "1s", False, None, "cellavg"),                 # the old restriction in the large box
     "ca8_2s": (512, 256, "2s", False, "ca8_1s", "cellavg"),
+    "e8_2p_N192": (512, 192, "2p", False, None, "learned"),           # phase 4: float64 field (N <= 192), box +-12 a0
 }
 if DEV:      # development: same jobs on small grids (pipeline test only)
     DN = int(os.environ.get("AGGFULL_DEVN", "96"))
     JOBS = {k: (v[0], min(v[1], DN)) + v[2:] for k, v in JOBS.items()}
-PERT = {"q16_1s": "e16_1s", "q8_1s": "e8_1s", "q8_2s": "e8_2s", "q8_2p": "e8_2p"}
-for _j in ("e16_1s", "p16_1s", "e8_1s", "e8_2s", "e8_2p", "p8_1s", "p8_2s", "p8_2p"):
-    _v = JOBS[_j]
-    JOBS[_j[0] + "K" + _j[1:]] = _v[:4] + ((_v[4][0] + "K" + _v[4][1:]) if _v[4] else None,) + _v[5:]
-for _q, _s in list(PERT.items()):
-    PERT[_q[0] + "K" + _q[1:]] = _s[0] + "K" + _s[1:]
+PERT = {"q16_1s": "e16_1s", "q8_1s": "e8_1s", "q8_2s": "e8_2s", "q8_2p": "e8_2p", "q8_2p_N192": "e8_2p_N192"}
+for _L in "KT":
+    for _j in ("e16_1s", "p16_1s", "e8_1s", "e8_2s", "e8_2p", "p8_1s", "p8_2s", "p8_2p", "e8_2p_N192"):
+        _v = JOBS[_j]
+        JOBS[_j[0] + _L + _j[1:]] = _v[:4] + ((_v[4][0] + _L + _v[4][1:]) if _v[4] else None,) + _v[5:]
+    for _q, _s in [x for x in list(PERT.items()) if x[0][1] not in "KT"]:
+        PERT[_q[0] + _L + _q[1:]] = _s[0] + _L + _s[1:]
 MOVE = {"m8_1s": (512, 128)}
 
 
 def level(B):
     if KMODE:
-        return [l for l in pickle.load(open(os.path.join(OUT, "aggfull_relearn.pkl"), "rb")) if l["B"] == B][0]
+        fn = {"K": "aggfull_relearn.pkl", "T": "aggfull_relearnT.pkl"}[KL]
+        return [l for l in pickle.load(open(os.path.join(OUT, fn), "rb")) if l["B"] == B][0]
     return [l for l in ac.load_chain_A() if l["B"] == B][0]
 
 
@@ -133,7 +138,7 @@ def run_job(job):
             print(f"{job}: needs {dep} first", flush=True)
             return
         Y = np.load(vecfile(dep))[:, None]
-    warm = vecfile(job.replace("K", "", 1)) if KMODE else None      # K jobs start from the converged original vector
+    warm = vecfile(job.replace(KL, "", 1)) if KMODE else None      # K jobs start from the converged original vector
     x0 = (np.load(vecfile(job)) if os.path.exists(vecfile(job)) else
           np.load(warm) if warm and os.path.exists(warm) else aa.guess(f.x, kind))
     budget = 560 - (time.time() - t0)

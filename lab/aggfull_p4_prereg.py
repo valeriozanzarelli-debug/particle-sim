@@ -1,0 +1,43 @@
+"""aggfull_p4_prereg.py - pre-registration of PHASE 4 of AGGLOMERATORE COMPLETO, written after the development runs below
+and BEFORE the production runs (aggfull_p4.py, aggfull_relearnT.py, aggfull_run.py *T*/*_N192 jobs).
+Writes lab/out/aggfull_p4_prereg.json"""
+import json, os, subprocess, datetime
+OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "out")
+P = {
+ "written": datetime.datetime.now().isoformat(timespec="seconds"),
+ "git_head": subprocess.check_output(["git", "rev-parse", "HEAD"]).decode().strip(),
+ "asked": "(1) pin k^6 too so that M2 (Z = 10 level within 3e-5) passes on all seeds; (2) Taylor + parity + Markov at the "
+          "a0/16 and a0/8 levels to close F3 for the 2p; (3) if time: the learned nucleus of NUCLEO_1S for the s states",
+ "development (declared)": [
+   "Z = 10 error of T (k^4 pinned) by |kappa| shell: 60-80 % from the few samples at kappa 0.1-0.4 (relative error 1e-4-1e-3): "
+   "a k^6 effect. taylor6 (k^2..k^14 fit on kappa <= 0.12) gives c6 = Dirac x 1.000-1.001 at level 1 (two ranges agree 2e-7)",
+   "T6 (k^6 pinned) on dev seeds 11-13: w = 4 energy 0.75-1.2e-5 but NOT tame (bz 0.4, negative motion energies); "
+   "w = 5 energy 0.5-0.9e-5, bz 0.07, tame",
+   "Markov + k^6 at w = 5, 6: infeasible (c4 off by 1.1 and 0.45). Axis moment bound (1-D, positive hops of length "
+   "j <= w, weights a_j): with <j^2> fixed by c4/c2 (10.5) and <j^4> by c6/c2 (~550), the two-point extreme gives "
+   "max <j^4> = 248, 352, 476, 618 for w = 5, 6, 7, 8: infeasible for w <= 7, possible from w = 8",
+   "a0/16 and a0/8 with T (k^2, k^4, k^6 pinned, w = 4): checks pass; c6 read on kappa <= 0.224 h (same physical k as "
+   "level 1; the first try with kappa <= 0.12 gave c6 = 0.34 x Dirac: too short a lever arm, rejected); Markov at these "
+   "cells infeasible as predicted (c4 off by 17 and 70: positive hops give |c4|/c2 >= 1/12, needed 0.0034 and 0.0009)",
+   "F3 2p diagnosis: the kinetic remainder of the 2p at a0/8 by shells: for kappa < 0.8 K gives -2.73e-5 eV and T -2.61e-5 "
+   "(exact mass-velocity -2.64e-5); the rest comes from a weight 1.9e-6 at kappa > 1.6 (cube corners), larger than at "
+   "0.8-1.6 (1.1e-6): unphysical, attributed to the float32 field (the 2p residual floor 1.3e-8); s states have the same "
+   "tail at float64 (physical: the cusp)",
+ ],
+ "exams": {
+   "M2b": "T6 level-1 (Z = 10 observable, width chosen automatically: smallest of 4, 5, 6 that is tame) within the 3e-5 "
+          "budget (energy and rest) for ALL of seeds 1..6; mass and k^4 stay exact (<= 1e-9, k^4 within 1e-6)",
+   "P3": "Markov + k^6 at level 1: infeasible (max constraint deviation > 1e-3) for w = 5, 6, 7 (prediction); w = 8 reported",
+   "P4": "Markov at a0/16 and a0/8 infeasible (constraint deviation > 1e-2): positivity and relativity are incompatible "
+         "when the cell is larger than sqrt(3) lambda_C",
+   "N1": "2p at a0/8 with the float64 Galerkin field (N = 192, box +-12 a0): weight at kappa > 1.6 <= 1e-7 (prediction: "
+         "the float32 tail is gone)",
+   "F3P": "alpha^4 shifts of 2p1/2 and 2p3/2 at a0/8 (N = 192, float64), E0 + first order as in F3, within 5 % of Dirac - "
+          "Schroedinger, with each of the three kinetics: original (chain A), K (amendments), T (phase 4); passing with "
+          "at least one is the exam, all three reported",
+ },
+ "not done (declared before)": "the learned nucleus of NUCLEO_1S for the s-state alpha^4 shifts (time); the s states keep "
+                               "the F3 FAIL of phase 2 (cusp limit, section 4.3 of the document)",
+}
+json.dump(P, open(os.path.join(OUT, "aggfull_p4_prereg.json"), "w"), indent=1)
+print("written")
