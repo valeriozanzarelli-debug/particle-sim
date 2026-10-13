@@ -1,8 +1,10 @@
 # Il livello delle due atomi: l'agglomeratore pronto per la scala di H₂
 
-Studio `aggmol_`. Continua `AGGLOMERATO_ZIGZAG.md` e `AGGLOMERATO_COMPLETO.md`. **Qui non si calcola il legame di H₂**
-(le molecole vengono dopo la regola a molti elettroni e dopo l'elio, decisione di Valerio): si **prepara e si collauda la
-macchina** che servirà, alla scala di due atomi (protoni a 1,4 a₀, nube su 5–10 a₀).
+Studio `aggmol_`. Continua `AGGLOMERATO_ZIGZAG.md` e `AGGLOMERATO_COMPLETO.md`. **Fase 1 (§1–§11)**: si **prepara e si
+collauda la macchina** alla scala di due atomi (protoni a 1,4 a₀, nube su 5–10 a₀), con un solo elettrone (H₂⁺): allora
+le molecole erano chiuse da Valerio. **Fase 2 (§12)**: Valerio ha tolto il cancello per H₂ (l'elio passa il controllo
+Pauli 6/6) e qui si fa **H₂ vero, con due elettroni**: lunghezza di legame, energia di legame, vibrazione. **§13: da H₂ a
+un liquido.**
 
 File: motore `lab/aggmol_core.py` (campo di più nuclei, Hamiltoniano grosso con settori di parità), soluzione esatta del
 problema a due centri (solo esame) `lab/aggmol_exact.py`, apprendimento `lab/aggmol_learn.py`, un atomo
@@ -15,11 +17,27 @@ produzione**. Esiti: `lab/out/aggmol_verdict.json`, `aggmol_learn.json`, `aggmol
 
 ![figura](../lab/out/aggmol_figure.png)
 
+![figura H2](../lab/out/aggmol_h2_figure.png)
+
 ---
 
 ## 0. In breve
 
-**Risultato: 14 PASS / 1 FAIL.**
+**Fase 2, H₂ con due elettroni (§12): 6 PASS / 1 FAIL** (6 esami di fisica tutti PASS; FAIL il cancello G1 della
+macchina, soglia troppo stretta, §12.4).
+
+- **Lunghezza di legame R_e = 1,4009 a₀** contro 1,401 (−0,007 %).
+- **Energia di legame D_e = 4,7477 eV** contro 4,747 (+0,7 meV; l'accuratezza chimica è 43 meV).
+- **Quanto vibrazionale ω_e = 4419 cm⁻¹** contro 4401 (+0,42 %, ma ±20 cm⁻¹ dipendono da come si interpola la curva,
+  §12.3); **salto 0→1 = 4167 cm⁻¹** contro 4161 (+0,14 %); **D_0 = 4,4772 eV** contro 4,478 (−0,8 meV).
+- **E(R = 1,4) = −1,1744677 Eh**, 8 μEh sopra il valore di riferimento.
+- Hartree–Fock **sulla griglia a₀/4** imparata (64³ celle, la macchina a due centri della fase 1): −1,132693 Eh contro il
+  limite −1,133629 (+0,94 mEh, PASS): la differenza con la curva esatta è l'**energia di correlazione** (−41,8 mEh), cioè
+  quello che due elettroni fanno per evitarsi e che una nube media non vede.
+- Ingressi: solo m_e, α, carica e massa del protone. La regola a molti elettroni è quella del thread principale **così
+  com'è**, e l'elio lì ha ancora FAIL aperti (R5, R6, G5, L1c_v3): §12.1.
+
+**Fase 1 (macchina, un elettrone). Risultato: 14 PASS / 1 FAIL.**
 
 1. **La macchina ha scelto da sola il livello a₀/4** (cella di un quarto di raggio di Bohr) come "livello delle due
    atomi", e ha **rifiutato a₀/2**: lì la cella è così grossa che la regola non riesce più a imitare il livello sotto per
@@ -160,6 +178,9 @@ riempitura di zeri veniva arrotondato male (spostava il nodo del 5 % in un piano
 
 ## 6. Compito 4: cosa manca per H₂ vero
 
+*(Scritto in fase 1. Nella fase 2, §12, H₂ è stato fatto con il risolutore ECG del thread principale: i punti 1 e 4 sono
+stati aggirati così, non risolti sulla griglia; i punti 2, 3, 5, 6 restano per la strada a camminatori.)*
+
 H₂ ha **due elettroni**. Rispetto al collaudo di questo studio mancano:
 
 1. **La regola a molti elettroni** (thread principale, `MOLTI_ELETTRONI_PIANO.md`): lo stato di due elettroni vive in 6-D;
@@ -194,6 +215,7 @@ Rydberg, molecole viste da lontano).
   (effetti ~10⁻⁵, dichiarati);
 - c₆ del livello a₀/8 non di Dirac (−2,4×; irrilevante qui);
 - C8: rifare a₀/16 in ±8 a₀ su una macchina con più memoria.
+- fase 2 (H₂ a due elettroni): debiti in §12.5 (Born–Oppenheimer; DEBT-1/2/4 del thread principale ereditati).
 
 **Parametri liberi:** nessuno nuovo di fisica. Ingressi: m_e (θ), α, Z = 1 per protone, **posizioni dei protoni**. Numeri
 imparati: livello a₀/4, 729 posti × 2×2 complessi del cinetico (fissati 40 vincoli esatti dal livello sotto) + stella
@@ -241,12 +263,17 @@ differenza ne mostra il "perché"). *Costo:* una sottrazione. *Regole:* sì, è 
    laboratorio a due atomi, prima di H₂?
 4. **I protoni che si muovono.** Con V3 la griglia non ostacola il moto dei nuclei. Vuoi H₂⁺ che vibra (protoni come
    palline pesanti della stessa regola) come collaudo successivo, sempre con un elettrone?
+5. **Il liquido (§13).** Ti va l'idrogeno liquido come primo liquido (molecola tonda, forza imparata da 4 elettroni), con
+   l'acqua come traguardo dopo? Per l'H₂ liquido servono i **protoni quantistici** (anelli di copie): come li vedi nella
+   regola zig-zag? Corrisponde a fisica nota (integrali di cammino di Feynman), ma nel motore non c'è.
 
 ## 10. Patch proposte per altri file (non toccati)
 
 - `docs/CONTESTO_CLOUD.md` §4 voce 11 → "a₀/4 imparato e collaudato (AGGLOMERATO_DUE_ATOMI: 1s −0,088 %, H₂⁺ entro
   0,6 mEh); a₀/2 rifiutato dalla macchina per gli atomi". Indice: aggiungere AGGLOMERATO_DUE_ATOMI.
-- `docs/PIANO.md` §3: riga "Livello delle due atomi (macchina a₀/4, collaudo a due centri a un elettrone)".
+- `docs/PIANO.md` §3: riga "Livello delle due atomi (macchina a₀/4, collaudo a due centri a un elettrone)"; fase 2:
+  "H₂ con due elettroni (regola del thread principale, ECG a due centri): R_e 1,4009 a₀, D_e 4,7477 eV, ω_e +0,4 %, ν₀₁
+  +0,14 %; prossimo: forza H₂–H₂ da 4 elettroni → idrogeno liquido (AGGLOMERATO_DUE_ATOMI §13)".
 - Per il Laboratorio Atomo (Rust, non toccato): il livello a₀/4 è in `lab/out/aggmol_levels.pkl` (non nel repo; si rifà con
   `python lab/aggmol_learn.py`, ~3 minuti); un passo = due FFT del cinetico + 8 lanterne per il campo, 64³ celle.
 - **Ponte (proposta, non creata):** `ponte/richieste/aggmol_salto.json`, azione `foto`, scena H₂⁺ a R = 4 a₀ con
@@ -263,4 +290,172 @@ python aggmol_h2p.py atom_4 atom_8 curve_4_R2.0 ...   # vedi l'elenco in aggmol_
 python aggmol_h2p.py gap_4_R4.0 gap_4_R6.0
 python aggmol_costs.py; python aggmol_posthoc16.py
 python aggmol_analyze.py; python aggmol_figure.py
+```
+
+---
+
+## 12. Fase 2: H₂ vero, con due elettroni
+
+File: `lab/aggmol_ecg.py` (macchina ECG a due centri), `lab/aggmol_h2.py` (lavori `gate`, `curve`, `hf`, `vib`),
+`lab/aggmol_h2_gate_posthoc.py`, figura `lab/aggmol_h2_figure.py`. Pre-registrazione `lab/aggmol_h2_prereg.py` →
+`lab/out/aggmol_h2_prereg.json`, **commit e756fa2, prima delle corse di produzione**. Esiti `lab/out/aggmol_h2.json`.
+
+### 12.1 Quale regola, e cosa NON è chiuso nel thread principale (dichiarato)
+
+**L'elio del thread principale ha ancora FAIL aperti**: R5 e R6 (la parte relativistica della banda ri-imparata: 0,86–0,92
+invece di 1 ± 0,05/0,10; la causa trovata è che anche la cinetica di Dirac esatta dà gli stessi numeri), G5 (rapporto
+2s/1s non monotono a r < 4·10⁻⁷ a₀, arrotondamento) e L1c_v3 (livello Pauli a Z = 10 fuori soglia su 2 semi su 3; il loro
+L1c_v5 passa su un campione nuovo). Qui **si usa la loro regola così com'è**, senza correggerla e senza sceglierne pezzi:
+- operatore: cinetica p²/2m_kin con **m_kin = m0 del loro livello v3** (1,0000000010922, `multi_e_v3.json` su master);
+  Coulomb elettrone-elettrone istantaneo (loro DEBT-1); antisimmetria per il singoletto (loro DEBT-2); il resto α² della
+  banda **non incluso** (loro DEBT-4: ~10⁻⁵ Eh, quasi tutto si cancella in D_e);
+- risolutore: lo stesso tipo che usa il thread principale per l'elio (gaussiane correlate esplicite, ECG, base cresciuta a
+  caso e raffinata), qui con i **centri sull'asse della molecola** (due centri). Non è la griglia con i camminatori:
+  per due elettroni a a₀/4 lo stato vive in 6-D e costa 275 GB (§1). La griglia a₀/4 della fase 1 è usata per l'esame
+  H5 (Hartree–Fock, un orbitale per due elettroni).
+
+Nuovo qui: i **protoni sono fermi** mentre si calcola l'energia degli elettroni (Born–Oppenheimer, debito mio); poi la
+vibrazione è un'equazione di Schrödinger a una dimensione per la distanza dei protoni, sulla curva calcolata, con la
+massa ridotta m_p/2 (ingresso: la massa di un nucleo).
+
+### 12.2 Esiti
+
+| esame | cosa | risultato | soglia | esito |
+|---|---|---|---|---|
+| G1 | macchina ECG: H atomo e H₂⁺ (R = 2) entro 10⁻⁶ Eh | 6,8·10⁻⁶ e 5,4·10⁻⁶ | 10⁻⁶ | **FAIL** (§12.4) |
+| H0 | E(H₂, R = 1,4) contro −1,174475714 | −1,1744677 (+0,008 mEh) | 0,05 mEh | **PASS** |
+| H1 | lunghezza di legame contro 1,401 a₀ | **1,40090 a₀** (−0,007 %) | 0,3 % | **PASS** |
+| H2 | D_e contro 4,747 eV | **4,74773 eV** (+0,73 meV) | 43,4 meV | **PASS** |
+| H3 | ω_e armonico contro 4401 cm⁻¹ (0,5456 eV) | **4419,4 cm⁻¹ = 0,5479 eV** (+0,42 %) | 1 % | **PASS** |
+| H4 | salto 0→1 contro 4161 cm⁻¹; D_0 contro 4,478 eV | **4167,0 cm⁻¹** (+0,14 %); **4,4772 eV** (−0,76 meV) | 1 %; 43,4 meV | **PASS** |
+| H5 | Hartree–Fock sulla griglia a₀/4 (64³) contro −1,133629 | **−1,1326934** (+0,94 mEh) | 1,6 mEh | **PASS** |
+
+La curva (18 distanze, 0,8–6 a₀, 180 gaussiane per distanza, ~2 minuti per punto su un core) è in figura: buca a
+−4,75 eV, quattro livelli vibrazionali. A R = 6 a₀ l'energia è a 0,8 mEh dai due atomi separati. Energia di punto zero
+0,2705 eV. Hartree–Fock: ε = −0,59434 Eh, J = 0,65830 Eh; **energia di correlazione** E(ECG) − E(HF griglia) =
+**−41,8 mEh** (il valore noto è −40,9: la differenza è l'errore +0,94 mEh della griglia, che sta nelle cuspidi ai nuclei
+come per H₂⁺ in C1).
+
+Cosa vuol dire, detto semplice: **con due elettroni, due protoni e una regola che non sa niente di chimica, il legame
+chimico esce giusto**: dove sta il minimo (entro 1/10000 di raggio di Bohr), quanto è profonda la buca (entro 1 meV su
+4,7 eV), quanto vibra (entro mezzo per cento). È una **validazione** (i numeri di H₂ sono noti da 50 anni con questo
+stesso tipo di calcolo), non una scoperta: dimostra che la catena "regola → operatore → due centri" non perde niente
+di grosso.
+
+### 12.3 Cose da sapere sui numeri (onestà)
+
+- **ω_e dipende da come si legge la curva.** Il fit pre-registrato (quartico su 1,2–1,7 a₀) dà 4419; dopo, non
+  pre-registrato, ho provato altre finestre: quartico 1,2–1,6 → 4399,5; quintico 1,1–1,8 → 4399,3; sestico 1,0–2,0 →
+  4400,5; quartico 1,3–1,5 → 4374. Cioè **±20 cm⁻¹ (0,5 %) sono l'interpolazione**, non la fisica; il verdetto resta
+  quello pre-registrato. Il salto 0→1 (H4) non usa il fit ma tutta la curva: è più robusto.
+- La pre-registrazione dice "7 punti" nella finestra 1,2–1,7: sono **8** (1,2 1,3 1,35 1,4 1,45 1,5 1,6 1,7). Svista
+  mia nel testo, il codice era già quello.
+- I valori sperimentali (4401, 4161, 4,478 eV) contengono effetti che qui mancano: protoni non fermi (correzioni adiabatica
+  e non adiabatica), relatività, QED. Ognuno vale pochi cm⁻¹; il +6 cm⁻¹ del salto 0→1 è di quella taglia.
+- **Errore mio trovato dopo la prima corsa di H5** (codice, non fisica): nel potenziale di Hartree c'era un fattore di
+  volume in più (hh³: potenziale 5026 volte troppo grande; la SCF dava +172 Eh). Controllato contro una gaussiana con
+  potenziale noto (esatto a 10⁻¹²), corretto, ricorso. Soglie e configurazione non toccate.
+
+### 12.4 FAIL: G1, il cancello della macchina ECG
+
+La soglia 10⁻⁶ Eh per l'atomo con 14 gaussiane e per H₂⁺ con 40 era **troppo stretta per quella taglia di base**: errori
+6,8·10⁻⁶ e 5,4·10⁻⁶. Prova dopo (`aggmol_h2_gate_posthoc.py`, non pre-registrata): l'atomo scende con la base, 4,9·10⁻⁶
+(14) → 1,9·10⁻⁶ (24) → 5,4·10⁻⁷ (34), cioè la macchina converge dall'alto come deve (è variazionale); H₂⁺ 2,0·10⁻⁶ (40),
+2,6·10⁻⁶ (80, un altro seme). Nessun segno di errore nel codice, ma il cancello come scritto è FAIL. A differenza del
+thread principale (dove G1 FAIL ha fermato la produzione ECG) qui la produzione era già pre-registrata per partire
+comunque: lo dichiaro. H0 (8 μEh dal riferimento, 6 volte sotto la soglia) dice che sulla molecola la macchina è
+sufficiente.
+
+### 12.5 Debiti della fase 2
+
+- **Born–Oppenheimer** (protoni fermi per la curva, poi vibrazione 1-D, rotazione J = 0): nuovo, mio.
+- Dal thread principale, ereditati così come sono: DEBT-1 (Coulomb istantaneo), DEBT-2 (antisimmetria imposta per il
+  singoletto), DEBT-4 (resto α² della banda non incluso); m_kin dal loro v3.
+- La base ECG è scelta a caso e raffinata: è un **risolutore**, non la regola zig-zag che cammina. Il passaggio
+  "camminatori a due elettroni su griglia a due centri" resta da fare (serve il nucleo positivo per i camminatori, §6.3).
+- Iper-parametri del risolutore: K = 180, 40 prove, larghezze in [0,03, 30] a₀; dichiarati, nessun fit contro chiavi.
+
+**Parametri liberi di fisica: zero.** Ingressi: m_e, α, carica e massa del protone.
+
+## 13. Da H₂ a un liquido
+
+### 13.1 Quale liquido per primo: l'idrogeno liquido
+
+**L'idrogeno liquido (H₂ a 20 K) è il più raggiungibile per primo.** Perché:
+1. **Il pezzo c'è già**: la molecola H₂ è uscita giusta qui (§12). L'unica altra candidata vicina è l'elio liquido, ma
+   l'elio del thread principale ha ancora FAIL aperti (R5, R6, G5) e la sua buca fra due atomi è **3 volte più piccola**
+   (0,035 mEh contro 0,11 mEh di H₂–H₂): servirebbe precisione al decimo di μEh.
+2. **La molecola si può trattare come una pallina tonda.** A 20 K l'H₂ "para" sta nello stato di rotazione J = 0, che è
+   sfericamente simmetrico: la forza fra due molecole dipende quasi solo dalla distanza. È il caso più semplice possibile
+   per l'agglomeratore (blocco = una molecola = una pallina).
+3. **Pochi elettroni per imparare la forza**: la coppia H₂–H₂ ha 4 elettroni, la stessa macchina ECG di §12 con 4
+   elettroni invece di 2 (è più lenta, ma esatta).
+4. **Niente legame a idrogeno, niente nodi**: lo stato fondamentale di 4 elettroni a coppie si fa ancora senza problemi
+   di segno del tipo che bloccano l'acqua.
+
+Gli altri, in ordine di difficoltà: **argon** (18 elettroni per atomo, 36 per coppia: la forza va imparata da un metodo
+che oggi non abbiamo esatto); **acqua** (10 elettroni per molecola, il legame a idrogeno, molecola non tonda, e
+l'energia a tre corpi vale il 15–20 % della coesione): l'acqua è la più bella ma è l'ultima.
+
+### 13.2 Cosa deve imparare l'agglomeratore
+
+Lo stesso ciclo di sempre — **blocca, impara, controlla, ripeti** — un piano sopra:
+- **Blocca**: una molecola H₂ nello stato v = 0, J = 0 diventa una pallina (posizione + massa 2 m_p).
+- **Impara la forza fra due palline** da corse esatte di H₂–H₂ (4 elettroni) a molte distanze:
+  - **ripulsione** a corto raggio (sotto ~3 Å): le nubi si sovrappongono e Pauli le spinge via (la prova che la macchina
+    la sa fare: lo stesso calcolo a corta distanza di §12, dove l'energia sale ripida sotto 1 a₀);
+  - **dispersione (van der Waals)** a lungo raggio, −C₆/R⁶ − C₈/R⁸: nasce dalla **correlazione** fra le nubi delle due
+    molecole (lo stesso effetto che in §12 vale −41,8 mEh dentro una molecola). Hartree–Fock non la vede per niente: una
+    nube media non lega due molecole. Esame: C₆ ≈ 12 unità atomiche per H₂–H₂ (valore noto, solo esame); buca ~0,11 mEh
+    (~35 K) a ~3,4 Å;
+  - **legame a idrogeno**: per H₂ non c'è. Serve per l'acqua (è un misto di elettrostatica, polarizzazione e un poco di
+    legame chimico): sarà il pezzo più difficile da imparare, e non va inventato per H₂.
+- **Controlla**: (a) termine a tre corpi (Axilrod–Teller) su triplette H₂–H₂–H₂ esatte; (b) il secondo coefficiente del
+  viriale B(T) del gas (esame contro l'esperimento); (c) poi il liquido: densità 0,0708 g/cm³ a 20 K, ebollizione 20,3 K,
+  punto triplo 13,8 K, calore di evaporazione (solo esami).
+- **Ripeti**: con la pallina-molecola si fa il liquido.
+
+Un punto fisico che conta: **i protoni non si possono trattare come palline classiche.** In H₂ liquido l'energia di
+punto zero del moto delle molecole (~60–70 K) è **più grande della buca** (~35 K). Una simulazione classica dà il liquido
+sbagliato (troppo denso, o solido). Serve il moto quantistico dei nuclei (integrali di cammino: ogni molecola diventa
+un anello di ~32 copie). Il motore oggi non lo ha.
+
+### 13.3 Cosa NON si può fare onestamente oggi
+
+- **Il liquido con gli elettroni sulla griglia**: impossibile (sotto i numeri). Il liquido si fa solo con la pallina-molecola.
+- **La forza H₂–H₂ precisa al μEh**: non l'abbiamo ancora calcolata. Serve l'ECG a 4 elettroni a molte distanze
+  (stima: ore per geometria su un core, giorni per la curva). È il prossimo passo, non un risultato.
+- **I nuclei quantistici** (integrali di cammino) non sono nel motore; senza, l'idrogeno liquido esce sbagliato.
+- **Acqua, reazioni chimiche, rotture di legame nel liquido**: no. Acqua = 10 elettroni con nodi (errore di nodo
+  fisso), legame a idrogeno, molte forme: fuori portata oggi.
+- **L'elio liquido**: aspetta che l'elio del thread principale chiuda i suoi FAIL, e serve la statistica di Bose per la
+  superfluidità.
+- **Temperatura e pressione "vere"**: termostati e insiemi termici non sono ancora nel motore.
+
+### 13.4 La scala grossolana (stime, non misure)
+
+Idrogeno liquido: 0,0211 molecole per Å³.
+
+| quante molecole | scatola | elettroni sulla griglia a₀/4 | palline-molecola (con nuclei quantistici, 32 copie) |
+|---|---|---|---|
+| 1000 | 3,6 nm | 274³ ≈ 2·10⁷ celle per **un** orbitale (330 MB); 1000 orbitali → ~330 GB: **impossibile** | 3,2·10⁴ palline, ~1,6·10⁶ coppie per passo; memoria ~10 MB |
+| 10⁶ | 36 nm | impossibile | 3,2·10⁷ palline, ~1,6·10⁹ coppie per passo; memoria ~1–2 GB |
+
+- **Intel UHD** (portatile): 1000 molecole con 32 copie → ~ms per passo; per vedere il liquido (10–100 ps, passo ~0,5 fs,
+  10⁵ passi) **minuti–un'ora**. 10⁶ molecole → ~1 s per passo: si fa solo a fotogrammi singoli.
+- **Scheda da 16 GB**: 50–100 volte più veloce; 10⁶ molecole con nuclei quantistici a qualche passo al secondo, ~10⁷
+  molecole classiche in memoria.
+- **Il costo vero è a monte**: imparare la forza (ECG a 4 elettroni, giorni di CPU) e controllarla sui trimeri. Il
+  liquido, una volta imparata la pallina, è leggero.
+
+## 14. Come rieseguire la fase 2
+
+```
+cd lab
+python aggmol_h2_prereg.py      # (già committato, e756fa2)
+python aggmol_h2.py gate        # G1
+python aggmol_h2.py curve       # ripetere finché scrive CURVE DONE (checkpoint ogni ~5 min; ~2 min per distanza)
+python aggmol_h2.py hf          # ripetere finché non scrive più "checkpoint" (~12 iterazioni SCF)
+python aggmol_h2.py vib         # R_e, D_e, omega_e, livelli, verdetti H0-H4
+python aggmol_h2_gate_posthoc.py; python aggmol_h2_figure.py
 ```

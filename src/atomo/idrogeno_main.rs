@@ -65,6 +65,7 @@ fn main() {
                       let reg = carica_regola(&asset(), "chain_A_3d", b); let lv = Livello::con_nucleo(&reg, n, 1.0, 0.0);
                       for st in ["1s", "2pz", "2px", "2py", "2s"] { let v = carica_stato(&format!("{}/{st}_B{b}_N{n}.c32", args[4]));
                           println!("RISULTATO parita {st}: 1 - |P| = {:.3e}", 1.0 - parita(&lv, &v).abs()); } }
+        "impara" => impara_cucitura(args[2].parse().unwrap(), args[3].parse().unwrap(), args[4].parse().unwrap(), args[5].parse().unwrap(), &args[6]),
         "spettro" => esame_spettro(args[2].parse().unwrap(), args[3].parse().unwrap(), args[4].parse().unwrap(), args.get(5).cloned()),
         _ => eprintln!("commands: fft | livello B N 1s|2s|2p"),
     }
@@ -415,7 +416,8 @@ fn esame_ibrido(bl: usize, n: usize, ni: usize, passi: usize, esporta: Option<St
     if let Some(f) = fine.as_ref() {
         println!("fine block: ni = {ni}, patch {}^3, a_f = {:.5} (a0/{:.0}), walk angle {:.6} (kappa_rule {:.6})", f.p, f.th, a0() / f.th, f.ang, kappa_regola(&lv));
     }
-    let mut at = Atomo::new(lv2, v0.clone(), fine, Calcio::DalFine);
+    let cal = if std::env::var("IDRO_CALCIO").map(|v| v == "grosso").unwrap_or(false) { Calcio::Grosso } else { Calcio::DalFine };
+    let mut at = Atomo::new(lv2, v0.clone(), fine, cal);
     at.covarianza = std::env::var("IDRO_COV").is_ok();
     if let Some(f) = at.fine.as_ref() { println!("halo nh = {}", f.nh); }
     // phase 3 (P2): start from the hybrid's OWN eigenstate. IDRO_FILTRO=K: run K hybrid steps from the coarse 1s and
@@ -441,6 +443,50 @@ fn esame_ibrido(bl: usize, n: usize, ni: usize, passi: usize, esporta: Option<St
         at.psi = ac;
         if let Some(f) = at.fine.as_mut() { for q in 0..4 { f.psi[q] = afi[q].par_iter().map(|a| a.scale(sc)).collect(); } }
         println!("filtro: K = {kf} passi (Hann, demodulato sull'1s), 1-|<v0|psi_filtrato>|^2 = {:.3e} [{:.0} s]", resto, tf.elapsed().as_secs_f64());
+    }
+    // phase 4: IDRO_PARTENZA=veff:M:R — start from (an approximation of) the hybrid's own eigenstate, built WITHOUT any
+    // fitted rule: run the hybrid M steps from the current start; on every covered cell measure the phase the hybrid adds
+    // on top of the plain coarse step, V_c = -arg( Σ_{k>M/2} ψ_hyb,k+1(c) conj(S ψ_hyb,k (c)) ) / τ (an effective local
+    // potential, diagonal); the new start = lowest state of the coarse generator + V (LOBPCG); repeat R times.
+    // Only the initial state changes (the dynamics afterwards is the plain hybrid); M, R are declared run settings.
+    if let (Ok(spec), true) = (std::env::var("IDRO_PARTENZA"), at.fine.is_some()) {
+        let tp = Instant::now();
+        let pp: Vec<usize> = spec.split(':').skip(1).map(|x| x.parse().unwrap()).collect();
+        let (mm, rr) = (pp[0], pp[1]);
+        let cop = at.fine.as_ref().unwrap().celle_coperte();
+        let nc = cop.len();
+        let mut start = v0.clone();
+        for it in 0..rr {
+            let lvx = Livello::con_nucleo(&reg, n, 1.0, off);
+            let fx = Fine::new(&lvx, ni, nh, bf, 1.0);
+            let mut a2 = Atomo::new(lvx, start.clone(), Some(fx), cal);
+            let mut z = vec![C::ZERO; nc];
+            for k in 1..=mm {
+                let mut u = a2.psi.clone();
+                lv.passo(&mut u);
+                a2.passo();
+                if k > mm / 2 { for (i, &s) in cop.iter().enumerate() { z[i] += a2.psi[s] * u[s].conj(); } }
+            }
+            let veff: Vec<f64> = z.iter().map(|w| -w.arg() / lv.tau).collect();
+            let mut lvh = Livello::con_nucleo(&reg, n, 1.0, off);
+            let mut uu = vec![vec![C::ZERO; nc]; nc];
+            let mut dd = vec![vec![C::ZERO; nc]; nc];
+            for i in 0..nc { uu[i][i] = C::expi(-0.5 * veff[i] * lv.tau); dd[i][i] = C::real(veff[i]); }
+            lvh.corr = Some(Correzione { celle: cop.clone(), u: uu, delta: dd });
+            let sh = lobpcg(&lvh, start.clone(), &[], 0.5 * ALPHA * ALPHA, 3e-9, 300, false);
+            let ov = dot(&start, &sh.v).norm2() / (norm2(&start) * norm2(&sh.v));
+            let ic = cop.iter().position(|&s| s == lv.c0 * n * n + lv.c0 * n + lv.c0).unwrap_or(0);
+            println!("partenza veff iter {it}: V_eff nucleo {:+.4e} eV, max|V_eff| {:.4e} eV; E(G+V+V_eff) {:.6} eV ({:+.4} %), 1-|<prima|dopo>|^2 = {:.3e} [{:.0} s]",
+                     veff[ic] * ev(), veff.iter().fold(0.0f64, |m, x| m.max(x.abs())) * ev(), sh.e_regola * ev(),
+                     100.0 * (sh.e_regola * ev() / e1 - 1.0), 1.0 - ov, tp.elapsed().as_secs_f64());
+            start = sh.v;
+        }
+        let sc = (norm2(&v0) / norm2(&start)).sqrt();
+        start.iter_mut().for_each(|a| *a = a.scale(sc));
+        let lvx = Livello::con_nucleo(&reg, n, 1.0, off);
+        let fx = Fine::new(&lvx, ni, nh, bf, 1.0);
+        at = Atomo::new(lvx, start, Some(fx), cal);
+        at.covarianza = std::env::var("IDRO_COV").is_ok();
     }
     let q0 = norm2(&at.psi);
     let h0 = h_media(&lv, &at.psi);
@@ -486,6 +532,38 @@ fn esame_ibrido(bl: usize, n: usize, ni: usize, passi: usize, esporta: Option<St
             if let Some(f) = at.fine.as_ref() { fine_meta = interno(f); }
         }
         if k % 8 == 0 { eprintln!("  step {k}/{passi}: norm {:.10} ({:.2} s/step)", norm2(&at.psi), tempi[k - 1]); }
+        if std::env::var("IDRO_DIAG").is_ok() {
+            let mut d = (cs[k] * cs[k - 1].conj()).arg() - at.lv.phi0;
+            while d > std::f64::consts::PI { d -= 2.0 * std::f64::consts::PI; }
+            while d < -std::f64::consts::PI { d += 2.0 * std::f64::consts::PI; }
+            let e = -d / at.lv.tau;
+            let ogni: usize = std::env::var("IDRO_DIAG").ok().and_then(|v| v.parse().ok()).unwrap_or(0);
+            let mut jtxt = String::new();
+            if ogni > 0 && k % ogni == 0 {
+                // spurious current of the coarse field: max |j| on the covered cells, max outside, radial flux through
+                // shells (units alpha c / a0^3 and per a0 shell area)
+                let j = lv.corrente(&at.psi, &vk);
+                let cop: std::collections::HashSet<usize> = at.fine.as_ref().map(|f| f.celle_coperte().into_iter().collect()).unwrap_or_default();
+                let (mut jin, mut jout) = (0.0f64, 0.0f64);
+                let c0 = lv.c0 as f64;
+                let mut rad = [0.0f64; 4];
+                for s in 0..n * n * n {
+                    let (i, jj, l) = (s / (n * n), (s / n) % n, s % n);
+                    let m = (j[0][s].powi(2) + j[1][s].powi(2) + j[2][s].powi(2)).sqrt() * a0c / ALPHA;
+                    if cop.contains(&s) { jin = jin.max(m); } else { jout = jout.max(m); }
+                    let x = [i as f64 - c0, jj as f64 - c0, l as f64 - c0];
+                    let r = (x[0] * x[0] + x[1] * x[1] + x[2] * x[2]).sqrt();
+                    if r > 0.0 {
+                        let jr = (j[0][s] * x[0] + j[1][s] * x[1] + j[2][s] * x[2]) / r * a0c / ALPHA;
+                        let sh = if r < 2.5 { 0 } else if r < 4.5 { 1 } else if r < 8.0 { 2 } else { 3 };
+                        rad[sh] += jr;
+                    }
+                }
+                jtxt = format!(" | j_coperte {:.3e} j_fuori {:.3e} sum_jr shells {:+.2e} {:+.2e} {:+.2e} {:+.2e}", jin, jout, rad[0], rad[1], rad[2], rad[3]);
+            }
+            println!("DIAG {k} perdita {:+.4e} sfasamento {:+.4e} E_istantanea {:+.5} % |c| {:.10}{jtxt}", at.perdita, at.sfasamento,
+                     100.0 * (e * ev() / e1 - 1.0), cs[k].abs());
+        }
     }
     let q1 = norm2(&at.psi);
     let h1 = h_media(&lv, &at.psi);
@@ -501,6 +579,12 @@ fn esame_ibrido(bl: usize, n: usize, ni: usize, passi: usize, esporta: Option<St
     let rho1 = dens(&at.psi);
     let rmax = rho_meta.iter().cloned().fold(0.0, f64::max);
     let staz_g = rho1.iter().zip(rho_meta.iter()).map(|(a, b)| (a - b).abs()).fold(0.0, f64::max) / rmax;
+    // phase 4: stationarity of the coarse cells NOT covered by the block (the covered ones are only the restriction of the
+    // fine field; their own coarse dynamics is overwritten every step)
+    let cop_f: std::collections::HashSet<usize> = at.fine.as_ref().map(|f| f.celle_coperte().into_iter().collect()).unwrap_or_default();
+    let rmax_f = rho_meta.iter().enumerate().filter(|(s, _)| !cop_f.contains(s)).map(|(_, v)| *v).fold(0.0, f64::max);
+    let staz_fuori = rho1.iter().zip(rho_meta.iter()).enumerate().filter(|(s, _)| !cop_f.contains(s))
+        .map(|(_, (a, b))| (a - b).abs()).fold(0.0, f64::max) / rmax_f;
     let staz_f = match at.fine.as_ref() { Some(f) => { let r = interno(f); let m = fine_meta.iter().cloned().fold(0.0, f64::max);
         r.iter().zip(fine_meta.iter()).map(|(a, b)| (a - b).abs()).fold(0.0, f64::max) / m } None => 0.0 };
     let tm = tempi.iter().skip(1).sum::<f64>() / (tempi.len() - 1).max(1) as f64;
@@ -511,6 +595,7 @@ fn esame_ibrido(bl: usize, n: usize, ni: usize, passi: usize, esporta: Option<St
              (q1 - q0) / passi as f64, (q1 - q_meta) / (passi - meta) as f64, (h1 - h0) / h0.abs(), (h1 - h_meta) / h0.abs());
     println!("reflux: {} (last factor-1 {:+.3e}), asset {}", at.reflux, at.ultimo_reflux, asset());
     println!("RISULTATO stazionarieta: coarse density max|drho|/max rho {:.3e}, fine block {:.3e} (step {meta} -> {passi})", staz_g, staz_f);
+    println!("RISULTATO stazionarieta fuori dal blocco: max|drho|/max rho sulle celle grosse non coperte {:.3e} (step {meta} -> {passi})", staz_fuori);
     println!("RISULTATO costo: {:.3} s per coarse step ({} fine ticks inside), 2 threads; coarse-only step {:.3} s",
              tm, ticks, { let t = Instant::now(); lv.passo(&mut co); t.elapsed().as_secs_f64() });
     if let Some(d) = esporta.as_ref() {
@@ -620,4 +705,213 @@ fn esame_risonanza(b: usize, n: usize, dir: &str, passi: usize, _m: usize, fot: 
         println!("export: {fot} far frames over one period, crop {mg}^3 at h = a0/{:.0}", a0() / lv.h);
     }
     println!("total {:.0} s", t0.elapsed().as_secs_f64());
+}
+
+
+// =====================================================================================================
+//  PHASE 4 — the learned seam (docs/IDROGENO_BOHR.md §13): the fine zig-zag block agglomerated into a Hermitian
+//  correction Δ of the coarse generator on the covered cells. "Blocca, impara, controlla" applied to the nucleus.
+// =====================================================================================================
+
+/// the 48 cubic operations (axis permutation, then signs)
+fn ops_oh() -> Vec<([usize; 3], [i64; 3])> {
+    let perms = [[0, 1, 2], [0, 2, 1], [1, 0, 2], [1, 2, 0], [2, 0, 1], [2, 1, 0]];
+    let mut v = vec![];
+    for p in perms { for sx in [-1i64, 1] { for sy in [-1i64, 1] { for sz in [-1i64, 1] { v.push((p, [sx, sy, sz])); } } } }
+    v
+}
+fn applica_op(op: &([usize; 3], [i64; 3]), d: [i64; 3]) -> [i64; 3] { [op.1[0] * d[op.0[0]], op.1[1] * d[op.0[1]], op.1[2] * d[op.0[2]]] }
+
+/// canonical class of an unordered pair of cell offsets under O_h (and the swap)
+fn classe(a: [i64; 3], b: [i64; 3], ops: &[([usize; 3], [i64; 3])]) -> ([i64; 3], [i64; 3]) {
+    let mut best: Option<([i64; 3], [i64; 3])> = None;
+    for op in ops {
+        let (x, y) = (applica_op(op, a), applica_op(op, b));
+        for c in [(x, y), (y, x)] { if best.map(|bb| c < bb).unwrap_or(true) { best = Some(c); } }
+    }
+    best.unwrap()
+}
+
+/// small dense real least squares by normal equations (Cholesky with a tiny ridge); returns x
+fn mq_reale(rows: &[Vec<f64>], rhs: &[f64]) -> Vec<f64> {
+    let k = rows[0].len();
+    let mut a = vec![vec![0.0; k]; k];
+    let mut b = vec![0.0; k];
+    for (r, y) in rows.iter().zip(rhs.iter()) {
+        for i in 0..k { b[i] += r[i] * y; for j in 0..k { a[i][j] += r[i] * r[j]; } }
+    }
+    let tr: f64 = (0..k).map(|i| a[i][i]).sum::<f64>() / k as f64;
+    for i in 0..k { a[i][i] += 1e-12 * tr; }
+    // Gaussian elimination with partial pivoting
+    let mut m = a;
+    for c in 0..k {
+        let mut p = c;
+        for r in c + 1..k { if m[r][c].abs() > m[p][c].abs() { p = r; } }
+        m.swap(c, p); b.swap(c, p);
+        for r in c + 1..k {
+            let f = m[r][c] / m[c][c];
+            if f == 0.0 { continue; }
+            for j in c..k { m[r][j] -= f * m[c][j]; }
+            b[r] -= f * b[c];
+        }
+    }
+    let mut x = vec![0.0; k];
+    for c in (0..k).rev() { let mut s = b[c]; for j in c + 1..k { s -= m[c][j] * x[j]; } x[c] = s / m[c][c]; }
+    x
+}
+
+/// impara N ni dmax nprobe out: learn Δ for a block of ni³ coarse cells (fine cells IDRO_B per coarse cell, halo IDRO_NH),
+/// pairs up to Chebyshev distance dmax, from the one-step map of the fine block (fresh prolongation of the whole patch)
+/// on `nprobe` probe states; writes Δ to `out` (text) and solves the hybrid 1s = lowest state of G/τ + V + Δ.
+fn impara_cucitura(n: usize, ni: usize, dmax: i64, nprobe: usize, out: &str) {
+    let t0 = Instant::now();
+    let bl: usize = std::env::var("IDRO_BL").ok().and_then(|v| v.parse().ok()).unwrap_or(256);
+    let reg = carica_regola(&asset(), "chain_A_3d", bl);
+    let lv = Livello::con_torsione(&reg, n, 1.0, 0.0, [0, 0, 0]);
+    let (e1, _, _) = riferimenti_ev();
+    let s1 = lobpcg(&lv, lv.guess("1s"), &[], 0.5 * ALPHA * ALPHA, 3e-9, 300, false);
+    println!("coarse 1s (B={bl} N={n} ±{:.1} a0): {:.6} eV ({:+.5} %) resid {:.1e} [{:.0} s]", n as f64 / 2.0 * lv.h / a0(), s1.e_regola * ev(),
+             100.0 * (s1.e_regola * ev() / e1 - 1.0), s1.resid_regola, t0.elapsed().as_secs_f64());
+    let bf: usize = std::env::var("IDRO_B").ok().and_then(|v| v.parse().ok()).unwrap_or(16);
+    let nh: usize = std::env::var("IDRO_NH").ok().and_then(|v| v.parse().ok()).unwrap_or(1);
+    let mut fine = Fine::new(&lv, ni, nh, bf, 1.0);
+    let cop = fine.celle_coperte();
+    let nc = cop.len();
+    let c0 = lv.c0 as i64;
+    let offs: Vec<[i64; 3]> = cop.iter().map(|s| { let (i, j, k) = (s / (n * n), (s / n) % n, s % n); [i as i64 - c0, j as i64 - c0, k as i64 - c0] }).collect();
+    let pos: std::collections::HashMap<usize, usize> = cop.iter().enumerate().map(|(i, s)| (*s, i)).collect();
+    // classes of pairs
+    let ops = ops_oh();
+    let mut cl: Vec<([i64; 3], [i64; 3])> = vec![];
+    let mut coppie: Vec<Vec<(usize, usize)>> = vec![];
+    for a in 0..nc { for b in a..nc {
+        let d = (0..3).map(|q| (offs[a][q] - offs[b][q]).abs()).max().unwrap();
+        if d > dmax { continue; }
+        let key = classe(offs[a], offs[b], &ops);
+        let k = match cl.iter().position(|c| *c == key) { Some(k) => k, None => { cl.push(key); coppie.push(vec![]); cl.len() - 1 } };
+        coppie[k].push((a, b));
+    }}
+    let kk = cl.len();
+    println!("block {ni}^3 (patch {}^3, a_f = a0/{:.0}), {nc} covered cells, dmax {dmax}: {kk} classes of Δ", fine.p, a0() / fine.th);
+    // S restricted to the covered cells (columns: S e_s, rows: covered)
+    let ts = Instant::now();
+    let mut sss = vec![vec![C::ZERO; nc]; nc];
+    let solo_diag = std::env::var("IDRO_SOLO_DIAG").is_ok();
+    for (jc, &s) in cop.iter().enumerate() {
+        if solo_diag { break; }
+        let mut e = vec![C::ZERO; n * n * n];
+        e[s] = C::ONE;
+        lv.passo(&mut e);
+        for (ic, &r) in cop.iter().enumerate() { sss[ic][jc] = e[r]; }
+    }
+    println!("S on the covered cells: {nc} coarse steps [{:.0} s]", ts.elapsed().as_secs_f64());
+    // probes
+    let gauss = |sig: f64, kind: u8, sh: [f64; 3]| -> Vec<C> {
+        let mut f: Vec<C> = (0..n * n * n).into_par_iter().map(|s| {
+            let (i, j, k) = (s / (n * n), (s / n) % n, s % n);
+            let x = [i as f64 - c0 as f64 - sh[0], j as f64 - c0 as f64 - sh[1], k as f64 - c0 as f64 - sh[2]];
+            let r2 = x[0] * x[0] + x[1] * x[1] + x[2] * x[2];
+            let g = (-r2 / (2.0 * sig * sig)).exp();
+            C::real(match kind { 0 => g, 1 => x[2] * g, 2 => (x[0] * x[0] - x[1] * x[1]) * g, _ => (x[0] * x[1] * x[2]) * g })
+        }).collect();
+        let k = 1.0 / norm2(&f).sqrt(); scal(&mut f, C::real(k)); f
+    };
+    let mut probes: Vec<(String, Vec<C>)> = vec![("1s".into(), s1.v.clone())];
+    // smooth probes only (σ ≥ 2 coarse cells): the seam must reproduce the nucleus, not the band at the edge of the cube
+    let lista: Vec<(&str, f64, u8, [f64; 3])> = vec![("g2", 2.0, 0, [0.0; 3]), ("g4", 4.0, 0, [0.0; 3]),
+        ("p2", 2.0, 1, [0.0; 3]), ("d2", 2.0, 2, [0.0; 3]), ("g2x", 2.0, 0, [1.0, 0.0, 0.0]), ("f2", 2.5, 3, [0.0; 3]),
+        ("p3", 3.0, 1, [0.0; 3]), ("g3s", 3.0, 0, [0.5, 1.0, 0.0])];
+    for (nm, sg, kd, sh) in lista.iter() { probes.push((nm.to_string(), gauss(*sg, *kd, *sh))); }
+    probes.push(("2s(prova)".into(), lv.guess("2s")));
+    probes.push(("2p(prova)".into(), lv.guess("2p")));
+    let ntrain = nprobe.min(probes.len() - 2);
+    let tau = lv.tau;
+    // the same block and the same coarse rule WITHOUT the nucleus: the free mismatch (band of the block walk against the
+    // learned rule) is subtracted, so that Δ carries only what the nucleus does differently at fine resolution
+    let lv0 = Livello::con_torsione(&reg, n, 0.0, 0.0, [0, 0, 0]);
+    let mut fine0 = Fine::new(&lv0, ni, nh, bf, 0.0);
+    let senza_libero = std::env::var("IDRO_NO_LIBERO").is_err();
+    let mut rows: Vec<Vec<f64>> = vec![];
+    let mut rhs: Vec<f64> = vec![];
+    let mut dati: Vec<(Vec<C>, Vec<Vec<C>>)> = vec![];   // (d, columns) per probe
+    for (ip, (nm, c)) in probes.iter().enumerate() {
+        let tp = Instant::now();
+        // teacher: fresh prolongation of the whole patch, b ticks, restriction of the covered cells
+        fine.prolunga(c, true);
+        fine.tick = 0;
+        for t in 1..=fine.b { fine.tick(t); }
+        let a = fine.restringi(false);
+        let mut u = c.clone();
+        lv.passo(&mut u);
+        let mut d = vec![C::ZERO; nc];
+        for (s, v) in a.iter() { d[pos[s]] = *v - u[*s]; }
+        let mut dl = 0.0;
+        if senza_libero {
+            fine0.prolunga(c, true);
+            fine0.tick = 0;
+            for t in 1..=fine0.b { fine0.tick(t); }
+            let a0_ = fine0.restringi(false);
+            let mut u0 = c.clone();
+            lv0.passo(&mut u0);
+            for (s, v) in a0_.iter() { let q = *v - u0[*s]; d[pos[s]] -= q; dl += q.norm2(); }
+        }
+        let us: Vec<C> = cop.iter().map(|s| u[*s]).collect();
+        let cs_: Vec<C> = cop.iter().map(|s| c[*s]).collect();
+        let mut cols: Vec<Vec<C>> = vec![];
+        for k in 0..kk {
+            if solo_diag { break; }
+            // E_k (symmetric 0/1 pattern): (E_k x)_a = Σ_b over pairs
+            let ek = |x: &[C]| -> Vec<C> { let mut y = vec![C::ZERO; nc]; for &(a, b) in &coppie[k] { y[a] += x[b]; if a != b { y[b] += x[a]; } } y };
+            let eu = ek(&us);
+            let ec = ek(&cs_);
+            let sec: Vec<C> = (0..nc).into_par_iter().map(|i| { let mut z = C::ZERO; for j in 0..nc { z += sss[i][j] * ec[j]; } z }).collect();
+            cols.push((0..nc).map(|i| (eu[i] + sec[i]) * C::new(0.0, -0.5 * tau)).collect());
+        }
+        let dn = norm2(&d).sqrt();
+        let un = norm2(&us).sqrt();
+        // local effective potential seen by the probe: -arg(1 + d/u)/τ per cell (diagnostic), nucleus cell and first shells
+        let veff = |i: usize| -> f64 { -((us[i] + d[i]) * us[i].conj()).arg() / tau * ev() };
+        let mut vtxt = String::new();
+        for o in [[0i64, 0, 0], [1, 0, 0], [1, 1, 0], [1, 1, 1], [2, 0, 0], [3, 0, 0]] {
+            if let Some(i) = offs.iter().position(|q| *q == o) { if us[i].abs() > 1e-6 * un { vtxt += &format!(" {:?}:{:+.3e}", o, veff(i)); } }
+        }
+        println!("probe {ip} {nm}: |d_nucleo|/|u_S| = {:.3e} (libero tolto {:.3e}), perdita (|a|^2-|u_S|^2)/|u_S|^2 = {:+.3e}; V_eff eV{vtxt} [{:.1} s]", dn / un,
+                 dl.sqrt() / un, (a.iter().map(|(_, v)| v.norm2()).sum::<f64>() - un * un) / (un * un), tp.elapsed().as_secs_f64());
+        if ip < ntrain {
+            let w = 1.0 / un;     // each probe weighted by its covered amplitude
+            for i in 0..nc {
+                rows.push(cols.iter().map(|c| c[i].re * w).collect()); rhs.push(d[i].re * w);
+                rows.push(cols.iter().map(|c| c[i].im * w).collect()); rhs.push(d[i].im * w);
+            }
+        }
+        dati.push((d, cols));
+    }
+    if solo_diag { return; }
+    let x = mq_reale(&rows, &rhs);
+    // residuals per probe: total, and the Hermitian (phase) part only: Re(d conj(u)) is amplitude change (anti-Hermitian)
+    for (ip, (nm, _)) in probes.iter().enumerate() {
+        let (d, cols) = &dati[ip];
+        let mut r = d.clone();
+        for k in 0..kk { for i in 0..nc { r[i] -= cols[k][i].scale(x[k]); } }
+        println!("RISULTATO fit {} {nm}: residuo |d - fit|/|d| = {:.3e}", if ip < ntrain { "train" } else { "PROVA" }, (norm2(&r) / norm2(d)).sqrt());
+    }
+    // Δ matrix, report the main entries
+    let mut delta = vec![vec![C::ZERO; nc]; nc];
+    for k in 0..kk { for &(a, b) in &coppie[k] { delta[a][b] = C::real(x[k]); delta[b][a] = C::real(x[k]); } }
+    let mut idx: Vec<usize> = (0..kk).collect();
+    idx.sort_by(|a, b| x[*b].abs().partial_cmp(&x[*a].abs()).unwrap());
+    for &k in idx.iter().take(8) { println!("  Δ class {:?}-{:?} ({} pairs): {:+.4e} mc^2 = {:+.4e} eV", cl[k].0, cl[k].1, coppie[k].len(), x[k], x[k] * ev()); }
+    // save Δ: one line per nonzero entry "di dj dk  ei ej ek  value"
+    let mut txt = format!("# Δ (units mu c^2) learned from block {ni}^3, b = {bf}, nh = {nh}, dmax = {dmax}, N = {n}, B = {bl}, asset {}\n", asset());
+    for a in 0..nc { for b in 0..nc { if delta[a][b].re != 0.0 {
+        txt += &format!("{} {} {} {} {} {} {:.17e}\n", offs[a][0], offs[a][1], offs[a][2], offs[b][0], offs[b][1], offs[b][2], delta[a][b].re);
+    }}}
+    std::fs::write(out, txt).unwrap();
+    // hybrid 1s = lowest state of the corrected generator
+    let mut lvh = Livello::con_torsione(&reg, n, 1.0, 0.0, [0, 0, 0]);
+    lvh.corr = Some(Correzione::da_delta(cop.clone(), delta, tau));
+    let sh = lobpcg(&lvh, s1.v.clone(), &[], 0.5 * ALPHA * ALPHA, 3e-9, 300, false);
+    println!("RISULTATO impara N={n} ni={ni} dmax={dmax}: E_ibrido(G+V+Δ) {:.6} eV ({:+.5} %) gen {:.6} resid {:.1e}; coarse {:.6} eV ({:+.5} %); ibrido/grosso-1 {:+.4e} [{:.0} s]",
+             sh.e_regola * ev(), 100.0 * (sh.e_regola * ev() / e1 - 1.0), sh.e_gen * ev(), sh.resid_regola, s1.e_regola * ev(),
+             100.0 * (s1.e_regola * ev() / e1 - 1.0), sh.e_regola / s1.e_regola - 1.0, t0.elapsed().as_secs_f64());
 }

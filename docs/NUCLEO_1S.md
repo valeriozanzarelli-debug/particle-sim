@@ -1291,3 +1291,23 @@ nessun accoppiamento che faccia il Darwin: per questo con R_f piccolo lo spostam
     timeout 590 python lab/nucleo1s_f8_run.py        # rilanciare finché "all done"
     timeout 590 python lab/nucleo1s_f8_posthoc.py    # dopo, dichiarato
     python lab/nucleo1s_f8_figure.py
+
+### 18.8 Correzione dichiarata (scritta dal thread `aggfull_`, vedi AGGLOMERATO_COMPLETO §14, §16, §17)
+
+La diagnosi di §18.0–18.1 ("la colla perde il Darwin: il plateau −10 % viene dal livello T senza accoppiamento
+campo–moto") va corretta così:
+
+1. **Il termine campo–moto mancava davvero**, ma pesa ≈ 4e^(−2R) (R = raggio della colla in a₀/Z). Conta per J0 piccoli
+   e medi: per esempio +68 punti a J0 = 8 e +25 a J0 = 12. Imparato nella lingua della componente grande, sposta i numeri
+   esattamente come previsto (rapporto misurato/previsto 1,10). A J0 ≥ 24 vale ≤ 1 %. **Non** è il plateau.
+2. **Il plateau −10,5 % della 1s è un artefatto della catena di zoom.** La catena da sola, senza livello grosso né colla,
+   dà lo stesso −10,48 %. Con quattro Z si vede che è un termine **Z³** che la formula a due Z legge come α⁴:
+   - parte Z³: −11,87 %;
+   - resto Z⁴: +1,24 %;
+   - pesa |ψ(0)|² (2s/1s = 0,126);
+   - scala come θ³ e cresce con la zona zoomata.
+3. **Con le due patch** l'α⁴ di 1s e 2s sta entro ±1 % da J0 = 32 per la coppia Z = 1/2: −0,10 / +0,35 % a J0 = 32,
+   −0,03 / −0,02 % a J0 = 48 e 64. Le patch sono la cella esterna della catena θ_A/4 e il termine campo–moto imparato.
+   Per le coppie Z = 3/6 e 5/10 alla stessa geometria in a₀/Z, entro ±1 % da R ≥ 6 a₀/Z.
+4. I file `nucleo1s_*` **non** sono stati modificati: le patch vivono in `lab/aggfull_p6_glue.py`, `lab/aggfull_p7_glue.py`
+   e `lab/aggfull_p8.py`, che importano `nucleo1s_f8_core.py` in sola lettura.
