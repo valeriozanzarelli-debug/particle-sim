@@ -1,0 +1,94 @@
+"""fw1atomo_prereg.py - pre-registration of the study fw1atomo_ (docs/FW1_ATOMO.md), written BEFORE the production
+runs.  Writes lab/out/fw1atomo_prereg.json.
+Data already seen before writing this (declared): senzadoppi_r4/x2 (FW1 at theta = 0,5, 40^3: lines 0,8844 (0,38)
+and 0,8719 (0,20), both in the Gamma valley, <sigma_z> 0,54 and 0,49), senzadoppi_r7 (theta = 0,25: one line
+0,8933, 97 % Gamma), BATTIMENTO_1S (frozen rule, 48^3: 0,8993/0,8996/0,8863/0,8404), ZIGZAG A1 (zz_atom3d), and a
+tool smoke test of the Ritz code on F0 at 24^3 (levels 0,8375/0,8772/0,8869/0,8871, small box)."""
+import json
+import os
+
+P = {
+    "studio": "fw1atomo_",
+    "documento": "docs/FW1_ATOMO.md",
+    "stato": "FW1 = VARIANTE IN PROVA accanto alla regola congelata (riferimento). Nessun file di altri studi modificato.",
+    "regole": {
+        "F0": "regola congelata (lab/zz_core.py; copia bit a bit in fw1atomo_core.Rule, controllo fw1atomo_check.py)",
+        "FW1": "F0 + un Wilson ritorto (6 collegamenti +-2e_j, asse Y di chiralita', h/4 per collegamento, meta' prima e "
+               "meta' dopo la moneta) solo attorno alla moneta dei tick PARI; h = 0,4 (DEBITO D1)",
+    },
+    "ingressi_fisici": ["c", "hbar", "m_e (theta = a / lambda_C)", "alpha", "Z = 60 (nucleo puntiforme)"],
+    "parametri_liberi": {"FW1": 1, "F0": 0, "nota": "h = 0,4 fissato in senzadoppi_ A3, qui non si tocca per la produzione; la spazzata in h e' diagnosi"},
+    "debiti_noti": [
+        "D1 h = 0,4 regolatore scelto a mano",
+        "D2 FW1 rompe l'inversione del tempo (Kramers spaccato 5e-2 con potenziale a caso, senzadoppi_ E5)",
+        "D3 stati di partenza: 1s di Dirac del continuo / 1s della regola radiale / partenza cieca: stati di PROVA, non entrano nella regola",
+        "D4 nucleo su un sito (solo configurazione 'sito'): V(0) = -Z alpha <1/r>_cella = -Z alpha 2,380077/a (regolarizzazione a mano)",
+        "D5 impostazioni di Ritz (finestra, passo dw, durata, soglia del residuo 1e-6): risoluzione, non fisica",
+    ],
+    "P1_due_righe": {
+        "domanda": "a theta = 0,5 l'1s di FW1 (Z = 60) ha due righe (0,8844 e 0,8719 in r4/x2), tutte e due nella valle vera: perche'?",
+        "configurazione_base": {"n": 40, "a": 0.5, "Z": 60, "nucleo": "angolo di 8 celle", "regola": "FW1 h = 0,4 e F0 per confronto",
+                                "partenze": "1s di Dirac del continuo spin su e spin giu' (unione)", "ritz": {"finestra": [0.80, 0.97], "dw": 0.005, "periodi": 1600}},
+        "misure_per_livello": ["omega", "residuo", "peso nelle partenze", "valli Gamma/N/pi (Voronoi in k)", "4 colori", "8 sottoreticoli di periodo (i%2, j%2, k%2 ai tick pari)",
+                               "vettore di spin <Sigma>", "<r>", "peso in r < 1"],
+        "corse": {
+            "P1a": "base FW1 e F0 (spin su + giu')",
+            "P1b": "FW1 e F0: partenza ristretta a ciascuno degli 8 sottoreticoli di periodo (spin su), Ritz separato per ognuno",
+            "P1c": "h in {0,2; 0,3; 0,4; 0,6; 0,8}, base",
+            "P1d": "theta = a in {0,5 (n 40); 0,4 (n 50); 1/3 (n 60); 0,25 (n 80)}, scatola ~20 lambda_C, durata ~1200 lambda_C/c",
+            "P1e": "posizione del nucleo: angolo (1/2,1/2,1/2)a, spigolo (1/2,1/2,0)a, faccia (1/2,0,0)a, sito (0,0,0) [D4]; FW1 e F0",
+        },
+        "ipotesi_e_regole_di_decisione": {
+            "d_artefatto": "CONFERMATA se in P1a non ci sono due livelli esatti distinti (residuo < 1e-6, |d omega| > 2e-3) con peso >= 2 % in [0,85; 0,90]",
+            "c_sottoreticoli": "CONFERMATA se in P1b ogni sottoreticolo mette >= 80 % del suo peso (fra le due righe) su UNA sola riga, e i sottoreticoli si dividono fra le due righe",
+            "e_spin_T_rotta": "(ipotesi aggiunta) CONFERMATA se dentro UN sottoreticolo ci sono tutte e due le righe, non degeneri (nessun compagno entro 1e-5), con spin opposti (coseno < -0,5)",
+            "a_livello_reticolo": "CONFERMATA se dentro ogni sottoreticolo ci sono tutte e due le righe e la riga bassa e' piu' stretta: <r>_B < 0,85 <r>_A oppure peso(r<1)_B > 1,5 peso(r<1)_A",
+            "b_eco_Floquet": "CONFERMATA se la riga bassa ha peso nelle valli N + pi > 5 %, oppure in P1d la sua posizione segue un ripiegamento omega + 2 pi k / T",
+            "nota": "piu' ipotesi possono valere insieme; se nessuna: CAUSA NON TROVATA, dichiarata",
+        },
+        "previsione": {
+            "testo": "Prevedo (c): la regola FW1 mette il Wilson solo nei tick pari. La parita' attorno al nucleo d'angolo scambia i sottoreticoli 'parte pari' e 'parte dispari' di ogni colore e cambia segno al Wilson ritorto (Y di chiralita' -> -Y quando L <-> R): quindi per FW1 i due sottoreticoli di ogni colore sono la stessa regola con h e -h e possono dare 1s diversi; per F0 (h = 0) sono equivalenti.",
+            "numeri": {"P1b_FW1": "4 sottoreticoli con la riga ~0,884, gli altri 4 con ~0,872 (+-0,003)", "P1b_F0": "gli 8 sottoreticoli hanno gli stessi livelli entro 1e-3",
+                       "P1c": "la distanza fra le righe cresce con |h| (circa lineare a h piccolo)", "P1d": "la distanza cala con theta e a theta = 0,25 e' < 8e-3 (sotto la risoluzione di r7)",
+                       "P1e": "la distanza dipende dalla posizione del nucleo (nel sito: i sottoreticoli non sono piu' equivalenti nemmeno per F0)"},
+            "probabilita_soggettive": {"c": 0.35, "a": 0.30, "e": 0.20, "b": 0.10, "d": 0.05},
+        },
+    },
+    "P2_battimento": {
+        "configurazione": {"n": 48, "a": 0.5, "Z": 60, "nucleo": "angolo di 8 celle, puntiforme nudo (come i numeri di BATTIMENTO_1S)",
+                           "partenza": "1s della regola radiale (kappa = -1, m = +1/2) messo sul cubo come src/atomo/zz.rs::con_stato ('1s di Dirac proiettato' del Lab)",
+                           "ritz": {"finestra": [0.82, 0.94], "dw": 0.005, "periodi": 600}, "sopravvivenza": "3200 tick (1600 periodi), p_exc = 1 - |<psi0|psi>|^2 ai tick pari"},
+        "esami": {
+            "V1_validazione_F0_livelli": {"soglia": "livelli esatti (residuo < 1e-6, peso >= 1 %) a 0,8993 / 0,8996 / 0,8863 / 0,8404, ognuno entro 5e-4", "atteso": "PASS"},
+            "V2_validazione_F0_battimento": {"soglia": "max p_exc su 3200 tick >= 0,8 (BATTIMENTO: 0,889)", "atteso": "PASS"},
+            "F1_una_riga": {"soglia": "FW1: un solo livello (coppie entro 2e-3 contate come una) con peso >= 2 % in [0,82; 0,94]", "previsione": "FAIL: due righe a ~0,885 e ~0,872 (come r4 a 40^3)"},
+            "F2_niente_battimento": {"soglia": "FW1: max - min di p_exc per t in [450, 1600] lambda_C/c < 0,05 (come B2 di BATTIMENTO)", "previsione": "FAIL: battimento con periodo ~2 pi/0,0125 ~ 500 e ampiezza 0,3-0,7"},
+            "F3_strumento": {"soglia": "FW1 partito dal suo livello esatto principale: max p_exc su 3200 tick < 1e-6", "previsione": "PASS (controllo dello strumento)"},
+        },
+        "emendamento_condizionale": "se P1 trova una causa con una cura che non aggiunge manopole, la cura si prova qui come emendamento dichiarato (file separato), con le stesse soglie",
+    },
+    "P3_atomo_3D": {
+        "configurazione": {"Z": 60, "a": [0.4, 0.3, 0.24, 0.2], "n": [40, 54, 66, 80], "scatola": "~16 lambda_C", "nucleo": "angolo di 8 celle",
+                           "regole": ["F0", "FW1 h = 0,4"],
+                           "partenze": {"dirac": "1s di Dirac del continuo spin su (stato di prova)",
+                                        "cieca": "spinori casuali sui 4^3 siti attorno al nucleo (seme 20261013): tutte le valli, tutte e due le energie, nessun proiettore, nessun k = 0"},
+                           "ritz": {"finestra": [0.78, 0.96], "dw": 0.01, "durata": "600 lambda_C/c"}},
+        "energia_1s": "livello esatto con piu' peso nella partenza 'dirac' (coppia di spin mediata); legame B = 1 - omega; Dirac 0,100948 (solo esame)",
+        "estrapolazione": "principale: B(a) = B0 + c a^(2 gamma), gamma = sqrt(1 - (Z alpha)^2) = 0,899, sui 3 a piu' fini; secondaria: B0 + c a^2 sui 3 piu' fini",
+        "esami": {
+            "V0_validazione": {"soglia": "F0 con il protocollo di zz_atom3d (macchia proiettata, lock-in gaussiano 27, Rayleigh) a a = 0,4, scatola 24: legame 0,130043 +- 2e-4", "atteso": "PASS"},
+            "A1_originale": {"soglia": "FW1: |B0/B_Dirac - 1| <= 1 %", "previsione": "incerto (la massa cinetica e' quella della congelata; l'errore del reticolo va come a^1,8)"},
+            "A1b": {"soglia": "FW1: |B0/B_Dirac - 1| <= 3 %", "previsione": "PASS"},
+            "A1c_vicino_alla_radiale": {"soglia": "FW1 a ogni a entro 2 % (relativo, sul legame) della regola radiale dello stesso a", "previsione": "PASS per a <= 0,3"},
+            "A3_senza_toppe": {"soglia": "FW1 dalla partenza cieca: nella finestra [0,78; 0,95] un solo gruppo di livelli esatti (coppie entro 2e-3) con peso >= 5 % del peso dei livelli esatti della finestra, per a <= 0,3",
+                               "previsione": "PASS per FW1; F0 dalla stessa partenza: >= 3 gruppi (multipletto delle valli)"},
+            "A4_spin": {"misura": "spaccatura di Kramers dell'1s di FW1 a ogni a (T rotta, D2)", "previsione": "cala con a"},
+            "costo": {"misura": "secondi per periodo F0 e FW1 (numpy, 1 core) a ogni n", "previsione": "rapporto FW1/F0 2,5-3"},
+        },
+    },
+    "regole_operative": "corse <= 10 min (timeout 590) con checkpoint; al massimo 2 processi da 1 core; memoria < 2,5 GB; cambi dopo questo file: emendamenti in lab/out/fw1atomo_emendamenti.json",
+}
+
+out = os.path.join(os.path.dirname(__file__), "out", "fw1atomo_prereg.json")
+json.dump(P, open(out, "w"), indent=1, ensure_ascii=False)
+print("scritto", out)
