@@ -39,6 +39,11 @@ pub const E0_PI2: f64 = 0.013369;
 pub const N_FLUSSO: usize = 6000;
 /// At most this many light glow balls per light box drawn.
 pub const MAX_GRIGLIA: usize = 30_000;
+/// Scattered view: half-thickness (light cells) of the slab through the atom drawn (the x–z plane: pulse axis and
+/// dipole axis), so the 3-D shells do not fill in when projected; the electron cloud drawn magnified by ZOOM_ATOMO
+/// at the centre (declared on screen).
+pub const FETTA: i64 = 2;
+pub const ZOOM_ATOMO: f64 = 6.0;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Comando { Avanti, Pausa, Indietro }
@@ -114,6 +119,8 @@ struct Mondo {
     flusso: Vec<[f64; 3]>,
     e_ref: f64,
     m_sc: f64,
+    /// largest u·r² of the scattered light in the slab (the drawing scale of the scattered view)
+    w_max: f64,
     /// sampling table of the scattered energy density (cumulative, cells of the 64³ sub-grid), rebuilt every light tick
     cdf: Vec<(f32, u32)>,
 }
@@ -136,7 +143,7 @@ fn nuovo_mondo() -> Mondo {
         if rng.uni() < 1.0 - u[2] * u[2] { dirs.push(u); }
     }
     let eta = (0..N_ONDA_OUT).map(|_| rng.uni()).collect();
-    Mondo { at, surf, scie, dip: vec![0.0; STORIA_DIP], rng, fotoni: vec![], dirs, eta, esp: None, flusso: vec![], e_ref: 0.0, m_sc: 0.0, cdf: vec![] }
+    Mondo { at, surf, scie, dip: vec![0.0; STORIA_DIP], rng, fotoni: vec![], dirs, eta, esp: None, flusso: vec![], e_ref: 0.0, m_sc: 0.0, w_max: 0.0, cdf: vec![] }
 }
 
 /// Hue for a phase (cyclic palette of the photon laboratory).
@@ -244,10 +251,20 @@ fn palline_luce(m: &Mondo, diffusa: bool) -> Vec<Ball> {
     let e = match &m.esp { Some(e) => e, None => return vec![] };
     match (&e.luce.sc, diffusa) {
         (Some(sc), true) => {
-            let mut v = griglia(&e.luce.f.f, None, 0.25, [[1.0, 0.78, 0.32], [0.35, 0.72, 1.0]]);
-            if m.e_ref > 0.0 && m.m_sc > 0.0 {
-                v.extend(griglia(&sc.f, Some(m.m_sc as f32), 1.0, [[1.0, 0.42, 0.78], [0.35, 1.0, 0.62]]));
+            // the free pulse: same slab, own scale (∝ u), dimmed × 0.25
+            let mut v = fetta(&e.luce.f.f, None, false, 0.25, [[1.0, 0.78, 0.32], [0.35, 0.72, 1.0]]);
+            if m.e_ref > 0.0 && m.w_max > 0.0 {
+                v.extend(fetta(&sc.f, Some(m.w_max), true, 1.0, [[1.0, 0.42, 0.78], [0.35, 1.0, 0.62]]));
                 v.extend(palline_flusso(m, sc));
+            }
+            // the electron cloud (balls drawn from |ψ|²) magnified × ZOOM_ATOMO about the nucleus: the dipole source
+            // brightness ∝ √(ρ/ρ_max) where the ball is (as the surfers: thin wave, faint ball)
+            let at = &e.at;
+            let rho_max = at.psi.iter().map(|p| p.iter().map(|c| c.norm2()).sum::<f64>()).fold(0.0, f64::max).max(1e-300);
+            for p in m.surf.iter().take(5000) {
+                let rho: f64 = at.campiona(*p).iter().map(|c| c.norm2()).sum();
+                let q = [p[0] * ZOOM_ATOMO, p[1] * ZOOM_ATOMO, p[2] * ZOOM_ATOMO];
+                v.push((schermo(q).to_array(), 3.0, [0.75, 0.9, 1.0, (0.04 + 0.6 * (rho / rho_max).sqrt()) as f32]));
             }
             v
         }
@@ -305,6 +322,40 @@ fn griglia(f: &[[crate::fotone3d::Cf; 3]], scala: Option<f32>, alpha: f32, col: 
     out
 }
 
+/// Scattered view: glow balls on the cells of the slab |y| ≤ FETTA through the atom (outside r = 8 cells), each cell drawn
+/// with probability min(1, 1.5 w/w_max) and alpha ∝ √(w/w_max), where w = u = |E|² + |B|² (the energy density), times r²
+/// when `r2` (the 1/r² spreading of the outgoing light undone, declared): the dark nodes between the rings stay empty.
+fn fetta(f: &[[crate::fotone3d::Cf; 3]], wref: Option<f64>, r2: bool, alpha: f32, col: [[f32; 3]; 2]) -> Vec<Ball> {
+    use rayon::prelude::*;
+    let n = acc::N_LUCE;
+    let b = acc::B_LUCE;
+    let h = (n / 2) as i64;
+    let peso = |s: usize| -> f64 {
+        let d = [(s / (n * n)) as i64 - h, ((s / n) % n) as i64 - h, (s % n) as i64 - h];
+        let rr = d[0] * d[0] + d[1] * d[1] + d[2] * d[2];
+        if rr <= 64 || d[1].abs() > FETTA { return 0.0; }
+        let (u, _) = flusso_cella(&f[s]);
+        if r2 { u * rr as f64 } else { u }
+    };
+    let celle: Vec<usize> = (0..n).flat_map(|i| ((h - FETTA) as usize..=(h + FETTA) as usize).flat_map(move |j| (0..n).map(move |k| (i * n + j) * n + k))).collect();
+    let wmax = wref.unwrap_or_else(|| celle.par_iter().map(|&s| peso(s)).reduce(|| 0.0, f64::max)).max(1e-300);
+    let mut out: Vec<Ball> = celle.par_iter().filter_map(|&s| {
+        let x = (peso(s) / wmax).min(1.0);
+        if x < 1e-3 { return None; }
+        let q = s as u64 * 3;
+        if (crate::rng::hash01(q + 7) as f64) > 1.5 * x { return None; }
+        let c = [s / (n * n), (s / n) % n, s % n];
+        let pos = [0, 1, 2].map(|c2| (c[c2] as f64 - h as f64 + (crate::rng::hash01(q + c2 as u64) as f64 - 0.5)) * b);
+        let cc = if f[s][2].re > 0.0 { col[0] } else { col[1] };
+        Some((schermo(pos).to_array(), 4.0, [cc[0], cc[1], cc[2], alpha * (0.08 + 0.7 * x.sqrt() as f32).min(0.8)]))
+    }).collect();
+    if out.len() > MAX_GRIGLIA {
+        let k = MAX_GRIGLIA as f32 / out.len() as f32;
+        out.retain(|b| crate::rng::hash01((b.0[0].to_bits() as u64) ^ ((b.0[1].to_bits() as u64) << 20) ^ ((b.0[2].to_bits() as u64) << 40)) < k);
+    }
+    out
+}
+
 /// Light cell of a point (λ_C, box coordinates centred on the atom), None outside the box.
 fn cella(p: [f64; 3]) -> Option<usize> {
     let n = acc::N_LUCE as i64;
@@ -329,11 +380,11 @@ fn flusso_cella(p: &[crate::fotone3d::Cf; 3]) -> (f64, [f64; 3]) {
 
 /// The flow balls: one glow ball each, brightness from the scattered energy density where it is.
 fn palline_flusso(m: &Mondo, sc: &crate::fotone3d::Fotone3D) -> Vec<Ball> {
-    let umax = 0.5 * m.m_sc * m.m_sc;
     m.flusso.iter().filter_map(|p| {
         let s = cella(*p)?;
         let (u, _) = flusso_cella(&sc.f[s]);
-        let x = (u / umax.max(1e-300)).min(1.0);
+        let rr = (p[0] * p[0] + p[1] * p[1] + p[2] * p[2]) / (acc::B_LUCE * acc::B_LUCE);
+        let x = (u * rr / m.w_max.max(1e-300)).min(1.0);
         if x < 0.01 { return None; }
         Some((schermo(*p).to_array(), 2.2, [1.0, 0.93, 0.97, (0.15 + 0.75 * x.sqrt()) as f32]))
     }).collect()
@@ -349,18 +400,21 @@ fn aggiorna_diffusa(m: &mut Mondo) {
     let n = acc::N_LUCE;
     let h = (n / 2) as i64;
     let interno = (n / 2 - acc::SPUGNA) as i64;
-    let celle: Vec<(f32, u32)> = (0..(n / 2).pow(3)).into_par_iter().filter_map(|q| {
-        let (a, bb, c) = (q / (n * n / 4), (q / (n / 2)) % (n / 2), q % (n / 2));
-        let d = [2 * a as i64 - h, 2 * bb as i64 - h, 2 * c as i64 - h];
+    // the amplification A: strongest E of the scattered light away from the atom (r > 8 cells, whole box)
+    let emax_far = acc::e_max(&sc.f, true);
+    m.m_sc = emax_far.max(0.97 * m.m_sc);
+    // the slab |y| ≤ FETTA, weight u·r² (r > 6 cells, inside the sponge): the drawing scale and the birth table
+    let celle: Vec<(f32, u32)> = (0..n * n * (2 * FETTA as usize + 1)).into_par_iter().filter_map(|q| {
+        let (i, j, k) = (q / (n * (2 * FETTA as usize + 1)), (q / n) % (2 * FETTA as usize + 1) + (h - FETTA) as usize, q % n);
+        let d = [i as i64 - h, j as i64 - h, k as i64 - h];
         let r2 = d[0] * d[0] + d[1] * d[1] + d[2] * d[2];
         if r2 <= 36 || d.iter().any(|x| x.abs() >= interno) { return None; }
-        let s = ((2 * a) * n + 2 * bb) * n + 2 * c;
+        let s = (i * n + j) * n + k;
         let (u, _) = flusso_cella(&sc.f[s]);
-        Some((u as f32, s as u32))
+        Some(((u * r2 as f64) as f32, s as u32))
     }).collect();
-    let emax_far = celle.par_iter().filter(|c| { let s = c.1 as usize; let d = [(s / (n * n)) as i64 - h, ((s / n) % n) as i64 - h, (s % n) as i64 - h]; d[0] * d[0] + d[1] * d[1] + d[2] * d[2] > 64 })
-        .map(|c| { let p = &sc.f[c.1 as usize]; ((p[0].re * p[0].re + p[1].re * p[1].re + p[2].re * p[2].re) as f64).sqrt() }).reduce(|| 0.0, f64::max);
-    m.m_sc = emax_far.max(0.97 * m.m_sc);
+    let wmax = celle.iter().map(|c| c.0 as f64).fold(0.0, f64::max);
+    m.w_max = wmax.max(0.97 * m.w_max);
     let mut acc_u = 0.0f32;
     m.cdf = celle.into_iter().filter(|c| c.0 > 0.0).map(|c| { acc_u += c.0; (acc_u, c.1) }).collect();
 }
@@ -372,12 +426,13 @@ fn muovi_flusso(m: &mut Mondo) {
     let tot = match m.cdf.last() { Some(c) if c.0 > 0.0 => c.0, _ => return };
     let n = acc::N_LUCE;
     let lim = (n / 2 - acc::SPUGNA) as f64 * acc::B_LUCE;
-    let umin = 1e-4 * 0.5 * m.m_sc * m.m_sc;
+    let umin = 1e-6 * m.w_max;
+    let ylim = (FETTA as f64 + 0.5) * acc::B_LUCE;
     if m.flusso.len() < N_FLUSSO { m.flusso.resize(N_FLUSSO, [1e9; 3]); }
     for i in 0..m.flusso.len() {
         let p = m.flusso[i];
         let vivo = match cella(p) {
-            Some(s) if p.iter().all(|x| x.abs() < lim) => {
+            Some(s) if p.iter().all(|x| x.abs() < lim) && p[1].abs() < ylim => {
                 let (u, v) = flusso_cella(&sc.f[s]);
                 if u > umin { m.flusso[i] = [p[0] + v[0] * A, p[1] + v[1] * A, p[2] + v[2] * A]; true } else { false }
             }
@@ -561,7 +616,13 @@ pub fn prova_vista(e: Esperimento, ticks: usize) -> (f64, usize, usize, f64) {
             k += 1;
         }
     }
+    if let Ok(path) = std::env::var("DIFFUSA_DUMP") {
+        let mut v = palline_luce(&m, true);
+        v.extend(palline(&m, false));
+        let txt: Vec<String> = v.iter().map(|b| format!("{} {} {} {} {} {} {} {} {}", b.0[0], b.0[1], b.0[2], b.1, b.2[0], b.2[1], b.2[2], b.2[3], 0)).collect();
+        std::fs::write(path, txt.join("\n")).unwrap();
+    }
     let nf = palline_flusso(&m, sc).len();
-    let ng = griglia(&sc.f, Some(m.m_sc as f32), 1.0, [[1.0; 3]; 2]).len();
+    let ng = fetta(&sc.f, Some(m.w_max), true, 1.0, [[1.0; 3]; 2]).len();
     (vr / k.max(1) as f64, nf, ng, m.e_ref / m.m_sc.max(1e-300))
 }

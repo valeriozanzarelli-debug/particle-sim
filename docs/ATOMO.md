@@ -427,6 +427,25 @@ una scatola di 6,5 λ non tiene un impulso più lungo (debito).
   spugna o dove u è quasi zero (e lo 0,5 % per tick a caso). Niente scie: il moto è delle palline stesse.
   Controllo senza finestra (`diffusa_vista`, non pre-registrato): dopo 400 ħ/(mc²) dall'impulso π/2 le palline di flusso vanno via dall'atomo con velocità radiale media **0,977 c**, A = 199 in quel momento (la luce diffusa lontana è già più debole del suo picco). Le palline di luce diffusa sono al massimo 30 000 per scatola (sottoinsieme fisso a caso: il portatile).
 
+**Leggibilità (v2, dopo la prima foto dal ponte).** La foto `2026-10-13_foto_diffusa` (tick 632, p_exc 0,749, ×105) era
+un campo uniforme di puntini: le palline nascevano su tutta la scatola 3-D con soglia fissa su |E| e un sottoinsieme a caso,
+così i gusci proiettati si riempivano e i nodi scuri sparivano. Ora (default della vista diffusa, scelte di disegno dichiarate
+in alto sullo schermo):
+- **fetta**: si disegnano solo le celle con |y| ≤ 2 celle (10 ħ/mc) attorno all'atomo, il piano x–z che contiene l'asse
+  dell'impulso (x) e del dipolo (z); vale per luce diffusa, impulso libero e palline di flusso (che rinascono nella fetta
+  quando ne escono);
+- **legge di campionamento**: ogni cella si accende con probabilità min(1; 1,5 w/w_max) e luminosità ∝ √(w/w_max), con
+  w = u·r², u = |E|² + |B|² la densità d'energia della luce diffusa e r la distanza dall'atomo: il fattore r² **toglie la
+  caduta 1/r² dell'onda che si allarga** (dichiarato), così gli anelli lontani si vedono come i vicini e i nodi fra gli anelli
+  restano scuri; per l'impulso libero w = u;
+- **atomo ingrandito ×6**: 5 000 palline estratte da |ψ|² disegnate a 6 volte la distanza dal nucleo, luminosità ∝ √(ρ/ρ_max):
+  è la sorgente del dipolo, si vede oscillare su e giù;
+- inquadratura per le foto: camera sull'asse −y (yaw 0, pitch 0) a 460 ħ/mc, così si vede la fetta di fronte.
+Anteprima fatta nel cloud con i dati veri della scena (matplotlib, non il renderer): `lab/out/diffusa_anteprima.png`,
+t = 400 dopo l'impulso π/2: anelli rosa/verdi alternati, più forti lungo x e spenti lungo z (sin²θ del dipolo), palline di
+flusso a v_r = 0,97 c. Debiti in più: la fetta, il fattore r², la soglia della probabilità e l'ingrandimento dell'atomo sono
+scelte di disegno.
+
 Il fotone sparato aspetta l'atomo pronto (prima, se si premeva F durante la preparazione, andava all'atomo non
 accoppiato con la frequenza sbagliata). Per le foto dal ponte: `spara-al` ora aspetta la preparazione e la foto si fa
 (`frames` − `spara-al`) fotogrammi dopo lo sparo vero; flag nuovi (validati in `ponte/ponte.py`): `spara-pronto`,
