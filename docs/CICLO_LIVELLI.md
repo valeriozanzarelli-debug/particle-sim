@@ -141,3 +141,84 @@ il "200 km" no, non ancora.
 * Debiti nuovi: (c1) i livelli 3-D liberi non portano il k⁴ (va usato T o un vincolo di trasporto); (c2) solido H₂
   statico (niente punto zero: la densità esce 124 contro 86 kg/m³ veri, la coesione 23 meV contro ~10 veri, perché il
   punto zero dell'H₂ è grande); reticolo fcc scelto, non emerso; (c3) frazione di cedimento f_y non derivabile.
+
+---
+
+## 2. Fase 2: variabili grosse scelte dalla macchina, e il fattore di blocco (2, 3 o φ)
+
+Pre-registrazione: `lab/ciclo_prereg_p2.py` (dentro `lab/out/ciclo_prereg.json`, commit 7a115a5, **prima** delle
+corse; le corse di sviluppo e i cambi di disegno che hanno prodotto sono elencati lì). Codice: `lab/ciclo_p2_core.py`
+(il ciclo in 1-D), `lab/ciclo_p2_1d.py`, `lab/ciclo_p2_3d.py`, `lab/ciclo_p2_analyze.py` → `lab/out/ciclo_p2.json`.
+
+### 2.1 Cosa ho fatto (come a un ventenne)
+
+**Le variabili grosse le sceglie la macchina.** Prendo i modi lenti del livello sotto (quelli con almeno 12 celle
+grosse per lunghezza d'onda) e guardo, dentro ogni blocco, che forma hanno. La "matrice densità del blocco" dice quali
+combinazioni di numeri del blocco portano quasi tutto il peso dei modi lenti: si tengono quelle, partendo da **una** e
+aggiungendone solo se il controllo non passa. Nessuno dice "prendi la media" o "prendi la componente grande".
+
+**La regola grossa** è la più locale (raggio w più piccolo) che rifà gli autovalori lenti del livello sotto; nel caso
+quasi-periodico i suoi numeri dipendono dal disegno locale dei blocchi. **Controllo**: i modi con almeno 24 celle per
+lunghezza d'onda (la regola HD del progetto) entro 10⁻³. **Ripeti** dalla regola imparata.
+
+**Tre modi di raggruppare**: per 2, per 3, e alla **Fibonacci** (blocchi lunghi e corti che si alternano come nella
+successione di Fibonacci: A ← AB, B ← A; il fattore medio per livello è φ = 1,618, la "sezione aurea" che Valerio
+chiedeva). In 1-D il Fibonacci è vero (reticolo quasi-periodico); in 3-D ho provato φ come semplice riscalamento nello
+spazio degli impulsi (lì niente quasi-periodicità: dichiarato).
+
+Sistemi: 1-D zig-zag libera e con un Coulomb morbido (3 stati legati), sopra un livello base comune di 1,6 λ_C
+(cella 32 volte la fine, nel regime di Pauli); 3-D zig-zag libera dalla catena A (B = 16) fino a celle ~a₀/8, con lo
+spostamento dell'1s al primo ordine come esame "Coulomb".
+
+### 2.2 Numeri contro la pre-registrazione
+
+| esame | cosa | risultato | esito |
+|---|---|---|---|
+| A1 | 1-D: le variabili scelte dalla macchina coincidono con quelle fatte a mano (media del blocco della componente grande), C = 1 | sovrapposizione minima **0,999994**, C = 1 a ogni livello ammesso | **PASS** |
+| A2 | 3-D: la macchina ritrova da sola la "componente grande" (Pauli, 2 numeri) | autovalori 0,99999 / 0,99999 / 1,4·10⁻⁵ / 1,4·10⁻⁵; sovrapposizione **1 − 5·10⁻¹⁰** | **PASS** |
+| A3 | 1-D libero, blocchi per 2 e per 3: tutti i livelli ammessi fino a B ≥ 27, errore accumulato ≤ 10⁻² | b = 2: 5 livelli fino a B = 32, **4,8·10⁻³**; b = 3: 3 livelli fino a B = 27, **2,7·10⁻³** | **PASS** |
+| A4 | 1-D libero, Fibonacci: lo stesso | livello 1 ammesso (B = 1,62, w = 4, 9,8·10⁻⁴); **livello 2 non ammesso** a nessun w ≤ 8 (errore 0,58–0,67) | **FAIL** (previsto) |
+| A5 | punteggio errore × costo a B = 8 e 16: φ vince / perde / pari | b = 2: 0,023 / 0,029; **b = 3: 0,015 / 0,023**; φ non ci arriva | **φ perde** (come previsto) |
+| A6 | Coulomb 1-D: 3 energie di legame vicino a B = 4 entro 1 % | b = 2 (B = 4): 0,26 / 0,04 / 0,17 %; b = 3 (B = 3): 0,14 / 0,03 / 0,10 %; Fibonacci non ci arriva | **PASS** |
+| A7 | 3-D: ogni schema arriva a B ≥ 400, spostamento 1s al primo ordine a B = 400 entro 10⁻³ | b = 2: −3,2·10⁻⁴ (4 livelli); **b = 3: +1,5·10⁻⁵** (3 livelli); φ: +1,0·10⁻⁴ (7 livelli) | **PASS**; punteggio: b = 3 0,005, φ 0,034, b = 2 0,11 → **φ perde** contro il 3 |
+| A8 | ancora: il livello base contro la zig-zag fine (65 536 celle) sugli stati legati | 2,9 / 6,6 / 4,3·10⁻⁵ | **PASS** |
+
+**6 PASS / 1 FAIL**, più due confronti: in tutti e due **φ perde** e **vince il blocco per 3**.
+
+### 2.3 Cosa vuol dire
+
+1. **La scelta delle variabili è automatica e giusta.** Senza dirle niente, la macchina sceglie un numero per blocco
+   in 1-D e due in 3-D, e sono esattamente la "componente grande" (lo spinore di Pauli) che prima veniva scelta a mano
+   fra due opzioni date. La ragione fisica: i modi lenti dell'elettrone fermo non contengono il positrone (lontano
+   2mc² in frequenza), quindi la macchina lo butta. È una **validazione**: ritrova una scelta nota.
+2. **Fibonacci non funziona come regola dei livelli, e si capisce perché.** Con blocchi di taglia diversa il reticolo
+   grosso non è più uguale a se stesso traslato: ogni cella ha un vicinato diverso, e la regola grossa esatta ha **code
+   irregolari** che non si spengono (~4 % a 6–8 celle, misurato nello sviluppo). La regola locale non riesce a starci
+   dentro dal secondo livello. È un prezzo strutturale: la simmetria di traslazione è proprio quello che rende locale la
+   regola grossa. Con φ come semplice riscalamento (3-D, senza quasi-periodicità) la catena funziona, ma servono più
+   livelli per lo stesso salto (4,8 livelli per decade contro 2,1 per il 3) e ogni livello aggiunge errore: perde.
+3. **Vince il fattore più grande che il controllo accetta.** L'errore accumulato cresce come B^1,15–1,34 qualunque sia
+   lo schema (stessa pendenza: è la fisica, il k⁴ e la coda del pacchetto), ma con b = 3 si fanno meno passi. È lo
+   stesso motivo per cui la macchina dell'AGGLOMERATO_ZIGZAG sceglieva da sola b = 16 dove poteva. La fisica nota non
+   prevedeva φ e i dati non lo premiano: **nessuna scoperta**, ma ora è misurato e non è un'opinione.
+4. **Dove si ferma.** Tutte le catene 3-D si fermano verso a₀/4 (b = 2 a B = 1024, b = 3 a 1296): l'1s ha ancora peso
+   agli impulsi del bordo della cella. È lo stesso muro trovato da AGGLOMERATO_DUE_ATOMI (a₀/2 rifiutato). Lì il ciclo
+   deve **cambiare variabili** (non più celle d'onda ma atomi interi): è il prossimo salto del ciclo, non un difetto
+   del fattore di blocco.
+5. **Rumore di fluttuazione–dissipazione.** Per un'onda sola (niente temperatura) il dettaglio buttato non è rumore ma
+   memoria deterministica; qui l'ho solo misurato come "perdita" (1 − peso catturato: 4·10⁻³ in 1-D). Il rumore vero
+   serve con molte particelle calde (la goccia): fase 4.
+
+### 2.4 Debiti e manopole della fase 2
+
+* Manopole del ciclo (uguali per tutti gli schemi, dichiarate prima): finestra di controllo 24 celle/λ e almeno 9 modi;
+  finestra lenta 12 celle/λ; budget 10⁻³ (1-D) e 3·10⁻⁴ (3-D); peso dei modi veloci 0,03; minimi quadrati relativi
+  (pavimento 10⁻²); w ≤ 8 (1-D), ≤ 5 (3-D); peso catturato ≥ 0,98. Nessuna è stata cambiata dopo le corse.
+* Correzione di codice dichiarata (non di soglia): in 3-D la prima versione risolveva il fit vincolato con le equazioni
+  normali (pesi relativi su 10⁶: numeri spazzatura, nessun livello ammesso); rifatta col metodo dello spazio nullo
+  prima di leggere qualunque esito.
+* Debiti: (c4) il livello base comune (1,6 λ_C) è imparato con G(0) e massa trasportati esatti: parte dal regime di
+  Pauli perché sotto λ_C una regola a un numero per blocco è non locale (sviluppo); (c5) la regola 1-D è imparata dagli
+  autovettori di tutta la catena (2000–2600 celle), non da piccoli pezzi: la parte "pezzi" è della fase 3; (c6) φ in
+  3-D senza quasi-periodicità; (c7) il potenziale grosso 1-D è la restrizione di Galerkin, non imparato (in 3-D il campo
+  imparato esiste già, AGGLOMERATO_COMPLETO).
