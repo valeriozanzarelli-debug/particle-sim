@@ -449,7 +449,7 @@ Emendamenti dichiarati: `lab/out/surf_f2_amend.json` (B1–B5, nessuna soglia ca
   mescolanza delle valli** (come diceva BATTIMENTO_1S su master), ma il meccanismo preciso è "due livelli quasi
   gemelli ascoltati insieme".
 * **E la rotazione dei surfisti?** Ogni livello esatto ha **corrente di rotazione netta zero** (|v_φ| < 10⁻¹¹): i
-  surfisti stanno fermi come nell'onda reale di Bohm. La rotazione di Dirac c'è, ma **solo nella valle k = 0**
+  surfisti stanno fermi (non perché l'onda sia reale: è polarizzata, vedi §12.8; è un FAIL contro Dirac). La rotazione di Dirac c'è, ma **solo nella valle k = 0**
   (0,87–0,97 Zα c sinθ, dentro la finestra di Dirac), e le altre tre valli la cancellano esattamente. Il 0,21 di E5
   era il battimento lento fra i due livelli gemelli (periodo ~2·10⁴ tick), fotografato a metà.
 
@@ -532,13 +532,16 @@ valli ≠ 0 è **meno** Σz del laboratorio.
 3. **S3 fallisce nella parte "polarizzata nel proprio sistema"**: l'ipotesi semplice ("ogni valle è un 1s pieno,
    solo girato") è vera per il livello 0,8993 (|Σz| = 0,92–0,93 in tutte le valli) e quasi per 0,8863 (0,88–0,90),
    ma **non** per 0,8996, dove in due valli lo spin sta quasi tutto fuori dall'asse z (0,10). Il nucleo non solo
-   mescola le valli: le mescola **con lo spin girato**. Ipotesi da verificare: 0,8993 e 0,8996 sono le due
-   metà di un doppietto di tipo "Kramers" rotto dal reticolo; serve un secondo ascolto con il seme di spin giù.
+   mescola le valli: le mescola **con lo spin girato**. ~~Ipotesi: 0,8993 e 0,8996 sono le due metà di un doppietto
+   di Kramers rotto~~ [Controllato in §12.8: **no**. La regola ha un'inversione del tempo esatta con T² = −1; ognuno
+   dei due livelli è già un doppietto di Kramers esatto per conto suo.]
 4. **La rotazione: zero netto per i livelli veri, giusta dentro la valle 0.** La corrente a due tick di ogni
    livello esatto ha v_φ netto = 0 a precisione macchina (S5: i surfisti non girano, |z| ≤ 1,5, deriva 6·10⁻⁹ celle:
    esatti e fermi). Ma se si guarda la sola componente k = 0, v_φ = 0,87–0,97 Zα c sinθ: **la rotazione di Dirac è
-   lì, giusta, e le tre valli "doppie" la annullano**. È la stessa cosa che succede a un'onda reale di Schrödinger
-   (corrente zero) — il reticolo, con 4 copie, rende l'1s "reale". Lo 0,21–0,23 di E5 è la rotazione del
+   lì, giusta, e le tre valli "doppie" la annullano**. ~~È la stessa cosa che succede a un'onda reale di Schrödinger
+   (corrente zero): il reticolo, con 4 copie, rende l'1s "reale".~~ [Corretto in §12.8: i livelli **non** sono reali
+   (T² = −1) e sono polarizzati (⟨Σz⟩ = 0,927). Quello che manca è la corrente netta della regola, ed è un FAIL
+   contro Dirac.] Lo 0,21–0,23 di E5 è la rotazione del
    *battimento* fra 0,8993 e 0,8996, che cambierebbe lentamente nel tempo.
 5. **S4 (il controllo col nucleo spalmato) non ha funzionato come controllo** (B4): l'ascolto è andato su 0,9094
    e lo stato ha solo il 57 % nella valle 0. Con il nucleo liscio le 4 valli hanno livelli quasi uguali e non si
@@ -587,7 +590,7 @@ puntiforme sull'angolo della cella e non sparisce con a (BATTIMENTO_1S); a = 0,2
    valle 0 non è conservata da sola esattamente — va misurato quanto devia (debito da pesare prima di usarla).
 2. **Togliere il raddoppio nella regola** (thread principale): un termine di "massa di Wilson" che sposti le
    valli ≠ 0 a energia alta (coerente con BATTIMENTO_1S). Poi rifare S3–S5: è il test decisivo.
-3. Secondo ascolto Ritz col seme di spin giù (Kramers? punto 3), ~10 min.
+3. ~~Secondo ascolto Ritz col seme di spin giù~~ fatto in §12.8: stessi livelli, spin opposto.
 4. Valentini a n = 192 con energia non relativistica (ω₀ − m piccolo), per V6/V7.
 
 ### 12.6 Domande per Valerio
@@ -610,3 +613,110 @@ puntiforme sull'angolo della cella e non sparisce con a (BATTIMENTO_1S); a = 0,2
 * `lab/surf_f2_overlap.py` → `lab/out/surf_f2_overlap.json` (B3).
 * `lab/surf_f2_colori.py` → `lab/out/surf_f2_colori.json` (B5, un colore contro la somma dei 4).
 * `lab/surf_f2_figure.py` → `lab/out/surf_f2_figure.png`, `lab/out/surf_f2_results.json`.
+
+### 12.8 Spin, inversione del tempo e corrente dell'1s (domande di fisica dopo la fase 2; post-hoc B6)
+
+Script `lab/surf_f2_kramers.py` (`small`, `levels`, `ritzdown`) → `lab/out/surf_f2_kramers.json`. È tutto post hoc
+e dichiarato; nessuna soglia cambiata.
+
+**Il punto di fisica.** Nella teoria di Dirac (e in quella di Pauli con il termine di spin) un 1s polarizzato porta
+una corrente azimutale: è quella che dà il momento magnetico di spin. Con la guida di Bohm–Dirac i surfisti
+**devono** girare. Quindi "sui livelli veri i surfisti non ruotano" (S5) è un **FAIL contro Dirac**. Si potrebbe
+salvare solo se i livelli fossero combinazioni non polarizzate o reali della coppia di Kramers. Ho controllato,
+e **non lo sono**.
+
+**(1) Polarizzazione di spin completa** (⟨Σx⟩, ⟨Σy⟩, ⟨Σz⟩):
+
+| livello | totale | valle 0 | valle xy | valle xz | valle yz | polarizzazione massima nel doppietto |
+|---|---|---|---|---|---|---|
+| 0,89930 | (0, 0, **0,927**) | (0, 0, 0,931) | (0, 0, 0,931) | (0, 0, 0,923) | (0, 0, 0,923) | 0,927 |
+| 0,89960 | (0, 0, 0,104) | (0, 0, 0,932) | (0, 0, 0,104) | (0, 0, 0,104) | (0, 0, −0,725) | 0,414 |
+
+Le componenti x e y sono minori di 10⁻¹². Il livello 0,89930 è un 1s **polarizzato** al 93 %, ed è polarizzato
+in ogni valle. Il doppietto 0,89960, invece, non arriva oltre 0,41 in nessuna direzione, comunque si combinino i
+suoi due stati: non è un normale doppietto j = ½ (anche questo va messo tra i debiti).
+
+**Come convivono ⟨Σz⟩ = 0,927 e v_φ = 0.**
+- Il flusso netto per link sui due tick è zero **punto per punto** (|F| ≤ 5·10⁻¹³), non soltanto in media.
+- Il flusso di un tick solo è grande (fino a 3,6·10⁻³, contro ρ massima 4,3·10⁻³), ma il secondo tick lo
+  restituisce identico col segno opposto. La parte azimutale del flusso di un tick vale −1,0·10⁻⁴ Zα sinθ (tick 1)
+  e +1,0·10⁻⁴ (tick 2).
+- Hodge sul flusso del tick 1: parte gradiente (che riempie e svuota) +3,8·10⁻⁵, parte rotazionale −1,4·10⁻⁴.
+  Sono tutte e due ~10⁴ volte sotto il valore di Dirac (1), e il tick 2 le rovescia esattamente.
+- Lo spinore però **ha** la magnetizzazione giusta. Il termine di spin di Gordon del continuo,
+  ∇×(ψ̄Σψ)/2m, calcolato sullo stesso spinore, darebbe v_φ = 1,10 Zα sinθ per 0,89930 (1,08 dalla sola valle 0).
+  Per 0,89960 darebbe 0,25 in totale e 1,07 dalla valle 0.
+- In parole semplici: lo spin c'è, e c'è anche la sua "magnetizzazione". Ma la regola, che sposta la probabilità
+  solo lungo i link, non trasporta nessuna corrente netta in uno stato stazionario. La corrente di spin che Dirac
+  richiede **non viene portata dal trasporto della regola**.
+
+**(2) Inversione del tempo: T² = −1, Kramers esatto.**
+- Ho trovato l'operatore antiunitario esplicito: **Θ = (Ph·C)·(iσ_y su L e su R)·K**. Qui C è la moneta, Ph la fase
+  del potenziale e K il complesso coniugato. Soddisfa Θ W₂ Θ⁻¹ = W₂⁻¹ per il passo della coppia di tick (assi x, y, z
+  poi z, y, x).
+- Il motivo: ogni pezzo (spostamento, moneta, fase) viene invertito dalla sola iσ_y K, e la coppia di tick è
+  palindroma a meno di Ph·C, che si riassorbe in Θ.
+- Verifica su un reticolo 4³ con potenziale a caso (nessuna simmetria spaziale):
+  - errore 5,8·10⁻¹⁵;
+  - **Θ² = −1** (parte immaginaria ≤ 1,4·10⁻¹⁵);
+  - la sola iσ_y K, senza Ph·C, sbaglia di 5,4;
+  - tutto lo spettro va a coppie, entro 7,5·10⁻¹⁵.
+- Quindi non esistono autovettori reali obbligati a corrente zero, e la degenerazione di Kramers è **protetta**.
+- Sui livelli 48³:
+  - Θψ(0,89930) è un autovettore con la stessa ω (residuo 1,4·10⁻¹⁰), ortogonale a ψ (10⁻¹⁷), con spin −0,927;
+  - Θψ ha sovrapposizione 1,3·10⁻¹³ con il livello 0,89960.
+- **0,89930 e 0,89960 non sono una coppia di Kramers rotta: sono due doppietti di Kramers distinti**, separati dalla
+  mescolanza delle valli.
+- **Ritz partito da spin giù** (seme T·seme): stesse quattro ω entro 10⁻¹⁵ (0,84037 / 0,88627 / 0,89930 / 0,89960),
+  stessi pesi del seme, spin opposti (−0,396 / −0,0002 / −0,927 / −0,104). Le sovrapposizioni con i livelli trovati
+  partendo da spin su valgono 10⁻²⁵: sono i loro partner di Kramers.
+- **Legame con REGOLA_LOCALE §13** (coppia 0,8811/0,8822 con il Wilson ritorto): lì i due livelli hanno spin opposti
+  ed energie diverse, cioè un Kramers rotto. Nella regola senza Wilson, invece, Θ è esatto, per cui la rottura
+  dell'inversione del tempo deve venire dal **termine di Wilson ritorto** (o da come è messo nei due tick), non
+  dall'ordine degli assi in sé.
+  - Il nostro split 0,89930/0,89960 (3·10⁻⁴) è un fenomeno diverso: due doppietti, ognuno con Kramers intatto.
+  - Proposta, da non fare qui perché non è un mio file: applicare lo stesso controllo Θ W₂ Θ⁻¹ = W₂⁻¹ al motore di
+    `locale_f4_core.py`. Se fallisce solo con h ≠ 0, la causa è confermata.
+
+**Perché nessuno stato stazionario porta corrente netta: un risultato più forte.**
+- Dalla Θ segue un'identità: il flusso del tick 2 di ψ è uguale a meno il flusso del tick 1 di Θψ. Quindi il flusso
+  netto della coppia di tick è F₁(ψ) − F₁(Θψ).
+- Misurato: il flusso di un tick **non distingue** ψ da Θψ (−1,0074·10⁻⁴ per entrambi, uguali entro 10⁻¹¹; vale anche
+  per le combinazioni (ψ+Θψ)/√2 e (ψ+iΘψ)/√2). Quindi il netto è zero per **qualsiasi** stato del doppietto.
+- Sul reticolo 4³ con potenziale a caso, **tutti** i 256 autovettori hanno flusso netto ≤ 8·10⁻¹⁵ punto per punto.
+- Fa eccezione V = 0, dove le onde piane degeneri si muovono (0,067).
+- Non ho una dimostrazione del perché F₁ non dipenda dallo spin dentro un doppietto. È un fatto esatto in entrambi i
+  casi provati, non un teorema.
+
+**(3) Contro che cosa era confrontato lo 0,21 di E5.**
+- Formula: v_φ = r_c·Δφ/(10 a), con Δφ lo spostamento angolare tra i tick 500 e 510 (10 tick = 10 a/c, a = 0,5 λ_C,
+  velocità in unità di c).
+- Normalizzazione: per ogni surfista si divide per sinθ = r_c/r, si fa la media nella finestra 1 < r < 6 λ_C,
+  |z| < 0,5 r, e si divide per Zα = 60/137,036 = 0,4378.
+- Valore atteso: 1, finestra [0,75; 1,25]. Viene dall'identità esatta di Bohm–Dirac per l'1s col nucleo puntiforme:
+  - v = ψ†αψ/ψ†ψ, quindi v_φ = c·2gf/(g² + f²)·sinθ;
+  - f/g = (1 − γ)/Zα è costante, e 2x/(1 + x²) = Zα;
+  - quindi v_φ = Zα c sinθ a ogni raggio, con corrente di convezione e di spin insieme.
+- La scala c = 1 cella per tick è la stessa che dà ω₁ₛ = 0,8996, accanto a γ = 0,8991 di Dirac (che è in unità di
+  m c²).
+- Lo 0,21 di E5 vuol dire quindi 0,21·Zα c sinθ ≈ 0,09 c sinθ. È la rotazione del battimento fra due doppietti
+  (§12.3), non quella di un livello.
+
+**Conclusione, detta chiara.** Con questa regola (4 valli, flusso per link) **il reticolo non porta la corrente di
+un 1s polarizzato**:
+- lo spin c'è (0,927), la magnetizzazione c'è (Gordon 1,10), Kramers è esatto;
+- ma il trasporto netto di probabilità di ogni stato stazionario è zero;
+- quindi non c'è il momento magnetico "di corrente" né la rotazione dei surfisti.
+
+È un **limite della strada** nella forma attuale: un FAIL contro Dirac, dichiarato. La valle k = 0 da sola gira
+giusta (0,87–0,97). Che il limite sparisca togliendo il raddoppio è un'ipotesi, non un fatto: va provata con la
+regola senza valli doppie (o con il Wilson, controllando insieme che Θ resti esatto).
+
+**Debiti nuovi (aggiunti a §12.4):**
+- i livelli stazionari della regola non portano corrente netta, quindi non c'è momento magnetico di corrente (FAIL
+  contro Dirac);
+- il doppietto 0,89960 non si polarizza oltre 0,41;
+- la ragione esatta per cui F₁ non dipende dallo spin dentro un doppietto non è dimostrata.
+
+* `lab/surf_f2_kramers.py` → `lab/out/surf_f2_kramers.json` (B6). Log dei due Ritz con spin giù:
+  `lab/out/surf_f2_ritzdown*.log` (non tracciati).
