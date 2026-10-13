@@ -363,3 +363,38 @@ if __name__ == "__main__":
     # continuum reference: point-like check with a tiny shell, Z = 60
     E = dirac_bound(lambda r: V_shell(r, Z * ALPHA, 1e-6), 0.5, 0.99)
     print("continuum shell R=1e-6 Z=60 E =", E, " Dirac point", dirac_formula(1, -1, Z * ALPHA))
+
+
+def gap_levels(w, omega_sigma, k=10):
+    """several eigenvalues of W nearest exp(-i omega_sigma a) (ARPACK shift-invert); returns list of
+    (omega, nodes_of_g, frac_inside_r<rmax/2, resid) for the states in the gap (-m, m), lowest first"""
+    W = w.matrix()
+    lam0 = np.exp(-1j * omega_sigma * w.a)
+    vals, vecs = spl.eigs(W, k=k, sigma=lam0, which="LM", tol=1e-13)
+    out = []
+    for j in range(len(vals)):
+        om = -np.angle(vals[j]) / w.a
+        x = vecs[:, j] / np.linalg.norm(vecs[:, j])
+        chi = x.reshape(w.N, 2).T
+        u = w.palindromic(chi)
+        g = (u[0] + u[1]) / np.sqrt(2)
+        g = g * np.exp(-1j * np.angle(g[np.argmax(np.abs(g))]))
+        rho = np.abs(chi[0])**2 + np.abs(chi[1])**2
+        big = np.abs(g) > 1e-3 * np.abs(g).max()
+        gr = g.real[big]
+        nodes = int(np.sum(gr[1:] * gr[:-1] < 0))
+        inside = rho[: w.N // 2].sum() / rho.sum()
+        resid = np.linalg.norm(W @ x - vals[j] * x)
+        if -1 < om < 1:
+            out.append((om, nodes, inside, resid))
+    return sorted(out)
+
+
+def level_1s(w, omega_sigma, k=10):
+    """1s = the lowest localized gap state (checked: no node); refined by shift-invert (level())"""
+    L = [x for x in gap_levels(w, omega_sigma, k) if x[2] > 0.99]
+    if not L:
+        return None
+    om0, nodes, inside, _ = L[0]
+    om, rho, resid, smooth = level(w, om0)
+    return om, nodes, resid, smooth
