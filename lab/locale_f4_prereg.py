@@ -1,0 +1,54 @@
+"""locale_f4_prereg.py - pre-registration of PHASE 4 of REGOLA LOCALE, written BEFORE lab/locale_f4_run.py.
+Earlier pre-registrations are not modified. Writes lab/out/locale_f4_prereg.json."""
+import json, os, subprocess, datetime
+OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "out")
+head = subprocess.check_output(["git", "rev-parse", "HEAD"]).decode().strip()
+P = {
+ "meta": {"written": datetime.datetime.now().isoformat(timespec="seconds"), "git_head_before": head},
+ "questions": [
+  "(1) a LOCAL, unitary, charge-conserving term that gives mass to the 4 pi-valleys of one copy while the low-energy "
+  "electron (E(0), kinetic mass, dispersion) is untouched up to O(k^4); including VUOTO_POLARIZZA's breathing coin "
+  "theta -/+ mu (read only, lab/vuoto_f2_breath.py, docs/VUOTO_POLARIZZA.md par. 7.1 and 13).",
+  "(2) how the historical Schwinger studies counted pairs (IDEE_RIPRESE R1, COPPIE_IN_SCATOLA): bookkeeping from the "
+  "code (lab/redo_r1.py, lab/box_core.py), no new run needed.",
+  "(3) the pair of levels 0.8811 / 0.8822 (twisted Wilson h = 0.1, nucleus on the corner, phase 3)."],
+ "engine": "lab/locale_f4_core.py: walk(theta, mu_x, mu_y, hu, hs): coin of tick t = exp(-i[(theta + s_t mu_x) X + s_t "
+           "mu_y Y]), s = (-1, +1) (breathing; mu_y = 'twisted' breathing); twisted link Wilson (axis Y, links 2e_j) of "
+           "strength hu + s'_t hs, s' = (+1, -1) (uniform + alternating in time). hu = 0.1, hs = 0 is F2 of phase 1.",
+ "candidates": {
+  "C1 breathing X": "mu_x in {0.02, 0.05, 0.1, 0.3}",
+  "C2 breathing Y": "mu_y in {0.05, 0.1}",
+  "C3 alternating Wilson": "hs in {0.02, 0.05, 0.1}",
+  "C4 breathing X + uniform Wilson": "mu_x in {0.1, 0.3}, hu = 0.1",
+  "C5 k^2-cancelled": "mu_x in {0.1, 0.3}, hu in {0, 0.1}; hs found by root finding so that the kinetic mass along x "
+                      "equals the frozen one (ONE condition = a principle that fixes hs, counted as a tuned ratio, not a "
+                      "free knob); sign of hs searched in [-0.5, 0.5]."},
+ "exams": {
+  "Q1_gap": "smallest half-gap over the 7 doubler valleys and over a 24^3 zone grid outside |k| < 0.4 (from 0 and from pi) "
+            ">= 0.3 / a (as D5 of phase 1), at theta = 0.1.",
+  "Q2_exact": "|E(0)/m - 1| <= 1e-12, drift |grad E(0)| <= 1e-9, unitarity <= 1e-12.",
+  "Q3_mkin": "|m_kin / m_kin(frozen) - 1| <= 1e-4 along 4 directions (axis, face, body, (1,2,3)), theta = 0.1.",
+  "Q4_k4": "deviation from the frozen dispersion dE(p), p in [0.1, 2] m (12 points, worst of 4 directions): power-law "
+           "slope >= 3.5 AND |dE|/m <= 1e-4 at p = m.",
+  "verdict": "a candidate is FOUND if Q1-Q4 all pass. Also run at theta = 0.02 for the found ones (information).",
+  "H2_history": "state explicitly whether the historical counts were projected on the k = 0 hole; if yes, the quoted "
+                "0.3 % (Schwinger) stands.",
+  "X1_pair": "hypothesis: 0.8811 / 0.8822 is the 1s spin doublet split because, in its copy (lattice 2Z^3), the corner "
+             "nucleus sits OFF-centre (at (1/4,1/4,1/4) of the copy cell) and the axis order of the rule leaves little "
+             "symmetry. Tests (reduced model of phase 3, F2 h = 0.1, corner): (a) initial spinor spin-down and spin-x: "
+             "the same two energies (|dE| <= 1e-4) must appear with DIFFERENT weights, and the two levels must have "
+             "spin expectations pointing in different directions (|<S>_1 - <S>_2| >= 0.5 in units of hbar); (b) nucleus "
+             "on a site of the copy (centre case, phase 3: split 1e-5) -> doublet nearly degenerate (<= 1e-4): already "
+             "seen in phase 3, restated. PASS if (a) holds."},
+ "dev_seen_before_prereg": {
+  "C1 mu_x = 0.1": "pi-valley half gap 0.100, kinetic mass +1.0e-2 vs frozen, dE slope 1.76",
+  "C2 mu_y = 0.1": "E(0) shifted by 2e-3",
+  "C1 + hu 0.1": "N 0.80, pi 0.10, kinetic mass +1.0e-2",
+  "phase-3 exploration": "alternating Wilson hs = 0.1: pi gaps 0.40 / 1.19, kinetic mass -8.8e-2",
+  "free bands at theta = 0.5": "spin splitting of the positive band: F0 0 (1e-16), F2 h = 0.1 <= 4e-8, h = 0.6 <= 8e-4 (k <= 0.3) "
+                               "-> band spin-orbit cannot make the 1.1e-3 pair at h = 0.1",
+  "history": "lab/redo_r1.py crossing() sweeps k from -pi/2 to +pi/2 around the k = 0 hole (and separately around pi); "
+             "lab/box_core.py schwinger_strip() uses |kx| <= 1 and a quasi-energy cut W_CUT"}}
+with open(os.path.join(OUT, "locale_f4_prereg.json"), "w") as f:
+    json.dump(P, f, indent=1, ensure_ascii=False)
+print("written")
