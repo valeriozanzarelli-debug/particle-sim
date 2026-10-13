@@ -1,0 +1,30 @@
+{
+  "studio": "bagliori",
+  "documento": "docs/BAGLIORI.md",
+  "data": "2026-10-13",
+  "scopo": "Fotone leggibile da davanti (bagliori la cui grandezza e luce seguono la densita' di energia, colore = direzione di E, niente saturazione) e elettrone libero a bagliori (surfisti sulla corrente della regola) con il tremito di Zitterbewegung rimisurato dai bagliori disegnati. Solo disegno: la fisica (zz.rs, walk.rs, fotone3d.rs, orbitali.rs, accoppiato.rs) non si tocca.",
+  "regola_visiva": "solo palline tonde e bagliori; niente linee, segmenti, scie, palline allungate, surfisti speciali; forme solo da campo e corrente",
+  "configurazioni": {
+    "fotone": "scena fotone, preset bassa (12 celle per lambda, 128^3, 20000 palline), w0 = 1 lambda, sigma = 1 lambda, direzione x, cammino CPU (default per bassa); stessa cosa con --regola gpu per I5",
+    "foto_davanti": "xvfb 1280x720, --yaw 1.5708 --pitch 0, --tick 30 (t_fuoco arrotondato), polarizzazione circolare +",
+    "elettrone": "Dirac3D di walk.rs, 96^3, theta = a = 0.25 (lambda_C), pacchetto gaussiano sigma = 3 lambda_C, spinore (L,R) = ((0,i),(1,0))/sqrt2 (come F3 di docs/ZIGZAG.md), 40000 bagliori nati con |psi|^2, mossi con v = j/rho letto dallo spinore interpolato (regola del trapezio nel tempo), t <= 4 pi"
+  },
+  "esami": {
+    "S1": "vortice al bordo (corona 0.7-1.3 w0 attorno all'asse, tick t_fuoco-4..t_fuoco+4) dalle palline di energia disegnate (spostamento vero in un tick): velocita' angolare media Omega > 0 per circolare + e < 0 per circolare - (segni opposti)",
+    "S2": "lineare: |Omega_lin| < 0.15 * media(|Omega_circ+|, |Omega_circ-|)",
+    "S3": "Omega_circ / Omega_atteso in [0.6, 1.4] per entrambe le circolari, con Omega_atteso = 2 sigma c / (k w0^2) (flusso di spin di un fascio gaussiano parassiale: v_phi = -(sigma c / 2k) d ln u / dr con u ~ exp(-2 r^2 / w0^2))",
+    "I1": "foto da davanti: tra i pixel accesi (luminanza > 0.1 del massimo) la frazione con un canale >= 250 e' <= 5 %",
+    "I2": "foto da davanti: luminanza media nel disco r < 0.5 R50 diviso luminanza media nella corona 1.2-1.6 R50 >= 2.0 (R50 = raggio che contiene meta' della luce, centro = baricentro della luce)",
+    "I3": "foto da davanti: saturazione HSV media dei pixel accesi >= 0.35 (colori, non nebbia bianca)",
+    "I5": "la stessa foto con --regola gpu: I1 e I3 passano e il rapporto di I2 sta entro il 30 % di quello CPU",
+    "E1": "frequenza del tremito dal centro dei bagliori (fit c0 + c1 t + A sin(w t + phi) su t <= 4 pi, x e z) entro il 3 % di 2.071 mc^2/hbar (regola, ZIGZAG.md F3)",
+    "E2": "raggio dal centro dei bagliori: A_x entro il 10 % di 0.433, A_z entro il 10 % di 0.438 hbar/mc",
+    "E3": "equivarianza: max_t |centro dei bagliori - <r> dell'onda| <= 0.06 hbar/mc (rumore statistico atteso ~ sigma/sqrt(N) = 0.015)"
+  },
+  "strumenti": "S1-S3 e E1-E3: cargo test --release --bin atomo bagliori -- --ignored (src/atomo/test_bagliori.rs); I1-I5: lab/gl_immagini.py sulle PNG",
+  "non_esami": {
+    "muone": "stessa scena con massa x 206.768 (ingresso CODATA): senza nucleo la regola non ha lunghezza propria, quindi il muone e' lo stesso disegno con cella e tick 206.768 volte piu' piccoli. Nessun numero nuovo: si dichiara, non si esamina.",
+    "clip": "le sequenze (un fotogramma per tick) sono per gli occhi; i numeri sono negli esami sopra"
+  },
+  "manopole_del_disegno": "grandezza e luce del bagliore del fotone in funzione di u = (E^2+B^2)/max; elettrone come la scena atomo (0.03 + 0.30 (rho/rhomax)^0.35). Scelte di disegno, non fisica: i valori finali e ogni ritocco fatto dopo aver visto I1-I3 vanno dichiarati nel documento."
+}
