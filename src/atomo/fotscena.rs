@@ -32,6 +32,8 @@ pub const QUALITA: [(f64, usize, &str); 5] = [
 
 /// Energy balls drawn for each quality (docs/MOTORE_GRAFICO.md; each ball is drawn with a 2-ball tail).
 pub const PALLINE_QUAL: [usize; 5] = [20_000, 60_000, 120_000, 250_000, 1_000_000];
+/// Tail balls per energy ball (one every 2 ticks) for each quality.
+pub const SCIA_QUAL: [usize; 5] = [2, 3, 3, 3, 4];
 
 /// The named presets (`--qualita`): index into QUALITA.
 pub fn preset(nome: &str) -> Option<usize> {
@@ -151,7 +153,8 @@ impl Mondo {
         }
         let m0 = f.misura(atteso(&l, 0));
         let v_continuo = Fotone3D::velocita_continuo(&l, n);
-        let tr = Traccianti::new(&f, 1000 + lanci, PALLINE_QUAL[par.qual.min(PALLINE_QUAL.len() - 1)]);
+        let mut tr = Traccianti::new(&f, 1000 + lanci, PALLINE_QUAL[par.qual.min(PALLINE_QUAL.len() - 1)]);
+        tr.scia_n = SCIA_QUAL[par.qual.min(SCIA_QUAL.len() - 1)];
         Mondo { f, par, l, storia: vec![m0], e_prima: None, elicita: None, lanci, v_continuo, tr }
     }
 

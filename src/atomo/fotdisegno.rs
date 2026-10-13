@@ -8,8 +8,8 @@
 //!   v = 2 E × cB / (E² + c²B²) (|v| ≤ c), read from the lattice by trilinear interpolation. Energy is conserved,
 //!   so the cloud stays ∝ u by itself (exam F1 of the study: correlation 0.998 after 4 λ): no re-birth, no ages.
 //!   Each ball is STRETCHED along the local E and coloured by the direction of E around the flight axis (circular
-//!   light: every colour once per λ; linear: two colours, crest and trough); brightness ∝ √u. Short tail of the
-//!   same ball at earlier ticks. At the edge of a circular beam the balls turn around the axis: that swirl is the
+//!   light: every colour once per λ; linear: two colours, crest and trough); brightness ∝ √u. Tail = the same
+//!   ball where it was 2, 4, 6, 8 ticks ago (its real, curved path). At the edge of a circular beam the balls turn around the axis: that swirl is the
 //!   spin of the photon (exam F2: ±0.999 ħ from the balls). There is NO drawn helix any more.
 //! • SURFERS: 6 bright white balls carried by the same energy flow, with long trails.
 //! • WAVEFRONTS: thin glowing sheets where E along the polarization has a crest (gold) or a trough (cyan)
@@ -28,6 +28,8 @@ use crate::rng::{hash01, Rng};
 /// default number of energy balls (the quality presets choose their own: fotscena::PALLINE_QUAL)
 pub const N_TRACCIANTI: usize = 32_000;
 pub const N_SURF: usize = 6;
+/// past positions kept per energy ball (one every 2 ticks): the tail shows the real curved path (the swirl)
+pub const SCIA_MAX: usize = 4;
 pub const L_SCIA: usize = 48;
 
 /// Which layers are drawn.
@@ -127,6 +129,11 @@ fn vel_energia(f: &Fotone3D, p: [f32; 3]) -> ([f32; 3], f32) {
 pub struct Traccianti {
     pub pos: Vec<[f32; 3]>,
     pub vel: Vec<[f32; 3]>,
+    /// past positions, newest first, one every 2 ticks
+    pub scia: Vec<[[f32; 3]; SCIA_MAX]>,
+    /// how many of them are drawn (quality preset)
+    pub scia_n: usize,
+    passi: u64,
     pub eta: Vec<u16>,
     pub vita: Vec<u16>,
     /// the surfers: their trails (last = where they are)
@@ -136,11 +143,12 @@ pub struct Traccianti {
 
 impl Traccianti {
     pub fn new(f: &Fotone3D, seme: u64, quante: usize) -> Self {
-        let mut t = Traccianti { pos: vec![], vel: vec![], eta: vec![], vita: vec![], surf: vec![], rng: Rng::new(seme) };
+        let mut t = Traccianti { pos: vec![], vel: vec![], scia: vec![], scia_n: 2, passi: 0, eta: vec![], vita: vec![], surf: vec![], rng: Rng::new(seme) };
         let nuovi = semina(f, quante.max(N_SURF), &mut t.rng);
         for p in nuovi {
             t.pos.push(p);
             t.vel.push([0.0; 3]);
+            t.scia.push([p; SCIA_MAX]);
             t.eta.push(u16::MAX / 2);
             t.vita.push(u16::MAX);
         }
@@ -154,6 +162,13 @@ impl Traccianti {
     /// completely (u < 1e-4 of the peak: the integration error of the far tail) is put back where the light is.
     pub fn avanza(&mut self, f: &Fotone3D, verso: f32, centro: [f64; 3]) {
         let imax = f.f.par_iter().map(|p| p[0].norm2() + p[1].norm2() + p[2].norm2()).reduce(|| 0.0, f32::max).max(1e-30);
+        // the tail: every 2 ticks forward the history shifts; going back in time it is cleared
+        self.passi += 1;
+        if verso > 0.0 && self.passi % 2 == 0 {
+            self.scia.par_iter_mut().zip(self.pos.par_iter()).for_each(|(s, p)| { s.rotate_right(1); s[0] = *p; });
+        } else if verso < 0.0 {
+            self.scia.par_iter_mut().zip(self.pos.par_iter()).for_each(|(s, p)| { *s = [*p; SCIA_MAX]; });
+        }
         let morti: Vec<usize> = self.pos.par_iter_mut().zip(self.vel.par_iter_mut()).zip(self.eta.par_iter_mut()).zip(self.vita.par_iter())
             .enumerate().filter_map(|(i, (((p, v), eta), _vita))| {
                 let (vv, u) = vel_energia(f, *p);
@@ -182,6 +197,7 @@ impl Traccianti {
         for (i, p) in morti.into_iter().zip(nuovi) {
             self.pos[i] = p;
             self.vel[i] = [0.0; 3];
+            self.scia[i] = [p; SCIA_MAX];
             self.eta[i] = 0;
             self.vita[i] = u16::MAX;
         }
@@ -249,7 +265,8 @@ pub fn palline(f: &Fotone3D, l: &Lancio, centro: [f64; 3], tr: &Traccianti, e_pr
     if vista.traccianti {
         // stretch: up to 0.35 λ along E at the peak of the field (scene units = cells)
         let l_max = (0.35 * lam) as f32;
-        let parti: Vec<[(Ball, [f32; 3]); 3]> = tr.pos.par_iter().zip(tr.vel.par_iter()).zip(tr.eta.par_iter()).map(|((p, v), eta)| {
+        let ns = tr.scia_n.min(SCIA_MAX);
+        let parti: Vec<Vec<(Ball, [f32; 3])>> = tr.pos.par_iter().zip(tr.scia.par_iter()).zip(tr.eta.par_iter()).map(|((p, sc), eta)| {
             let q = campo_in(f, *p);
             let e = [q[0].re, q[1].re, q[2].re];
             let b = [q[0].im, q[1].im, q[2].im];
@@ -264,8 +281,15 @@ pub fn palline(f: &Fotone3D, l: &Lancio, centro: [f64; 3], tr: &Traccianti, e_pr
                 let k = l_max / emax;
                 schermo([(e[0] * k) as f64, (e[1] * k) as f64, (e[2] * k) as f64]).to_array()
             } else { [0.0; 3] };
-            let pp = |k: f32| schermo([(p[0] - k * v[0]) as f64, (p[1] - k * v[1]) as f64, (p[2] - k * v[2]) as f64]).to_array();
-            [((pp(1.6), 0.6, [c[0], c[1], c[2], 0.25 * a]), st), ((pp(0.8), 0.8, [c[0], c[1], c[2], 0.5 * a]), st), ((pp(0.0), 1.0, c), st)]
+            let sp = |x: &[f32; 3]| schermo([x[0] as f64, x[1] as f64, x[2] as f64]).to_array();
+            let mut v = Vec::with_capacity(1 + ns);
+            // the tail first (drawn behind the head): the same ball where it was 2, 4, 6, 8 ticks ago
+            for j in (0..ns).rev() {
+                let w = 0.5 * (1.0 - j as f32 / ns as f32);
+                v.push(((sp(&sc[j]), 0.85 - 0.08 * j as f32, [c[0], c[1], c[2], w * a]), [0.0; 3]));
+            }
+            v.push(((sp(p), 1.0, c), st));
+            v
         }).collect();
         for t in parti { for (ball, st) in t { onde.push(ball); allunga.push(st); } }
         for s in tr.surf.iter().filter(|_| surfisti) {
