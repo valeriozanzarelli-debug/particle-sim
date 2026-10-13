@@ -79,5 +79,9 @@
       "soglie": "E1 <= 0.10 %; corrente spuria max|j| <= 1e-6 alpha c/a0^3; E4 coerenza <= 1e-4 e contro Dirac × mu <= 0.6 %"
     },
     "debito_aperto": "errore ad alto k della regola imparata (k ~ 0.8/cella, ~4e-3): FAIL dichiarato finché AGGLOMERATO_COMPLETO non lo chiude"
+  },
+  "emendamento_3": {
+    "scritto": "dopo R4b (regola T: blocchi 3/5/7/9 → -0.0675/-0.0489/-0.0212/-0.0380 %, FAIL; lo stesso salto a 9 della regola vecchia, quindi non viene dalla regola). Diagnostica dichiarata: blocchi 11 e 13 (a0/256, regola T, reflux, 48 passi, finestra [24,48]).",
+    "criterio": "descrittivo; in più 'convergenza a blocco grande' PASS se |E13-E11|/|E| < 1e-4. Il FAIL di R4b resta."
   }
 }
