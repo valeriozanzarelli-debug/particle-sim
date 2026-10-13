@@ -208,7 +208,7 @@ class RadialResolvent:
         return 0.5 * (x + acc * h / PI), len(ss)
 
 
-def bethe_log(n, l_kappa, th, Z=1, rmax_bohr=50.0, Ks=None, h=0.5, nk=240, verbose=False, return_raw=False, species=True, omega_cut=0.6, tail=19.0):
+def bethe_log(n, l_kappa, th, Z=1, rmax_bohr=50.0, Ks=None, h=0.5, nk=240, verbose=False, return_raw=False, species=True, omega_cut=0.6, tail=19.0, deflate=0):
     """ln k0 for the s state n (kappa = -1) with intermediate channel kappa' (= +1 or -2). Physical units (m = 1).
     Returns dict with K list, lnk0(K), D, and the reference sum-rule value."""
     import scipy.sparse.linalg as spl
@@ -246,6 +246,13 @@ def bethe_log(n, l_kappa, th, Z=1, rmax_bohr=50.0, Ks=None, h=0.5, nk=240, verbo
         nlu += n2
     lam_n = np.exp(-1j * om * th)
     W, I = RR.W, RR.I
+    if deflate:
+        # amendment A-L2: the walk's spectrum is mirrored (doubler partner at phase +pi); the mirror of the state
+        # degenerate with |n> (2P_1/2 for 2S) sits at W/lam = -1, the pole of the Cayley T: remove those few
+        # eigenvectors from the source explicitly (W is unitary: orthogonal projection)
+        _, Vd = spl.eigs((W / lam_n).tocsc(), k=deflate, sigma=-1.0, which="LM")
+        Vd, _ = np.linalg.qr(Vd)
+        up = up - Vd @ (Vd.conj().T @ up)
     # T = i (W/lam - 1)(W/lam + 1)^{-1};  T (T + kap)^{-1} = i(W/lam - 1) [ i (W/lam - 1) + kap (W/lam + 1) ]^{-1}
     Wl = W / lam_n
     luD = spl.splu((Wl + I).tocsc())
