@@ -7,12 +7,23 @@ use bevy::{
     render::view::NoFrustumCulling,
 };
 
+use std::sync::Arc;
+
 use crate::camera::Cam;
+use crate::istanze::{impacca, quadrato, StratoIstanze};
 use crate::render::{quads, quads_s, schermo, BallMaterial, BallParams};
 use crate::{Lab, Scena};
 
 #[derive(Component, Clone, Copy, PartialEq, Eq, Debug)]
 pub enum ZzStrato { Palline, Nodo, Onde }
+
+/// The layers drawn as GPU instances.
+#[derive(Component, Clone, Copy, PartialEq, Eq, Debug)]
+pub enum ZzStratoI { Palline, Onde }
+
+/// Drawing path: GPU instances (default) or the old rebuilt meshes (`--mesh`, kept for the comparison R2).
+#[derive(Resource, Clone, Copy)]
+pub struct ModoDisegno { pub istanze: bool }
 
 #[derive(Resource)]
 pub struct ZzVisuals { mats: [Handle<BallMaterial>; 3], versione: u64, scena: Option<Scena>, nodo_fatto: bool }
@@ -25,6 +36,11 @@ pub fn setup(mut commands: Commands, mut meshes: ResMut<Assets<Mesh>>, mut mats:
     // the blended wave balls first (drawn behind), the glowing layers over them
     for (s, m) in [(ZzStrato::Onde, m2.clone()), (ZzStrato::Palline, m0.clone()), (ZzStrato::Nodo, m1.clone())] {
         commands.spawn((s, Mesh3d(meshes.add(quads(&[]))), MeshMaterial3d(m), Transform::default(),
+                        NoFrustumCulling, NotShadowCaster, NotShadowReceiver));
+    }
+    // the same two layers as GPU instances (exam R2 of docs/MOTORE_GRAFICO.md); used unless `--mesh`
+    for (s, alfa) in [(ZzStratoI::Onde, true), (ZzStratoI::Palline, false)] {
+        commands.spawn((s, Mesh3d(meshes.add(quadrato())), StratoIstanze { alfa, ..default() }, Transform::default(),
                         NoFrustumCulling, NotShadowCaster, NotShadowReceiver));
     }
     commands.insert_resource(ZzVisuals { mats: [m0, m1, m2], versione: u64::MAX, scena: None, nodo_fatto: false });
@@ -52,6 +68,8 @@ pub fn aggiorna(
     mut meshes: ResMut<Assets<Mesh>>,
     mut mats: ResMut<Assets<BallMaterial>>,
     mut q: Query<(&ZzStrato, &mut Mesh3d, &mut Transform)>,
+    mut qi: Query<(&ZzStratoI, &mut StratoIstanze)>,
+    modo: Res<ModoDisegno>,
 ) {
     let lab = &mut *lab;
     let r_cam = cam.r();
@@ -92,7 +110,7 @@ pub fn aggiorna(
                 tr.translation = schermo([-focus[0], -focus[1], -focus[2]]);
                 if let Some((it, onde, _)) = &items {
                     let old = m3.0.id();
-                    m3.0 = meshes.add(quads(it));
+                    m3.0 = meshes.add(quads(if modo.istanze { &[] } else { it }));
                     meshes.remove(old);
                     lab.palline_disegnate = it.len() + onde.len();
                 }
@@ -101,7 +119,7 @@ pub fn aggiorna(
                 tr.translation = schermo([-focus[0], -focus[1], -focus[2]]);
                 if let Some((_, it, st)) = &items {
                     let old = m3.0.id();
-                    m3.0 = meshes.add(quads_s(it, st));
+                    m3.0 = if modo.istanze { meshes.add(quads(&[])) } else { meshes.add(quads_s(it, st)) };
                     meshes.remove(old);
                 }
             }
@@ -127,6 +145,15 @@ pub fn aggiorna(
             }
         }
     }
+    if modo.istanze {
+        let off = schermo([-focus[0], -focus[1], -focus[2]]).to_array();
+        for (s, mut si) in qi.iter_mut() {
+            si.offset = off;
+            if let Some((it, onde, st)) = &items {
+                si.dati = Arc::new(match s { ZzStratoI::Palline => impacca(it, &[]), ZzStratoI::Onde => impacca(onde, st) });
+            }
+        }
+    }
     vis.versione = versione;
     vis.scena = Some(scena);
     // sizes: screen-constant, capped
@@ -145,5 +172,14 @@ pub fn aggiorna(
     if let Some(m) = mats.get_mut(&vis.mats[1]) { m.params = BallParams { size: ((0.004 * r_cam).min(0.06 * fm)) as f32, gain: 1.3 * g_nodo, soft: 3.0, core: 0.4, blend: 0.0 }; }
     // wave balls: a little smaller than the glowing layers, as in the photon laboratory
     if let Some(m) = mats.get_mut(&vis.mats[2]) { m.params = BallParams { size: (0.8 * s_main * lab.grandezza as f64) as f32, gain: lab.luce.min(1.5), soft: 2.0, core: 0.0, blend: 1.0 }; }
+    if modo.istanze {
+        for (s, mut si) in qi.iter_mut() {
+            let k = match s { ZzStratoI::Palline => 0, ZzStratoI::Onde => 2 };
+            if let Some(m) = mats.get(&vis.mats[k]) {
+                let p = m.params;
+                si.size = p.size; si.gain = p.gain; si.soft = p.soft; si.core = p.core;
+            }
+        }
+    }
     let _ = time;
 }
