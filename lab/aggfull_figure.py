@@ -135,10 +135,10 @@ a.legend(fontsize=8); a.set_title("(h) positive + relativistic needs jumps of ~1
 # (i) verdict table
 a = ax[2, 2]
 a.axis("off")
-allv = VD["verdict"] + L1V["verdict"]
+allv = VD["verdict"] + L1V["verdict"] + json.load(open(os.path.join(OUT, "aggfull_p4_verdict.json")))["verdict"]
 txt = "\n".join(f"{'PASS' if ok else 'FAIL'}  {nm[:58]}" for nm, ok, _ in allv)
-a.text(0, 1, txt, va="top", family="monospace", fontsize=8)
-a.set_title("(i) pre-registered exams (phases 2, amendments, 3)")
+a.text(0, 1, txt, va="top", family="monospace", fontsize=7)
+a.set_title("(i) pre-registered exams (phases 2, amendments, 3, 4)")
 plt.tight_layout()
 plt.savefig(os.path.join(OUT, "aggfull_figure.png"), dpi=110)
 print("saved")

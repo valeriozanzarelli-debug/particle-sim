@@ -1,0 +1,26 @@
+{
+ "eT8_2p_N192": {
+  "B": 512,
+  "N": 192,
+  "h": 17.129499885461975,
+  "cell_over_a0": 0.125,
+  "box_a0": 24.0,
+  "state": "2p",
+  "recoil": false,
+  "restriction": "learned",
+  "odd_part_e": 9.722026609493285e-18,
+  "spin_part_e": 9.531897310401546e-09,
+  "gamma0": [
+   1.00000000044365,
+   -1.3129010682441655e-20
+  ],
+  "E_eV": -3.3909773141968618,
+  "residual": 6.240352467123377e-08,
+  "iterations": 94,
+  "converged": false,
+  "schroedinger_eV": -3.401423280741939,
+  "rel_to_schroedinger": -0.00307105752001513,
+  "seconds": 2168.6148183345795,
+  "applications": 72
+ }
+}
