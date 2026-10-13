@@ -1762,6 +1762,32 @@
   "msg": "A_norm/(A_rule W2) = 1.0036; photons/norm 1.0021",
   "value": 1.003631269789479
  },
+ "P_H1b_numbers": {
+  "A_norm": 7.864148782606792e-13,
+  "A_photons": 7.859300076461513e-13,
+  "A_rule": 8.163402485018487e-13,
+  "W2": 0.9572833143049978,
+  "A_rule_W2": 7.814688986864163e-13,
+  "ratio_norm": 1.0063290805079725,
+  "ratio_photons": 1.005708619968413,
+  "d2": 9777.57657657954,
+  "t_end": 3693030.0,
+  "depletion": 3.0066980860610215e-06,
+  "A_norm_corr": 8.215069316565163e-13,
+  "omega": 2.047286577266938e-05,
+  "b": 10230.0,
+  "A_over_W2": 8.215069316565163e-13
+ },
+ "P_H1b_R1": {
+  "pass_": true,
+  "msg": "A_norm/(A_rule W2) = 1.0063; photons/norm 0.9994",
+  "value": 1.0063290805079739
+ },
+ "H1": {
+  "pass_": true,
+  "msg": "hydrogen: A(a=0.5) 6.5597e+08, A(a=0.25) 6.3777e+08, Richardson 6.3171e+08 s^-1 vs Dirac 6.2682e+08 (+0.78 %); x mu/m = 6.3136e+08 vs NIST 6.2649e8",
+  "value": 1.007791299758925
+ },
  "T1": {
   "pass_": true,
   "msg": "hybrid TWA initial rate / A = 0.477 (predicted 0.5)",

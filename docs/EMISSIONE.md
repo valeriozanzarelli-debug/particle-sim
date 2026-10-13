@@ -40,8 +40,8 @@ la luce classica non fa?
    sono le **4 valli** del cammino 3-D mescolate dal nucleo puntiforme. Con un 1s pulito il battito sparisce (loro: 4·10⁻¹⁶).
 3. **Carica vera, ritmo giusto.** Con la carica vera (K = 1) e un difetto di tempo dell'accoppiamento corretto (§3.2), la
    regola fa uscire la luce **al ritmo che lei stessa prevede**: Nd⁵⁹⁺ radiale **1,005** (N1), idrogeno **1,004** (H1a)
-   ⟨H1b⟩. Contro Dirac: **Nd⁵⁹⁺ +0,87 %** dalla formula di dipolo (PASS entro 3 %), **8,52·10¹⁵ s⁻¹**;
-   idrogeno ⟨H1⟩. Senza nessun K. Nel 3-D 48³ invece **R1_48 FAIL (0,674)**: il ritmo segue fedelmente il dipolo del
+   **1,006** (H1b). Contro Dirac: **Nd⁵⁹⁺ +0,87 %** dalla formula di dipolo (PASS entro 3 %), **8,52·10¹⁵ s⁻¹**;
+   idrogeno **6,317·10⁸ s⁻¹ contro 6,268·10⁸ (+0,78 %, PASS)**. Senza nessun K. Nel 3-D 48³ invece **R1_48 FAIL (0,674)**: il ritmo segue fedelmente il dipolo del
    momento (rapporto **1,035** costante finestra per finestra, analisi dopo), ma il dipolo tra i "livelli" 48³ cala nel
    tempo perché non sono livelli singoli.
 4. **Il 2p puro parte da solo.** Con la luce quantizzata a un fotone (schema di Wigner–Weisskopf sul reticolo, §4) il 2p
@@ -51,7 +51,7 @@ la luce classica non fa?
    quello che il calcolo prevede: il Wigner troncato "ibrido" parte a **0,48 A** (previsto 0,5) e **pompa lo stato
    fondamentale a 0,34** (previsto 0,29): non va bene per noi. **T1–T4 PASS.**
 
-**Conteggio:** 13 PASS, 5 FAIL, 3 informativi, 2 non eseguiti ⟨da aggiornare⟩ (tabella §5). Parametri fisici nuovi: **0**.
+**Conteggio (21 prove pre-registrate):** **11 PASS, 6 FAIL, 2 informative, 2 non eseguite** (tabella §5). Parametri fisici nuovi: **0**.
 
 ---
 
@@ -210,14 +210,14 @@ Patch proposta in §7.
 | N1 Dirac | A/W² contro Dirac A_LW(2p3/2) 1,0886·10⁻⁵ | **1,0981·10⁻⁵ (+0,87 %)** = 8,52·10¹⁵ s⁻¹ | 3 % | **PASS** |
 | N1x (info) | contro Dirac con ritardo A_EX 9,979·10⁻⁶ | +10,0 % (previsto ≈ +8 %: l'accoppiamento è di dipolo) | — | info |
 | H1a regola | idrogeno, a = 0,5 | **1,004**; fotoni/norma 1,002 | 3 % | **PASS** |
-| H1b regola | idrogeno, a = 0,25 | ⟨H1b⟩ | 3 % | ⟨⟩ |
-| H1 Dirac | Richardson in a² contro 6,2683·10⁸ s⁻¹ | ⟨H1⟩ | 3 % | ⟨⟩ |
+| H1b regola | idrogeno, a = 0,25 | **1,006**; fotoni/norma 0,999 | 3 % | **PASS** |
+| H1 Dirac | Richardson in a² contro 6,2683·10⁸ s⁻¹ | a = 0,5: 6,560·10⁸; a = 0,25: 6,378·10⁸; **estrapolato 6,317·10⁸ (+0,78 %)** | 3 % | **PASS** |
 | R1_48 | 3-D 48³, 2p3/2 m = 3/2 puro, K = 1 | **0,674** | 3 % | **FAIL** |
 | R1b_48 | fotoni / norma | 0,972 | 3 % | **PASS** |
-| K10 | 48³ con K = 10: esponenziale e A(K=10)/100 = A(K=1) | ⟨K10⟩ | 0,02 e 5 % | ⟨⟩ |
+| K10 | 48³ con K = 10: esponenziale e A(K=10)/100 = A(K=1) | 0,094 e 0,28 (§4.4) | 0,02 e 5 % | **FAIL** |
 | R1_96, R2_96 | 96³ | **non eseguite** (§5) | | — |
 
-Per l'idrogeno il confronto con NIST (6,2649·10⁸ s⁻¹) va moltiplicato per μ/m (la massa finita del protone): ⟨⟩.
+Per l'idrogeno il confronto con NIST (6,2649·10⁸ s⁻¹) va moltiplicato per μ/m (la massa finita del protone): **6,314·10⁸ contro 6,2649·10⁸ (+0,78 %)**. Le celle grandi spostano ω e il dipolo (la massa cinetica della regola, tanθ/θ): il ritmo è +4,7 % a a = 0,5 e +1,7 % a a = 0,25; l'estrapolazione a due punti (Richardson in a²) lascia +0,78 %, probabilmente perché a = 0,5 non è ancora nel regime a² puro.
 
 **R1_48 spiegato (analisi dopo, dichiarata).** Il dipolo di accoppiamento D(t) = ⟨1s(t)|r|ψ(t)⟩ della corsa **cala**
 da |D| = (0,53; 0,72) a (0,28; 0,52) in 3000 unità di tempo: 1s e 2p del 48³ non sono livelli singoli e le loro parti si
@@ -313,7 +313,34 @@ vera differenza classico/quantistico la mostra S1 (il 2p puro: 2·10⁻³³ cont
 
 ## 5. Tabella pre-registrazione v3
 
-⟨TABELLA⟩
+| prova | che cosa | misurato | soglia | esito |
+|---|---|---|---|---|
+| E1v3a | riga più forte = 1s→2p3/2 (luce z) | 0,07918 / 0,07923 (−0,06 %) | 0,5 % | **PASS** |
+| E1v3b | seconda riga = 1s→2p½ | 0,07647 / 0,07623 (+0,31 %) | 0,5 % | **PASS** |
+| E1v3c | rapporto delle righe vs dipoli del reticolo | 2,08 / 1,61 (+29 %) | 20 % | **FAIL** |
+| E1v3s | luce σ⁻: riga più forte = 1s→2p½ | 0,07927 (+4,0 %: è la 2p3/2) | 0,5 % | **FAIL** |
+| E1v3zc | metodo v2 (zeri) | 0,08021 | — | info |
+| R0 | luce sola: P/(Larmor W²) | 1,016 | 3 % | **PASS** |
+| R1_48 | QE 48³: A/(A_regola W²) | 0,674 (1,035 col dipolo del momento, dopo) | 3 % | **FAIL** |
+| R1b_48 | fotoni / norma | 0,972 | 3 % | **PASS** |
+| S1 | 2p puro: QE parte; semiclassico fermo | QE 7,4·10⁻³ ≥ 5,2·10⁻³; SC 1 − p_2p = 5,5·10⁻² (luce 2·10⁻³³) | | **FAIL** |
+| R1_96 | QE 96³ | non eseguita (`emiss_amend.json`) | | — |
+| R2_96 | 96³ vs Dirac (FAIL atteso) | non eseguita | | — |
+| N1 | Nd radiale: regola 1,005; vs Dirac A_LW | +0,87 % (8,52·10¹⁵ s⁻¹) | 3 % e 3 % | **PASS** |
+| N1x | vs Dirac con ritardo | +10,0 % | — | info |
+| H1 | idrogeno: 1,004 e 1,006; Richardson vs Dirac | +0,78 % (6,317·10⁸ s⁻¹) | 3 % | **PASS** |
+| K10 | K = 10: esponenziale; A/100 | 0,094; 0,28 | 0,02; 5 % | **FAIL** |
+| SC10 | semiclassico = logistica con A di K10 | 0,171 (0,019 con A della regola, dopo) | 0,05 | **FAIL** |
+| T1 | Wigner ibrido: ritmo iniziale / A | 0,477 | 0,5 ± 0,1 | **PASS** |
+| T2 | Wigner ibrido dal fondamentale: p(3000) | 0,336 | 0,293 ± 0,05 | **PASS** |
+| T3 | Wigner a spin: ritmo / A | 0,988 | 15 % | **PASS** |
+| T4 | semiclassico puro: \|p − 1\| | 0 | 1·10⁻⁶ | **PASS** |
+| L1 | battito del Laboratorio previsto vs misurato | 476,5 / 477,8 (−0,27 %) | 5 % | **PASS** |
+
+**Validazione o scoperta?** N1, H1, R0, E1v3a/b sono **validazioni** (la regola ritrova numeri noti: Dirac, Larmor, le
+regole di selezione). T1–T4 confermano conti fatti prima. Le cose nuove sono: il difetto di tempo dell'accoppiamento
+(§3.2) e la sua cura con l'asse di Bloch della luce; e il fatto che anche i 2p 3-D siano multipletti di valle con dipoli
+3–7 volte troppo piccoli (§1.4), coerente con la scoperta dell'1s del thread principale.
 
 ---
 
