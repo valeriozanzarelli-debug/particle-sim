@@ -100,6 +100,17 @@ if __name__ == "__main__":
     res["E4"] = {"media": L["B_vs_rxE_R>60_corr_media_60_200"], "min": L["B_vs_rxE_min"],
                  "PASS": bool(L["B_vs_rxE_R>60_corr_media_60_200"] >= 0.9 and L["B_vs_rxE_min"] >= 0.8)}
     res["E5"] = {"rapporto": L["rapporto_uscita_su_persa"], "PASS": bool(0.67 <= L["rapporto_uscita_su_persa"] <= 1.5)}
+    # E8 (amendment 3): turning speed of the balls around z vs Z alpha c sin(theta), reported only
+    za = d.man["Z"] * d.man["alpha"]
+    e8 = {}
+    for k in (1, 25, 50, 100, 150, 199):
+        if not (np.isfinite(dati[k, 0, 0]) and np.isfinite(dati[k + 1, 0, 0])):
+            continue
+        a_ = np.asarray(dati[k], np.float64); b_ = np.asarray(dati[k + 1], np.float64)
+        dphi = np.angle(np.exp(1j * (np.arctan2(b_[1], b_[0]) - np.arctan2(a_[1], a_[0]))))
+        rp = np.hypot(a_[0], a_[1]); r = np.sqrt((a_ ** 2).sum(0))
+        e8[k] = float((dphi / 8.0 * rp).mean() / (za * rp / np.maximum(r, 1e-9)).mean())
+    res["E8_giro_su_Dirac"] = e8
     for f in ("elettrone_DONE.json", "luce_DONE.json"):
         if os.path.exists(os.path.join(SCR, f)):
             res[f[:-10] + "_corsa"] = json.load(open(os.path.join(SCR, f)))

@@ -34,8 +34,9 @@ Video e fermo-immagine: `/mnt/project-files/modello-standard/video_atomo_1080p.m
   1. arriva l'impulso (bande rosa/verdi = E su e giù);
   2. la nuvola dell'elettrone viene scossa: **oro in alto e blu in basso, poi il contrario**, al ritmo
      ω₂₁ = 0,0752 (periodo 83,6 λ_C/c): è il dipolo che oscilla, cioè la sovrapposizione 1s + stato eccitato;
-  3. l'impulso esce a destra; l'atomo **continua a oscillare da solo** e dal centro escono **gusci di luce**
-     (la luce dell'atomo, amplificata ×1000 in energia e dichiarata): p_exc scende da 0,120 (t = 220) a 0,064
+  3. l'impulso esce a destra; la sovrapposizione 1s + 2p creata dalla luce **continua a oscillare** e irraggia
+     **come un'antenna**: dal centro escono **gusci di luce** (amplificata ×1000 in energia, dichiarato). **Non è
+     decadimento spontaneo**: un 2p puro qui non emetterebbe (manca la luce quantizzata, Emissione fase 3, 57de9e9): p_exc scende da 0,120 (t = 220) a 0,064
      (t = 1600) mentre l'oscillazione si smorza.
 * **Esami** (pre-registrati): le palline restano fedeli a |ψ|² per tutta la corsa senza mai essere rinate
   (correlazione minima **0,9996**), il dipolo letto dalle palline coincide con quello del calcolo (**0,999997**,
@@ -67,7 +68,8 @@ sovrapposizione. **Nessuna rotazione**: quella di Dirac attorno all'asse dello s
 velocità dell'energia (mai più di c). Colore = verso di E: rosa = E in su, verde-acqua = E in giù. La vista è
 "tagliata": si disegna una fetta 0 < y < 72 λ_C, così si vede dentro. Prima l'impulso passa da sinistra a destra
 come una fila di bande. Dopo che è uscito (t ≈ 240 vicino all'atomo) si vedono nascere dal centro **gusci** che
-si allontanano a velocità c: è la luce che l'atomo rimanda. Ogni pallina della luce dell'atomo vale 1/1000 di una
+si allontanano a velocità c: è la luce del dipolo oscillante (1s + 2p guidati dalla luce), un'antenna, non un
+decadimento spontaneo. Ogni pallina della luce dell'atomo vale 1/1000 di una
 pallina dell'impulso: senza questo fattore non si vedrebbe (l'energia rimandata è 1,8·10⁻³ di quella
 dell'impulso, sparsa su un guscio grande). Col tempo i gusci si fanno più radi: l'atomo si svuota.
 
@@ -186,12 +188,19 @@ Note oneste sugli esami:
    Per saperlo servono i flussi sui collegamenti nell'esportazione (debito 1).
 5. Le palline della luce dell'atomo nascono solo fuori da R₀ = 40 λ_C: dentro (zona vicina) non ci sono palline di
    luce, anche se il campo c'è.
-6. Il colore dell'elettrone mostra soprattutto il **dipolo**; il fatto che l'eccitato sia più largo si vede solo
+6. Righe deboli in più nella luce (se si vedono): secondo Emissione fase 3 vengono da un pezzo di elettrone strappato e
+   tenuto dalla scatola periodica: **artefatto della scatola**. Nel video non le ho riconosciute a occhio.
+7. Il colore dell'elettrone mostra soprattutto il **dipolo**; il fatto che l'eccitato sia più largo si vede solo
    come un centro un po' blu.
 
 ## 6. Debiti
 
-0. **Taglio BOZZA**: la corsa sotto ha uno smorzamento finto ×2,2 (EMISSIONE §7); da rifare con `lab/vl_tutto.sh`
+0. **Prossimo taglio** (quando arriva l'esportazione nuova: 1s partito nella valle k = 0, nucleo imparato, senza lo
+   smorzamento ×2,2): `lab/vl_tutto.sh` riconosce l'impronta, sceglie da solo il flusso (emendamento 2: la j esportata
+   se la correzione per la continuità è ≤ 25 %) e scrive a schermo il giro dell'elettrone col rapporto con Dirac
+   del passo usato (Debiti, surfisti fase 4: 0,867 / 0,910 / 0,943 / 0,958 a a = 0,5 / 0,4 / 0,3 / 0,25 λ_C),
+   dichiarato come **errore del passo del reticolo**; nessuna scala per chiudere lo scarto.
+0b. **Taglio BOZZA**: la corsa sotto ha uno smorzamento finto ×2,2 (EMISSIONE §7); da rifare con `lab/vl_tutto.sh`
    sulla nuova esportazione.
 1. Flusso dell'elettrone ricostruito dalla sola continuità: servono i **flussi sui collegamenti** nell'esportazione.
 1b. Rotazione di spin dell'1s assente sul reticolo (le 4 copie la cancellano): debito della regola, da provare.

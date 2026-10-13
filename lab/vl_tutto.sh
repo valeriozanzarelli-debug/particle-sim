@@ -3,6 +3,7 @@
 # Se l'esportazione è cambiata (impronta sha256 di manifest + fotogrammi.csv), cancella i prodotti intermedi e riparte.
 #   lab/vl_tutto.sh            (VL_ETICHETTA=BOZZA di default; VL_ETICHETTA="" per la versione finale)
 set -e
+export VL_SIG=${VL_SIG:-0} VL_FLUSSO=${VL_FLUSSO:-corrente}   # emendamento 3 (lab/out/vl_amend3.json)
 L=$(cd "$(dirname "$0")" && pwd)
 SCR=${VL_SCR:-/tmp/claude-0/-home-claude-particle-sim/a13a264e-04a0-55c0-8c14-0e293e6cf6fd/scratchpad/vl}
 mkdir -p "$SCR"
@@ -20,6 +21,6 @@ np.save('$SCR/el_dipolo.npy', np.array([float(np.asarray(d[k,2],np.float64).mean
 python3 "$L/vl_esami.py" > /dev/null
 [ -f "$SCR/vl_refs.json" ] || python3 "$L/vl_render.py" refs 0 50
 for r in "0 374" "374 748" "748 1121"; do "$L/vl_render_drive.sh" $r 1.0 & done; wait
-python3 "$L/vl_render.py" ritocca 0 1121      # info panel always from the current code (label, fingerprint)
+python3 "$L/vl_render.py" ritocca 0 1121      # info panel from the current code (resumable)
 "$L/vl_video.sh"
 python3 "$L/vl_figura.py"
