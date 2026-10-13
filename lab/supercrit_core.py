@@ -398,3 +398,128 @@ def level_1s(w, omega_sigma, k=10):
     om0, nodes, inside, _ = L[0]
     om, rho, resid, smooth = level(w, om0)
     return om, nodes, resid, smooth
+
+
+def quasi_bound(make_walk_box, E0, n_iter=4):
+    """resonance seed: eigenstate of the walk in a box closed at the middle of the Coulomb barrier,
+    r_w = sqrt(r_in r_out), r_in = zeta/(|E|+1), r_out = zeta/(|E|-1) (zeta from the walk's Coulomb tail).
+    make_walk_box(rw) -> SWalk with rmax = rw. returns omega, chi, rw"""
+    E = E0
+    for _ in range(n_iter):
+        w = make_walk_box(1.0)
+        zeta = -w.V[-1] * w.r[-1]
+        rin, rout = zeta / (abs(E) + 1), zeta / max(abs(E) - 1, 1e-3)
+        rw = np.sqrt(rin * rout)
+        w = make_walk_box(rw)
+        om, rho, resid, smooth = level(w, E)
+        if abs(om - E) < 1e-10:
+            break
+        E = om
+    W = w.matrix()
+    lam0 = np.exp(-1j * om * w.a)
+    lu = spl.splu((W - lam0 * sp.identity(2 * w.N, format="csc")).tocsc())
+    x = np.ones(2 * w.N, complex)
+    for _ in range(6):
+        x = lu.solve(x)
+        x /= np.linalg.norm(x)
+    return om, x.reshape(w.N, 2).T.copy(), rw
+
+
+def bloch_amplitudes(w, omega, i_m, i_w):
+    """regular solution: (phase arg(c2/c1) at i_m, log(interior weight r < r_w / |c|^2 outside))"""
+    chip, chim = regular_solution(w, omega, i_stop=i_m + 2)
+    s = np.array([chip[i_m - 1], chim[i_m]])
+    T = local_transfer(w, omega, i_m)
+    mu, v = np.linalg.eig(T)
+    o = np.argsort(np.angle(mu))
+    v = v[:, o]
+    v = v / (v[0] / np.abs(v[0]))[None, :]
+    c = np.linalg.solve(v, s)
+    inner = np.sum(np.abs(chip[:i_w])**2 + np.abs(chim[:i_w])**2)
+    return np.angle(c[1] / c[0]), np.log(inner) - np.log(np.sum(np.abs(c)**2))
+
+
+def resonance_scan2(w, E_seed, i_m, i_w, d0=0.05, n=241):
+    """robust for any width: (1) maximise the interior weight F(E) (Lorentzian-like peak, tails ~ -2 log|E-Er|)
+    by bounded scalar minimisation around the seed; (2) width estimate from F; (3) Bloch phase scan over
+    +-12 Gamma and Breit-Wigner fit (quadratic background). returns Er, Gamma, rms, (E, ph), Gamma_F"""
+    from scipy.optimize import minimize_scalar
+    F = lambda E: -bloch_amplitudes(w, E, i_m, i_w)[1]
+    # coarse grid to bracket the peak
+    E = np.linspace(E_seed - d0, E_seed + d0, 81)
+    f = np.array([F(e) for e in E])
+    k = int(np.argmin(f))
+    lo, hi = E[max(k - 1, 0)], E[min(k + 1, len(E) - 1)]
+    r = minimize_scalar(F, bounds=(lo, hi), method="bounded", options=dict(xatol=1e-14, maxiter=500))
+    Er0 = r.x
+    # width from the peak height: F(Er + delta) - F(Er) = log(1 + 4 delta^2 / Gamma^2) (bg neglected)
+    Fr = F(Er0)
+    G = None
+    for delta in np.logspace(-9, -1, 33):
+        if F(Er0 + delta) - Fr > np.log(2.0):
+            G = 2 * delta
+            break
+    if G is None:
+        G = 0.1
+    GF = G
+    for _ in range(2):
+        E = np.linspace(Er0 - 12 * G, Er0 + 12 * G, n)
+        ph = np.unwrap([bloch_amplitudes(w, e, i_m, i_w)[0] for e in E])
+        Er, G2, rms = fit_breit_wigner(E, ph)
+        if abs(G2 - G) < 0.05 * G:
+            G = G2
+            break
+        G = G2
+        Er0 = Er
+    return Er, G, rms, (E, ph), GF
+
+
+@njit(cache=True)
+def _evolve_probe(chip, chim, M, refl0, refl1, mask, nticks, rin_idx, rec_every, rec, probe_idx, probe,
+                  snap_every, snaps):
+    N = chip.shape[0]
+    p = np.empty(N, np.complex128)
+    q = np.empty(N, np.complex128)
+    k = 0
+    ks = 0
+    for t in range(nticks):
+        p[1:] = chip[:-1]
+        p[0] = refl0 * chim[0]
+        q[:-1] = chim[1:]
+        q[N - 1] = refl1 * chip[N - 1]
+        for i in range(N):
+            a = M[i, 0, 0] * p[i] + M[i, 0, 1] * q[i]
+            b = M[i, 1, 0] * p[i] + M[i, 1, 1] * q[i]
+            chip[i] = a * mask[i]
+            chim[i] = b * mask[i]
+        probe[t, 0] = chip[probe_idx]
+        probe[t, 1] = chim[probe_idx]
+        if (t + 1) % rec_every == 0:
+            s_in = 0.0
+            s_tot = 0.0
+            for i in range(N):
+                d = chip[i].real**2 + chip[i].imag**2 + chim[i].real**2 + chim[i].imag**2
+                s_tot += d
+                if i < rin_idx:
+                    s_in += d
+            rec[k, 0] = t + 1
+            rec[k, 1] = s_in
+            rec[k, 2] = s_tot
+            k += 1
+        if snap_every > 0 and (t + 1) % snap_every == 0 and ks < snaps.shape[0]:
+            for i in range(N):
+                snaps[ks, i] = chip[i].real**2 + chip[i].imag**2 + chim[i].real**2 + chim[i].imag**2
+            ks += 1
+    return chip, chim
+
+
+def evolve_probe(w, chi0, nticks, mask, r_in, r_probe, rec_every=100, snap_every=0, nsnap=0):
+    chip, chim = chi0[0].astype(complex).copy(), chi0[1].astype(complex).copy()
+    rec = np.zeros((nticks // rec_every, 3))
+    probe = np.zeros((nticks, 2), complex)
+    snaps = np.zeros((max(nsnap, 1), w.N))
+    rin_idx = int(np.searchsorted(w.r, r_in))
+    pidx = int(np.searchsorted(w.r, r_probe))
+    chip, chim = _evolve_probe(chip, chim, w.M, w.refl0, w.refl1, mask, nticks, rin_idx, rec_every, rec, pidx,
+                               probe, snap_every, snaps)
+    return np.array([chip, chim]), rec, probe, snaps[:nsnap]
