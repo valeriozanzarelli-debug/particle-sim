@@ -1,0 +1,9 @@
+{
+ "studio": "mg_oit",
+ "emendamento": 2,
+ "data": "2026-10-13",
+ "quando": "DOPO aver misurato le foto 'prima' a bassa, PRIMA di qualunque foto 'dopo' (il disegno nuovo non e' ancora stato fotografato)",
+ "perche": "V1 come scritto (pixel saturi: max >= 250 o min >= 215) da' 0 % gia' PRIMA in tutte le viste: la 'nebbia bianca' non e' clipping, e' un grigio-lavanda pastello (canali ~150-190, saturazione HSV mediana 0,17). La pre-registrazione si aspettava molto clipping: sbagliato. V1 resta e si riporta (passa banalmente, non dice niente). Si aggiunge V1b, scritto guardando i valori 'prima' (quindi esame piu' debole, dichiarato).",
+ "V1b_slavato_retro": "foto retro, c+ e c-, bassa e alta: frazione dei pixel accesi (max >= 40) 'slavati' = saturazione HSV < 0,25 e valore >= 0,45. Soglia: <= 25 % (circa il livello della vista di lato di oggi, 25,5 %). Prima a bassa: c+ 72,2 %, c- 71,4 %, h 51,4 %; fronte 70,4 %; lato 25,5 %; tre quarti 36,3 %.",
+ "altri_esami": "invariati (V1 riportato, V2, V3, V4)"
+}
