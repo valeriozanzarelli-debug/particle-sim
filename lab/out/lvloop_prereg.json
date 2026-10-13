@@ -1,0 +1,333 @@
+{
+ "study": "lvloop_ - violazione di Lorentz portata dai loop (Collins-Perez-Sudarsky-Urrutia-Vucetich 2004)",
+ "date": "2026-10-13",
+ "free_parameters": 0,
+ "written_before": [
+  "lvloop_sym.py run",
+  "any vuoto_ phase-3 number"
+ ],
+ "symmetry_claim": {
+  "statement": "La dispersione LIBERA della regola e' invariante per tutte le 48 operazioni del cubo (lv_ E6), ma la DINAMICA (sequenza dei passi x y z C z y x C) e' invariante solo per: inversione P, rotazioni di pi attorno agli assi, e lo scambio x<->z combinato con una traslazione di un tick. Gruppo previsto: D_4h (16 elementi) con asse distinto y (il passo di mezzo). Le rotazioni di ordine 3 (x->y->z) NON sono simmetrie. Con l'ordine a giro (6 permutazioni, variante 'six') la rotazione di ordine 3 diventa una traslazione di 2 tick e x<->z diventa l'inversione temporale: gruppo previsto O_h (48).",
+  "consequence": "Gruppo cubico (anche solo T): ogni tensore simmetrico a traccia nulla di rango 2 invariante e' zero, ogni vettore e' zero. Tutti i coefficienti di dimensione 4 della SME minimale (c_JK, c_TJ, kappa_e-, kappa_o+, kappa_e+, kappa_o-, b_J, ...) hanno al piu' rango 2 sotto SO(3): sopravvivono solo gli scalari pari (c_TT dell'elettrone, kappa_tr della luce: cioe' il gap isotropo c_e - c_gamma). D_4h con asse y: sopravvive in piu' UNA componente per ogni tensore di rango 2 pari per P e T: c_yy - (c_xx+c_zz)/2 dell'elettrone, e la stessa per kappa_e- (luce non birifrangente) e per kappa_e+ (luce BIRIFRANGENTE: permessa dalla simmetria, non forzata). Nessun vettore (P e C2 lo vietano)."
+ },
+ "exams_symmetry": {
+  "S1": "regola congelata, 3-4 impurezze generiche, n = 6 e 8: numero di operazioni con spettro uguale (< 1e-9) = 16, permutazioni di assi nel gruppo = {identita', x<->z}. PASS se esattamente cosi'.",
+  "S2": "variante 'six' (6 permutazioni a giro), n = 6: 48 operazioni. PASS se 48.",
+  "S3": "coppia di impurezze n = 8: spettro(sep. x) = spettro(sep. z) entro 1e-9 e spettro(sep. y) diverso da essi di piu' di 1e-6; idem (1,1,0) = (0,1,1) != (1,0,1). PASS se tutte e quattro.",
+  "S4": "variante 'fixed' (xyz a ogni tick): meno di 48 operazioni (solo descrittivo: nessuna soglia).",
+  "check": "operatore costruito da lvloop_sym.py contro zz_core.Walk.tick su vettore casuale: < 1e-12"
+ },
+ "predictions_for_vuoto_phase3": {
+  "P1": "Media sulle due fette di tempo (o definizione indipendente dalla fetta: la quasi-energia del vestito lo e'): delta_v_x = delta_v_z ESATTAMENTE (simmetria x<->z con traslazione di un tick); la differenza x-z misurata (oggi -0,005 alpha) e' un errore della costruzione, non fisica.",
+  "P2": "Regola congelata: l'anisotropia delta_v_y - (delta_v_x+delta_v_z)/2 NON e' vietata e ci aspettiamo che resti FINITA per a -> 0 (q = 0, ordine alpha * O(10^-2)): e' il problema di Collins in forma tetragonale. NON e' la previsione 'deve sparire' della consegna: quella valeva solo se la dinamica fosse cubica.",
+  "P3": "Variante 'six': anisotropia di rango 2 a ordine a^0 vietata: deve andare a zero almeno come theta^2 (operatori di dimensione 6, anisotropia cubica n_x^4+n_y^4+n_z^4). PASS della cura se |aniso| cala di >= x3 per ogni dimezzamento di theta, o e' < 1e-3 alpha a tutti i theta.",
+  "P4": "Gap isotropo c_e - c_gamma: nessuna simmetria della regola lo vieta (tick e cella non sono legati da una simmetria del reticolo). Previsione: finito per a -> 0 (p = 0), ordine alpha*1e-2, salvo cancellazioni. ATTENZIONE: deve essere la differenza con la c della LUCE vestita (polarizzazione del vuoto), e il regolatore (proiettore K1,K2) da solo da' 0,053 alpha anche sul continuo: conta solo la parte che non dipende dal regolatore."
+ },
+ "numbers_needed": {
+  "N1": "Delta_iso(theta) = [delta_v_regola - delta_v_continuo, stesso proiettore]_media isotropa, mediato sulle fette, a >= 3 theta, con la variazione da (K1,K2) = (0,6;1,05) a (0,5;0,9). Fit alpha*kappa_iso*theta^p.",
+  "N2": "Delta_an(theta) = delta_v_y - (delta_v_x+delta_v_z)/2 mediato sulle fette, a >= 3 theta. Fit alpha*kappa_an*theta^q.",
+  "N3": "delta_v_x - delta_v_z mediato sulle fette (controllo: deve essere 0).",
+  "N4": "Stessi N1, N2 per la variante con l'ordine a giro.",
+  "N5": "Lato luce: anisotropia y contro (x,z) della risposta ELETTRICA (Pi(0), gia' misurata: 4e-5 dopo media) e di quella MAGNETICA (Pi trasverso a q -> 0). Se le due anisotropie sono diverse, la luce e' birifrangente (kappa_e+)."
+ },
+ "verdict_rules": {
+  "R1": "a_max = lambda_C * (B/(alpha*kappa))^(1/p) per lo scenario 'tipo massa' (coefficiente costante ~ theta^p); 'tipo impulso' (alpha*kappa*(E a)^p): a_max = (B/(alpha*kappa))^(1/p) * hbar c / E alla soglia del test.",
+  "R2": "p = 0 (o q = 0) con kappa ~ 1e-2..1: ESCLUSA per qualunque a, a meno di sintonizzare un parametro nudo a 1 parte su B/(alpha kappa) (manopola + fine tuning: dichiarato come tale, non e' una salvezza).",
+  "R3": "a_max >= 10 l_P: 'salva con passo di Planck'. a_max < l_P: 'di fatto esclusa'.",
+  "R4": "Il limite giro 1 (fotone PeV, a <~ 4,8e-31 m) resta valido e si combina col minimo."
+ },
+ "scenario_curable": "Scenario C (chiesto dal coordinatore): anisotropia di rango 2 FINITA per a -> 0 nella regola congelata (q = 0) ma che SPARISCE con l'ordine a giro (N4 con q >= 2). Verdetto: la regola congelata e' esclusa come teoria fondamentale per qualunque a (Yb+: B/alpha ~ 1e-19); la variante 'six' prende il posto del giudizio, con il suo gap isotropo (N4) da confrontare con le righe 'gap isotropo'. Cambiare l'ordine dei passi e' un cambio di regola: va deciso con Valerio e coordinato con tutti i thread (non lo faccio io).",
+ "bounds": {
+  "iso_photon_faster": [
+   {
+    "name": "decadimento del fotone negli sciami UHE (Duenkel, Niechciol, Risse, PRD 104, 015010 (2021))",
+    "B": 6e-21,
+    "E_eV": 9329521725881818.0,
+    "verified": true,
+    "note": "kappa > -6e-21 (98% CL, SIBYLL 2.3d); limite su fotone contro e+e-"
+   },
+   {
+    "name": "fotone 1,42 PeV non decade (LHAASO, Nature 594, 33 (2021)); conto nostro 2 m^2/E^2",
+    "B": 2.5899615840220445e-19,
+    "E_eV": 1420000000000000.0,
+    "verified": true,
+    "note": "soglia k_th = sqrt(2) m / sqrt(delta)"
+   },
+   {
+    "name": "Tevatron, fotoni non decadono (Hohensee et al. PRL 102, 170402 (2009))",
+    "B": 5.8e-12,
+    "E_eV": 340000000000.0,
+    "verified": true,
+    "note": "citato in Altschul PRD 80, 091901 (2009)"
+   }
+  ],
+  "iso_electron_faster": [
+   {
+    "name": "elettroni PeV del Granchio (Li e Ma, PLB 829, 137034 (2022)); conto nostro m^2/(2E^2) a 2,3 PeV",
+    "B": 2.4680522391408555e-20,
+    "E_eV": 2300000000000000.0,
+    "verified": true,
+    "note": "indicativo: energia dedotta dal modello IC"
+   },
+   {
+    "name": "elettroni cosmici ~40 TeV (H.E.S.S. 2024); conto nostro m^2/(2E^2)",
+    "B": 8.159997715659454e-17,
+    "E_eV": 40000000000000.0,
+    "verified": false,
+    "note": "energia massima a memoria"
+   },
+   {
+    "name": "LEP, niente Cherenkov a 104,5 GeV (Hohensee et al. 2009)",
+    "B": 1.2e-11,
+    "E_eV": 104500000000.0,
+    "verified": true,
+    "note": ""
+   }
+  ],
+  "iso_two_sided": [
+   {
+    "name": "LEP, perdite di sincrotrone (Altschul, PRD 80, 091901 (2009))",
+    "B": 5e-15,
+    "E_eV": 104500000000.0,
+    "verified": true,
+    "note": "|kappa_tr - 4/3 c_00| < 5e-15"
+   }
+  ],
+  "aniso_electron": [
+   {
+    "name": "Yb+ E3/E2, confronto di orologi (Sanner et al., Nature 567, 204 (2019))",
+    "B": 1.6e-20,
+    "verified": true,
+    "note": "c_X-Y 0,9 +- 1,6e-20; c_XY -6,9 +- 8,0e-21; c_XZ 1,3 +- 1,3e-20"
+   },
+   {
+    "name": "Yb+ Ramsey a impulsi composti (Dreissen et al., Nat. Commun. 13, 7314 (2022))",
+    "B": 1e-21,
+    "verified": true,
+    "note": "'livello 1e-21' dall'abstract; componenti non lette una per una"
+   },
+   {
+    "name": "Ca+ (Pruttivarasin et al., Nature 517, 592 (2015))",
+    "B": 2.3e-18,
+    "verified": true,
+    "note": "dalla tabella di Sanner"
+   },
+   {
+    "name": "Dy (Hohensee et al., PRL 111, 050401 (2013))",
+    "B": 5.7e-17,
+    "verified": true,
+    "note": "dalla tabella di Sanner"
+   }
+  ],
+  "aniso_photon_nonbiref": [
+   {
+    "name": "risonatori (Nagel et al., Nat. Commun. 6, 8174 (2015)); kappa_e-",
+    "B": 1e-18,
+    "verified": false,
+    "note": "ordine di grandezza a memoria"
+   }
+  ],
+  "photon_biref": [
+   {
+    "name": "polarizzazione di sorgenti cosmologiche/GRB (Kostelecky e Mewes, PRL 87, 251304 (2001); PRL 110, 201601 (2013))",
+    "B": 1e-32,
+    "verified": false,
+    "note": "d=4 birifrangente <~1e-32 (sorgenti radio/CMB), GRB piu' forte; a memoria"
+   }
+  ]
+ },
+ "conditional_table": [
+  {
+   "test": "gap isotropo, fotone piu' veloce (decadimento)",
+   "bound": 6e-21,
+   "exponent": 0,
+   "a_max_mass_type_m": null,
+   "verdict_mass_type": "ESCLUSA per qualunque a (salvo kappa < B/alpha: fine tuning)",
+   "a_max_momentum_type_m": null,
+   "verdict_momentum_type": "ESCLUSA per qualunque a (salvo kappa < B/alpha: fine tuning)"
+  },
+  {
+   "test": "gap isotropo, fotone piu' veloce (decadimento)",
+   "bound": 6e-21,
+   "exponent": 1,
+   "a_max_mass_type_m": 3.1750632654196317e-31,
+   "verdict_mass_type": "salva con passo di Planck (a_max = 3.2e-31 m = 2.0e+04 l_P)",
+   "a_max_momentum_type_m": 1.7390537714446648e-41,
+   "verdict_momentum_type": "salva solo con a < 1.7e-41 m = 1.1e-06 l_P (sotto Planck: di fatto esclusa)"
+  },
+  {
+   "test": "gap isotropo, fotone piu' veloce (decadimento)",
+   "bound": 6e-21,
+   "exponent": 2,
+   "a_max_mass_type_m": 3.501542669026228e-22,
+   "verdict_mass_type": "salva con passo di Planck (a_max = 3.5e-22 m = 2.2e+13 l_P)",
+   "a_max_momentum_type_m": 1.9178739053061603e-32,
+   "verdict_momentum_type": "salva con passo di Planck (a_max = 1.9e-32 m = 1.2e+03 l_P)"
+  },
+  {
+   "test": "gap isotropo, fotone piu' veloce (LHAASO PeV)",
+   "bound": 2.5899615840220445e-19,
+   "exponent": 0,
+   "a_max_mass_type_m": null,
+   "verdict_mass_type": "ESCLUSA per qualunque a (salvo kappa < B/alpha: fine tuning)",
+   "a_max_momentum_type_m": null,
+   "verdict_momentum_type": "ESCLUSA per qualunque a (salvo kappa < B/alpha: fine tuning)"
+  },
+  {
+   "test": "gap isotropo, fotone piu' veloce (LHAASO PeV)",
+   "bound": 2.5899615840220445e-19,
+   "exponent": 1,
+   "a_max_mass_type_m": 1.3705486473794058e-29,
+   "verdict_mass_type": "salva con passo di Planck (a_max = 1.4e-29 m = 8.5e+05 l_P)",
+   "a_max_momentum_type_m": 4.932034644511827e-39,
+   "verdict_momentum_type": "salva solo con a < 4.9e-39 m = 3.1e-04 l_P (sotto Planck: di fatto esclusa)"
+  },
+  {
+   "test": "gap isotropo, fotone piu' veloce (LHAASO PeV)",
+   "bound": 2.5899615840220445e-19,
+   "exponent": 2,
+   "a_max_mass_type_m": 2.3005435496325635e-21,
+   "verdict_mass_type": "salva con passo di Planck (a_max = 2.3e-21 m = 1.4e+14 l_P)",
+   "a_max_momentum_type_m": 8.278699562902148e-31,
+   "verdict_momentum_type": "salva con passo di Planck (a_max = 8.3e-31 m = 5.1e+04 l_P)"
+  },
+  {
+   "test": "gap isotropo, elettrone piu' veloce (Cherenkov, Granchio)",
+   "bound": 2.4680522391408555e-20,
+   "exponent": 0,
+   "a_max_mass_type_m": null,
+   "verdict_mass_type": "ESCLUSA per qualunque a (salvo kappa < B/alpha: fine tuning)",
+   "a_max_momentum_type_m": null,
+   "verdict_momentum_type": "ESCLUSA per qualunque a (salvo kappa < B/alpha: fine tuning)"
+  },
+  {
+   "test": "gap isotropo, elettrone piu' veloce (Cherenkov, Granchio)",
+   "bound": 2.4680522391408555e-20,
+   "exponent": 1,
+   "a_max_mass_type_m": 1.306037000272133e-30,
+   "verdict_mass_type": "salva con passo di Planck (a_max = 1.3e-30 m = 8.1e+04 l_P)",
+   "a_max_momentum_type_m": 2.9016675460703084e-40,
+   "verdict_momentum_type": "salva solo con a < 2.9e-40 m = 1.8e-05 l_P (sotto Planck: di fatto esclusa)"
+  },
+  {
+   "test": "gap isotropo, elettrone piu' veloce (Cherenkov, Granchio)",
+   "bound": 2.4680522391408555e-20,
+   "exponent": 2,
+   "a_max_mass_type_m": 7.10167791408313e-22,
+   "verdict_mass_type": "salva con passo di Planck (a_max = 7.1e-22 m = 4.4e+13 l_P)",
+   "a_max_momentum_type_m": 1.5778043287935623e-31,
+   "verdict_momentum_type": "salva con passo di Planck (a_max = 1.6e-31 m = 9.8e+03 l_P)"
+  },
+  {
+   "test": "gap isotropo, entrambi i segni (LEP sincrotrone)",
+   "bound": 5e-15,
+   "exponent": 0,
+   "a_max_mass_type_m": null,
+   "verdict_mass_type": "ESCLUSA per qualunque a (salvo kappa < B/alpha: fine tuning)",
+   "a_max_momentum_type_m": null,
+   "verdict_momentum_type": "ESCLUSA per qualunque a (salvo kappa < B/alpha: fine tuning)"
+  },
+  {
+   "test": "gap isotropo, entrambi i segni (LEP sincrotrone)",
+   "bound": 5e-15,
+   "exponent": 1,
+   "a_max_mass_type_m": 2.64588605451636e-25,
+   "verdict_mass_type": "salva con passo di Planck (a_max = 2.6e-25 m = 1.6e+10 l_P)",
+   "a_max_momentum_type_m": 1.2938229619752564e-30,
+   "verdict_momentum_type": "salva con passo di Planck (a_max = 1.3e-30 m = 8.0e+04 l_P)"
+  },
+  {
+   "test": "gap isotropo, entrambi i segni (LEP sincrotrone)",
+   "bound": 5e-15,
+   "exponent": 2,
+   "a_max_mass_type_m": 3.1964565098208517e-19,
+   "verdict_mass_type": "salva con passo di Planck (a_max = 3.2e-19 m = 2.0e+16 l_P)",
+   "a_max_momentum_type_m": 1.5630487270236804e-24,
+   "verdict_momentum_type": "salva con passo di Planck (a_max = 1.6e-24 m = 9.7e+10 l_P)"
+  },
+  {
+   "test": "anisotropia elettrone rango 2 (Yb+ 2022)",
+   "bound": 1e-21,
+   "exponent": 0,
+   "a_max_mass_type_m": null,
+   "verdict_mass_type": "ESCLUSA per qualunque a (salvo kappa < B/alpha: fine tuning)"
+  },
+  {
+   "test": "anisotropia elettrone rango 2 (Yb+ 2022)",
+   "bound": 1e-21,
+   "exponent": 1,
+   "a_max_mass_type_m": 5.29177210903272e-32,
+   "verdict_mass_type": "salva con passo di Planck (a_max = 5.3e-32 m = 3.3e+03 l_P)"
+  },
+  {
+   "test": "anisotropia elettrone rango 2 (Yb+ 2022)",
+   "bound": 1e-21,
+   "exponent": 2,
+   "a_max_mass_type_m": 1.4294988086162296e-22,
+   "verdict_mass_type": "salva con passo di Planck (a_max = 1.4e-22 m = 8.8e+12 l_P)"
+  },
+  {
+   "test": "anisotropia elettrone rango 2 (Yb+ 2019)",
+   "bound": 1.6e-20,
+   "exponent": 0,
+   "a_max_mass_type_m": null,
+   "verdict_mass_type": "ESCLUSA per qualunque a (salvo kappa < B/alpha: fine tuning)"
+  },
+  {
+   "test": "anisotropia elettrone rango 2 (Yb+ 2019)",
+   "bound": 1.6e-20,
+   "exponent": 1,
+   "a_max_mass_type_m": 8.466835374452351e-31,
+   "verdict_mass_type": "salva con passo di Planck (a_max = 8.5e-31 m = 5.2e+04 l_P)"
+  },
+  {
+   "test": "anisotropia elettrone rango 2 (Yb+ 2019)",
+   "bound": 1.6e-20,
+   "exponent": 2,
+   "a_max_mass_type_m": 5.7179952344649185e-22,
+   "verdict_mass_type": "salva con passo di Planck (a_max = 5.7e-22 m = 3.5e+13 l_P)"
+  },
+  {
+   "test": "anisotropia luce non birifrangente (risonatori)",
+   "bound": 1e-18,
+   "exponent": 0,
+   "a_max_mass_type_m": null,
+   "verdict_mass_type": "ESCLUSA per qualunque a (salvo kappa < B/alpha: fine tuning)"
+  },
+  {
+   "test": "anisotropia luce non birifrangente (risonatori)",
+   "bound": 1e-18,
+   "exponent": 1,
+   "a_max_mass_type_m": 5.29177210903272e-29,
+   "verdict_mass_type": "salva con passo di Planck (a_max = 5.3e-29 m = 3.3e+06 l_P)"
+  },
+  {
+   "test": "anisotropia luce non birifrangente (risonatori)",
+   "bound": 1e-18,
+   "exponent": 2,
+   "a_max_mass_type_m": 4.520472147724417e-21,
+   "verdict_mass_type": "salva con passo di Planck (a_max = 4.5e-21 m = 2.8e+14 l_P)"
+  },
+  {
+   "test": "birifrangenza della luce (se eps e mu anisotropi diversi)",
+   "bound": 1e-32,
+   "exponent": 0,
+   "a_max_mass_type_m": null,
+   "verdict_mass_type": "ESCLUSA per qualunque a (salvo kappa < B/alpha: fine tuning)"
+  },
+  {
+   "test": "birifrangenza della luce (se eps e mu anisotropi diversi)",
+   "bound": 1e-32,
+   "exponent": 1,
+   "a_max_mass_type_m": 5.2917721090327204e-43,
+   "verdict_mass_type": "salva solo con a < 5.3e-43 m = 3.3e-08 l_P (sotto Planck: di fatto esclusa)"
+  },
+  {
+   "test": "birifrangenza della luce (se eps e mu anisotropi diversi)",
+   "bound": 1e-32,
+   "exponent": 2,
+   "a_max_mass_type_m": 4.520472147724417e-28,
+   "verdict_mass_type": "salva con passo di Planck (a_max = 4.5e-28 m = 2.8e+07 l_P)"
+  }
+ ]
+}
