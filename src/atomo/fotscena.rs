@@ -80,6 +80,8 @@ pub struct Uscita {
     pub palline: Arc<Vec<Ball>>,
     /// the wave balls (alpha blending, as in the photon laboratory)
     pub onde: Arc<Vec<Ball>>,
+    /// stretch of each energy ball (along E), parallel to `onde`
+    pub allunga: Arc<Vec<[f32; 3]>>,
     pub versione: u64,
     pub ticks: u64,
     pub lanci: u64,
@@ -227,7 +229,7 @@ fn risolvi3(mut a: [[f64; 3]; 3], mut r: [f64; 3]) -> Option<[f64; 3]> {
 pub fn avvia(par: Parametri) -> Arc<Mutex<Condiviso>> {
     let c = Arc::new(Mutex::new(Condiviso {
         comando: Comando::Avanti, ritmo: 30.0, lancia: None, vista: Vista::default(), opz: Opzioni::default(), misura: false, azzera: false, fine: false,
-        out: Uscita { palline: Arc::new(vec![]), onde: Arc::new(vec![]), versione: 0, ticks: 0, lanci: 0, par, centro: [0.0; 3], v: None, v_continuo: 1.0,
+        out: Uscita { palline: Arc::new(vec![]), onde: Arc::new(vec![]), allunga: Arc::new(vec![]), versione: 0, ticks: 0, lanci: 0, par, centro: [0.0; 3], v: None, v_continuo: 1.0,
                       elicita: None, w: 0.0, theta: None, ms_tick: 0.0, pronto: false, n_clic: 0, ultimo_clic: None },
     }));
     let cc = c.clone();
@@ -275,14 +277,14 @@ pub fn avvia(par: Parametri) -> Arc<Mutex<Condiviso>> {
             }
             if cambiato || versione == 0 {
                 let ep = m.e_prima.as_ref().filter(|(t, _)| *t == m.f.ticks).map(|(_, e)| e.as_slice());
-                let (mut p, onde) = fotdisegno::palline(&m.f, &m.l, atteso(&m.l, m.f.ticks), &m.tr, ep, vista, opz.surfisti);
+                let (mut p, onde, allunga) = fotdisegno::palline(&m.f, &m.l, atteso(&m.l, m.f.ticks), &m.tr, ep, vista, opz.surfisti);
                 riv.disegna(&mut p, 0.6 * m.l.lambda, opz.mostra_clic);
                 versione += 1;
                 let tick_ms = t0.elapsed().as_secs_f64() * 1e3;
                 ms += 0.15 * (tick_ms.min(500.0) - ms);
                 let ult = *m.storia.last().unwrap();
                 let out = Uscita {
-                    palline: Arc::new(p), onde: Arc::new(onde), versione, ticks: m.f.ticks, lanci: m.lanci, par: m.par, centro: ult.centro,
+                    palline: Arc::new(p), onde: Arc::new(onde), allunga: Arc::new(allunga), versione, ticks: m.f.ticks, lanci: m.lanci, par: m.par, centro: ult.centro,
                     v: m.velocita(), v_continuo: m.v_continuo, elicita: m.elicita, w: m.larghezza(&ult), theta: theta_da(&m.storia, m.l.dir),
                     ms_tick: ms, pronto: true, n_clic: riv.clic.len(), ultimo_clic: riv.ultimo(),
                 };

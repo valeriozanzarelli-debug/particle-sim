@@ -397,7 +397,7 @@ fn pannello_fotone(ctx: &egui::Context, lab: &mut Lab) {
         ui.horizontal(|ui| {
             ui.checkbox(&mut v.traccianti, "palline che corrono col campo");
             ui.checkbox(&mut v.fronti, RichText::new("fronti d'onda").color(GOLD));
-            ui.checkbox(&mut v.elica, "elica di E");
+            ui.checkbox(&mut v.allunga, "palline allungate lungo E");
         });
         ui.horizontal(|ui| {
             ui.checkbox(&mut v.e_vettori, "tratti E");

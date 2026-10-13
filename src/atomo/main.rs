@@ -330,11 +330,11 @@ fn main() {
         .run();
 }
 
-/// Layers from a string of letters: t tracers, f wavefronts, l helix, E E-streaks, B B-streaks, s Poynting,
+/// Layers from a string of letters: t tracers, f wavefronts, l balls stretched along E, E E-streaks, B B-streaks, s Poynting,
 /// o spin, x cross-section.
 fn strati(s: &str) -> fotscena::Vista {
     fotscena::Vista {
-        traccianti: s.contains('t'), fronti: s.contains('f'), elica: s.contains('l'), e_vettori: s.contains('E'), b_vettori: s.contains('B'),
+        traccianti: s.contains('t'), fronti: s.contains('f'), allunga: s.contains('l'), e_vettori: s.contains('E'), b_vettori: s.contains('B'),
         poynting: s.contains('s'), spin: s.contains('o'), sezione: s.contains('x'),
     }
 }

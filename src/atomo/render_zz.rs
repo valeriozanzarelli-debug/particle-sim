@@ -8,7 +8,7 @@ use bevy::{
 };
 
 use crate::camera::Cam;
-use crate::render::{quads, schermo, BallMaterial, BallParams};
+use crate::render::{quads, quads_s, schermo, BallMaterial, BallParams};
 use crate::{Lab, Scena};
 
 #[derive(Component, Clone, Copy, PartialEq, Eq, Debug)]
@@ -58,12 +58,12 @@ pub fn aggiorna(
     let focus = cam.focus;
     let scena = lab.scena;
     // what the main layer shows
-    type Strati = (Vec<crate::render::Ball>, Vec<crate::render::Ball>);
+    type Strati = (Vec<crate::render::Ball>, Vec<crate::render::Ball>, Vec<[f32; 3]>);
     let (items, versione): (Option<Strati>, u64) = match scena {
         Scena::Fotone => {
             let out = lab.fot.as_ref().map(|c| c.lock().unwrap().out.clone());
             match out {
-                Some(o) if vis.versione != o.versione || vis.scena != Some(scena) => (Some(((*o.palline).clone(), (*o.onde).clone())), o.versione),
+                Some(o) if vis.versione != o.versione || vis.scena != Some(scena) => (Some(((*o.palline).clone(), (*o.onde).clone(), (*o.allunga).clone())), o.versione),
                 Some(o) => (None, o.versione),
                 None => (None, 0),
             }
@@ -71,7 +71,7 @@ pub fn aggiorna(
         Scena::Atomo => {
             let out = lab.zz.as_ref().map(|c| c.lock().unwrap().out.clone());
             match out {
-                Some(o) if vis.versione != o.versione || vis.scena != Some(scena) => (Some(((*o.palline).clone(), (*o.onde).clone())), o.versione),
+                Some(o) if vis.versione != o.versione || vis.scena != Some(scena) => (Some(((*o.palline).clone(), (*o.onde).clone(), vec![])), o.versione),
                 Some(o) => (None, o.versione),
                 None => (None, 0),
             }
@@ -79,7 +79,7 @@ pub fn aggiorna(
         Scena::Orbitali => {
             let out = lab.orb.as_ref().map(|c| c.lock().unwrap().out.clone());
             match out {
-                Some(o) if vis.versione != o.versione || vis.scena != Some(scena) => (Some(((*o.palline).clone(), (*o.onde).clone())), o.versione),
+                Some(o) if vis.versione != o.versione || vis.scena != Some(scena) => (Some(((*o.palline).clone(), (*o.onde).clone(), vec![])), o.versione),
                 Some(o) => (None, o.versione),
                 None => (None, 0),
             }
@@ -90,7 +90,7 @@ pub fn aggiorna(
         match s {
             ZzStrato::Palline => {
                 tr.translation = schermo([-focus[0], -focus[1], -focus[2]]);
-                if let Some((it, onde)) = &items {
+                if let Some((it, onde, _)) = &items {
                     let old = m3.0.id();
                     m3.0 = meshes.add(quads(it));
                     meshes.remove(old);
@@ -99,9 +99,9 @@ pub fn aggiorna(
             }
             ZzStrato::Onde => {
                 tr.translation = schermo([-focus[0], -focus[1], -focus[2]]);
-                if let Some((_, it)) = &items {
+                if let Some((_, it, st)) = &items {
                     let old = m3.0.id();
-                    m3.0 = meshes.add(quads(it));
+                    m3.0 = meshes.add(quads_s(it, st));
                     meshes.remove(old);
                 }
             }
