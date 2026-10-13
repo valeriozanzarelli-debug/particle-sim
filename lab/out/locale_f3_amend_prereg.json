@@ -1,0 +1,18 @@
+{
+ "meta": {
+  "written": "2026-10-13T01:42:50",
+  "git_head_before": "2cd3f420aa02ea32f41c2b2c0305e5ac8c7f7847",
+  "seen_before_writing": "phase-3 run results so far: in ONE copy the 4 energy-0 valleys (Gamma, (1/2,1/2,0)pi and permutations) have the same mass theta for the frozen rule (Schwinger R identical 1.0802 at E/Ec = 1), the twisted Wilson F2 lifts the 3 N valleys to half gap 0.41-0.43 (theta = 0.1); the 4 pi-valleys ((1/2,0,0)pi x3, (1/2,1/2,1/2)pi) are MASSLESS for F0 AND F2 (half gap 0, R = e^pi-like). Hence the pre-registered G(h) of S3 is 0 for every h: S3 fails as written; not changed."
+ },
+ "task_a": "one table reconciling: 8 copies on 2Z^3 (this study), 4 stroboscopic valleys (BATTIMENTO_1S), 4 massive + 4 massless-at-pi species (VUOTO_POLARIZZA). Bookkeeping only, numbers from locale_f3_run.json.",
+ "task_b": {
+  "model": "3-D Dirac walk on a periodic 48^3 box (RealWalk of lab/locale_core.py), theta = 0.5 (cell = 0.5 lambda_C, as the Laboratory), Z = 60 (Z alpha = 0.4378), Coulomb phase exp(-i V T) applied once per 2-tick period (same for all walks; NOT the Laboratory's exact scheme, so absolute energies are not compared with BATTIMENTO). Nucleus on the CORNER (at (1/2,1/2,1/2) from a site, all r >= sqrt(3)/2) or at a CELL CENTRE (on a site; that site gets the cube average of -Z alpha / r, 2.3800/cell, declared). Initial state: exp(-r/a_B) x the positive-energy rest spinor (1,0,1,0)/sqrt2, only on sites of parity class (0,0,0) (one copy). Levels by filter diagonalization (Rayleigh-Ritz): 700 periods, Hann window, 31 filtered vectors for per-period phase in [0.80, 0.95] (= E/m since theta T = 1), Ritz on the 2-tick operator; residual reported.",
+  "walks": "F0 frozen; F2 twisted Wilson h = 0.1 (phase 1); F2 h = 0.6 (argmax over the phase-3 h grid of the energy-0 doubler gap g0 at theta = 0.1: chosen AFTER seeing the scan, declared).",
+  "exams": {
+   "V2_control": "F0, corner: >= 3 Ritz levels in [0.80, 0.95] with weight >= 2 % each in the initial state (the multiplet is reproduced in this reduced model). If this fails, V3 is not interpretable.",
+   "V3_wilson": "F2 (h = 0.1 and h = 0.6), corner: exactly ONE level in [0.80, 0.95] with weight >= 2 %, carrying >= 90 % of the weight found in the window -> 'the valley split disappears'.",
+   "V4_centre": "the same counts for the nucleus on a cell centre (information, no threshold).",
+   "info": "energy of the main level vs Dirac 0.89907 (no threshold: the first-cell error of NUCLEO_1S is not addressed here); residuals <= 1e-6 required for a level to count."
+  }
+ }
+}
