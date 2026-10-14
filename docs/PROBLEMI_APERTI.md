@@ -32,3 +32,15 @@ Figure: `lab/out/rifl_figura.png`, `tunnel_figura.png`, `supercrit_figura.png`, 
 | Regola senza doppioni | `SENZA_DOPPIONI.md` | teorema: nessuna regola fatta di pezzi a una direzione evita i gemelli (W₃ = 0, anche BCC/FCC); proposta FW1 = congelata + un Wilson ritorto (h = 0,4, debito) sui tick pari: gemelli ≥ 0,37/a, coppie 0,99 di una specie senza proiettore; T rotta |
 | FW1, vuoto senza proiettore | `FW1_VUOTO.md` | mare intero: 2α/3π a −0,14 %, Uehling −0,2/−0,3 %; congelata a mare intero: 4 specie meno 4 coni (validazione del problema); luce vestita +0,043 α e birifrangente (Collins non curato); FW1 rompe x↔z |
 | FW1, due righe, battimento, atomo 3-D | `FW1_ATOMO.md` | le due righe a θ = 0,5 sono la coppia di spin spaccata dalla T rotta (∝ θ^3,3); una sola riga per θ ≤ 1/3; battimento congelata ritrovato (0,84037/0,88627/0,89930/0,89960); atomo 3-D senza toppe: FW1 un solo 1s al ≥ 99,5 % nella valle vera, errore tra −2,5 % e +2,7 % (scatola); costo ×2,1–2,4 |
+
+## Pausa (14/10/2026, 01:00 UTC) — dove si riprende
+
+Progetto in pausa per decisione di Valerio. Nessun agente attivo. Tutto è sul ramo `claude/problemi-aperti-56mnej` (non su master: manca l'ok scritto di Valerio).
+
+FW1 è fermo qui: è una variante IN PROVA accanto alla congelata (che resta il riferimento); h = 0,4 è un debito. Funziona per θ ≤ 1/3 (vuoto senza proiettore, un solo 1s nella valle vera). Al passo del Laboratorio (θ = 0,5) l'1s è una coppia di spin spaccata dalla T rotta (∝ θ^3,3).
+
+Prossimi passi, in ordine:
+1. Una variante di FW1 che conservi T esatta (es. Wilson ritorto simmetrico sui due tick, o fase che si compensa nel periodo), con lo stesso test: coppie senza proiettore, 1s a θ = 0,5 una riga sola.
+2. c dell'elettrone vestito con FW1 (manca): poi c_e − c_luce per FW1 contro la congelata.
+3. Atomo 3-D con FW1: scatola più grande per portare l'errore sotto l'1 % (oggi tra −2,5 % e +2,7 %).
+4. Portare su master (serve l'ok di Valerio) e passare FW1 al Laboratorio Atomo (thread Ripresa) e al renderer (Modello standard).
