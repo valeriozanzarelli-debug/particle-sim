@@ -18,6 +18,7 @@ use bevy_egui::{EguiContexts, EguiPlugin};
 mod accoppiato;
 mod camera;
 mod elscena;
+mod esportazioni;
 #[path = "../zigzag/cplx.rs"]
 #[allow(dead_code)]
 mod cplx;
@@ -35,6 +36,7 @@ mod render;
 mod render_zz;
 mod rng;
 mod skyrme;
+mod tavola;
 mod ui;
 #[path = "../zigzag/walk.rs"]
 #[allow(dead_code)]
@@ -64,7 +66,7 @@ pub enum Modo { Avanti, Pausa, Indietro }
 
 /// The two scenes, both the zig-zag rule live: the free photon (light alone) and the atom (electron + light).
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum Scena { Fotone, Atomo, Orbitali, Elettrone }
+pub enum Scena { Fotone, Atomo, Orbitali, Elettrone, Tavola }
 
 /// The nucleus is shown on its own slowed clock: spin angular velocity on screen (rad per screen second).
 pub const OMEGA_ROT_SCHERMO: f64 = 1.1;
@@ -126,6 +128,8 @@ pub struct Lab {
     pub ritmo_el: f64,
     /// version of the scene output last handed to the drawing (render_zz), for frame-by-frame sequences
     pub versione_disegnata: u64,
+    /// the periodic-table mode (tavola.rs): the table, its scene worker, what was pressed
+    pub tav: tavola::Pannello,
 }
 
 impl Lab {
@@ -141,7 +145,7 @@ impl Lab {
             t_nucleo: 0.0, omega_rot: OMEGA_ROT_SCHERMO, omega_resp: OMEGA_ROT_SCHERMO * w_resp / w_rot, nodo_info2: info2,
             modo: Modo::Avanti, spara: false, panel_open: false, mostra_protone: true, bagliore: true, grandezza: 1.0, luce: 1.0,
             nodo_palline, nodo_info: info, frame_count: 0, palline_disegnate: 0, fps: 0.0,
-            el: None, el_part: elscena::Particella::Elettrone, ritmo_el: 12.0, versione_disegnata: 0,
+            el: None, el_part: elscena::Particella::Elettrone, ritmo_el: 12.0, versione_disegnata: 0, tav: tavola::Pannello::default(),
         }
     }
 
@@ -151,6 +155,7 @@ impl Lab {
             Scena::Atomo | Scena::Orbitali => zz::LAMBDA_C_M,
             Scena::Fotone => self.cella_m(),
             Scena::Elettrone => zz::LAMBDA_C_M / self.el_part.massa(),
+            Scena::Tavola => tavola::A0_M,
         }
     }
     /// Seconds per tick of the scene's rule.
@@ -160,6 +165,7 @@ impl Lab {
             Scena::Orbitali => zz::T_UNIT_S,
             Scena::Fotone => self.cella_m() / 299_792_458.0,
             Scena::Elettrone => elscena::THETA * zz::T_UNIT_S / self.el_part.massa(),
+            Scena::Tavola => tavola::T_AU_S,
         }
     }
     /// Size of one cell of the photon box (m): λ / (cells per λ) of the photon now flying.
@@ -177,7 +183,9 @@ impl Lab {
             Scena::Atomo => { if self.zz.is_none() { self.zz = Some(zzscena::avvia()); } }
             Scena::Orbitali => { if self.orb.is_none() { self.orb = Some(orbitali::avvia()); } }
             Scena::Elettrone => { if self.el.is_none() { self.el = Some(elscena::avvia(self.el_part)); } }
+            Scena::Tavola => self.tav.avvia(),
         }
+        self.tav.comanda(s == Scena::Tavola && self.modo == Modo::Avanti, 30.0);
         if let Some(e) = &self.el {
             let mut g = e.lock().unwrap();
             g.comando = if s == Scena::Elettrone && self.modo == Modo::Avanti { elscena::Comando::Avanti } else { elscena::Comando::Pausa };
@@ -205,7 +213,7 @@ impl Lab {
                 Bersaglio::Elettrone => self.zz.as_ref().map(|z| z.lock().unwrap().out.punto).unwrap_or([0.0; 3]),
                 _ => [0.0; 3],
             },
-            Scena::Orbitali | Scena::Elettrone => [0.0; 3],
+            Scena::Orbitali | Scena::Elettrone | Scena::Tavola => [0.0; 3],
         }
     }
     pub fn distanza_tipica(&self, b: Bersaglio) -> f64 {
@@ -217,6 +225,7 @@ impl Lab {
             (Scena::Orbitali, Bersaglio::Elettrone) => 6.0,
             (Scena::Orbitali, _) => 2.4 * self.orb.as_ref().map(|o| o.lock().unwrap().out.r).unwrap_or(25.0),
             (Scena::Elettrone, _) => 16.0,
+            (Scena::Tavola, _) => 2.6 * self.tav.out().map(|o| o.raggio).unwrap_or(3.0),
             (Scena::Fotone, _) => 1.0 * self.fot.as_ref().map(|f| f.lock().unwrap().out.par.n()).unwrap_or(self.fot_par.n()) as f64,
         }
     }
@@ -289,6 +298,10 @@ impl Lab {
                     if g.out.particella != self.el_part && g.particella.is_none() { g.particella = Some(self.el_part); }
                 }
             }
+            Scena::Tavola => {
+                self.tav.comanda(self.modo == Modo::Avanti, 30.0);
+                self.spara = false;
+            }
         }
         let _ = (misura, azzera);
         self.misura = false;
@@ -329,11 +342,17 @@ fn main() {
         ("atomo", _) | ("", "nucleo") | ("", "protone") | ("", "elettrone") => Scena::Atomo,
         ("orbitali", _) => Scena::Orbitali,
         ("elettrone", _) | ("muone", _) => Scena::Elettrone,
+        ("tavola", _) => Scena::Tavola,
         _ => Scena::Fotone,
     };
     if scena_arg == "muone" || arg("--particella").as_deref() == Some("muone") { lab.el_part = elscena::Particella::Muone; }
     lab.cambia_scena(scena);
     if scena == Scena::Orbitali { if let Some(o) = &lab.orb { o.lock().unwrap().scegli = Some(lab.orb_scelta.clone()); } }
+    // the periodic-table mode: `--elemento He` (or a molecule export name, e.g. H2), `--buca` for the Coulomb hole
+    if scena == Scena::Tavola {
+        if let Some(e) = arg("--elemento") { if let Some(s) = lab.tav.scegli_nome(&e) { lab.cambia_scena(s); } }
+        lab.tav.buca = args.iter().any(|a| a == "--buca");
+    }
     let mut auto = Auto::default();
     if let Some(f) = arg("--foto") {
         auto.attivo = true;
@@ -482,6 +501,7 @@ fn tick_versione(lab: &Lab) -> Option<(u64, u64)> {
         // the orbitals have no tick to stop at: no sequences there
         Scena::Orbitali => None,
         Scena::Elettrone => lab.el.as_ref().map(|z| { let o = &z.lock().unwrap().out; (o.ticks, o.versione) }),
+        Scena::Tavola => None,
     }
 }
 
@@ -557,6 +577,7 @@ fn info_scena(lab: &Lab) -> Option<String> {
             Scena::Elettrone => lab.el.as_ref().map(|z| { let o = z.lock().unwrap().out.clone();
                 format!("{} tick {} t {:.3} centro bagliori ({:+.4}, {:+.4}, {:+.4}) centro onda ({:+.4}, {:+.4}, {:+.4}) {:.0} ms/tick", o.particella.nome(), o.ticks, o.t,
                         o.centro_palline[0], o.centro_palline[1], o.centro_palline[2], o.centro_onda[0], o.centro_onda[1], o.centro_onda[2], o.ms_tick) }).unwrap_or_default(),
+            Scena::Tavola => lab.tav.out().map(|o| format!("{} · {} · {} palline {:.0} ms", o.righe.0, o.righe.1, o.palline.len() + o.onde.len(), o.ms)).unwrap_or_default(),
         };
         Some(info)
 }

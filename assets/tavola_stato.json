@@ -1,0 +1,84 @@
+{
+ "formato": "particle-sim/tavola-v1",
+ "nota": "Stato della tavola periodica del Laboratorio Atomo (docs/ATOMO.md §10). Un elemento si accende solo se dietro ci sono dati veri: una scena calcolata dal programma ('scena') oppure una cartella in assets/esportazioni/ (formato esportazione-v1). Tutto il resto resta grigio, 'in arrivo'.",
+ "elementi": {
+  "H": {
+   "disponibile": true,
+   "livello": "esatto",
+   "scena": "idrogeno",
+   "validazione": "idrogeno vero a scala di Bohr 3-D (IDROGENO_BOHR): 1s -0,066 %, 2p +0,039 %, 2s -0,138 %, Lyman-α 122,15 nm",
+   "fonte": "docs/IDROGENO_BOHR.md · docs/ZIGZAG.md",
+   "esami": [
+    {
+     "id": "IB 8/8",
+     "cosa": "idrogeno vero a scala di Bohr: 8 esami su 8",
+     "PASS": true
+    }
+   ]
+  },
+  "Li": {
+   "disponibile": false,
+   "nota": "Debiti: catena del litio avviata"
+  }
+ },
+ "ioni": [
+  {
+   "nome": "Nd⁵⁹⁺",
+   "simbolo": "Nd",
+   "Z": 60,
+   "elettroni": 1,
+   "scena": "atomo",
+   "livello": "esatto",
+   "validazione": "ione a un elettrone dal vivo con la regola zig-zag; orbitali n ≤ 4 entro 0,36 % di Dirac (mesh a cipolla); luce accoppiata nei due versi",
+   "fonte": "docs/ATOMO.md §3.7, docs/NUCLEO_1S.md, docs/EMISSIONE.md",
+   "esami": [
+    {
+     "id": "orbitali",
+     "cosa": "10 livelli n ≤ 4 entro 0,36 % di Dirac",
+     "PASS": true
+    },
+    {
+     "id": "K",
+     "cosa": "accoppiamento luce-atomo, ritmo 1,004 della formula",
+     "PASS": true
+    },
+    {
+     "id": "L1",
+     "cosa": "livello dell'atomo accoppiato -0,45 %",
+     "PASS": false
+    },
+    {
+     "id": "3-D",
+     "cosa": "atomo dal vivo su celle cubiche da 0,5: 1s +40 % (debito 12)",
+     "PASS": false
+    }
+   ]
+  }
+ ],
+ "molecole": {
+  "H2": {
+   "nota": "si accende quando c'è assets/esportazioni/H2 (thread Debiti: aggmol fase 2)"
+  },
+  "LiH": {
+   "nota": "in arrivo (Debiti)"
+  },
+  "N2": {
+   "nota": "in arrivo (Debiti)"
+  },
+  "O2": {
+   "nota": "in arrivo (Debiti)"
+  },
+  "H2O": {
+   "nota": "in arrivo (Debiti)"
+  },
+  "NH3": {
+   "nota": "in arrivo (Debiti)"
+  },
+  "CH4": {
+   "nota": "in arrivo (Debiti)"
+  },
+  "CO2": {
+   "nota": "in arrivo (Debiti)"
+  }
+ }
+}

@@ -15,7 +15,8 @@ OUT = E.OUT
 JS = os.path.join(OUT, "h2v_wf.json")
 res = json.load(open(JS)) if os.path.exists(JS) else {}
 # warm-start chain of aggmol_h2.py job_curve restricted to what the video needs (R in [1.2, 1.7])
-CHAIN = [(1.4, None), (1.35, 1.4), (1.3, 1.35), (1.2, 1.3), (1.45, 1.4), (1.5, 1.45), (1.6, 1.5), (1.7, 1.6)]
+CHAIN = [(1.4, None), (1.35, 1.4), (1.3, 1.35), (1.2, 1.3), (1.45, 1.4), (1.5, 1.45), (1.6, 1.5), (1.7, 1.6),
+         (1.1, 1.2), (1.8, 1.7), (2.0, 1.8)]   # last three added after the prereg (declared: the v0+v1 packet reaches 2 a0)
 
 
 def bfile(R):

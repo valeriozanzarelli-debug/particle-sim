@@ -39,7 +39,7 @@ def main():
     wf = json.load(open(os.path.join(OUT, "h2v_wf.json")))["E"]
     d = {k: v["diff"] for k, v in wf.items()}
     es["V0"] = dict(diff_per_R=d, max_abs=float(max(abs(x) for x in d.values())), n_R=len(d),
-                    PASS=bool(len(d) == 8 and max(abs(x) for x in d.values()) <= 1e-6))
+                    PASS=bool(len(d) == 11 and max(abs(x) for x in d.values()) <= 1e-6))
     # V5
     Rimg, meta = proton_sep(0)
     es["V5"] = dict(R_image=Rimg, R_true=1.4, rel=Rimg / 1.4 - 1, PASS=bool(abs(Rimg / 1.4 - 1) <= 0.02))

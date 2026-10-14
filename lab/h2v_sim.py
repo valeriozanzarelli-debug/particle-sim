@@ -20,7 +20,8 @@ NA, NB, NC = 240, 288, 384
 NF = NA + NB + NC
 NW = 12000                 # pair walkers -> 24000 electron balls
 NO = 8000                  # orange walkers (other electron given the reference one)
-STEP = 0.07                # a0 per coordinate per Metropolis move during the video (shimmer)
+STEP = 0.03                # a0 per coordinate per Metropolis move during the video (v2: 0.03 x 3 moves, so the
+NMOVE = 3                  # short glow tails stay short smears; v1 was 0.07 x 2, declared)
 SLOW_PERIOD_S = 4.0        # one vibration period shown in 4 s
 JE = os.path.join(OUT, "h2v_esami.json")
 esami = json.load(open(JE)) if os.path.exists(JE) else {}
@@ -153,7 +154,7 @@ def job_frames():
         X, _, _ = metropolis(X, lambda Q: tgt(Q, w14), 0.35, rng, 200)
         Y = None; f0 = 0
     xR = V["x"]
-    for f in range(f0, NF):
+    for f in range(f0, int(os.environ.get("H2V_STOP", NF))):
         need_wait = f == NA + NB and not all(os.path.exists(os.path.join(OUT, f"h2v_basis_R{R:.2f}.npz")) for R in C.RGRID)
         if time.time() - t0 > 420 or f % 120 == 0 or need_wait:
             np.savez(st_file, X=X, Y=Y if Y is not None else np.zeros(0), f=f, rng=json.dumps(rng.bit_generator.state))
@@ -162,9 +163,9 @@ def job_frames():
         meta = dict(f=f)
         if f < NA + NB:
             w = w14; R = 1.4
-            X, _, acc = metropolis(X, lambda Q: tgt(Q, w), STEP, rng, 2)
+            X, _, acc = metropolis(X, lambda Q: tgt(Q, w), STEP, rng, NMOVE)
             balls = [X.reshape(-1, 3)]; cls = [np.zeros(2 * NW, np.uint8)]
-            meta.update(seg="A" if f < NA else "B", R=R, Rmean=R)
+            meta.update(seg="A" if f < NA else "B", R=R, Rmean=R, version="AB2")
             if f >= NA:
                 u = (f - NA) / NB
                 r1 = ref_path(u)
@@ -193,5 +194,50 @@ def job_frames():
     print("FRAMES DONE", flush=True)
 
 
+# ---------------------------------------------------------------- part C, version 2 (after the V7 FAIL, declared)
+NWC = 8000      # pair walkers in C v2
+STEPC = 0.32    # a0, Metropolis step in C v2
+NSTC = 6        # moves per frame in C v2 (v1: 2 moves of 0.07 a0: the cloud lagged behind the protons, V7 FAIL)
+WMIN = 1e-2     # grid weights below this are dropped and the rest renormalised (speed; declared)
+
+
+def job_frames_c2():
+    t0 = time.time()
+    st_file = os.path.join(SCR, "h2v_state_c2.npz")
+    V = C.vib()
+    period_au = 2 * np.pi / (V["E"][1] - V["E"][0])
+    rng = np.random.default_rng(21)
+    tgt = Target()
+    xR = V["x"]
+
+    def weights(f):
+        t_au = (f - NA - NB) / FPS / SLOW_PERIOD_S * period_au
+        dens = C.packet(V, t_au)
+        w = C.grid_weights(V, dens); w[w < WMIN] = 0; w /= w.sum()
+        return w, t_au, float(np.sum(xR * dens) * V["dx"])
+    if os.path.exists(st_file):
+        z = np.load(st_file, allow_pickle=True)
+        X, f0 = z["X"], int(z["f"])
+        rng.bit_generator.state = json.loads(str(z["rng"]))
+    else:
+        w, _, _ = weights(NA + NB)
+        X = init_walkers(NWC, 1.5, rng)
+        X, _, _ = metropolis(X, lambda Q: tgt(Q, w), 0.35, rng, 200)
+        f0 = NA + NB
+    for f in range(f0, NF):
+        if time.time() - t0 > 400:
+            np.savez(st_file, X=X, f=f, rng=json.dumps(rng.bit_generator.state))
+            print(f"checkpoint at frame {f}: run again", flush=True); return
+        w, t_au, Rm = weights(f)
+        X, _, acc = metropolis(X, lambda Q: tgt(Q, w), STEPC, rng, NSTC)
+        meta = dict(f=f, seg="C", R=Rm, Rmean=Rm, t_fs=t_au * C.AU_FS, w=w.tolist(), acc=float(acc), version="C2")
+        prot = np.array([[0, 0, Rm / 2], [0, 0, -Rm / 2]])
+        np.savez(os.path.join(FR, f"f_{f:04d}.npz"), p=X.reshape(-1, 3).astype(np.float32),
+                 c=np.zeros(2 * NWC, np.uint8), prot=prot, meta=json.dumps(meta))
+        if f % 12 == 0:
+            print(f"frame {f} C2 R {Rm:.3f} acc {acc:.2f} ({time.time() - t0:.0f} s)", flush=True)
+    print("C2 DONE", flush=True)
+
+
 if __name__ == "__main__":
-    dict(exams=job_exams, frames=job_frames)[sys.argv[1]]()
+    dict(exams=job_exams, frames=job_frames, framesC2=job_frames_c2)[sys.argv[1]]()

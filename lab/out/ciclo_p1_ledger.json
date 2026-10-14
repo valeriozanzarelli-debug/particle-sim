@@ -1,0 +1,143 @@
+{
+ "ledger": [
+  {
+   "term": "massa (riposo) mc^2",
+   "regime": "L < lambda_C (Dirac, z=1)",
+   "dominant": "moto a c: hbar c / L",
+   "weight_at": "L/lambda_C (1 a L = lambda_C)",
+   "y": 1,
+   "kind": "rilevante",
+   "source": "misurato: fase a riposo per passo = theta*B esatta a 1e-12 a ogni livello (agg_zz_3d_A)"
+  },
+  {
+   "term": "cinetico hbar^2 k^2/2m",
+   "regime": "lambda_C < L (Schroedinger, z=2)",
+   "dominant": "se stesso",
+   "weight_at": "1",
+   "y": 0,
+   "kind": "marginale (punto fisso)",
+   "source": "misurato: m_kin/m al livello = 1 entro 4.3e-04 su tutti i livelli liberi"
+  },
+  {
+   "term": "relativistico -k^4/8m^3",
+   "regime": "Schroedinger",
+   "dominant": "cinetico",
+   "weight_at": "(lambda_C/L)^2/4",
+   "y": -2,
+   "kind": "irrilevante",
+   "source": "misurato 1-D: pendenza -1.997 (scala b=2), -1.936 (auto); 3-D libero: NON determinato dai dati (-0.91); catena T: portato esatto (1,0000)"
+  },
+  {
+   "term": "Coulomb -Z alpha hbar c / r",
+   "regime": "Schroedinger",
+   "dominant": "cinetico",
+   "weight_at": "2 L / a0 (=1 a L = a0/2)",
+   "y": 1,
+   "kind": "rilevante",
+   "source": "analitico (il campo di Galerkin e' -Z alpha/r ristretto, nessun parametro); l'atomo nasce dove si incrociano: 1s a a0/16 a 0,0018 % dalla regola fine"
+  },
+  {
+   "term": "Darwin (1/8m^2) lap V",
+   "regime": "atomo",
+   "dominant": "Coulomb",
+   "weight_at": "(lambda_C/L)^2/8 = alpha^2/8 a L = a0",
+   "y": -2,
+   "kind": "irrilevante",
+   "source": "misurato: g_k [-0.1251657618985635, -0.1253928342927883, -0.12617886212164503] a B=256,512,1024, y = -1.994"
+  },
+  {
+   "term": "campo-moto (1/4) grad V . grad",
+   "regime": "atomo",
+   "dominant": "Coulomb",
+   "weight_at": "(lambda_C/L)^2/4",
+   "y": -2,
+   "kind": "irrilevante",
+   "source": "misurato: g_x [0.25018811239092253, 0.24993195288882342, 0.25100446724784375], y = -1.998"
+  },
+  {
+   "term": "spin-orbita (1/4m^2) sigma.(grad V x p)",
+   "regime": "atomo",
+   "dominant": "Coulomb",
+   "weight_at": "(lambda_C/L)^2/4",
+   "y": -2,
+   "kind": "irrilevante",
+   "source": "misurato: g_so [0.2503070653783246, 0.25047100521699184, 0.25255952893971956], y = -1.994"
+  },
+  {
+   "term": "contatto (cuspide degli s, cella h)",
+   "regime": "atomo",
+   "dominant": "Coulomb",
+   "weight_at": "~ (Z alpha)^2 theta^2 ln theta (fine), ~ h/a0 sugli s (grosso)",
+   "y": "~ -2 (log)",
+   "kind": "irrilevante ma il piu' lento",
+   "source": "NUCLEO_1S (legge d0 + c a^(2 gamma)); AGGLOMERATO_COMPLETO s.4.3"
+  },
+  {
+   "term": "QED (Lamb, g-2)",
+   "regime": "atomo",
+   "dominant": "Coulomb",
+   "weight_at": "alpha^3 ln(1/alpha)",
+   "y": "0 (relativo)",
+   "kind": "assente nel motore",
+   "source": "debito #2"
+  },
+  {
+   "term": "legame chimico (H2: D_e 4,75 eV)",
+   "regime": "L ~ a0 .. 3 a0 (molecola)",
+   "dominant": "se stesso",
+   "weight_at": "1",
+   "y": "0 per molecola",
+   "kind": "nuovo grado di liberta' (gli atomi)",
+   "source": "AGGLOMERATO_DUE_ATOMI s.12 (H2: R_e -0,007 %, D_e +0,7 meV)"
+  },
+  {
+   "term": "dispersione C6/R^6 (H2-H2)",
+   "regime": "fra molecole",
+   "dominant": "repulsione di scambio a corto raggio",
+   "weight_at": "buca 0.106 mEh a 6,53 a0 (pair), coesione statica fcc 23.3 meV/molecola",
+   "y": "-6 (coppia vs distanza); 0 per molecola in un corpo",
+   "kind": "marginale (per molecola)",
+   "source": "aggmol fase 3 (C6 10,86, buca 0,106 mEh) + somma fcc (questo studio)"
+  },
+  {
+   "term": "legame a idrogeno",
+   "regime": "acqua",
+   "dominant": "-",
+   "weight_at": "-",
+   "y": "0 per molecola",
+   "kind": "non ancora nel motore",
+   "source": "serve l'acqua (MOLECOLE.md)"
+  },
+  {
+   "term": "gravita' G m^2 / r",
+   "regime": "tutti",
+   "dominant": "Coulomb (atomo) / coesione (corpo)",
+   "weight_at": "8.09e-37 (p-p), 4.41e-40 (e-p) nell'atomo",
+   "y": "0 fra due particelle; +2 per particella in un corpo neutro",
+   "kind": "rilevante per corpi grandi",
+   "source": "analitico; incrocio derivato: H2 solido del motore R_x = 5681 km, atomi schiacciati 41593 km"
+  }
+ ],
+ "gravity": {
+  "pair_pp_over_coulomb": 8.093550857806876e-37,
+  "pair_ep_over_coulomb": 4.407885561413444e-40,
+  "exponent_body": "+2 (energy per particle G M m / R ~ R^2 against a constant cohesive energy)",
+  "h2_solid_engine": {
+   "d_nn_a0": 6.364055736920478,
+   "eps_Eh": 0.0008575468522579717,
+   "eps_eV": 0.023335038620822902,
+   "v_a0_3": 182.2581366632987,
+   "v_m3": 2.7007869394904934e-29,
+   "rho_kg_m3": 123.86181962250915,
+   "pair_well_Eh": 0.00010581541688485434,
+   "C6": 10.463133445771293
+  },
+  "R_cross_h2_engine_m": 5681063.899545862,
+  "R_cross_atoms_crushed_m": 41592649.38739971,
+  "R_cross_ice_exam_m": 3199482.360620924,
+  "R_round_ice_observed_m": 200000.0,
+  "f_y_implied_ice": 0.003907514074726517,
+  "yield_stress_implied_Pa": 9403575.063258877,
+  "note": "R_round = sqrt(f_y) R_x; f_y (yield energy / cohesive energy) needs plasticity (dislocations, grain boundaries): NOT in the engine (debt). The implied f_y and yield stress are exam numbers, not inputs."
+ }
+}

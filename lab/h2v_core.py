@@ -18,7 +18,7 @@ import aggmol_ecg as E
 
 OUT = E.OUT
 OPS = [(np.eye(2), 1.0), (np.eye(2), -1.0), (np.array([[0., 1.], [1., 0.]]), 1.0), (np.array([[0., 1.], [1., 0.]]), -1.0)]
-RGRID = [1.2, 1.3, 1.35, 1.4, 1.45, 1.5, 1.6, 1.7]
+RGRID = [1.1, 1.2, 1.3, 1.35, 1.4, 1.45, 1.5, 1.6, 1.7, 1.8, 2.0]   # 1.1, 1.8, 2.0 added after the prereg (declared)
 MP = 1836.15267343
 AU_FS = 2.4188843265857e-2      # atomic unit of time in fs
 

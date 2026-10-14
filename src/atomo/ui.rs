@@ -89,7 +89,7 @@ pub fn draw_hud(mut ctx: EguiContexts, mut lab: ResMut<Lab>, mut cam: ResMut<Cam
             if ui.add(b).on_hover_text("pannello (Tab) · pausa (Spazio) · lancia un fotone (F) · 1 vista intera · 2 nucleo · 3 elettrone").clicked() {
                 lab.panel_open = !lab.panel_open;
             }
-            for (s, n) in [(Scena::Fotone, "fotone libero"), (Scena::Atomo, "atomo zig-zag"), (Scena::Orbitali, "orbitali"), (Scena::Elettrone, "elettrone libero")] {
+            for (s, n) in [(Scena::Fotone, "fotone libero"), (Scena::Atomo, "atomo zig-zag"), (Scena::Orbitali, "orbitali"), (Scena::Elettrone, "elettrone libero"), (Scena::Tavola, "tavola periodica")] {
                 if ui.add(egui::Button::new(n).fill(Color32::from_black_alpha(90)).selected(lab.scena == s)).clicked() && lab.scena != s {
                     lab.cambia_scena(s);
                     if s == Scena::Fotone { cam.yaw = 0.42; cam.pitch = 0.28; }
@@ -157,8 +157,11 @@ pub fn draw_hud(mut ctx: EguiContexts, mut lab: ResMut<Lab>, mut cam: ResMut<Cam
             Scena::Atomo => pannello_atomo(ctx, lab, &mut cam),
             Scena::Orbitali => pannello_orbitali(ctx, lab),
             Scena::Elettrone => pannello_elettrone(ctx, lab),
+            Scena::Tavola => {}
         }
     }
+    // the periodic table: always called in its scene (the camera follows what is shown), the window only with the panel
+    if lab.scena == Scena::Tavola { crate::tavola::pannello(ctx, lab, &mut cam); }
 }
 
 fn pannello_elettrone(ctx: &egui::Context, lab: &mut Lab) {
@@ -188,7 +191,7 @@ fn clic_scena(lab: &Lab) -> Option<(usize, Option<[f64; 3]>)> {
         Scena::Fotone => lab.fot.as_ref().map(|z| { let o = &z.lock().unwrap().out; (o.n_clic, o.ultimo_clic) }),
         Scena::Atomo => lab.zz.as_ref().map(|z| { let o = &z.lock().unwrap().out; (o.n_clic, o.ultimo_clic) }),
         Scena::Orbitali => lab.orb.as_ref().map(|z| { let o = &z.lock().unwrap().out; (o.n_clic, o.ultimo_clic) }),
-        Scena::Elettrone => None,
+        Scena::Elettrone | Scena::Tavola => None,
     }
 }
 
@@ -204,7 +207,7 @@ fn pannello_misura(ui: &mut egui::Ui, lab: &mut Lab) {
     let etichetta = match lab.scena {
         Scena::Fotone => "dopo la misura: il fotone è assorbito (ne parte un altro)",
         Scena::Atomo => "dopo la misura: collassa (un pacchetto stretto nel punto del clic)",
-        Scena::Orbitali | Scena::Elettrone => "dopo la misura: collassa (non disponibile qui: usa la scena atomo)",
+        Scena::Orbitali | Scena::Elettrone | Scena::Tavola => "dopo la misura: collassa (non disponibile qui: usa la scena atomo)",
     };
     ui.add_enabled(lab.scena != Scena::Orbitali, egui::Checkbox::new(&mut lab.opz.collassa, etichetta));
     if !lab.opz.collassa || lab.scena == Scena::Orbitali {
@@ -281,6 +284,7 @@ fn stato_scena(lab: &Lab) -> (String, String) {
                 _ => ("L'elettrone sta partendo...".into(), String::new()),
             }
         }
+        Scena::Tavola => crate::tavola::stato(lab),
     }
 }
 
@@ -322,6 +326,7 @@ fn barra_tempo(ctx: &egui::Context, lab: &mut Lab) {
                         ui.label(RichText::new(format!("1 s ≤ {}", fmt_t(spt * lab.ritmo))).monospace().color(GREY));
                         ui.label(RichText::new(format!("t = {}", fmt_t(ticks as f64 * spt))).monospace().color(CYAN));
                     }
+                    Scena::Tavola => crate::tavola::barra(ui, lab),
                 }
                 ui.separator();
                 if ui.add(egui::Button::new(RichText::new(" MISURA (M) ").strong()).fill(Color32::from_rgb(40, 100, 60))).on_hover_text("un clic del rivelatore, con probabilità |ψ|²").clicked() { lab.misura = true; }

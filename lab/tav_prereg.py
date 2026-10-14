@@ -1,0 +1,89 @@
+"""tav_prereg.py - PRE-REGISTRAZIONE dello studio TAVOLA, parte 1 (litio e berillio). Genera lab/out/tav_prereg.json.
+Va committato PRIMA di ogni corsa di produzione su Li, Li+, Be, Be+ e sui loro stati eccitati."""
+import os, json, sys
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import tav_ecg as T
+
+CM_EV = 1.239841984e-4          # 1 cm^-1 in eV (CODATA)
+
+pre = dict(
+    studio="TAVOLA parte 1: litio (Z=3) e berillio (Z=4) dalla regola zig-zag agglomerata, livello ECG esatto",
+    data="2026-10-13",
+    operatore=dict(
+        H="sum_i p_i^2/(2 m_kin) - Z sum_i 1/r_i + sum_{i<j} 1/r_ij (nucleo puntiforme, fermo)",
+        m_kin_theta_A=T.M_T_THETA_A, m0=T.M0,
+        fonte_massa="multi_e_v5.json del thread principale (livello T6: m_T(theta_A), R3v5 m0); E(theta->0) = E(m_T) m0/m_T (scala esatta)",
+        ingressi="Z, m_kin imparata, masse dei nuclei (Li-7: 12786.393 m_e, Be-9: 16424.20 m_e) solo per la massa ridotta agli esami sperimentali",
+        parametri_fisici_liberi=0),
+    metodo=dict(
+        base="ECG phi = (u.x_z)^l exp(-x^T A x), l = 0 (S) o 1 (P, M = 0)",
+        antisimmetria="somma sulle permutazioni con c_P = sign(P) <chi|P chi>; chi: p3 = aab (Li, Li 2P, Be+), s2 = singoletto (Li+), p4 = aabb (Be 1S), s4 = singoletto x singoletto (Be 2s2p 1P)",
+        svm="crescita una funzione alla volta: 'trials' candidati (meta' a caso, meta' figli di funzioni della base), lucidatura a caso, poi Nelder-Mead (maxfev nm) sui parametri del vincitore; poi 'sweeps' giri di raffinamento della base intera",
+        barra="max(|E ultimo giro - E penultimo giro|, 0,5 |E(K) - E(0,9 K)|) (sottoinsieme delle prime 0,9 K funzioni, base finale)",
+        massa_ridotta="E_mu = E_inf * M/(M+1) per i confronti con l'esperimento (polarizzazione di massa trascurata, DEBT-3)",
+        dipolo="f_L = 2 dE |<S|sum z_i|P0>|^2 (lunghezza), f_V = 2 |<S|sum d/dz_i|P0>|^2 / (m^2 dE) (velocita'), stati normalizzati; stessa funzione di spin nei due stati",
+        vita="A = 2 alpha^3 dE^2 f (g_S/g_P) in a.u. (g_S/g_P = 1/3), tau = 1/A"),
+    svm_common=dict(trials=20, mut=0.5, p_pair=0.4, polish=[0.3, 0.1], npol=10, nm=200),
+    jobs={
+        "li2S": dict(Z=3.0, spin="p3", L=0, K=500, sweeps=3, Lmax=30.0, seed=301),
+        "li2P": dict(Z=3.0, spin="p3", L=1, K=500, sweeps=3, Lmax=40.0, seed=302),
+        "liP1S": dict(Z=3.0, spin="s2", L=0, K=250, sweeps=3, Lmax=15.0, seed=303),
+        "be1S": dict(Z=4.0, spin="p4", L=0, K=700, sweeps=3, Lmax=24.0, seed=401),
+        "beP2S": dict(Z=4.0, spin="p3", L=0, K=500, sweeps=3, Lmax=24.0, seed=402),
+        "be1P": dict(Z=4.0, spin="s4", L=1, K=450, sweeps=2, Lmax=32.0, seed=403),
+    },
+    ordine="prima Li (li2S, liP1S, li2P) fino agli esami; Be solo dopo che Li e' chiuso",
+    riferimenti=dict(
+        nota="valori della letteratura usati SOLO come esame; teoria non relativistica a massa infinita, esperimento come misurato",
+        Li_E=-7.478060323, LiP_E=-7.279913413, Li2P_E=-7.410156533,
+        Be_E=-14.667356486, BeP_E=-14.324763176,
+        Li_IP_exp_eV=5.391715, Be_IP_exp_eV=9.322699,
+        Li_line_cm=14903.871, Li_line_eV=14903.871 * CM_EV, Li_line_nm_vac=1e7 / 14903.871, Li_line_nm_air=670.8,
+        Be_line_cm=42565.35, Be_line_eV=42565.35 * CM_EV, Be_line_nm_vac=1e7 / 42565.35, Be_line_nm_air=234.86,
+        Li_f=0.746957, Be_f=1.374, Li_tau2p_ns=27.102,
+        Li_r2=18.35288, Li_rho0=13.842609,
+        Be_r2_memoria=16.0, Be_rho0_memoria=35.3689,
+        Be_1P_E_memoria=-14.473451),
+    esami={
+        "LI1": "E(Li 2S, theta->0) entro 0,10 mEh da -7,478060323",
+        "LI2": "E(Li+ 1S) entro 0,02 mEh da -7,279913413",
+        "LI3": "E(Li 2P) entro 0,10 mEh da -7,410156533",
+        "LI4a": "prima ionizzazione (massa ridotta) entro 1 % di 5,391715 eV (esperimento)",
+        "LI4b": "prima ionizzazione entro 3 meV dall'esperimento (fisica mancante ~0,3 meV)",
+        "LI5a": "riga 2s->2p (centroide dei due D) entro 1 % di 1,847843 eV; lunghezza d'onda entro 1 % di 670,97 nm (vuoto) / 670,8 nm (aria)",
+        "LI5b": "riga 2s->2p entro 3 meV dall'esperimento",
+        "LI6": "forza d'oscillatore f_L e f_V entro 1 % di 0,746957 e |f_L - f_V|/f <= 1 %",
+        "LI7": "vita del 2p (dalla f e dal dE calcolati) entro 2 % di 27,102 ns",
+        "LI8": "<sum r_i^2> entro 1 % di 18,35288; densita' al nucleo <sum delta(r_i)> entro 1 % di 13,842609",
+        "LI9": "viriale |-V/T - 2| <= 1e-4 (controllo, non fisica)",
+        "BE1": "E(Be 1S, theta->0) entro 1,5 mEh da -14,667356486",
+        "BE2": "E(Be+ 2S) entro 0,10 mEh da -14,324763176",
+        "BE3a": "prima ionizzazione entro 1 % di 9,322699 eV",
+        "BE3b": "prima ionizzazione entro 30 meV",
+        "BE4a": "riga 2s2 1S -> 2s2p 1P entro 1 % di 5,27745 eV; lunghezza d'onda entro 1 % di 234,93 nm (vuoto) / 234,86 (aria)",
+        "BE4b": "riga entro 30 meV",
+        "BE5": "f_L e f_V entro 3 % di 1,374 e |f_L - f_V|/f <= 3 %",
+        "BE6": "solo riportati (riferimenti dalla memoria, non verificati qui): <sum r^2> ~16,0, densita' al nucleo ~35,369, E(1P) ~ -14,473451, vita del 1P",
+        "BE7": "viriale |-V/T - 2| <= 3e-4",
+        "X1": "Be: lo stato 1P calcolato deve stare SOPRA il 3P (controllo dello spin): non misurato qui, solo E(1P) > E(1S) + 0,15 Eh",
+    },
+    regola_esito="un elemento 'passa' (cliccabile nella tavola) se passano E, ionizzazione (a), riga (a) e f; gli esami (b) e i riferimenti di densita' sono la misura fine; ogni FAIL resta scritto",
+    validazione_o_scoperta="TUTTO validazione: si ritrovano numeri noti con l'operatore della regola. Nessuna scoperta attesa.",
+    osservazioni_di_sviluppo_gia_viste=[
+        "tav_dev.json: formule P e dipolo contro Monte Carlo (|z| < 2); H 1s -0,5, 2p -0,125, f(1s-2p) 0,41620 (L e V); He 1S -2,903716 a K=100 (gia' validato dal thread principale)",
+        "non interagenti Z=3: macchina esatta nella base prodotto (stesso numero a 1e-13); SVM con soli candidati a caso converge male (-9,58 a K=130 invece di -10,125) -> aggiunti figli (mutazioni), lucidatura e Nelder-Mead",
+        "Li-like Z=5 (B2+, non esame): K=400 solo a caso + 2 giri -23,424578 contro -23,424606 (0,03 mEh)",
+        "Be-like Z=6 (C2+, non esame): a caso K=500 -36,52723 (7,6 mEh); con Nelder-Mead 200 K=200 + 1 giro -36,53029 (4,6 mEh)",
+        "nessuna corsa su Li, Li+, Be, Be+ o i loro stati eccitati prima di questo file",
+    ],
+    debiti=[
+        "DEBT-1 repulsione elettrone-elettrone come fase di Coulomb istantanea (niente Breit/ritardo)",
+        "DEBT-2 antisimmetria e accoppiamento di spin messi a mano (postulato spin-statistica)",
+        "DEBT-3 nucleo puntiforme e fermo; massa ridotta solo agli esami; polarizzazione di massa trascurata",
+        "DEBT-4 proiezione non relativistica (niente alpha^2: Darwin e spin-orbita assenti dalla regola)",
+        "DEBT-T1 (nuovo) accoppiamento luce-atomo in approssimazione di dipolo (non derivato dal fotone della regola)",
+        "DEBT-T2 (nuovo, macchina) generatore e ottimizzatore della base scelti a mano (non fisica: cambiano solo la convergenza)",
+    ],
+)
+json.dump(pre, open(os.path.join(T.OUT, "tav_prereg.json"), "w"), indent=1, ensure_ascii=False)
+print("scritto lab/out/tav_prereg.json")

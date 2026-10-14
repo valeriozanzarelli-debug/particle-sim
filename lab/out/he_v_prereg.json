@@ -1,0 +1,50 @@
+{
+ "study": "he_v (video dell'elio a bagliori: due elettroni attorno al nucleo, buca di Coulomb)",
+ "data_source": "thread principale (studio multi_e, commit f7d085f): esportazione /mnt/project-files/ripresa/dati/elio/ (manifest.json, elio_coppie.npy = 200 000 coppie da |psi(r1,r2)|^2 con Metropolis, elio_densita.npz = rho_1e esatta e mappe condizionate con l'elettrone 1 fermo su +z a 0,5 e 1,0 a0). Base ECG di 200 gaussiane, E = -2,9037213 Eh.",
+ "what_is_computed_upstream": [
+  "stato fondamentale ECG dell'elio (thread principale)",
+  "coppie campionate",
+  "densita' esatta",
+  "mappe condizionate"
+ ],
+ "what_is_done_here": [
+  "ogni fotogramma pesca un gruppo nuovo di coppie (stato stazionario: niente moto vero, niente traiettorie)",
+  "scia corta: persistenza dei bagliori degli ultimi 5 fotogrammi (0,21 s), che si spengono (regola di Valerio del 13/10)",
+  "parte B: un elettrone di riferimento messo da noi su un giro scelto a r = 1,0 a0; la luce delle palline e' pesata con g(r2 | r1) = rapporto condizionata/non condizionata (mappa del thread principale, ruotata: lo stato e' a simmetria sferica)",
+  "estetica: colori, dimensioni, alone, camera"
+ ],
+ "exams": {
+  "E1": {
+   "what": "densita' delle palline (tutte le 400 000) contro rho1 esatta: distribuzione radiale 4 pi r^2 rho, celle 0,05 a0 fino a 6 a0",
+   "threshold": "L1 <= 0,03"
+  },
+  "E2": {
+   "what": "<r> e <r12> letti dalle palline contro i valori noti 0,929472 e 1,42207 a0",
+   "threshold": "0,5 % ciascuno"
+  },
+  "E3": {
+   "what": "buca di Coulomb: P(r12 < 0,5 a0) delle coppie vere contro coppie rimescolate (partner a caso, stessa densita')",
+   "threshold": "rapporto <= 0,85"
+  },
+  "E4": {
+   "what": "la mappa g usata per la luce contro g ricavata dalle coppie stesse (r1 con |r1| in [0,9; 1,1], ruotate su +z, celle 0,25 a0, solo celle con >= 200 coppie)",
+   "threshold": "Pearson >= 0,9 e scarto mediano <= 0,05"
+  },
+  "E5": {
+   "what": "nei fotogrammi B la media di g sulle palline (che seguono rho1) deve essere 1 (normalizzazione della condizionata)",
+   "threshold": "|media - 1| <= 0,03 in ogni fotogramma"
+  }
+ },
+ "knobs_physics": 0,
+ "knobs_visual": [
+  "palette",
+  "SPOT",
+  "GLOW",
+  "GAIN",
+  "palline per fotogramma (12 000 coppie)",
+  "scia 5 fotogrammi",
+  "camera",
+  "giro dell'elettrone di riferimento"
+ ],
+ "render": "foto 1920x1080; video 1280x720 24 fps (~18 s)"
+}
