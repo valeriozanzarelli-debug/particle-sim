@@ -78,5 +78,10 @@ if __name__ == "__main__":
         phases.update(p2.PHASES)
     except ImportError:
         pass
+    try:
+        import ciclo_prereg_p34 as p34            # phase 3 (draft, development only) and phase 4 (plan)
+        phases.update(p34.PHASES)
+    except ImportError:
+        pass
     build(phases)
     print("wrote", os.path.join(OUT, "ciclo_prereg.json"), list(phases))

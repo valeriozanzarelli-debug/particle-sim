@@ -222,3 +222,70 @@ spostamento dell'1s al primo ordine come esame "Coulomb".
   autovettori di tutta la catena (2000–2600 celle), non da piccoli pezzi: la parte "pezzi" è della fase 3; (c6) φ in
   3-D senza quasi-periodicità; (c7) il potenziale grosso 1-D è la restrizione di Galerkin, non imparato (in 3-D il campo
   imparato esiste già, AGGLOMERATO_COMPLETO).
+
+## 3. Fase 3: controllo al volo e raffinamento locale — PARZIALE
+
+**Stato: PARZIALE.** Solo sviluppo, dichiarato. Nessuna corsa di produzione e nessun esame misurato. Le soglie non sono
+ancora fissate (bozza in `lab/out/ciclo_prereg.json`, `fase3`). Mi sono fermato qui perché Valerio chiudeva la sessione.
+
+### 3.1 Cosa ho provato (come a un ventenne)
+L'idea: quasi tutto lo spazio va col livello grosso (B = 9: una cella grossa = 9 celle base, 243 numeri invece di
+2187). Dove arriva un disturbo, per esempio un campo che oscilla vicino all'atomo, si passa alle celle base solo lì.
+Prima però bisogna saper **incollare** le due descrizioni: celle grosse da una parte, celle base dall'altra.
+
+* **Primo tentativo: FALLISCE.** Le variabili grosse automatiche della fase 2 sono "blocchi netti", cioè la media
+  sulle 9 celle con un gradino al bordo. Se le incolli alla base calcolando gli accoppiamenti direttamente dalla regola
+  fine (Galerkin), il gradino costa un'energia finta. L'accoppiamento esce circa **6 volte troppo rigido**: diagonale
+  2,4·10⁻³ contro 3,9·10⁻⁴ della regola imparata. Con 10 celle raffinate al centro compaiono **stati finti a
+  −6,7·10⁻⁴**, 20 volte più legati del vero atomo (−3,25·10⁻⁵). Lezione: la regola grossa imparata va bene da sola,
+  ma per cucirla alla base servono variabili **lisce**.
+* **Secondo tentativo: promette bene (sviluppo).** Le variabili si lisciano da sole: prendo i blocchi netti e li
+  lascio "diffondere" s volte con la regola del livello stesso. In gergo è *aggregazione liscia*, la ricetta standard
+  del multigrid algebrico. Così nessuna forma è disegnata a mano. Nella composizione 2187 → 729 → 243 celle:
+
+| s | regola di Galerkin / regola imparata (finestra lenta) | stati legati vs base (3 più bassi) |
+|---|---|---|
+| 1 | 1,37–1,41 | 10 %, 25 %, 24 % |
+| 2 | 1,03–1,06 | 1,8 %, 3,7 %, 3,6 % |
+| 3 | **1,003–1,013** | **0,48 %, 0,73 %, 0,73 %** |
+
+  Con s = 3 la regola "incollabile" coincide con quella imparata entro l'1 %. Gli stati legati sono anche un po' meglio
+  della regola della fase 2 al livello B = 9 (1 %). Le code delle funzioni lisce calano di circa 4 volte per cella
+  grossa: sono locali. (`lab/ciclo_p3_dev.py` → `lab/out/ciclo_p3_dev.json`)
+
+### 3.2 Cosa manca (prossimo passo)
+1. Mettere nel codice la base mista: funzioni lisce mascherate più celle base raffinate, ortonormale, con passi
+   Crank–Nicolson esattamente unitari.
+2. Il controllo: per ogni pezzo di 3 celle grosse, la regola base gira su pezzo più cuscinetto e si confronta con
+   l'evoluzione mista. Sopra soglia si raffina e si rifà l'intervallo.
+3. Fissare le soglie (EPS_REF, DT, ampiezza del disturbo) da corse di sviluppo e committarle **prima** della
+   produzione.
+4. Esami B1–B5 (bozza nella pre-registrazione):
+   * B1: in quiete nessun raffinamento;
+   * B2: si raffina solo dentro il cono del disturbo;
+   * B3: la ionizzazione esce entro il 5 % della base intera, e il livello grosso da solo sbaglia;
+   * B4: la norma si conserva entro 10⁻⁹ e l'energia è costante fra due raffinamenti;
+   * B5: un disturbo lontano dall'elettrone non fa raffinare. Si raffina dove c'è errore, non dove c'è campo.
+
+Debiti nuovi:
+* (c8) il lisciamento (s = 3, passo 4/3ρ standard del multigrid);
+* (c9) il disturbo di prova è messo a mano. È un esame, non materiale fisico.
+
+Manopole nuove: s (scelto dal controllo, non fittato) e il passo di lisciamento.
+
+## 4. Fase 4: piano pre-registrato (goccia d'acqua) — solo piano
+L'acqua non esiste ancora nel motore: `docs/MOLECOLE.md` §8.2 la esclude per il problema del segno a 5 elettroni per
+spin. Quindi la fase 4 è solo un piano, scritto nella pre-registrazione (`fase4`).
+* L'impianto: una goccia al livello "molecola", con una regione irraggiata e una congelata.
+* Il controllo al volo deve raffinare solo lì e poi **tornare grosso** quando l'errore rientra. Questo de-raffinamento
+  è nuovo rispetto alla fase 3.
+* Il rumore di fluttuazione-dissipazione del livello grosso si misura dalle toppe fini.
+
+Esami:
+* C1: l'energia più il lavoro dell'impulso si conserva entro 10⁻³, e il numero di molecole è esatto.
+* C2: varianza del rumore = 2Tγ entro il 10 %.
+* C3: stessa temperatura finale fra livello grosso e toppe fini entro il 5 %, e la frazione raffinata torna sotto il
+  10 %.
+* C4: solo esame, densità e calore latente contro l'acqua vera.
+
+Si esegue solo quando la regola a molti elettroni avrà dato H₂O e il suo dimero.
