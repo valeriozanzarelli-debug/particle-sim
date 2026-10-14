@@ -118,7 +118,7 @@ def main():
             for c in cands:
                 if c in cr:
                     continue
-                if time.time() - t0 > 520:
+                if time.time() - t0 > 420:
                     rec.setdefault(ck, {})["candidati"] = cr; res[key] = rec
                     json.dump(res, open(FN, "w"), indent=1); print("checkpoint: rilanciami", flush=True); sys.exit(3)
                 ts = time.time()
