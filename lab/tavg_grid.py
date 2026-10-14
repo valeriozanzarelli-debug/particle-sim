@@ -366,9 +366,12 @@ def atomic_guess(mc, norb, restricted, n_up, n_dn, order=None):
     return funcs
 
 
-def hf_griglia(nuclei, carica=0, spin=None, h=0.25, L=16.0, restricted=True, kinetic="regola", mkin=1.0, tol=1e-7,
+def hf_griglia(nuclei, carica=0, spin=None, h=None, L=16.0, restricted=True, kinetic="regola", mkin=1.0, tol=1e-7,
                maxiter=400, guess=None, order=None, occ=None, budget=None, log=print, machine=None):
-    """Hartree-Fock on the agglomerated grid for arbitrary nuclei (Z, position in a0). See the module docstring."""
+    """Hartree-Fock on the agglomerated grid for arbitrary nuclei (Z, position in a0). See the module docstring.
+    h = None: the finest cell chosen by the machine among the blocks present (each block knows its own h)."""
+    if h is None and machine is None:
+        h = min(load_block(int(Z)).get("h_grid", 0.25) for Z, _ in nuclei)
     mc = machine or Machine(nuclei, h=h, L=L, kinetic=kinetic, mkin=mkin)
     nel = int(round(sum(mc.Zv))) - carica
     if spin is None:
