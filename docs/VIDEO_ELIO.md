@@ -95,3 +95,11 @@ python3 lab/he_v_figure.py
 ```
 
 ![figura](fig/he_v_figure.png)
+
+## Stato alla chiusura (14/10, notte)
+
+- Clip **parziale** 720p: 260 fotogrammi su 432 (A intera, 8 s; B solo i primi 68 fotogrammi). File
+  `he_v_video_720p_parziale.mp4` (10 MB) nella cartella di lavoro del cloud; copia in `/mnt/project-files/modello-standard/`
+  non riuscita (errore di I/O del disco condiviso, anche sui dati di ingresso): da copiare. In `modello-standard/` ci sono
+  `he_v_foto_A.png` e `he_v_foto_B.png` con l'aspetto zig-zag (finali).
+- Per finire: `python3 lab/he_v_render.py batch 0 432 --scala 0.6667` (salta i fotogrammi fatti), poi ffmpeg.

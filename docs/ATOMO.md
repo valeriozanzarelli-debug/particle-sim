@@ -473,6 +473,99 @@ il campo vicino è a mano; impulso lungo solo 1 λ (scatola piccola); C1 FAIL: l
 l'ampiezza della risposta; X1 FAIL di arrotondamento; restano tutti i debiti di §3.5–3.7 (accoppiamento ×10, semiclassico,
 nucleo imparato, Z = 60).
 
+### 3.9 Grafica in 3-D, livello di dettaglio continuo, scie dei surfisti e impostazioni (13 ottobre 2026)
+
+**Che cosa aveva visto Valerio** (comando `atomo.exe --scena atomo --surfisti --distanza 60`): "sembra 2-D", "allontanandoti
+l'atomo diventa una palla bianca che offusca", "i bagliori dei surfisti non li vedo", "vorrei una mini scia".
+
+**Perché era così (diagnosi, nel codice).**
+- *2-D*: la camera era già prospettica e girabile (trascina), ma la vista diffusa disegnava solo una **fetta piatta**
+  |y| ≤ 2 celle (il piano x–z, §3.8), e la si guardava di fronte; i bagliori additivi non danno nessun indizio di profondità.
+- *Palla bianca*: nella vista diffusa la nuvola era **4 000 campioni di |ψ|² ingranditi ×6**, bagliori bianchi grandi
+  (fattore 22) e luminosi (alpha fino a 0,68): sommati fanno una palla bianca sopra tutto. Intanto i surfisti veri, a
+  grandezza vera, avevano bagliori di raggio fisso 0,12 ħ/mc oltre distanza 34: a 60 sono ~2 px, a 460 meno di un pixel.
+- *Surfisti deboli*: alpha 0,03–0,33, nessun nucleo luminoso, coperti dalla nuvola ×6.
+
+**Che cosa cambia (solo disegno: la regola, i surfisti e la luce sono gli stessi numeri di prima).**
+1. **3-D**: la luce diffusa, l'impulso libero e le palline di flusso si disegnano su **tutto il volume** della scatola di luce
+   (non più la fetta). Per non riempire tutto proiettando gusci uno sull'altro, la luce è **aperta verso la camera**: davanti
+   al piano che passa per l'atomo, perpendicolare allo sguardo, i bagliori svaniscono in 8 ħ/mc; dietro si spengono piano,
+   su uno spessore di 90 ħ/mc (al massimo 0,6 × la distanza della camera: da vicino resta uno strato sottile). Girando la
+   camera il taglio gira con lei: si vedono gli anelli nel piano del taglio e i gusci che si curvano all'indietro.
+   Profondità: i bagliori più vicini sono un po' più chiari e grandi, i lontani più scuri (dichiarato, regolabile).
+   **Rotazione lenta** attorno alla verticale dopo 2,5 s senza toccare il mouse (tasto R per spegnerla; mai nelle foto).
+   La vecchia fetta resta come opzione (`--fetta`, casella nelle impostazioni).
+2. **Dettaglio continuo, niente palla bianca**: l'atomo è disegnato **sempre a grandezza vera e sempre con i suoi surfisti**
+   (la nuvola ×6 è spenta di default, `--zoom-atomo` per riaverla). Ogni bagliore di surfista ha ~3,7 px di raggio a ogni
+   distanza; quando l'atomo rimpicciolisce sullo schermo e i bagliori si sovrapporrebbero troppo, se ne tengono **meno e un
+   po' più grandi**: un sottoinsieme fisso (chiave hash stabile del surfista, la stessa in Rust e nello shader, quindi zoomando
+   non lampeggia niente: chi esce svanisce in modo continuo), ingranditi di g = f^(−1/6) (al massimo 2,5), con f scelto in modo
+   che in media su un pixel dell'atomo cadano al più 16 bagliori (stima 1,5 n (s² + 0,15 s L)/R², R = 1,5 × raggio rms della
+   nuvola, L la scia). Mai meno di 150 bagliori: sotto, si attenuano (al più fino a 0,6: un atomo lontano resta un nodo luminoso). Così la luce per pixel resta quella di vicino e da
+   lontano si vede lo stesso atomo con meno dettagli.
+   **La luce ha due livelli anche lei.** Il livello grosso sono i bagliori della scatola (uno per cella di 4 ħ/mc, grandezza
+   fissa in ħ/mc, mai sotto 1,5 px). Quando ci si avvicina e un bagliore di cella sarebbe più grande di 14 px, si stringe a
+   14 px e fra 14 e 28 px **svanisce**; al suo posto compare il livello fine, generato dallo stato grosso quando serve:
+   **scintille** piccole (3 px) in punti fissi a caso in una palla grande come la vista (0,6 × la distanza della camera),
+   luminose come la densità d'energia in quel punto (interpolata fra le celle, stesse scale dei bagliori di cella), accese
+   con la stessa legge (probabilità min(1; 1,5 x): i nodi scuri restano scuri). Lontano dall'atomo una scintilla mostra la
+   luce diffusa (rosa/verde) o l'impulso libero (oro/blu, attenuato); dentro la sfera di 8 celle attorno all'atomo, dove i
+   bagliori di cella non si disegnano (lì la luce diffusa è il campo vicino, enorme e fermo), mostra sempre l'impulso libero:
+   **l'impulso si vede attraversare la nuvola a ogni zoom**. Il numero di scintille segue la grandezza della palla sullo
+   schermo (≈ un quarto coperto, 50–6 000).
+3. **Surfisti più chiari, con scia**: alpha 0,08–0,63 (era 0,03–0,33), nucleo luminoso (core 0,9, soft 4). Ogni surfista lascia
+   una **scia di ~0,3 s** (regolabile 0–1 s): sono le sue **posizioni vere** degli ultimi k tick (k = secondi × tick al secondo
+   davvero eseguiti, al massimo 15), disegnate come bagliori **allungati e sovrapposti** (ognuno lungo due passi, centrato sul
+   suo passo: i vicini si coprono a metà), senza nucleo, che si spengono come (1 − t)^1,5 e si stringono come 1 − 0,6 t.
+   Un surfista che rinasce da |ψ|² riparte senza scia. Al massimo 60 000 pezzi di scia (il portatile): oltre, si sfoltiscono
+   con la stessa chiave del dettaglio.
+4. **Impostazioni** (finestra "Impostazioni grafica", bottone ⚙ in alto a destra o tasto **G**): preset bassa (12 celle per λ,
+   128³), media (16, 160³), medio-alta (20, 176³), alta (24, 192³), ultra (32, 384³) — cambiano **solo la risoluzione** della
+   regola della luce (al prossimo fotone) e quanti bagliori di luce si disegnano al massimo (30 000 … 150 000), mai la dinamica;
+   il reticolo dell'atomo (48³) è fissato dalla fisica. Poi: scia, forza del dettaglio (0 = tutto sempre), luminosità dei
+   bagliori, profondità, rotazione lenta, taglio e il suo spessore, fetta vecchia, nuvola ×6 vecchia, e il **tempo per
+   fotogramma voluto** (sotto).
+
+**Il motore di base: un solo disegnatore, a bagliori** (`src/atomo/bagliori.rs`, regola di Valerio del 13/10: tutto il
+programma si disegna così, ogni modo nuovo è un passo in più sopra questo). Interfaccia per chi porta una scena:
+- `Livello::new(nome)` — un livello del mondo (un atomo, una molecola, un nucleo con quark e gluoni…);
+- `l.bagliore(pos, raggio, [r, g, b], intensita)` — un bagliore (posizione in coordinate di schermo, `render::schermo`;
+  raggio = fattore di grandezza; intensità 0–1); i bagliori vanno per primi e nello stesso ordine fra un fotogramma e
+  l'altro (la chiave del dettaglio è il loro indice);
+- `l.scia(&passati, [r, g, b], intensita, peso)` — la sua scia corta (posizioni passate, la più nuova per prima);
+  `peso = grafica::peso(i, f)` per sfoltirla con lo stesso dettaglio della testa;
+- `l.chiudi(raggio)` — il gruppo del livello (`grafica::Gruppo`: quanti bagliori, su che raggio, scia media) per il dettaglio;
+- il disegno: `teste` nello strato additivo con `n_lod = teste.len()` (lo shader `istanze.wgsl` sfoltisce, ingrandisce,
+  attenua, dà profondità), `scie`/`scie_allunga` nello strato delle scie, le luci a fusione alfa nello strato `onde` con il
+  taglio. Parametri per strato in `istanze::StratoIstanze` (`n_lod`, `lod`, `prof`, `taglio`).
+Oggi lo usa la scena atomo (le scie passano da `bagliori::scia_in`); orbitali, tavola periodica, molecole e quark/gluoni
+devono passare di qui.
+
+**Come si impilano i livelli (per la goccia d'acqua e per il "Nanite della fisica").** `grafica.rs`:
+- ogni livello è un **fornitore di bagliori** (`Gruppo`: n, raggio, scia) e un nodo di un **grafo di scena** (`Nodo`, con i
+  figli); `percorri` dà a ogni nodo il suo dettaglio (`Lod`: frazione tenuta, crescita, luminosità) e il suo **errore sullo
+  schermo** (`errore_px`, la spaziatura dei bagliori tenuti in pixel); i figli si visitano solo dove il padre chiede di
+  essere raffinato (`Lod::raffina`, errore sopra la soglia). Una goccia lontana basta a sé; zoomando si scende alle molecole,
+  agli atomi, agli elettroni-surfisti (test `grafo_e_budget`). Più avanti la richiesta di raffinare verrà anche da un evento
+  fisico (un fotone che colpisce, una superficie, un cambio di fase), e un nodo potrà essere un modo quark/gluoni del thread
+  Modello standard;
+- **lo stato grosso si tiene, il dettaglio fine si genera quando serve**: per l'atomo lo stato è ψ sul reticolo; i surfisti,
+  le loro scie e le scintille della luce si generano da lì, quanti ne chiede lo schermo. I livelli grossi impareranno dal
+  livello sotto con l'agglomeratore; le zone in equilibrio resteranno al livello più grosso valido, in memoria;
+- **budget per fotogramma** (`Budget`): se un fotogramma dura più del voluto (33 ms di default, regolabile) il dettaglio si
+  fa più forte (fino a ×8) **prima** che calino i fotogrammi; se avanza tempo torna indietro. Spento nelle foto (riproducibili).
+  Oggi il grafo ha un solo nodo, l'atomo.
+
+**Che cosa è vero e che cosa è disegno.** Veri (dalla regola): le posizioni dei surfisti e quindi le loro scie (traiettorie
+di Bohm, un'interpretazione, §3.4), ψ, la luce delle due scatole, il moto delle palline di flusso. **Scelte di disegno
+(debiti dichiarati)**: il taglio verso la camera e il suo spessore, la profondità, le soglie del dettaglio (16 per pixel,
+150 bagliori minimo attenuati al più fino a 0,6, crescita ≤ 2,5, raggio 1,5 × rms), la grandezza 3,7 px dei surfisti, la forma delle scie, le scintille
+della luce (numero, grandezza, palla di 0,6 × la distanza), il passaggio 14–28 px dal livello grosso al fine, il tempo per
+fotogramma. Restano tutti i debiti di §3.8 (amplificazione ×A, impulso attenuato ×0,25, fattore r²). **Non ancora fatto**:
+il dettaglio per livelli vale solo nella scena atomo (orbitali, tavola, elettrone libero e fotone libero disegnano come
+prima); il percorso a mesh (`--mesh`) non ha dettaglio, profondità né taglio; la scia stima i tick al secondo dal ritmo
+vero del lavoratore.
+
 ## 4. Il fotone libero: pre-registrazione (scritta prima delle corse) e risultati
 
 Corse di sviluppo già viste (dichiarate): nel visore, qualità 8 celle per λ, w0 = λ, circolare +: velocità del
@@ -685,3 +778,70 @@ non serve toccarlo.
   nello studio h2v ma non in questa esportazione).
 - L'urto con elettroni e protoni non è simulato: bottoni spenti.
 - I bagliori mostrano fotografie, non traiettorie.
+
+### 10.4 Idrogeno con più orbitali: assorbe e riemette, a cascata (`cascata.rs`)
+
+Premendo **H** nella tavola appare l'idrogeno (Z = 1). Si sceglie una riga e si lancia il fotone (F o il bottone): l'atomo
+assorbe, aspetta, e torna giù riemettendo luce, anche a più salti.
+
+**Che cosa è CALCOLATO (all'avvio, ~5 s, solo dalla regola zig-zag; ingressi α e la massa dell'elettrone).** La forma
+radiale della stessa regola (`Radial` di `src/zigzag/walk.rs`, fase di Coulomb −α/r) in una scatola di 36 a₀. Gli stati
+si trovano "ascoltando con una fase per collegamento" su celle di 0,5 ħ/mc, poi si seguono dimezzando le celle fino a
+1/32 ħ/mc. *Perché così fini*: su celle di 0,5 il passo di flip è θ = 0,5 e la massa cinetica del cammino è tan θ/θ =
+1,093, quindi **ogni legame veniva +9,1 %** (primo tentativo, dichiarato: 1s 14,84 eV). A 1/32 la massa è 1,0003.
+
+| livello | legame dalla regola | Dirac (nucleo fermo) | scarto |
+|---|---|---|---|
+| 1s | 13,60934 eV | 13,60587 | +0,025 % |
+| 2s | 3,40247 | 3,40148 | +0,029 % |
+| 2p (j = 3/2) | 3,40180 | 3,40144 | +0,011 % |
+| 3s | 1,51198 | 1,51176 | +0,014 % |
+| 3p | 1,51187 | 1,51175 | +0,008 % |
+| 3d | 1,51180 | 1,51175 | +0,004 % |
+
+Le righe sono le differenze; i **ritmi** A = (4/3) α ω³ |⟨f|r|i⟩|² · l_max/(2l+1) con l'integrale radiale sulle funzioni della
+regola (solo la componente grande g; la piccola f è ~α/2 di g: lasciata fuori, dichiarato):
+
+| riga | λ (regola) | A (1/s) | esame |
+|---|---|---|---|
+| Lyman-α 2p→1s | 121,46 nm | 6,269·10⁸ (vita 2p **1,595 ns**) | C2: contro 6,2649·10⁸ entro 1 %: **+0,07 % PASS** |
+| Lyman-β 3p→1s | 102,49 nm | 1,676·10⁸ | |
+| Balmer-α 3p→2s | 655,80 nm | 2,249·10⁷ (ramo **11,83 %**) | C3: ramo contro 0,118 entro 2 %: **PASS** |
+| Balmer-α 3s→2p | 656,06 nm | 6,339·10⁶ | |
+| Balmer-α 3d→2p | 656,00 nm | 6,471·10⁷ | |
+
+C1 (tutti i livelli entro 0,1 % di Dirac): **PASS** (peggiore 2s +0,029 %). Test: `cargo test --release --bin atomo cascata`.
+Le λ sono a **nucleo fermo** (massa infinita): col rinculo del protone (la sua massa è un ingresso ammesso, non ancora
+messo) crescerebbero dello 0,054 % (Lyman-α misurata 121,567 nm, la regola qui 121,46: −0,09 %, di cui −0,03 % è lo scarto
+dei livelli). Le righe con lo stesso n (2p→2s, ~10⁻³ s⁻¹, microonde) sono escluse: la loro energia qui è soprattutto lo
+spostamento degli stati s della regola (2s sotto il 2p3/2 di 0,66 meV, in Dirac 0,045 meV dall'altra parte): **debito**.
+
+**Che cosa è DISEGNATO, non simulato nel tempo (scritto anche sullo schermo).**
+- L'elettrone: bagliori = **surfisti della corrente dell'onda** (v = j/ρ della funzione di Dirac della regola), con passi
+  adattivi e due passi Metropolis per bagliore e fotogramma (passo fisso, quindi proposta simmetrica: un primo tentativo
+  con passo proporzionale al raggio stringeva la nuvola a ⟨r⟩ = 1,19 invece di 1,5 a₀; trovato e corretto) perché lo stato
+  disegnato cambia più in fretta di quello vero. Colore = fase dell'onda.
+- **Assorbimento**: il fotone è puntato e sulla riga, ed è assorbito **con certezza** (regia: in natura un singolo fotone
+  lo è con la probabilità data dalla sezione d'urto). Arriva come pacchetto lungo +x, polarizzato lungo z, con fronti ogni
+  λ disegnata; mentre passa lo stato va da 1s a 2p con la formula di Rabi di un impulso π (2,5 s di schermo) e il
+  pacchetto si spegne. La nuvola **batte** (si sposta su e giù lungo z) alla frequenza della riga, rallentata.
+- **Emissione**: il **quando** è pescato a caso con la vita calcolata (esponenziale), il **dove va** con i rami calcolati.
+  Il salto dura 2 s di schermo. La luce che esce è un **guscio di bagliori** che si allarga, con la figura sin²θ del dipolo
+  (vera) e anelli alla λ della riga **rimpicciolita** a 2,2 a₀ (la vera è 2 300 a₀ per Lyman-α: non entrerebbe). Colore =
+  colore vero della λ dove l'occhio la vede (Balmer-α rosso 656 nm), viola-bianco per l'ultravioletto (colore falso).
+- **Due orologi**: il battito dell'onda (~2,5·10¹⁵ Hz) è mostrato con periodo 1,2 s; le attese sul **rallentatore** del
+  pannello (default 1 s di schermo = 1 ns: il 2p vive ~1,6 s di schermo, il 3p ~5 s).
+- Il **2s resta lì**: non ha righe a un fotone verso il basso. La via a due fotoni (8,2 s⁻¹ in natura) **non è calcolata**
+  (servirebbe una somma su tutti gli stati p, continuo compreso): debito C4, scritto sullo schermo. Da 2s si può lanciare
+  Balmer-α (2s→3p) e ripartire, o "ricomincia".
+
+Elettroni e protoni lanciati: **non ancora simulati** (bottoni spenti). Debiti: doppietti di struttura fine non separati
+(j = l + ½), rinculo del nucleo, due fotoni del 2s, componente piccola nei ritmi, assorbimento certo, durata dei salti.
+
+Il disegno passa per la stessa strada dell'atomo zig-zag (strati "palline" additivo e "onde" di `render_zz.rs`, istanze
+GPU): nessuno stile a parte.
+
+**Foto dal ponte**: `--scena tavola --elemento H --spara-pronto --foto-dopo 3.6` (assorbe: il fotone parte appena i livelli
+sono calcolati, foto 3,6 s di schermo dopo), `--foto-dopo 9` (riemette, se il salto pescato è già avvenuto), `--riga 3p`
+(Lyman-β: poi 3p→1s o, con l'11,8 %, 3p→2s), `--scena tavola --elemento He --pannello` (la tavola), `--elemento He --buca`,
+`--elemento H2`.

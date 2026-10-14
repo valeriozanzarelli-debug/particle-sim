@@ -489,7 +489,8 @@ class Wave:
         tot = np.zeros(len(x))
         for w, p in terms:
             xp = x[:, p, :]
-            q = np.einsum("nix,kij,njx->nk", xp, self.A, xp)
+            G = np.einsum("nix,njx->nij", xp, xp).reshape(len(x), -1)       # matrice di Gram per pallina
+            q = G @ self.A.reshape(len(self.A), -1).T
             f = np.exp(-q)
             if self.s.L == 1:
                 f = f * np.einsum("ki,ni->nk", self.u, xp[:, :, 2])

@@ -7,7 +7,7 @@
  "carica": 0,
  "livello": "esatto",
  "metodo": "ECG (200 gaussiane correlate) sull'operatore della regola agglomerata (massa di fase 5), stato 1¹S",
- "fonte": "lab/out/multi_e_ecg_he1S_Z2.npz (commit f7d085f) -> ripresa/dati/elio/elio_coppie.npy (Metropolis su |psi|^2), 16000 coppie a caso (seme 2026)",
+ "fonte": "lab/out/multi_e_ecg_he1S_Z2.npz (commit f7d085f), campioni Metropolis di lab/tavola_esporta.py elio (seme 2026)",
  "nuclei": [
   {
    "Z": 2,
@@ -19,12 +19,6 @@
   }
  ],
  "n_elettroni": 2,
- "campioni": {
-  "file": "campioni.f32",
-  "n": 16000,
-  "unita": "bohr",
-  "ordine": "n x n_elettroni x 3, float32 little endian"
- },
  "simmetria": "sferica",
  "energia_Eh": -2.9037212829955945,
  "riferimento_Eh": -2.903724377,
@@ -45,20 +39,31 @@
    "PASS": true
   },
   {
+   "id": "he_v E1-E5",
+   "cosa": "video a bagliori: densita', <r>, <r12>, buca di Coulomb, mappa g (VIDEO_ELIO)",
+   "PASS": true
+  },
+  {
    "id": "D6'",
    "cosa": "cuspide del misto DMC 0,447 contro 0,50 (non tocca l'ECG)",
    "PASS": false
   }
  ],
  "controlli_campioni": {
-  "r_medio": 0.9294930696487427,
+  "r_medio": 0.9300637148845264,
   "r_medio_rif": 0.929472,
-  "r12_medio": 1.420011281967163,
+  "r12_medio": 1.421163114209782,
   "r12_medio_rif": 1.42207
  },
  "note": [
   "stato stazionario: nessun moto nel tempo; i bagliori sono coppie pescate a ogni fotogramma (moto = campionatore, non traiettoria)",
   "singoletto: parte spaziale simmetrica",
   "correzione relativistica solo nell'energia, non nella funzione d'onda"
- ]
+ ],
+ "campioni": {
+  "file": "campioni.f32",
+  "n": 16000,
+  "unita": "bohr",
+  "ordine": "n x n_elettroni x 3, float32 little endian"
+ }
 }

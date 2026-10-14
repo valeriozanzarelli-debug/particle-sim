@@ -12,7 +12,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import tav_ecg as T
 
-DEST = {"Li": "/mnt/project-files/debiti/dati/litio", "Be": "/mnt/project-files/debiti/dati/berillio"}
+DEST = {"Li": os.path.join(T.OUT, "tav_dati_litio"), "Be": os.path.join(T.OUT, "tav_dati_berillio")}   # copie locali dell'export
 NM = {"Li": "litio", "Be": "berillio"}
 res = json.load(open(os.path.join(T.OUT, "tav_results.json")))
 pre = json.load(open(os.path.join(T.OUT, "tav_prereg.json")))

@@ -1,0 +1,136 @@
+{
+ "cosa": "LiH (idruro di litio), stato fondamentale X1Sigma+, 4 elettroni tutti correlati, per il renderer a bagliori",
+ "tier": "esatto",
+ "livello": "ECG a 4 elettroni con la massa della regola (studio mol_, docs/MOLECOLE.md); nuclei fermi (Born-Oppenheimer)",
+ "geometria": {
+  "unita": "bohr (a0)",
+  "nuclei": [
+   {
+    "Z": 3,
+    "nome": "Li",
+    "pos": [
+     0,
+     0,
+     0
+    ]
+   },
+   {
+    "Z": 1,
+    "nome": "H",
+    "pos": [
+     0,
+     0,
+     3.015
+    ]
+   }
+  ],
+  "R_e_trovata": 3.01456,
+  "nota": "la distanza e' quella del minimo della curva calcolata (punto di griglia piu' vicino)"
+ },
+ "energia": {
+  "E_Eh": -8.069091238002457,
+  "D_e_eV": 2.4932992344330858,
+  "D0_eV": 2.4012005774409193
+ },
+ "file": {
+  "lih_elettroni.npy": "float32 (n,4,3): n 'fotografie' delle posizioni dei 4 elettroni insieme, da |Psi|^2 con Metropolis. Elettroni 0 e 2 spin su, 1 e 3 spin giu'. Due stanno stretti sul litio (guscio 1s), due formano il legame e stanno soprattutto sull'idrogeno (Li+ H-: il dipolo).",
+  "lih_densita.npz": "rho_edges, z_edges, densita (elettroni/bohr^3, tutti e 4) in coordinate cilindriche (rho, z): la molecola e' simmetrica attorno all'asse z (stato Sigma)."
+ },
+ "fotoni": {
+  "nota": "Livelli di vibrazione dei nuclei sulla curva calcolata e righe infrarosse (assorbimento di un fotone che fa vibrare la molecola). Gli stati elettronici eccitati (A1Sigma+, ~3,3 eV) NON sono ancora calcolati qui.",
+  "livelli_vibrazione": [
+   {
+    "v": 0,
+    "E_cm": 0.0,
+    "mu_D": -5.92495219980117
+   },
+   {
+    "v": 1,
+    "E_cm": 1480.8121430125777,
+    "mu_D": -6.096087168916221
+   },
+   {
+    "v": 2,
+    "E_cm": 2972.6768585989244,
+    "mu_D": -6.275877229132866
+   },
+   {
+    "v": 3,
+    "E_cm": 4445.820850367827,
+    "mu_D": -6.447346761875849
+   }
+  ],
+  "transizioni_IR": [
+   {
+    "da": 0,
+    "a": 1,
+    "nu_cm": 1480.8121430125777,
+    "dipolo_transizione_D": 0.2264681684505901
+   },
+   {
+    "da": 0,
+    "a": 2,
+    "nu_cm": 2972.6768585989244,
+    "dipolo_transizione_D": 0.03187191236847185
+   },
+   {
+    "da": 0,
+    "a": 3,
+    "nu_cm": 4445.820850367827,
+    "dipolo_transizione_D": 0.011435918829887039
+   },
+   {
+    "da": 1,
+    "a": 2,
+    "nu_cm": 1491.8647155863466,
+    "dipolo_transizione_D": 0.31177299336969055
+   },
+   {
+    "da": 1,
+    "a": 3,
+    "nu_cm": 2965.0087073552495,
+    "dipolo_transizione_D": 0.055302476118223746
+   },
+   {
+    "da": 2,
+    "a": 3,
+    "nu_cm": 1473.143991768903,
+    "dipolo_transizione_D": 0.36959476740978475
+   }
+  ],
+  "B_e_cm": 7.520948614478426,
+  "esempio": "un fotone di circa 1481 cm-1 (lunghezza d'onda 6.8 micron) porta la molecola da v=0 a v=1",
+  "attenzione": "I livelli di vibrazione sono troppo alti (0->1 = 1481 cm-1 contro 1360 misurato): la curva calcolata parte da R = 2,5 a0 e li' il calcolo mette un muro che schiaccia gli stati v>=1. Errore noto (PARZIALE), da rifare con la curva estesa sotto 2,5 a0. omega_e dal fit (1409 cm-1) e' giusto."
+ },
+ "controlli": {
+  "dipolo_da_campioni_au": -2.3249701118469237,
+  "dipolo_esatto_au": -2.2989805614908767,
+  "accettazione": 0.6019125000000002,
+  "n_campioni": 40000,
+  "esami": {
+   "L0": {
+    "PASS": true
+   },
+   "L1": {
+    "PASS": true
+   },
+   "L2": {
+    "PASS": true
+   },
+   "L3": {
+    "PASS": true
+   },
+   "L4": {
+    "PASS": true
+   },
+   "L5": {
+    "PASS": false
+   }
+  }
+ },
+ "note": [
+  "Stato stazionario: per animare si pescano fotografie diverse a ogni fotogramma.",
+  "Debiti: nuclei fermi (Born-Oppenheimer), base ECG scelta a caso e raffinata (un risolutore, non i camminatori della regola), Coulomb istantaneo e antisimmetria imposti (debiti del thread principale)."
+ ],
+ "script": "lab/mol_export.py (repo particle-sim, studio mol_)"
+}

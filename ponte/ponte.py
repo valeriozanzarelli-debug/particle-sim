@@ -61,10 +61,11 @@ def _num(lo, hi, integer=False):
 FOTO_ARGS = {
     "scena": _choice("fotone", "atomo", "orbitali", "elettrone", "tavola"),
     "elemento": _regex(r"[A-Za-z0-9]{1,8}"),
+    "riga": _choice("2p", "3p"),
     "zoom": _choice("intero", "nucleo", "protone", "elettrone"),
     "stati": _regex(r"[0-9a-z+]{1,24}"),
     "qual": _num(0, 3, integer=True),
-    "qualita": _choice("bassa", "media", "alta", "ultra"),
+    "qualita": _choice("bassa", "media", "medio-alta", "alta", "ultra"),
     "polar": _choice("h", "v", "c+", "c-"),
     "dir": _num(0, 4, integer=True),
     "w0": _num(0.1, 100.0),
@@ -78,8 +79,10 @@ FOTO_ARGS = {
     "pitch": _num(-10.0, 10.0),
     "distanza": _num(0.01, 1e6),
     "foto-dopo": _num(0.0, 5000.0),
+    "scia": _num(0.0, 2.0),
+    "lod": _num(0.0, 5.0),
 }
-FOTO_FLAGS = {"surfisti", "collassa", "pannello", "spara-pronto", "senza-diffusa", "buca"}
+FOTO_FLAGS = {"surfisti", "collassa", "pannello", "spara-pronto", "senza-diffusa", "buca", "fetta", "zoom-atomo", "senza-taglio"}
 
 TIMEOUT = {"ping": 60, "build": 3600, "test": 3600, "foto": 3600}
 

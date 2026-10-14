@@ -1,0 +1,11 @@
+{
+  "id": "2026-10-14_build_tavola",
+  "azione": "build",
+  "ok": true,
+  "inizio": "2026-10-14T00:37:03Z",
+  "fine": "2026-10-14T00:38:46Z",
+  "durata_s": 102.5,
+  "git": "278b739e4998d873e4cfcb33e8fb70848dc733e1",
+  "macchina": "LAPTOP-01UIII6L",
+  "exit": 0
+}

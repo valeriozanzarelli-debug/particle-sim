@@ -6,13 +6,33 @@
    "disponibile": true,
    "livello": "esatto",
    "scena": "idrogeno",
-   "validazione": "idrogeno vero a scala di Bohr 3-D (IDROGENO_BOHR): 1s -0,066 %, 2p +0,039 %, 2s -0,138 %, Lyman-α 122,15 nm",
-   "fonte": "docs/IDROGENO_BOHR.md · docs/ZIGZAG.md",
+   "validazione": "livelli 1s…3d dalla forma radiale della regola zig-zag (celle 1/32 ħ/mc, Z = 1) entro 0,03 % di Dirac; ritmi A dalle funzioni della regola (2p: 1,595 ns); idrogeno vero a scala di Bohr 3-D (IDROGENO_BOHR fase 4: 1s/2s/2p entro 0,004 % di Dirac)",
+   "fonte": "src/atomo/cascata.rs (calcolato all'avvio) · docs/ATOMO.md §10.4 · docs/IDROGENO_BOHR.md",
    "esami": [
     {
-     "id": "IB 8/8",
-     "cosa": "idrogeno vero a scala di Bohr: 8 esami su 8",
+     "id": "IB",
+     "cosa": "idrogeno vero a scala di Bohr: fasi 1-4 PASS (G1 G2 M1 M2 della fase 4)",
      "PASS": true
+    },
+    {
+     "id": "C1",
+     "cosa": "livelli n ≤ 3 della regola radiale entro 0,1 % di Dirac (peggiore 2s +0,029 %)",
+     "PASS": true
+    },
+    {
+     "id": "C2",
+     "cosa": "A(2p→1s) 6,269·10⁸ s⁻¹ contro 6,2649·10⁸ (+0,07 %)",
+     "PASS": true
+    },
+    {
+     "id": "C3",
+     "cosa": "ramo 3p→2s 11,83 % contro 11,8 %",
+     "PASS": true
+    },
+    {
+     "id": "C4",
+     "cosa": "2s→1s a due fotoni: non calcolato (debito)",
+     "PASS": false
     }
    ]
   },

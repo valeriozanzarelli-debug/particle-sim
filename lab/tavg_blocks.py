@@ -87,6 +87,28 @@ TM_CATION = {(19, 1): (0, 0), (20, 1): (0, 1), (21, 1): (1, 1), (22, 1): (2, 1),
              (25, 1): (5, 1), (26, 1): (6, 1), (27, 1): (8, 0), (28, 1): (9, 0), (29, 1): (10, 0), (30, 1): (10, 1)}
 
 
+CACHE = os.path.join(OUT, "tavg_cache")
+
+
+def get_ae(Z, cfg, mkin=1.0, grid=None):
+    """all-electron atom on the fine level, cached on disk (lab/out/tavg_cache/*.npz: never committed)"""
+    os.makedirs(CACHE, exist_ok=True)
+    key = f"ae_Z{Z:02d}_{cfg.replace(' ', '_')}_m{mkin:.9f}.npz"
+    fn = os.path.join(CACHE, key)
+    a = tr.Atom(Z, tr.config_from_string(cfg), mkin=mkin, grid=grid)
+    if os.path.exists(fn):
+        z = np.load(fn)
+        if len(z["r"]) == a.g.M and np.allclose(z["r"], a.g.r):
+            a.P = {i: z[f"P{i}"] for i in range(len(a.config))}
+            a.E = float(z["E"]); a.eps = {i: float(e) for i, e in enumerate(z["eps"])}
+            a.hist = list(z["hist"])
+            return a
+    a.scf()
+    np.savez(fn, r=a.g.r, E=a.E, eps=np.array([a.eps.get(i, np.nan) for i in range(len(a.config))]),
+             hist=np.array(a.hist), **{f"P{i}": a.P[i] for i in range(len(a.config))})
+    return a
+
+
 def outer_rmax(P, r):
     """radius of the outermost maximum of |P|"""
     a = np.abs(P)
@@ -125,8 +147,7 @@ def learn(Z, h_grid=0.25, mkin=1.0, rc_override=None, write=True, ae=None, log=p
     cfg = ground_config(Z)
     core, nc = core_of(Z)
     if ae is None:
-        ae = tr.Atom(Z, tr.config_from_string(cfg), mkin=mkin)
-        ae.scf()
+        ae = get_ae(Z, cfg, mkin)
     r = ae.g.r
     vs, extra_l = valence_shells(Z)
     rc = {}; extra_refs = {}
@@ -149,7 +170,7 @@ def learn(Z, h_grid=0.25, mkin=1.0, rc_override=None, write=True, ae=None, log=p
         base = [x for x in base if x[2] > 0] + [(n, l, 1)]
         s = " ".join(f"{a}{tr.L_LETTER[b_]}{c}" for a, b_, c in base)
         extra_refs[l] = s
-        aex = tr.Atom(Z, tr.config_from_string(s), mkin=mkin, grid=ae.g); aex.scf()
+        aex = get_ae(Z, s, mkin, grid=ae.g)
         j = [i for i, c in enumerate(aex.config) if c[0] == n and c[1] == l][0]
         rc[l] = tc.choose_rc(ae.g, aex.P[j], l, kcut, budget)[0]
     if rc_override:

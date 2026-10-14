@@ -16,7 +16,9 @@ use bevy::{
 use bevy_egui::{EguiContexts, EguiPlugin};
 
 mod accoppiato;
+mod bagliori;
 mod camera;
+mod cascata;
 mod elscena;
 mod esportazioni;
 #[path = "../zigzag/cplx.rs"]
@@ -26,6 +28,7 @@ mod fotdisegno;
 mod fotone3d;
 mod istanze;
 mod fotscena;
+mod grafica;
 #[allow(dead_code)]
 mod gpu_regola;
 #[allow(dead_code)]
@@ -300,6 +303,8 @@ impl Lab {
             }
             Scena::Tavola => {
                 self.tav.comanda(self.modo == Modo::Avanti, 30.0);
+                // F (or "lancia"): hydrogen gets a photon on the chosen line (cascata.rs); elsewhere nothing is simulated
+                if self.spara && self.tav.idrogeno() { let r = self.tav.riga_lancio(); self.tav.richiedi(|q| q.lancia = Some(r)); }
                 self.spara = false;
             }
         }
@@ -352,6 +357,8 @@ fn main() {
     if scena == Scena::Tavola {
         if let Some(e) = arg("--elemento") { if let Some(s) = lab.tav.scegli_nome(&e) { lab.cambia_scena(s); } }
         lab.tav.buca = args.iter().any(|a| a == "--buca");
+        // hydrogen: the line the photon is tuned to, by its upper level (`--riga 2p` Lyman-α, `--riga 3p` Lyman-β)
+        if let Some(r) = arg("--riga") { lab.tav.riga = cascata::LIVELLI.iter().position(|x| x.0 == r).unwrap_or(2); }
     }
     let mut auto = Auto::default();
     if let Some(f) = arg("--foto") {
@@ -414,10 +421,14 @@ fn main() {
         .insert_resource(lab)
         .insert_resource(auto)
         .insert_resource(cam)
+        .insert_resource(grafica::Grafica::da_argomenti(&args))
+        .init_resource::<grafica::Budget>()
         .init_resource::<PointerOverHud>()
         .add_systems(Startup, (setup_scene, render_zz::setup, gpu_fotone::prendi_dispositivo))
         .add_systems(Update, (
             ui::draw_hud,
+            grafica::pannello.after(ui::draw_hud).before(hud_pointer),
+            grafica::budget_sys,
             hud_pointer.after(ui::draw_hud),
             run_lab.after(hud_pointer),
             camera::camera_sys.after(run_lab),
@@ -552,7 +563,11 @@ fn auto_sys(mut commands: Commands, mut auto: ResMut<Auto>, mut lab: ResMut<Lab>
         },
         _ => false,
     };
-    let atomo_attende = o_zz.is_some() && auto.foto_dopo.is_none() && auto.spara_al.is_some();
+    // the table's hydrogen: `--spara-pronto` fires when its spectrum is computed, `--foto-dopo T` = T screen seconds after
+    let o_tav = if lab.scena == Scena::Tavola { lab.tav.out() } else { None };
+    if auto.spara_pronto && !auto.sparato { if let Some(o) = &o_tav { if o.spettro.is_some() { lab.spara = true; auto.sparato = true; } } }
+    let pronta = pronta || matches!((auto.foto_dopo, o_tav.as_ref().and_then(|o| o.dal_lancio)), (Some(t), Some(x)) if x >= t);
+    let atomo_attende = (o_zz.is_some() && auto.foto_dopo.is_none() && auto.spara_al.is_some()) || (o_tav.is_some() && auto.foto_dopo.is_some());
     if auto.misure > 0 && f >= 30 && f % 3 == 0 && (f - 30) / 3 < auto.misure { lab.misura = true; }
     if ((f == auto.frames && !atomo_attende) || pronta || f == 20_000) && !auto.fatto {
         auto.fatto = true;
