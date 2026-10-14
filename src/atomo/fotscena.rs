@@ -41,7 +41,7 @@ pub const SCIA_QUAL: [usize; 5] = [0, 0, 0, 0, 0];
 
 /// The named presets (`--qualita`): index into QUALITA.
 pub fn preset(nome: &str) -> Option<usize> {
-    match nome { "bassa" => Some(0), "media" => Some(1), "alta" => Some(3), "ultra" => Some(4), _ => None }
+    match nome { "bassa" => Some(0), "media" => Some(1), "medio-alta" | "medioalta" => Some(2), "alta" => Some(3), "ultra" => Some(4), _ => None }
 }
 
 /// Pulse length σ in wavelengths.

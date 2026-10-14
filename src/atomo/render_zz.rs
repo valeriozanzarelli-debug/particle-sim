@@ -19,7 +19,7 @@ pub enum ZzStrato { Palline, Nodo, Onde }
 
 /// The layers drawn as GPU instances.
 #[derive(Component, Clone, Copy, PartialEq, Eq, Debug)]
-pub enum ZzStratoI { Palline, Onde }
+pub enum ZzStratoI { Palline, Onde, Scie }
 
 /// Drawing path: GPU instances (default) or the old rebuilt meshes (`--mesh`, kept for the comparison R2).
 #[derive(Resource, Clone, Copy)]
@@ -39,7 +39,7 @@ pub fn setup(mut commands: Commands, mut meshes: ResMut<Assets<Mesh>>, mut mats:
                         NoFrustumCulling, NotShadowCaster, NotShadowReceiver));
     }
     // the same two layers as GPU instances (exam R2 of docs/MOTORE_GRAFICO.md); used unless `--mesh`
-    for (s, alfa) in [(ZzStratoI::Onde, true), (ZzStratoI::Palline, false)] {
+    for (s, alfa) in [(ZzStratoI::Onde, true), (ZzStratoI::Scie, false), (ZzStratoI::Palline, false)] {
         commands.spawn((s, Mesh3d(meshes.add(quadrato())), StratoIstanze { alfa, ..default() }, Transform::default(),
                         NoFrustumCulling, NotShadowCaster, NotShadowReceiver));
     }
@@ -70,12 +70,49 @@ pub fn aggiorna(
     mut q: Query<(&ZzStrato, &mut Mesh3d, &mut Transform)>,
     mut qi: Query<(&ZzStratoI, &mut StratoIstanze)>,
     modo: Res<ModoDisegno>,
+    graf: Res<crate::grafica::Grafica>,
+    budget: Res<crate::grafica::Budget>,
 ) {
     let lab = &mut *lab;
     // GPU path of the photon (gpu_fotone.rs): the energy balls are already instances on the GPU
     let onde_gpu = if lab.scena == Scena::Fotone { lab.fot.as_ref().and_then(|c| c.lock().unwrap().out.onde_gpu.clone()) } else { None };
     let r_cam = cam.r();
     let focus = cam.focus;
+    let bpp = cam.bohr_per_px();
+    // the eye seen from the focus, physics coordinates (camera.rs: r·(sin yaw cos pitch, sin pitch, cos yaw cos pitch) on
+    // screen; screen (x, y, z) = physics (x, z, −y))
+    // the light behind the cut fades over at most 0.6 × the camera distance (close up only a thin layer stays: no haze)
+    let taglio_prof = graf.taglio_prof.min(0.6 * r_cam as f32).max(4.0);
+    let occhio_dir = { let (yw, pt) = (cam.yaw as f64, cam.pitch as f64); [yw.sin() * pt.cos(), -(yw.cos() * pt.cos()), pt.sin()] };
+    // the atom scene's level of detail (grafica.rs): its surfers are one group of glows
+    let (lod_atomo, scie_atomo, n_testa) = if lab.scena == Scena::Atomo {
+        let o = lab.zz.as_ref().map(|c| { let g = c.lock().unwrap(); (g.out.r_nuvola, g.out.passo_medio, g.out.n_testa, g.out.scie.clone(), g.out.scie_allunga.clone(), g.out.versione) });
+        match o {
+            Some((r, pm, nt, sc, sa, v)) => {
+                let k = ((graf.scia_s as f64) * 25.0).round().min(15.0);
+                // the scene graph of today: one node, the atom, whose glows are its surfers
+                let nodo = crate::grafica::Nodo { nome: "atomo", centro: [0.0; 3], figli: vec![],
+                    // the disc that holds most of the cloud: 1.5 × its rms radius
+                    gruppo: crate::grafica::Gruppo { n: nt.max(1), raggio: 1.5 * r.max(0.1), scia: pm * k } };
+                let mut dec = Vec::with_capacity(1);
+                crate::grafica::percorri(&nodo, bpp, 3.7 * lab.grandezza as f64, graf.lod as f64 * budget.fattore, 1.0, &mut dec);
+                let l = dec[0].lod;
+                if std::env::var("ATOMO_DEBUG_LOD").is_ok() && lab.frame_count % 60 == 0 {
+                    eprintln!("lod: r_cam {r_cam:.1} bpp {bpp:.4} n {nt} r_nuvola {r:.2} passo {pm:.3} scie {} -> {l:?}", sc.len());
+                }
+                (Some(l), Some((sc, sa, v)), nt)
+            }
+            None => (None, None, 0),
+        }
+    } else { (None, None, 0) };
+    if lab.scena == Scena::Atomo {
+        if let Some(c) = &lab.zz {
+            c.lock().unwrap().vista = crate::grafica::VistaWorker {
+                occhio: occhio_dir, r_cam, bpp, lod_f: lod_atomo.map(|l| l.f).unwrap_or(1.0), scia_s: graf.scia_s as f64,
+                taglio: graf.taglio, taglio_prof: taglio_prof as f64, fetta: graf.fetta, zoom_atomo: graf.zoom_atomo, budget: graf.budget_luce(),
+            };
+        }
+    }
     // the photon's worker sorts its glows by distance from the eye (physics coordinates, cells): camera.rs puts the
     // eye at r·(sin yaw cos pitch, sin pitch, cos yaw cos pitch) on screen, relative to the focus
     if lab.scena == Scena::Fotone {
@@ -177,7 +214,11 @@ pub fn aggiorna(
             si.offset = off;
             si.gpu = if *s == ZzStratoI::Onde { onde_gpu.clone() } else { None };
             if let Some((it, onde, st)) = &items {
-                si.dati = Arc::new(match s { ZzStratoI::Palline => impacca(it, &[]), ZzStratoI::Onde => impacca(onde, st) });
+                match s {
+                    ZzStratoI::Palline => si.dati = Arc::new(impacca(it, &[])),
+                    ZzStratoI::Onde => si.dati = Arc::new(impacca(onde, st)),
+                    ZzStratoI::Scie => si.dati = Arc::new(match &scie_atomo { Some((sc, sa, _)) => impacca(sc, sa), None => vec![] }),
+                }
             }
         }
     }
@@ -192,25 +233,63 @@ pub fn aggiorna(
     } else { 0.0 };
     let (s_main, g_main) = match scena {
         Scena::Fotone => ((0.0032 * r_cam).min(0.9), lab.luce),
-        Scena::Atomo => ((0.0035 * r_cam).min(0.12), lab.luce * (1.0 - 0.8 * g_nodo)),
+        // the atom: the surfer glows keep ~3.7 px at every distance (grafica::lod thins and grows them when far)
+        Scena::Atomo => (3.7 * bpp, lab.luce * (1.0 - 0.8 * g_nodo)),
         Scena::Elettrone => ((0.0035 * r_cam).min(0.12), lab.luce),
         // the periodic-table scene is in bohr: glows ~1/30 of the view, at most 0.08 a0 (drawing choice)
         Scena::Tavola => ((0.004 * r_cam).min(0.08 * lab.tav.raggio_cam.max(1.0)), lab.luce),
         // balls about half a grid step at the full view (the grid step is 2R/64), smaller when zooming in
         Scena::Orbitali => ((0.0045 * r_cam).min(0.018 * lab.orb_r), lab.luce * (1.0 - 0.8 * g_nodo)),
     };
-    if let Some(m) = mats.get_mut(&vis.mats[0]) { m.params = BallParams { size: (s_main * lab.grandezza as f64) as f32, gain: g_main, soft: 3.0, core: 0.3, blend: 0.0 }; }
+    // the atom's surfers: crisper (tighter glow, hotter core)
+    let (soft, core) = if scena == Scena::Atomo { (4.0, 0.9) } else { (3.0, 0.3) };
+    if let Some(m) = mats.get_mut(&vis.mats[0]) { m.params = BallParams { size: (s_main * lab.grandezza as f64) as f32, gain: g_main, soft, core, blend: 0.0 }; }
     if let Some(m) = mats.get_mut(&vis.mats[1]) { m.params = BallParams { size: ((0.004 * r_cam).min(0.06 * fm)) as f32, gain: 1.3 * g_nodo, soft: 3.0, core: 0.4, blend: 0.0 }; }
     // wave balls: a little smaller than the glowing layers, as in the photon laboratory
-    if let Some(m) = mats.get_mut(&vis.mats[2]) { m.params = BallParams { size: (0.8 * s_main * lab.grandezza as f64) as f32, gain: lab.luce.min(1.5), soft: 2.0, core: 0.0, blend: 1.0 }; }
+    // (atom scene: fixed in world units, S_ONDE, so the light glows belong to the light's cells at every zoom)
+    let s_onde = if scena == Scena::Atomo { crate::zzscena::S_ONDE } else { 0.8 * s_main };
+    if let Some(m) = mats.get_mut(&vis.mats[2]) { m.params = BallParams { size: (s_onde * lab.grandezza as f64) as f32, gain: lab.luce.min(1.5), soft: 2.0, core: 0.0, blend: 1.0 }; }
     if modo.istanze {
         for (s, mut si) in qi.iter_mut() {
-            let k = match s { ZzStratoI::Palline => 0, ZzStratoI::Onde => 2 };
+            let k = match s { ZzStratoI::Palline | ZzStratoI::Scie => 0, ZzStratoI::Onde => 2 };
             if let Some(m) = mats.get(&vis.mats[k]) {
                 let p = m.params;
                 si.size = p.size; si.gain = p.gain; si.soft = p.soft; si.core = p.core;
+            }
+            // level of detail, depth and the cut (istanze.wgsl); off in the other scenes
+            let px_mondo = (2.0 * (cam.fov as f64 * 0.5).tan() / cam.altezza_px as f64) as f32;
+            si.n_lod = 0; si.lod = [1.0, 1.0, 1.0, 0.0]; si.prof = [0.0; 4]; si.taglio = [0.0; 4];
+            if let Some(l) = lod_atomo {
+                let prof = [r_cam as f32, 2.0 * zz_r_nuvola(lab) as f32, graf.profondita, px_mondo];
+                match s {
+                    ZzStratoI::Palline => {
+                        si.n_lod = n_testa as u32;
+                        si.lod = [l.f, l.alfa, l.cresci, 1.6];
+                        si.prof = prof;
+                        si.gain *= graf.bagliori;
+                    }
+                    ZzStratoI::Scie => {
+                        // already thinned by the worker with the same keys; same growth and brightness as the heads
+                        si.n_lod = u32::MAX;
+                        si.lod = [1.0, l.alfa, l.cresci, 1.2];
+                        si.prof = prof;
+                        si.gain *= graf.bagliori;
+                        // a tail is a smooth light: no hot core in each piece (it would make beads), a broad profile
+                        si.core = 0.0;
+                        si.soft = 2.0;
+                    }
+                    ZzStratoI::Onde => {
+                        si.lod = [1.0, 1.0, 1.0, 1.5];
+                        si.n_lod = u32::MAX;
+                        si.prof = [r_cam as f32, (r_cam as f32).max(60.0), 0.5 * graf.profondita, px_mondo];
+                        si.taglio = [0.0, 1.0, 1.0, 14.0];
+                        if graf.taglio && !graf.fetta { si.taglio = [1.0, crate::zzscena::W_TAGLIO as f32, taglio_prof, 14.0]; }
+                    }
+                }
             }
         }
     }
     let _ = time;
 }
+
+fn zz_r_nuvola(lab: &Lab) -> f64 { lab.zz.as_ref().map(|c| c.lock().unwrap().out.r_nuvola).unwrap_or(3.0).max(0.5) }

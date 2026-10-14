@@ -16,6 +16,7 @@ use bevy::{
 use bevy_egui::{EguiContexts, EguiPlugin};
 
 mod accoppiato;
+mod bagliori;
 mod camera;
 mod elscena;
 mod esportazioni;
@@ -26,6 +27,7 @@ mod fotdisegno;
 mod fotone3d;
 mod istanze;
 mod fotscena;
+mod grafica;
 #[allow(dead_code)]
 mod gpu_regola;
 #[allow(dead_code)]
@@ -414,10 +416,14 @@ fn main() {
         .insert_resource(lab)
         .insert_resource(auto)
         .insert_resource(cam)
+        .insert_resource(grafica::Grafica::da_argomenti(&args))
+        .init_resource::<grafica::Budget>()
         .init_resource::<PointerOverHud>()
         .add_systems(Startup, (setup_scene, render_zz::setup, gpu_fotone::prendi_dispositivo))
         .add_systems(Update, (
             ui::draw_hud,
+            grafica::pannello.after(ui::draw_hud).before(hud_pointer),
+            grafica::budget_sys,
             hud_pointer.after(ui::draw_hud),
             run_lab.after(hud_pointer),
             camera::camera_sys.after(run_lab),

@@ -85,10 +85,17 @@ pub struct StratoIstanze {
     pub offset: [f32; 3],
     /// when set, the instances come from this GPU buffer instead of `dati`
     pub gpu: Option<IstanzeGpu>,
+    /// level of detail (grafica.rs): the first `n_lod` instances follow it; [kept fraction, brightness, size, min px]
+    pub n_lod: u32,
+    pub lod: [f32; 4],
+    /// depth cue [camera distance, depth scale, strength, scene units per px per unit distance]
+    pub prof: [f32; 4],
+    /// cut towards the camera [on, front width, back length, 0]
+    pub taglio: [f32; 4],
 }
 
 impl Default for StratoIstanze {
-    fn default() -> Self { StratoIstanze { dati: Arc::new(vec![]), alfa: false, size: 0.1, gain: 1.0, soft: 3.0, core: 0.3, offset: [0.0; 3], gpu: None } }
+    fn default() -> Self { StratoIstanze { dati: Arc::new(vec![]), alfa: false, size: 0.1, gain: 1.0, soft: 3.0, core: 0.3, offset: [0.0; 3], gpu: None, n_lod: 0, lod: [1.0, 1.0, 1.0, 0.0], prof: [0.0; 4], taglio: [0.0; 4] } }
 }
 
 impl ExtractComponent for StratoIstanze {
@@ -169,7 +176,7 @@ pub struct BufferIstanze { buffer: Buffer, params: BindGroup, n: u32 }
 
 #[repr(C)]
 #[derive(Clone, Copy, Pod, Zeroable)]
-struct Parametri { size: f32, gain: f32, soft: f32, core: f32, offset: [f32; 4] }
+struct Parametri { size: f32, gain: f32, soft: f32, core: f32, offset: [f32; 4], lod: [f32; 4], prof: [f32; 4], taglio: [f32; 4] }
 
 fn prepara_buffer(
     mut commands: Commands,
@@ -195,7 +202,7 @@ fn prepara_buffer(
                 (b, dati.len() as u32)
             }
         } };
-        let p = Parametri { size: s.size, gain: s.gain, soft: s.soft, core: s.core, offset: [s.offset[0], s.offset[1], s.offset[2], 0.0] };
+        let p = Parametri { size: s.size, gain: s.gain, soft: s.soft, core: s.core, offset: [s.offset[0], s.offset[1], s.offset[2], s.n_lod as f32], lod: s.lod, prof: s.prof, taglio: s.taglio };
         let ub = device.create_buffer_with_data(&BufferInitDescriptor {
             label: Some("parametri palline"),
             contents: bytemuck::bytes_of(&p),
