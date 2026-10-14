@@ -9,6 +9,27 @@ from scipy.ndimage import gaussian_filter, zoom
 GLOW_MIX = 0.5
 GAMMA = 0.8
 
+# THE BASE LOOK (Valerio, 13/10 night): the live zig-zag atom (src/atomo/zzscena.rs, offline copy lab/vl_render.py).
+# Same sprite (soft gaussian, half-octave size bins from 0.7 px), same sizes and gains, additive light per channel with
+# no gamma, same halo mix, same background, same 5-stop cyclic palette 'tinta' of zzscena.rs. Ported as constants so
+# the scene can become a mode of the core renderer (only the per-ball data change).
+ZZ = dict(spot=2.0, glow=16.0, gain=2.4, glow_mix=0.45, gamma=1.0, keep=24000, bg=(0.012, 0.013, 0.022), out_gamma=1.1)
+STOPS = np.array([[0.20, 0.95, 1.00], [0.25, 0.45, 1.00], [0.70, 0.30, 1.00], [1.00, 0.35, 0.70], [1.00, 0.85, 0.30]])
+
+
+def tinta(t):
+    """zzscena.rs palette: t in [0, 1) cyclic -> cyan, blue, violet, pink, gold."""
+    x = (np.asarray(t, float) % 1.0) * 5.0
+    i = np.floor(x).astype(int) % 5
+    f = (x - np.floor(x))[..., None]
+    return STOPS[i] * (1 - f) + STOPS[(i + 1) % 5] * f
+
+
+def tinta_quota(q):
+    """a share q in [0, 1] (e.g. electric share of the energy) on the non-cyclic part of the palette:
+    0 = cyan (all magnetic), 0.5 = violet (equal), 1 = gold (all electric)."""
+    return tinta(0.8 * np.clip(q, 0, 1))
+
 
 def camera(eye, centre, fov, w, h, up=(0.0, 0.0, 1.0)):
     fwd = np.asarray(centre, float) - eye
@@ -56,14 +77,15 @@ def blur(a, sig):
     return zoom(small, f, order=1)[:h, :w]
 
 
-def additivo(img, gain, ref=None):
+def additivo(img, gain, ref=None, gamma=None):
     D = img[3]
     if ref is None:
         ref = np.percentile(D[D > 0], 99.7) if (D > 0).any() else 1.0
-    return 1 - np.exp(-gain * np.maximum(img[:3] / ref, 0) ** GAMMA), ref
+    g = GAMMA if gamma is None else gamma
+    return 1 - np.exp(-gain * np.maximum(img[:3] / ref, 0) ** g), ref
 
 
-def bagliori(p, col, cam, w, h, spot, glow, gain, depth, cam_d, refs=None, keep=None, weight=None, extra=None):
+def bagliori(p, col, cam, w, h, spot, glow, gain, depth, cam_d, refs=None, keep=None, weight=None, extra=None, size=None, glow_mix=None, gamma=None):
     """p (3,N) world positions, col (N,3) in 0..1. Returns image (3,h,w) in 0..1 and the refs used.
     spot: glow radius in px at the reference distance; glow: halo sigma px; depth: depth fading length.
     weight: optional per-ball weight (default 1). extra: list of (p, col, radius_px, weight) bright sources."""
@@ -72,6 +94,8 @@ def bagliori(p, col, cam, w, h, spot, glow, gain, depth, cam_d, refs=None, keep=
     if weight is not None:
         wt = wt * weight
     rpx = spot * (cam_d / np.maximum(z, 1e-3)) ** 1.3
+    if size is not None:
+        rpx = rpx * size
     b = np.clip(np.round(np.log2(np.maximum(rpx / 0.7, 1.0)) * 2).astype(int), 0, 7)
     layers = np.zeros((8, 4, h, w))
     img2 = np.zeros((4, h, w))
@@ -85,9 +109,10 @@ def bagliori(p, col, cam, w, h, spot, glow, gain, depth, cam_d, refs=None, keep=
         if layers[ib][3].any():
             img += np.stack([blur(layers[ib][c], 0.7 * 2 ** (ib / 2)) for c in range(4)])
     refs = refs or {}
-    balls, rb = additivo(img, gain, refs.get("b"))
-    halo, rg = additivo(np.stack([blur(img2[c], glow) for c in range(4)]), 1.0, refs.get("g"))
-    out = 1 - (1 - np.clip(balls, 0, 1)) * (1 - GLOW_MIX * np.clip(halo, 0, 1))
+    balls, rb = additivo(img, gain, refs.get("b"), gamma)
+    halo, rg = additivo(np.stack([blur(img2[c], glow) for c in range(4)]), 1.0, refs.get("g"), gamma)
+    gm = GLOW_MIX if glow_mix is None else glow_mix
+    out = 1 - (1 - np.clip(balls, 0, 1)) * (1 - gm * np.clip(halo, 0, 1))
     if extra:
         for (pe, ce, rad, we) in extra:
             ex, ey, ez = project(pe, cam)

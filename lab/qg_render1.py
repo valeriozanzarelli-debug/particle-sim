@@ -17,7 +17,7 @@ from PIL import Image, ImageDraw, ImageFont
 from scipy.ndimage import map_coordinates
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from qg_bagliori import bagliori, camera, project  # noqa: E402
+from qg_bagliori import ZZ, bagliori, camera, project, tinta_quota  # noqa: E402
 from qg_run import SCR  # noqa: E402
 
 LAB = os.path.dirname(os.path.abspath(__file__))
@@ -28,17 +28,18 @@ FONTB = "/usr/share/fonts/opentype/inter/Inter-SemiBold.otf"
 # aesthetics (knobs, counted in the doc)
 NB = 220000
 SUB = 6              # spline sub-samples per lattice spacing
-SPOT = 2.0
-GLOW = 16.0
-GAIN = 2.0
+SPOT = 1.5
+GLOW = 11.0
+GAIN = 2.8
 DEPTH = 18.0
 CAM_D = 26.0
 FOV = 38.0
-SOGLIA_SIGMA = 1.0   # balls only where f exceeds this many jackknife errors (declared: noise is not drawn)
+BG_R = 5.0           # lattice units: background region (far from the triangle)
+SOGLIA_SIGMA = 2.0   # balls only where f exceeds this many jackknife errors (declared: noise is not drawn)
 C_LOW = np.array([0.85, 0.20, 0.06])
 C_MID = np.array([1.00, 0.62, 0.16])
 C_HIGH = np.array([1.00, 0.95, 0.80])
-C_QUARK = np.array([0.70, 0.85, 1.00])
+C_QUARK = np.array([1.00, 1.00, 1.00])
 
 
 def rot_to_z(n):
@@ -57,46 +58,52 @@ def dati(tag, d, T):
     F = z[f"F_{d}_{T}"]
     Fe = z[f"Ferr_{d}_{T}"]
     an = json.load(open(os.path.join(SCR, f"qg_{tag}_analisi.json")))
-    return F[2], Fe[2], an
+    return F, Fe[2], an
 
 
-def palline(f, fe, d, rng):
-    L = f.shape[0]
+def _spline(field, pts):
+    from scipy.ndimage import spline_filter
+    return map_coordinates(spline_filter(field, order=3, mode="grid-wrap"), pts, order=3, mode="grid-wrap", prefilter=False)
+
+
+def carica(tag, d, T, seed=7):
+    """LOADER (portable: the per-ball data of the scene). Returns dict with
+    pos (3,N) lattice units relative to the centroid, col (N,3), wt (N,), quarks (3,3), plus the numbers.
+    Balls: density proportional to f - background where f > SOGLIA_SIGMA errors; brightness weight as zzscena.rs
+    (0.1 + 0.9 (f/f_max)^0.35); hue = electric share of the expelled action, dpt / (dpt + dps), on the zig-zag
+    palette (cyan = magnetic, violet = equal, gold = electric): gauge invariant, measured."""
+    F, fe, an = dati(tag, d, T)
+    rng = np.random.default_rng(seed)
+    L = F.shape[1]
     c = np.full(3, d / 3.0)
     g = np.arange(-L / 2, L / 2, 1.0 / SUB) + 0.5 / SUB
     G = np.stack(np.meshgrid(g, g, g, indexing="ij")).reshape(3, -1)
     pts = G + c[:, None]
-    from scipy.ndimage import spline_filter
-    val = map_coordinates(spline_filter(f, order=3, mode="grid-wrap"), pts, order=3, mode="grid-wrap", prefilter=False)
+    far = np.sqrt((G ** 2).sum(0)) > BG_R
+    vals = []
+    for k in (2, 0, 1):
+        v = _spline(F[k], pts)
+        # uniform background: on a 2 fm periodic box f does not go back to 0 far away (the whole box feels the
+        # quarks + the sum rule of the action). We subtract the median farther than BG_R from the centroid
+        # (declared display choice; the exams use f as it is).
+        vals.append(v - float(np.median(v[far])))
+    val, vt, vs = vals
     err = map_coordinates(fe, pts, order=1, mode="grid-wrap")
     rho = np.where(val > SOGLIA_SIGMA * err, val, 0.0)
-    rho = np.maximum(rho, 0)
-    p = rho / rho.sum()
-    idx = rng.choice(rho.size, NB, p=p)
-    pos = G[:, idx] + (rng.random((3, NB)) - 0.5) / SUB      # relative to the centroid, lattice units
-    lev = val[idx] / val.max()
-    return pos, np.clip(lev, 0, 1)
-
-
-def colori(lev):
-    a = np.clip(lev / 0.5, 0, 1)[:, None]
-    b = np.clip((lev - 0.5) / 0.5, 0, 1)[:, None]
-    return (1 - a) * C_LOW + a * (1 - b) * C_MID + a * b * C_HIGH
-
-
-def font(sz, bold=False):
-    return ImageFont.truetype(FONTB if bold else FONT, max(8, int(round(sz * SCALA))))
-
-
-def num(x, f="{:.3f}"):
-    return f.format(x).replace(".", ",")
-
-
-def scena(pos, lev, d, view, w, h):
-    R = rot_to_z(np.ones(3))
+    idx = rng.choice(rho.size, NB, p=rho / rho.sum())
+    pos = G[:, idx] + (rng.random((3, NB)) - 0.5) / SUB
+    lev = np.clip(val[idx] / val.max(), 0, 1)
+    quota = np.clip(vt[idx] / np.maximum(vt[idx] + vs[idx], 1e-12), 0, 1)
     q = np.array([[d, 0, 0], [0, d, 0], [0, 0, d]], float) - d / 3.0
-    P = R @ pos
-    Q = R @ q.T
+    return {"pos": pos, "col": tinta_quota(quota), "wt": 0.1 + 0.9 * lev ** 0.35, "quarks": q, "an": an,
+            "quota_media": float(np.average(quota, weights=lev))}
+
+
+def disegna(sc, view, w, h):
+    """DRAW (zig-zag base look, qg_bagliori.ZZ): returns image (3,h,w) in 0..1 with the background."""
+    R = rot_to_z(np.ones(3))
+    P = R @ sc["pos"]
+    Q = R @ sc["quarks"].T
     if view == "alto":
         el, az = np.radians(89.0), np.radians(-90)
     elif view == "obliquo":
@@ -107,27 +114,39 @@ def scena(pos, lev, d, view, w, h):
     up = (0, 1, 0) if view == "alto" else (0, 0, 1)
     cam = camera(eye, (0, 0, 0), FOV, w, h, up=up)
     s = w / 1080
-    img, _ = bagliori(P, colori(lev), cam, w, h, SPOT * s, GLOW * s, GAIN, DEPTH, CAM_D,
-                      extra=[(Q, np.tile(C_QUARK, (3, 1)), 5.0 * s, 1.0)])
-    return img, cam, Q
+    img, _ = bagliori(P, sc["col"], cam, w, h, ZZ["spot"] * s, ZZ["glow"] * s, ZZ["gain"], DEPTH, CAM_D,
+                      weight=sc["wt"], keep=ZZ["keep"], glow_mix=ZZ["glow_mix"], gamma=ZZ["gamma"],
+                      extra=[(Q, np.tile(C_QUARK, (3, 1)), 6.0 * s, 1.6)])
+    bg = np.array(ZZ["bg"])[:, None, None]
+    return np.clip(img + bg * (1 - img), 0, 1) ** (1 / ZZ["out_gamma"]), cam
+
+
+def font(sz, bold=False):
+    return ImageFont.truetype(FONTB if bold else FONT, max(8, int(round(sz * SCALA))))
+
+
+def num(x, f="{:.3f}"):
+    return f.format(x).replace(".", ",")
+
+
+_CACHE = {}
 
 
 def frame(tag, d, T, view, an):
     s = SCALA
     W, H = int(W0 * s), int(H0 * s)
-    f, fe, _ = dati(tag, d, T)
-    rng = np.random.default_rng(7)
-    pos, lev = palline(f, fe, d, rng)
-    bg = np.array([0.010, 0.011, 0.020])
+    key = (tag, d, T)
+    if key not in _CACHE:
+        _CACHE[key] = carica(tag, d, T)
+    sc = _CACHE[key]
     canvas = np.zeros((H, W, 3))
-    canvas[:] = bg
+    canvas[:] = np.array(ZZ["bg"])
     wa = H
-    sc, cam, Q = scena(pos, lev, d, view, wa, wa)
-    sc = np.clip(sc + bg[:, None, None] * (1 - sc), 0, 1) ** (1 / 1.1)
-    canvas[:, :wa] = sc.transpose(1, 2, 0)
+    img, cam = disegna(sc, view, wa, wa)
+    canvas[:, :wa] = img.transpose(1, 2, 0)
     im = Image.fromarray((canvas * 255).astype(np.uint8))
     dr = ImageDraw.Draw(im)
-    dr.text((22 * s, 18 * s), "tre quark fermi (bagliori azzurri) e il campo misurato attorno a loro", fill=(205, 208, 230), font=font(15))
+    dr.text((22 * s, 18 * s), "tre quark fermi (tre grandi bagliori bianchi) e il campo misurato attorno a loro", fill=(205, 208, 230), font=font(15))
     dr.text((22 * s, 40 * s), "istantanea in tempo immaginario, non un film; il confinamento qui è misurato, non disegnato",
             fill=(255, 205, 120), font=font(13))
     pannello(dr, wa, W - wa, d, T, an)
@@ -143,6 +162,9 @@ def pannello(dr, x0, w, d, T, an):
     a = 0.40 / 1.0
     Tx(22, "Dentro un barione: tre quark e la colla", 24, (245, 245, 252), True)
     Tx(56, "SU(3) su reticolo 12⁴, β = 6/g² = 5,7 (l'unico numero della regola)", 14, (170, 175, 200))
+    et = os.environ.get("QG_ETICHETTA", "")
+    if et:
+        Tx(78, et, 14, (255, 150, 60), True)
     fl = an["flux"][f"{d}_{T}"]
     cor = an["cornell"]
     pl = an["plaq"]
@@ -152,11 +174,14 @@ def pannello(dr, x0, w, d, T, an):
     afm = 0.44 / max(asig[0], 1e-9) if False else None
     lines = [
         ("Cosa vedi", (245, 245, 252), True),
-        (f"• i tre bagliori azzurri: tre quark fermi (cariche di colore statiche), ai vertici di un", (205, 208, 230), False),
+        (f"• i tre grandi bagliori bianchi: tre quark fermi (cariche di colore statiche), ai vertici di un", (205, 208, 230), False),
         (f"  triangolo equilatero di lato {num(lato, '{:.2f}')} passi di reticolo (circa {num(lato * 0.17, '{:.1f}')} fm)", (205, 208, 230), False),
-        ("• le palline arancio: dove il campo dei gluoni è diverso dal vuoto perché ci sono i quark", (205, 208, 230), False),
-        ("  (fluttuazioni del vuoto espulse = il tubo di flusso); più chiaro = più intenso", (205, 208, 230), False),
-        ("• palline solo dove il segnale supera 1 errore: il rumore non si disegna", (170, 175, 200), False),
+        ("• le palline: dove il campo dei gluoni è diverso dal vuoto perché ci sono i quark", (205, 208, 230), False),
+        ("  (fluttuazioni del vuoto espulse = il tubo di flusso); più luminose = più intenso", (205, 208, 230), False),
+        ("• colore (tavolozza dell'atomo zig-zag): quota elettrica del tubo, ciano = magnetico,", (205, 208, 230), False),
+        ("  viola = metà e metà, oro = elettrico (misurata, non dipende dalla gauge)", (205, 208, 230), False),
+        ("• palline solo dove il segnale supera 2 errori: il rumore non si disegna; tolto il fondo", (170, 175, 200), False),
+        ("  uniforme (f lontano dai quark: la scatola di 2 fm è piccola)", (170, 175, 200), False),
         ("", None, False),
         ("I numeri (esami pre-registrati)", (245, 245, 252), True),
         (f"placchetta {num(pl[0], '{:.4f}')} ± {num(pl[1], '{:.4f}')} (letteratura 0,5492)", (205, 208, 230), False),
@@ -173,14 +198,14 @@ def pannello(dr, x0, w, d, T, an):
         ("Cosa NON è", (245, 245, 252), True),
         ("• non è un film: è una media su centinaia di 'fotografie' del vuoto in tempo immaginario", (255, 205, 120), False),
         ("• i quark sono fermi e infinitamente pesanti (sorgenti statiche): niente quark che si muovono", (255, 205, 120), False),
-        ("• il colore delle palline è solo l'intensità: il 'colore' dei quark non si può disegnare", (255, 205, 120), False),
+        ("• il 'colore' (carica di colore) dei quark non si può disegnare", (255, 205, 120), False),
         ("  (non è una cosa gauge-invariante)", (255, 205, 120), False),
         ("• quark che si muovono e restano chiusi in tempo reale: nessuno sa calcolarlo (problema del segno)", (255, 205, 120), False),
         ("", None, False),
         ("reticolo grossolano (a ≈ 0,17 fm): 12 punti per lato, forme a grana grossa", (150, 155, 185), False),
         ("posizioni dei quark = ingresso; il tubo = misurato (spline cubica fra i punti del reticolo)", (150, 155, 185), False),
     ]
-    y = 100
+    y = 104
     for txt, col, b in lines:
         if col is not None:
             Tx(y, txt, 15 if b else 12.6, col, b)
@@ -208,11 +233,11 @@ if __name__ == "__main__":
         os.makedirs(dd, exist_ok=True)
         t0 = time.time()
         for i in range(a, min(b, n)):
-            fn = os.path.join(dd, f"{i:05d}.png")
+            fn = os.path.join(dd, f"{i:05d}.jpg")
             if os.path.exists(fn):
                 continue
-            frame(tag, d, T, str(-90 + 360.0 * i / n), an).save(fn + ".tmp.png")
-            os.replace(fn + ".tmp.png", fn)
+            frame(tag, d, T, str(-90 + 360.0 * i / n), an).save(fn + ".tmp.jpg", quality=93)
+            os.replace(fn + ".tmp.jpg", fn)
             if time.time() - t0 > 480:
                 break
         print("orbita", a, b, f"{time.time() - t0:.0f}s")
