@@ -87,6 +87,32 @@ Quattro studi erano in corso quando è stato scritto questo file. Se uno risulta
 | **Laboratorio Atomo: grafica + orbitali** | `src/atomo/**` (in particolare `fotscena.rs`, `render_zz.rs`, `orbitali.rs`), `docs/ATOMO.md` | (fatto) fotone con palline che cavalcano il campo e surfisti; (in corso) atomo a un elettrone con selettore n = 1..4, l = s..f, m e sovrapposizioni; da lontano forme degli orbitali come gusci morbidi, da vicino dinamica pallina per pallina | grafica almeno bella quanto il Laboratorio Fotone vecchio; niente orbitali da tabella |
 | **Bagliori** (13/10) | `docs/BAGLIORI.md`, `lab/out/gl_*`, `src/atomo/elscena.rs` | fotone leggibile di fronte (bagliori che seguono u, tavolozza lineare, ordine di profondità), `--sequenza` per clip al rallentatore; poi elettrone/muone libero a bagliori | fotone: S1 S2 S3 I1 I2 I3 I5 PASS (I3 dopo emendamento); elettrone (fermato, prossimo passo): E1 E2 PASS, E3 FAIL |
 
+## 4bis. Pausa del 14/10/2026 (01:00 UTC): dove si è fermato il programma unico
+
+Valerio ha messo in pausa tutto. Nessun agente attivo. Stato del **programma unico** `atomo` (Laboratorio Atomo):
+- **Su master e compilato sul portatile** (ponte `2026-10-14_build_tavola`, git 278b739):
+  - motore a bagliori 3-D (`src/atomo/bagliori.rs`, `grafica.rs`, ATOMO.md §3.9, commit 3937246): camera girabile, dettaglio
+    continuo con lo zoom (niente palla bianca), scie dei surfisti 0,3 s, finestra Impostazioni grafica (G);
+  - tavola periodica (`tavola.rs`, `esportazioni.rs`, §10, e7052b5): accesi H, He, H₂, Nd⁵⁹⁺; formato delle esportazioni
+    `assets/esportazioni/<nome>/manifest.json + campioni.f32` (§10.2), pronto per Li e le molecole dei Debiti;
+  - cascata dell'idrogeno (`cascata.rs`, §10.4, ed6254d + d739593): 1s…3d entro 0,03 % di Dirac, A(2p) +0,07 %, ramo 3p→2s
+    11,83 %; C4 (2s a due fotoni) non calcolato.
+- **Comandi sul portatile** (cartella `ponte_lab`): `target\debug\atomo.exe --scena atomo --surfisti --distanza 60`;
+  `--scena tavola`; `--scena tavola --elemento He --buca`.
+- **Il ponte.py che gira sul portatile è vecchio**: le foto con `scena tavola` o `spara-pronto` falliscono finché Valerio non lo
+  riavvia (`2026-10-14_foto_*` FALLITE per questo, non per il programma).
+
+**Prossimi passi, in ordine** (per chi riprende a freddo):
+1. **Vista da lontano (LOD)**: a distanza 300 l'atomo è un puntino sopra i gusci di luce; le palline bianche di flusso sono
+   invadenti a distanza 60. Sistemare in `render_zz.rs`/`zzscena.rs` restando sulla stessa rappresentazione (§3.9, debiti).
+2. **Tavola e cascata sul motore nuovo**: oggi disegnano col vecchio percorso; portarle su `bagliori.rs` (regola di Valerio:
+   la grafica dell'atomo zig-zag è la base di tutto, nessuno stile parallelo). Poi orbitali, elettrone e fotone liberi.
+3. **Budget di fotogramma sull'Intel UHD**: provato solo in cloud (lavapipe). Foto/misure dal ponte dopo il riavvio di ponte.py.
+4. **Clip a bagliori dentro il programma come scene**: i video (atomo che assorbe/riemette, idrogeno di Bohr, elio, H₂, quark
+   del Modello standard) devono diventare scene di `atomo` sul motore comune, non file a parte.
+5. Accendere nella tavola gli elementi/molecole che Debiti esporta (Li chiuso, LiH in corso).
+6. Idrogeno di Bohr: campo di Galerkin nel motore Rust (il −0,05 % residuo dell'ibrido, IDROGENO_BOHR §13).
+
 ## 5. Prossimi passi, in ordine
 
 1. Chiudere i quattro cantieri sopra.
