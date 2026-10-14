@@ -115,3 +115,12 @@ python3 lab/h2v_figure.py
 ```
 
 ![figura](fig/h2v_figure.png)
+
+## Stato alla chiusura (14/10, notte)
+
+- Clip **parziale** 720p: 612 fotogrammi su 912 (A intera, B 0–285 e 330–446, C 620–830 = due periodi): tagli secchi tra
+  i pezzi. File `h2v_video_720p_parziale.mp4` (32 MB) nella cartella di lavoro del cloud; la copia in
+  `/mnt/project-files/modello-standard/` non è stata possibile (il disco condiviso dava errore di I/O) — da copiare.
+- Foto finali (aspetto zig-zag) `h2v_foto_A/B/C.png`: stesso problema di copia. In `modello-standard/` c'è solo la bozza
+  della prima versione (`h2v_foto_bozza.png`, aspetto vecchio) e `h2v_foto_A/B.png` dell'aspetto vecchio.
+- Per finire: `python3 lab/h2v_render.py batch 0 912 --scala 0.6667` (salta i fotogrammi già fatti), poi ffmpeg.
