@@ -165,3 +165,34 @@ commutano invece non dipende dalla gauge.
 `lab/qg_analisi1.py` (jackknife, Cornell, flusso), `lab/qg_ym.py` (Yang–Mills classico), `lab/qg_pacchetti.py`
 (pacchetti), `lab/qg_gluoni.py` (corse e palline portate da Poynting), `lab/qg_verdetto.py`, `lab/qg_bagliori.py`
 (bagliori, aspetto zig-zag), `lab/qg_render1.py`, `lab/qg_render2.py`, `lab/qg_figura.py`, `lab/qg_prereg.py`.
+
+## 7. Pausa del 14/10 notte: dove si sono fermate le corse
+
+Valerio ha messo in pausa il progetto. Le corse sono state fermate all'ultimo checkpoint (scrittura atomica: file
+`.tmp` e poi `os.replace`). I fotogrammi salvati oltre il checkpoint sono stati cancellati. Cartella dei dati (fuori da git, nel
+cloud): `SCR = /tmp/claude-0/-home-claude-particle-sim/a13a264e-04a0-55c0-8c14-0e293e6cf6fd/scratchpad/qg`.
+
+| corsa | passi fatti / 560 | % | checkpoint | fotogrammi salvati |
+|---|---|---|---|---|
+| video_grande | 560 / 560 | 100 % (finita, film montato) | `SCR/qg_ym_video_grande_state.npz`, `_fine.npz`, `_diag.json` | 140 (`qg_ym_video_grande_f0000–0139.npz`) |
+| video_piccolo | 302 / 560 | 54 % | `SCR/qg_ym_video_piccolo_state.npz`, `_diag.json` | 76 (f0000–0075) |
+| video_tre | 437 / 560 | 78 % | `SCR/qg_ym_video_tre_state.npz`, `_diag.json` | 110 (f0000–0109) |
+
+Parte 1: finita (600/600 misure, `SCR/qg_prod_mis_*.npz`, `SCR/qg_prod_state.npz`). Prodotti fuori da git:
+`SCR/qg_tre_quark_Y_orbita_1080p.mp4`, `SCR/qg_gluoni_urto_1080p.mp4` (la cartella /mnt/project-files dava errori di
+I/O e non è stato possibile copiarli lì).
+
+**Per riprendere** (dalla cartella del repo, con la stessa SCR o `QG_SCR=...`; se il cloud ha perso /tmp i checkpoint
+non ci sono più e le corse ripartono da zero con gli stessi semi):
+
+```
+for r in video_piccolo video_tre; do
+  until python3 lab/qg_gluoni.py $r --budget 470 | tail -1 | grep -q '^done'; do :; done
+done
+python3 lab/qg_verdetto.py parte2                   # G7 su tutte e due le corse video pre-registrate
+python3 lab/qg_render2.py batchrun video_piccolo 0 100000   # ripetere finché non ha finito (pezzi di 8 min)
+python3 lab/qg_render2.py batchrun video_tre 0 100000
+ffmpeg -framerate 24 -i SCR/qg_film_<corsa>_1920/%05d.jpg -c:v libx264 -crf 18 -pix_fmt yuv420p <corsa>.mp4
+```
+L'esposizione dei film è fissata in `SCR/qg_film_refs.json` (fotogramma 0 di ogni corsa). Se manca, va rigenerata con
+`python3 lab/qg_render2.py refs`.
