@@ -11,7 +11,7 @@ LAB = os.path.dirname(os.path.abspath(__file__))
 es = json.load(open(os.path.join(LAB, "out", "h2v_esami.json")))
 fig = plt.figure(figsize=(16, 9.6))
 for k, (fn, tit) in enumerate([("h2v_foto_A.png", "A · la molecola: 24 000 palline da |Ψ(r₁,r₂)|²"),
-                               ("h2v_foto_B.png", "B · dove sta l'altro elettrone (luce = g(r₂|r_azzurro))"),
+                               ("h2v_foto_B.png", "B · dove sta l'altro elettrone (luce = g(r₂|r_rosa))"),
                                ("h2v_foto_C.png", "C · il legame vibra (v0+v1, periodo 8,0 fs)")]):
     ax = fig.add_subplot(2, 3, k + 1)
     p = os.path.join(SCR, fn)
@@ -37,9 +37,13 @@ if os.path.exists(p6) and "V6" in es:
     ax.legend(fontsize=8)
 ax = fig.add_subplot(2, 3, 6)
 rows = []
-for k in ["V0", "V1", "V2", "V3", "V4", "V4b", "V5", "V6", "V7"]:
+for k in ["V0", "V1", "V2", "V3", "V4", "V4b", "V5", "V6"]:
     if k in es:
         rows.append((k, es[k]["PASS"]))
+if "V7_v1" in es:
+    rows.append(("V7 (pre-reg.)", es["V7_v1"]["PASS"]))
+if "V7" in es:
+    rows.append(("V7 rifatto (dopo)", es["V7"]["PASS"]))
 ax.barh(range(len(rows)), [1] * len(rows), color=["tab:green" if p else "tab:red" for _, p in rows])
 ax.set_yticks(range(len(rows))); ax.set_yticklabels([f"{k}  {'PASS' if p else 'FAIL'}" for k, p in rows])
 ax.invert_yaxis(); ax.set_xticks([]); ax.set_title("esami pre-registrati", fontsize=10)
