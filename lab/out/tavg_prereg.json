@@ -1,0 +1,320 @@
+{
+ "studio": "tavg_ - Tavola periodica, parte 2: da B in su sulla griglia agglomerata (FASE 1: Hartree-Fock)",
+ "data": "2026-10-14",
+ "regola": "operatore non relativistico della regola agglomerata p^2/(2 m_kin) - Z/r + 1/r_ij; esami a m_kin = 1 (theta -> 0, scala esatta E(m) = m E(1)); il livello a0/4 imparato ha m_kin = 1.000375 (theta_A)",
+ "livelli": {
+  "fine": "zoom radiale tutti-elettroni (tavg_radial: ROHF del termine di Hund, determinante di peso massimo, x = ln r uniforme h = 0.03, r da 1e-12/Z a 45 a0, differenze finite di ordine 8, Y^k da equazione)",
+  "blocco": "nucleo + gusci interni agglomerati (tavg_core.Block): orbitale esterno liscio di Troullier-Martins dentro r_c, potenziale per canale l per inversione dell'equazione HF, coda = carica puntiforme Zv oltre max(r_c) + 2.75 a0, forma separabile (Kleinman-Bylander) con canale locale p (s se non c'e' p)",
+  "griglia": "3-D, celle h, scatola L periodica con Coulomb isolato (imbottitura 2N, nucleo troncato R = L); cinetico 'regola' = k^2/(2 m_kin) spettrale; variante 'imparato' = stencil aggmol a0/4"
+ },
+ "regole_automatiche": {
+  "r_c": "per ogni canale l: il piu' piccolo r_c (passo 0.025 a0, da 1.2 x ultimo nodo) con energia cinetica oltre KCUT = 0.8 pi/h <= 2e-4 Eh (orbitale liscio portato dal livello grosso)",
+  "h": "per ogni elemento: la cella piu' grossa in [a0/4, a0/6, a0/8] il cui blocco trasferisce il catione X+ entro 0.8 mEh contro il livello fine (|dE_blocco(X+) - dE_fine(X+)|). Questo usa X+: l'esame B2 sul catione quindi NON e' indipendente (riportato, non contato). Se nessuna passa: a0/8 e FAIL dichiarato.",
+  "L": "lato della scatola 16 a0 per Z <= 10, 20 a0 per Z >= 11",
+  "manopole": [
+   "TAIL_BUDGET = 2e-4 Eh",
+   "KFRAC = 0.8",
+   "bilancio di selezione di h 0.8 mEh",
+   "R_TAIL_ADD = 2.75 a0",
+   "forma TM (7 coefficienti, standard)",
+   "canale locale = p"
+  ]
+ },
+ "esami_fase1": {
+  "F1": {
+   "cosa": "energia ROHF del neutro (livello fine) contro il limite HF numerico, B..Ne",
+   "soglia_Eh": 1e-05,
+   "chiavi": {
+    "5": [
+     -24.529061,
+     "compito"
+    ],
+    "6": [
+     -37.688619,
+     "compito"
+    ],
+    "7": [
+     -54.400934,
+     "compito"
+    ],
+    "8": [
+     -74.809398,
+     "compito"
+    ],
+    "9": [
+     -99.409349,
+     "compito"
+    ],
+    "10": [
+     -128.547098,
+     "compito+Lehtola"
+    ]
+   },
+   "atteso": "PASS"
+  },
+  "F1b": {
+   "cosa": "idem Na..Kr (chiavi 'memoria' tranne Ar, Kr)",
+   "soglia_Eh": 1e-05,
+   "chiavi": {
+    "11": [
+     -161.858912,
+     "memoria"
+    ],
+    "12": [
+     -199.614636,
+     "memoria"
+    ],
+    "13": [
+     -241.876707,
+     "memoria"
+    ],
+    "14": [
+     -288.854362,
+     "memoria"
+    ],
+    "15": [
+     -340.718781,
+     "memoria"
+    ],
+    "16": [
+     -397.504896,
+     "memoria"
+    ],
+    "17": [
+     -459.482072,
+     "memoria"
+    ],
+    "18": [
+     -526.817513,
+     "Lehtola"
+    ],
+    "19": [
+     -599.164787,
+     "memoria"
+    ],
+    "20": [
+     -676.758186,
+     "memoria"
+    ],
+    "21": [
+     -759.735718,
+     "memoria"
+    ],
+    "22": [
+     -848.405997,
+     "memoria"
+    ],
+    "23": [
+     -942.884337,
+     "memoria"
+    ],
+    "24": [
+     -1043.356376,
+     "memoria"
+    ],
+    "25": [
+     -1149.866252,
+     "memoria"
+    ],
+    "26": [
+     -1262.443665,
+     "memoria"
+    ],
+    "27": [
+     -1381.414553,
+     "memoria"
+    ],
+    "28": [
+     -1506.870908,
+     "memoria"
+    ],
+    "29": [
+     -1638.963742,
+     "memoria"
+    ],
+    "30": [
+     -1777.848116,
+     "memoria"
+    ],
+    "31": [
+     -1923.26101,
+     "memoria"
+    ],
+    "32": [
+     -2075.359734,
+     "memoria"
+    ],
+    "33": [
+     -2234.238654,
+     "memoria"
+    ],
+    "34": [
+     -2399.867612,
+     "memoria"
+    ],
+    "35": [
+     -2572.441333,
+     "memoria"
+    ],
+    "36": [
+     -2752.054977,
+     "Lehtola"
+    ]
+   },
+   "atteso": "PASS per Ar, Kr, Fe (sviluppo: Fe +2.2e-6 con griglia vecchia); se una chiave 'memoria' e' l'unica a fallire si dichiara dubbio sulla chiave"
+  },
+  "F2": {
+   "cosa": "energia ROHF del catione B+..Ne+ (chiavi 'memoria')",
+   "soglia_Eh": 1e-05,
+   "chiavi": {
+    "5": -24.237575,
+    "6": -37.292224,
+    "7": -53.888005,
+    "8": -74.372606,
+    "9": -98.83172,
+    "10": -127.817814
+   }
+  },
+  "F3a": {
+   "cosa": "gusci: numero di massimi di r^2 rho(r) (sopra 1e-3 del massimo) = 2 per B..Ne, 3 per Na..Ar",
+   "soglia": "uguale"
+  },
+  "F3b": {
+   "cosa": "cuspide di Kato -rho'/(2 rho) a r -> 0 uguale a Z",
+   "soglia_rel": 0.005,
+   "tutti": "B..Kr"
+  },
+  "F3c": {
+   "cosa": "Ne: <r> 1s, 2s, 2p contro 0.15763, 0.89252, 0.96456 (chiavi 'memoria', Froese Fischer); rho(0) contro 620.15 (memoria)",
+   "soglia_rel": 0.003
+  },
+  "F4": {
+   "cosa": "aufbau: la configurazione HF piu' bassa fra i candidati del generatore meccanico coincide con quella sperimentale. Esame per B..Ar e Ga..Kr (neutri e cationi: 40 casi), soglia 40/40. K..Zn: solo riportato (HF e' noto per sbagliare l'ordine 3d/4s in alcuni metalli di transizione: e' fisica della teoria, non della regola).",
+   "chiavi": {
+    "neutro": {
+     "5": "2s2 2p1",
+     "6": "2s2 2p2",
+     "7": "2s2 2p3",
+     "8": "2s2 2p4",
+     "9": "2s2 2p5",
+     "10": "2s2 2p6",
+     "11": "3s1",
+     "12": "3s2",
+     "13": "3s2 3p1",
+     "14": "3s2 3p2",
+     "15": "3s2 3p3",
+     "16": "3s2 3p4",
+     "17": "3s2 3p5",
+     "18": "3s2 3p6",
+     "19": "4s1",
+     "20": "4s2",
+     "21": "3d1 4s2",
+     "22": "3d2 4s2",
+     "23": "3d3 4s2",
+     "24": "3d5 4s1",
+     "25": "3d5 4s2",
+     "26": "3d6 4s2",
+     "27": "3d7 4s2",
+     "28": "3d8 4s2",
+     "29": "3d10 4s1",
+     "30": "3d10 4s2",
+     "31": "4s2 4p1",
+     "32": "4s2 4p2",
+     "33": "4s2 4p3",
+     "34": "4s2 4p4",
+     "35": "4s2 4p5",
+     "36": "4s2 4p6"
+    },
+    "catione": {
+     "5": "2s2",
+     "6": "2s2 2p1",
+     "7": "2s2 2p2",
+     "8": "2s2 2p3",
+     "9": "2s2 2p4",
+     "10": "2s2 2p5",
+     "11": "",
+     "12": "3s1",
+     "13": "3s2",
+     "14": "3s2 3p1",
+     "15": "3s2 3p2",
+     "16": "3s2 3p3",
+     "17": "3s2 3p4",
+     "18": "3s2 3p5",
+     "19": "",
+     "20": "4s1",
+     "21": "3d1 4s1",
+     "22": "3d2 4s1",
+     "23": "3d4",
+     "24": "3d5",
+     "25": "3d5 4s1",
+     "26": "3d6 4s1",
+     "27": "3d8",
+     "28": "3d9",
+     "29": "3d10",
+     "30": "3d10 4s1",
+     "31": "4s2",
+     "32": "4s2 4p1",
+     "33": "4s2 4p2",
+     "34": "4s2 4p3",
+     "35": "4s2 4p4",
+     "36": "4s2 4p5"
+    }
+   }
+  },
+  "B2": {
+   "cosa": "trasferibilita' del blocco al catione (RIPORTATO, non contato: usato per scegliere h)",
+   "soglia_Eh": 0.0016
+  },
+  "B3": {
+   "cosa": "trasferibilita' alla promozione ns -> np (ns1 np^(n+1)) contro il livello fine, B..Ne",
+   "soglia_Eh": 0.0016,
+   "atteso": "FAIL per C, N, O (sviluppo: C -4.5 mEh, insensibile a r_c: integrali valenza-valenza dentro il blocco)"
+  },
+  "G1": {
+   "cosa": "griglia 3-D (h scelta, L, cinetico della regola) contro l'atomo radiale con lo STESSO blocco e lo stesso determinante, neutro e catione",
+   "soglia": "stati a densita' sferica (s^n, p^0/p^3/p^6 con s chiusi, d^0/d^5/d^10): |dE| <= 1.6 mEh; stati non sferici (p^1,p^2,p^4,p^5): -10 mEh <= dE <= +1.6 mEh (sotto e' fisica: la griglia lascia ai p doppiamente occupati un raggio diverso, rottura di simmetria; sviluppo: O -3.0 mEh a a0/4 e a0/6)",
+   "elementi": "B..Ne (contati); Na..Ar, Ga..Kr, K, Ca, Sc, Cr, Mn, Fe, Cu, Zn (estensione, stesse soglie). Ti, V, Co, Ni: il determinante a orbitali reali NON e' un termine puro (d2, d3, d7, d8): solo riportati"
+  },
+  "G2": {
+   "cosa": "convergenza: stessa scatola L = 12, cella h e h*2/3: |E(h) - E(2h/3)| <= 1.6 mEh (neutri B..Ne)"
+  },
+  "G3": {
+   "cosa": "energia TOTALE sulla griglia (blocchi + elettroni esterni) contro il limite HF del neutro",
+   "soglia": "come G1 (sferici |dE| <= 1.6 mEh; non sferici -10..+1.6 mEh); cationi B+..Ne+ con soglia +-2.5 mEh sotto/sopra sferici e -10..+2.5 non sferici"
+  },
+  "G4": {
+   "cosa": "potenziale di ionizzazione HF sulla griglia contro quello del livello fine (Delta SCF)",
+   "soglia_eV": 0.05,
+   "contati": "B..Ne"
+  },
+  "G5": {
+   "cosa": "cinetico IMPARATO a0/4 (aggmol) contro quello della regola, stesso blocco, elementi con h = a0/4",
+   "soglia_Eh": 0.0016,
+   "atteso": "FAIL dove gli orbitali hanno peso a k > 6/a0 (lo stencil a0/4 sbaglia del 0.5 % a k = 6.3, -2.4 % a 7.9, -8 % a 9.4 lungo l'asse: e' stato imparato per l'1s di H)"
+  },
+  "G6": {
+   "cosa": "uova sulla griglia: spostare l'atomo di (0.37, 0.21, 0.11) celle",
+   "soglia_Eh": 0.0001,
+   "elementi": "C, O"
+  },
+  "G7": {
+   "cosa": "molecole con la stessa funzione (nuclei qualsiasi): H2 a R = 1.4 a0 contro -1.133629; N2 a R = 2.068 a0 contro -108.993826 (limite HF, chiave 'memoria'); soglia 3 mEh",
+   "h": "la piu' fine fra quelle dei due atomi",
+   "L": 16
+  },
+  "REL": {
+   "cosa": "stima relativistica al primo ordine (massa-velocita' + Darwin del nucleo) sul totale e sul potenziale di ionizzazione: SOLO segnalazione. Bandiera 'relativita_conta' se |dIP_rel| > 0.03 eV o > 0.5 % dell'IP"
+  }
+ },
+ "decisione_fase1": "la fase 1 PASSA se F1, G1, G3 (neutri), G4 passano per tutti B..Ne. Solo allora la fase 2.",
+ "export": "ogni elemento che passa G1+G3+G4 (o la sua estensione) viene esportato in /mnt/project-files/debiti/dati/<nome>/ con tier 'approssimato' ed errori misurati",
+ "osservazioni_di_sviluppo": [
+  "radiale: Ne -128.5470981 (+4e-10 con r_min 1e-12/Z), Kr +9e-9, B +2.7e-7 (chiave a 6 decimali), Li ROHF -7.4327269 (+2.7e-8 con griglia vecchia), Fe +2.2e-6 (griglia vecchia, r_min 1e-9/Z)",
+  "griglia: C a0/4 -0.11 mEh dal radiale (r_c 0.965), B +0.001 mEh, Ne (r_c 1.15/1.525) +0.08 mEh, O -2.99 mEh (a0/4) e -3.05 (a0/6): rottura di simmetria del px doppiamente occupato (<r> 1.275 contro 1.204)",
+  "O UHF sulla griglia -10.4 mEh dal radiale ROHF (polarizzazione di spin)",
+  "trasferibilita' al catione: B 0.37 mEh, O 0.06 mEh (a0/4); Ne 24.3 (a0/4), 4.1 (a0/6), 0.74 (a0/8)",
+  "C: promozione 2s->2p -4.2/-4.5/-5.1 mEh per r_c 0.75/0.75 con coda 3.5/1.0; anche semilocale (-4.48): non e' la forma separabile",
+  "nucleo congelato (C, livello fine): errore 0.01-0.11 mEh: il blocco congelato in se' e' buono",
+  "stencil imparato a0/4: rapporto con k^2/2 = 0.9996 fino a k=3, 0.995 a 6.3, 0.976 a 7.9, 0.922 a 9.4 (asse); diagonale +-5 %"
+ ]
+}
