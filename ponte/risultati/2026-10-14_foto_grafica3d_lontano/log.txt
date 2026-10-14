@@ -1,0 +1,1 @@
+[ponte] argomento non ammesso: 'spara-pronto'
