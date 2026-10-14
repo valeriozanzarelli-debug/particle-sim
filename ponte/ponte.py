@@ -61,6 +61,7 @@ def _num(lo, hi, integer=False):
 FOTO_ARGS = {
     "scena": _choice("fotone", "atomo", "orbitali", "elettrone", "tavola"),
     "elemento": _regex(r"[A-Za-z0-9]{1,8}"),
+    "riga": _choice("2p", "3p"),
     "zoom": _choice("intero", "nucleo", "protone", "elettrone"),
     "stati": _regex(r"[0-9a-z+]{1,24}"),
     "qual": _num(0, 3, integer=True),

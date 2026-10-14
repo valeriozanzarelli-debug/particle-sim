@@ -189,6 +189,11 @@ pub struct Uscita {
     pub raggio: f64,
     pub righe: (String, String),
     pub ms: f64,
+    /// hydrogen: the computed spectrum and the level the atom is in
+    pub spettro: Option<Arc<crate::cascata::Spettro>>,
+    pub livello: usize,
+    /// hydrogen: screen seconds since the photon was fired (for unattended photos)
+    pub dal_lancio: Option<f64>,
 }
 
 pub struct Condiviso {
@@ -197,6 +202,8 @@ pub struct Condiviso {
     pub metti: Option<Oggetto>,
     pub buca: bool,
     pub fine: bool,
+    /// hydrogen scene: what the panel asks (cascata.rs)
+    pub cascata: crate::cascata::Richiesta,
     pub out: Uscita,
 }
 
@@ -331,13 +338,13 @@ fn righe_esportazione(e: &Esportazione, buca: bool) -> (String, String) {
              if buca { "BUCA DI COULOMB: un elettrone (oro) tenuto fermo, gli altri (blu) lo evitano" } else { "bagliori = fotografie fresche dello stato (il moto è il campionatore, non una traiettoria)" }))
 }
 
-enum Mondo { Vuoto, Nuvola(Nuvola) }
+enum Mondo { Vuoto, Nuvola(Nuvola), Idrogeno(Box<crate::cascata::Mondo>) }
 
 pub fn avvia() -> Arc<Mutex<Condiviso>> {
     let c = Arc::new(Mutex::new(Condiviso {
-        comando: Comando::Avanti, ritmo: 30.0, metti: None, buca: false, fine: false,
+        comando: Comando::Avanti, ritmo: 30.0, metti: None, buca: false, fine: false, cascata: Default::default(),
         out: Uscita { palline: Arc::new(vec![]), onde: Arc::new(vec![]), versione: 0, pronto: false, nome: String::new(), raggio: 3.0,
-                      righe: ("Tavola periodica: premi un elemento acceso".into(), String::new()), ms: 0.0 },
+                      righe: ("Tavola periodica: premi un elemento acceso".into(), String::new()), ms: 0.0, spettro: None, livello: 0, dal_lancio: None },
     }));
     let cc = c.clone();
     std::thread::spawn(move || {
@@ -347,18 +354,22 @@ pub fn avvia() -> Arc<Mutex<Condiviso>> {
         let mut ultimo = Instant::now();
         loop {
             let t0 = Instant::now();
-            let (cmd, ritmo, metti, buca, fine) = {
+            let (cmd, ritmo, metti, buca, fine, rich) = {
                 let mut g = cc.lock().unwrap();
-                (g.comando, g.ritmo, g.metti.take(), g.buca, g.fine)
+                (g.comando, g.ritmo, g.metti.take(), g.buca, g.fine, std::mem::take(&mut g.cascata))
             };
             if fine { break; }
-            let _dt_schermo = t0.duration_since(ultimo).as_secs_f64().min(0.1);
+            let dt_schermo = t0.duration_since(ultimo).as_secs_f64().min(0.1);
             ultimo = t0;
             let mut nome = None;
             if let Some(o) = metti {
                 mondo = match o {
                     Oggetto::Esportazione(e) => { nome = Some(e.nome.clone()); Mondo::Nuvola(Nuvola::new(e)) }
-                    Oggetto::Idrogeno => { nome = Some("idrogeno".into()); Mondo::Vuoto }
+                    Oggetto::Idrogeno => {
+                        nome = Some("idrogeno".into());
+                        cc.lock().unwrap().out.righe = ("IDROGENO: la regola zig-zag radiale sta ascoltando i livelli 1s…3d (qualche secondo)".into(), String::new());
+                        Mondo::Idrogeno(Box::new(crate::cascata::Mondo::new()))
+                    }
                 };
             }
             let avanti = cmd == Comando::Avanti;
@@ -366,16 +377,22 @@ pub fn avvia() -> Arc<Mutex<Condiviso>> {
                 Mondo::Vuoto => None,
                 Mondo::Nuvola(n) => {
                     if avanti { n.passo(buca); }
-                    Some((n.disegna(buca), vec![], n.raggio(), righe_esportazione(&n.e, buca)))
+                    Some((n.disegna(buca), vec![], n.raggio(), righe_esportazione(&n.e, buca), None, 0, None))
+                }
+                Mondo::Idrogeno(m) => {
+                    m.richiesta(rich);
+                    if avanti { m.passo(dt_schermo); }
+                    let (p, o) = m.disegna();
+                    Some((p, o, m.raggio_vista(), m.righe(), Some(m.sp.clone()), m.livello(), m.dal_lancio()))
                 }
             };
-            if let Some((p, o, r, righe)) = disegno {
+            if let Some((p, o, r, righe, spettro, livello, dal_lancio)) = disegno {
                 versione += 1;
                 let el = t0.elapsed().as_secs_f64() * 1e3;
                 ms += 0.15 * (el.min(500.0) - ms);
                 let mut g = cc.lock().unwrap();
                 let nome = nome.unwrap_or_else(|| g.out.nome.clone());
-                g.out = Uscita { palline: Arc::new(p), onde: Arc::new(o), versione, pronto: true, nome, raggio: r, righe, ms };
+                g.out = Uscita { palline: Arc::new(p), onde: Arc::new(o), versione, pronto: true, nome, raggio: r, righe, ms, spettro, livello, dal_lancio };
             }
             let want = Duration::from_secs_f64(1.0 / ritmo.max(0.5));
             let el = t0.elapsed();
@@ -402,6 +419,9 @@ pub struct Pannello {
     pub messaggio: String,
     /// radius (bohr) the camera was last set for
     pub raggio_cam: f64,
+    /// hydrogen: the upper level the photon is tuned to (index in cascata::LIVELLI) and the slow-motion clock
+    pub riga: usize,
+    pub ns_al_secondo: f64,
 }
 
 impl Pannello {
@@ -413,6 +433,7 @@ impl Pannello {
     pub fn comanda(&self, avanti: bool, ritmo: f64) {
         if let Some(m) = &self.mondo { let mut g = m.lock().unwrap(); g.comando = if avanti { Comando::Avanti } else { Comando::Pausa }; g.ritmo = ritmo; g.buca = self.buca; }
     }
+    pub fn richiedi(&self, f: impl FnOnce(&mut crate::cascata::Richiesta)) { if let Some(m) = &self.mondo { f(&mut m.lock().unwrap().cascata); } }
     fn metti(&self, o: Oggetto) { if let Some(m) = &self.mondo { m.lock().unwrap().metti = Some(o); } }
     /// What the scene shows is hydrogen (its own photon and cascade).
     pub fn idrogeno(&self) -> bool { self.scelto == Some(1) && self.molecola.is_none() }
@@ -547,6 +568,7 @@ pub fn pannello(ctx: &egui::Context, lab: &mut Lab, cam: &mut Cam) {
             }
             ui.label(RichText::new("elettrone/protone: non ancora simulato").small().color(TENUE));
         });
+        if idro { crate::cascata::pannello(ui, lab); }
         // the Coulomb hole
         if let Some(o) = lab.tav.molecola.or_else(|| lab.tav.scelto.and_then(|z| t.esportazione_atomo(z))) {
             let e = &t.esportazioni[o];

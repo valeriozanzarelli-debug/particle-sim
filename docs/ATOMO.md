@@ -778,3 +778,70 @@ non serve toccarlo.
   nello studio h2v ma non in questa esportazione).
 - L'urto con elettroni e protoni non è simulato: bottoni spenti.
 - I bagliori mostrano fotografie, non traiettorie.
+
+### 10.4 Idrogeno con più orbitali: assorbe e riemette, a cascata (`cascata.rs`)
+
+Premendo **H** nella tavola appare l'idrogeno (Z = 1). Si sceglie una riga e si lancia il fotone (F o il bottone): l'atomo
+assorbe, aspetta, e torna giù riemettendo luce, anche a più salti.
+
+**Che cosa è CALCOLATO (all'avvio, ~5 s, solo dalla regola zig-zag; ingressi α e la massa dell'elettrone).** La forma
+radiale della stessa regola (`Radial` di `src/zigzag/walk.rs`, fase di Coulomb −α/r) in una scatola di 36 a₀. Gli stati
+si trovano "ascoltando con una fase per collegamento" su celle di 0,5 ħ/mc, poi si seguono dimezzando le celle fino a
+1/32 ħ/mc. *Perché così fini*: su celle di 0,5 il passo di flip è θ = 0,5 e la massa cinetica del cammino è tan θ/θ =
+1,093, quindi **ogni legame veniva +9,1 %** (primo tentativo, dichiarato: 1s 14,84 eV). A 1/32 la massa è 1,0003.
+
+| livello | legame dalla regola | Dirac (nucleo fermo) | scarto |
+|---|---|---|---|
+| 1s | 13,60934 eV | 13,60587 | +0,025 % |
+| 2s | 3,40247 | 3,40148 | +0,029 % |
+| 2p (j = 3/2) | 3,40180 | 3,40144 | +0,011 % |
+| 3s | 1,51198 | 1,51176 | +0,014 % |
+| 3p | 1,51187 | 1,51175 | +0,008 % |
+| 3d | 1,51180 | 1,51175 | +0,004 % |
+
+Le righe sono le differenze; i **ritmi** A = (4/3) α ω³ |⟨f|r|i⟩|² · l_max/(2l+1) con l'integrale radiale sulle funzioni della
+regola (solo la componente grande g; la piccola f è ~α/2 di g: lasciata fuori, dichiarato):
+
+| riga | λ (regola) | A (1/s) | esame |
+|---|---|---|---|
+| Lyman-α 2p→1s | 121,46 nm | 6,269·10⁸ (vita 2p **1,595 ns**) | C2: contro 6,2649·10⁸ entro 1 %: **+0,07 % PASS** |
+| Lyman-β 3p→1s | 102,49 nm | 1,676·10⁸ | |
+| Balmer-α 3p→2s | 655,80 nm | 2,249·10⁷ (ramo **11,83 %**) | C3: ramo contro 0,118 entro 2 %: **PASS** |
+| Balmer-α 3s→2p | 656,06 nm | 6,339·10⁶ | |
+| Balmer-α 3d→2p | 656,00 nm | 6,471·10⁷ | |
+
+C1 (tutti i livelli entro 0,1 % di Dirac): **PASS** (peggiore 2s +0,029 %). Test: `cargo test --release --bin atomo cascata`.
+Le λ sono a **nucleo fermo** (massa infinita): col rinculo del protone (la sua massa è un ingresso ammesso, non ancora
+messo) crescerebbero dello 0,054 % (Lyman-α misurata 121,567 nm, la regola qui 121,46: −0,09 %, di cui −0,03 % è lo scarto
+dei livelli). Le righe con lo stesso n (2p→2s, ~10⁻³ s⁻¹, microonde) sono escluse: la loro energia qui è soprattutto lo
+spostamento degli stati s della regola (2s sotto il 2p3/2 di 0,66 meV, in Dirac 0,045 meV dall'altra parte): **debito**.
+
+**Che cosa è DISEGNATO, non simulato nel tempo (scritto anche sullo schermo).**
+- L'elettrone: bagliori = **surfisti della corrente dell'onda** (v = j/ρ della funzione di Dirac della regola), con passi
+  adattivi e due passi Metropolis per bagliore e fotogramma (passo fisso, quindi proposta simmetrica: un primo tentativo
+  con passo proporzionale al raggio stringeva la nuvola a ⟨r⟩ = 1,19 invece di 1,5 a₀; trovato e corretto) perché lo stato
+  disegnato cambia più in fretta di quello vero. Colore = fase dell'onda.
+- **Assorbimento**: il fotone è puntato e sulla riga, ed è assorbito **con certezza** (regia: in natura un singolo fotone
+  lo è con la probabilità data dalla sezione d'urto). Arriva come pacchetto lungo +x, polarizzato lungo z, con fronti ogni
+  λ disegnata; mentre passa lo stato va da 1s a 2p con la formula di Rabi di un impulso π (2,5 s di schermo) e il
+  pacchetto si spegne. La nuvola **batte** (si sposta su e giù lungo z) alla frequenza della riga, rallentata.
+- **Emissione**: il **quando** è pescato a caso con la vita calcolata (esponenziale), il **dove va** con i rami calcolati.
+  Il salto dura 2 s di schermo. La luce che esce è un **guscio di bagliori** che si allarga, con la figura sin²θ del dipolo
+  (vera) e anelli alla λ della riga **rimpicciolita** a 2,2 a₀ (la vera è 2 300 a₀ per Lyman-α: non entrerebbe). Colore =
+  colore vero della λ dove l'occhio la vede (Balmer-α rosso 656 nm), viola-bianco per l'ultravioletto (colore falso).
+- **Due orologi**: il battito dell'onda (~2,5·10¹⁵ Hz) è mostrato con periodo 1,2 s; le attese sul **rallentatore** del
+  pannello (default 1 s di schermo = 1 ns: il 2p vive ~1,6 s di schermo, il 3p ~5 s).
+- Il **2s resta lì**: non ha righe a un fotone verso il basso. La via a due fotoni (8,2 s⁻¹ in natura) **non è calcolata**
+  (servirebbe una somma su tutti gli stati p, continuo compreso): debito C4, scritto sullo schermo. Da 2s si può lanciare
+  Balmer-α (2s→3p) e ripartire, o "ricomincia".
+
+Elettroni e protoni lanciati: **non ancora simulati** (bottoni spenti). Debiti: doppietti di struttura fine non separati
+(j = l + ½), rinculo del nucleo, due fotoni del 2s, componente piccola nei ritmi, assorbimento certo, durata dei salti.
+
+Il disegno passa per la stessa strada dell'atomo zig-zag (strati "palline" additivo e "onde" di `render_zz.rs`, istanze
+GPU): nessuno stile a parte.
+
+**Foto dal ponte**: `--scena tavola --elemento H --spara-pronto --foto-dopo 3.6` (assorbe: il fotone parte appena i livelli
+sono calcolati, foto 3,6 s di schermo dopo), `--foto-dopo 9` (riemette, se il salto pescato è già avvenuto), `--riga 3p`
+(Lyman-β: poi 3p→1s o, con l'11,8 %, 3p→2s), `--scena tavola --elemento He --pannello` (la tavola), `--elemento He --buca`,
+`--elemento H2`.
