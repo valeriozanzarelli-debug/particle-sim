@@ -54,7 +54,7 @@ EMAX = {}
 
 
 def files(run):
-    return sorted(glob.glob(os.path.join(SCR, f"qg_ym_{run}_f*.npz")))
+    return sorted(glob.glob(os.path.join(SCR, f"qg_ym_{run}_f[0-9]*.npz")))
 
 
 def set_shape(run):
@@ -69,10 +69,10 @@ def load(f):
     return pos, z["rb"].astype(float), float(z["t"]), z["eb"].astype(float)
 
 
-def lista():
+def lista(runs=None):
     """global frame list: (run, saved index a, fraction)"""
     out = []
-    for run in RUNS:
+    for run in (runs or RUNS):
         n = len(files(run))
         out += [(run, 0, 0.0)] * HOLD
         for a in range(n - 1):
@@ -271,10 +271,15 @@ if __name__ == "__main__":
             frame(run, 0, 0.0, 0.0, ver)
         json.dump({k: {kk: float(vv) for kk, vv in v.items()} for k, v in REFS.items()}, open(rf, "w"))
         print(REFS)
-    elif args[0] == "batch":
-        L = lista()
+    elif args[0] in ("batch", "batchrun"):
+        if args[0] == "batchrun":
+            run = args.pop(1)
+            L = lista([run])
+            dd = os.path.join(SCR, f"qg_film_{run}_{int(W0 * SCALA)}")
+        else:
+            L = lista()
+            dd = os.path.join(SCR, f"qg_film_{int(W0 * SCALA)}")
         a, b = int(args[1]), int(args[2])
-        dd = os.path.join(SCR, f"qg_film_{int(W0 * SCALA)}")
         os.makedirs(dd, exist_ok=True)
         t0 = time.time()
         for i in range(a, min(b, len(L))):

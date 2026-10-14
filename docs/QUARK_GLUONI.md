@@ -14,7 +14,11 @@ film). Voti: `lab/out/qg_verdetto.json`. Analisi della parte 1: `lab/out/qg_part
 
 ![figura](fig/quark_gluoni.png)
 
-Immagini della parte 1: `docs/fig/qg_tre_quark_Y.png` (dall'alto), `docs/fig/qg_tre_quark_Y_obliquo.png`.
+Immagini della parte 1: `docs/fig/qg_tre_quark_Y.png` (dall'alto), `docs/fig/qg_tre_quark_Y_obliquo.png`; orbita lenta
+(12 s) `qg_tre_quark_Y_orbita_1080p.mp4` (fuori da git). Parte 2: fermo-immagine `docs/fig/qg_gluoni_urto.jpg` e
+GIF corta `docs/fig/qg_gluoni_urto.gif` dal film `qg_gluoni_urto_1080p.mp4` (ampiezza 1, 20 s, fuori da git).
+
+![gluoni che si urtano](fig/qg_gluoni_urto.gif)
 
 ---
 
@@ -101,6 +105,10 @@ sono **portate dal vettore di Poynting di Yang–Mills** (v = S/ε, dentro la si
 (tre gluoni T¹, T², T⁴ da x, y, z, aggiunta dichiarata). Esame G7 su `video_grande`: correlazione palline–energia
 minima 0,8998, sotto la soglia 0,9: **FAIL** di un soffio. Le palline seguono una corrente di energia sul reticolo
 che non è esattamente conservata (S e ε definiti sui siti).
+
+**Cosa si vede nel film (onestà).** Dopo l'incontro l'energia si allarga anche di lato: in parte è l'urto (il 20 %
+misurato da D), in parte è la **diffrazione** di pacchetti stretti (σ = 4 passi), che c'è anche per la luce. La scatola è
+**periodica**: quello che esce da un lato rientra dall'altro, e verso la fine si vedono i bordi della scatola.
 
 **Cosa NON è.** Un campo classico: niente gluoni uno per uno, niente quantistica, niente confinamento in tempo
 reale. I "colori" T¹, T² sono quelli delle condizioni iniziali (dipendono dalla gauge). Che si urtino perché non
