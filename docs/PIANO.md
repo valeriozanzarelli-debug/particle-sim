@@ -114,6 +114,33 @@ Valerio ha messo in pausa tutto. Nessun agente attivo. Stato del **programma uni
 5. Accendere nella tavola gli elementi/molecole che Debiti esporta (Li chiuso, LiH in corso).
 6. Idrogeno di Bohr: campo di Galerkin nel motore Rust (il −0,05 % residuo dell'ibrido, IDROGENO_BOHR §13).
 
+## 4ter. Pausa del 14/10/2026 (01:00 UTC): dove si è fermata la fisica dei Debiti
+
+Nessun agente attivo. Tutto su master (commit con firma, file grandi .npy/.npz non tracciati; basi ECG salvate in JSON).
+- **Chiusi**: litio esatto 11/0 (`docs/TAVOLA_LITIO_BERILLIO.md`, ionizzazione 5,39133 eV, riga 670,99 nm, vita 2p 27,107 ns);
+  LiH esatto 5/1 (`docs/MOLECOLE_PICCOLE.md`: R_e −0,015 %, D_e −22 meV, ω_e +0,24 %, dipolo +0,73 %; FAIL L5 base del Li
+  +0,56 mEh); H₂ 6/1 e forza H₂–H₂ 4/0 (`docs/AGGLOMERATO_DUE_ATOMI.md` §12–§15); atomo ibrido entro 1 % (AGGLOMERATO_COMPLETO
+  §14–§17); 2s +0,034 % (AGGLOMERATO_2S); surfisti limite 0,5 % (SURFISTI_ESATTI §15); ciclo tra livelli fasi 1–2
+  (`docs/CICLO_LIVELLI.md`: punto fisso κ², variabili grosse automatiche, φ perde contro b=3).
+- **Export per la tavola**: `lab/out/tav_dati_litio/manifest.json` + `litio_livelli.json`, `lab/out/mol_dati_lih/manifest.json`;
+  campioni da rigenerare dalle basi JSON (`lab/out/tav_basi/LEGGIMI.txt`, `lab/out/mol_basi/`) con
+  `python lab/tav_export.py li`. Da convertire nel formato `assets/esportazioni/<nome>/` (§4bis) e accendere Li e LiH.
+
+**Prossimi passi della fisica, in ordine** (per chi riprende a freddo):
+1. **Berillio**: corse ferme a metà (1S K=700, +0,43 mEh non giudicato; ¹P K=228/450). Ricostruire i .npz dalle basi JSON,
+   `lab/tav_drive.sh be1S` e `be1P` (~2–3 h), poi `python lab/tav_analyze.py be` e `python lab/tav_export.py be`.
+2. **LiH**: ~3 punti in più a R = 2,1–2,4 a₀ (~30 min) per togliere il muro a 2,5 a₀ (salto 0→1 1481 contro 1360 cm⁻¹).
+3. **Boro → neon** (`docs/TAVOLA_GRIGLIA.md`, `lab/tavg_*`, PARZIALE): HF fine B, C PASS; fare N–Ne, blocchi-nucleo per
+   tutti (serve anche H e N per le molecole), esami di griglia G1–G7, poi fase 2 correlazione imparata dai casi esatti
+   (H₂, He, Li, Be) con ionizzazioni alla cieca. Atteso FAIL B3 (promozione 2s→2p) per C, N, O.
+4. **Acqua → goccia** (stella polare, vedi memoria): H₂O sulla griglia, dimero e trimero (`lab/mol_acqua_geom.py`,
+   scan in `lab/out/mol_acqua_scan.json`), forza acqua–acqua imparata (niente TIP4P), goccia di ~1000 molecole
+   con nuclei classici; esami pre-registrati: densità, picco O–O 2,8 Å, ~3,5 legami H, tensione superficiale.
+5. **Ciclo tra livelli fase 3** (PARZIALE, `lab/ciclo_p3_*`): scrivere il codice misto con variabili lisciate (s=3),
+   fissare le soglie B1–B5 e committarle prima delle corse, poi produzione e pannello f della figura. Fase 4 = test a due
+   vie sulla goccia (solo piano, esami C1–C4).
+6. **H₂ liquido**: scambio-dispersione, C6 entro 3 %, palline-molecola e B(T), poi path integral.
+
 ## 5. Prossimi passi, in ordine
 
 1. Chiudere i quattro cantieri sopra.
