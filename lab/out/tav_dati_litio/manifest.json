@@ -1,0 +1,179 @@
+{
+ "cosa": "Litio dalla regola (ECG con la massa imparata della regola, theta->0): stato fondamentale e primo stato P, per la tavola periodica",
+ "sorgente": {
+  "basi": "lab/out/tav_li2S.npz, tav_li2P.npz, tav_liP1S.npz (repo particle-sim, non tracciati)",
+  "massa_m0": 1.0000000045603115,
+  "massa_mT": 1.0003732690576126,
+  "scala_lunghezze": 1.000373264495599,
+  "risultati": "lab/out/tav_results.json",
+  "documento": "docs/TAVOLA_LITIO_BERILLIO.md"
+ },
+ "unita": "bohr (a0); nucleo nell'origine, fermo",
+ "file": {
+  "litio_fondamentale.npy": "float32 (n,3,3): n 'fotografie' delle 3 posizioni degli elettroni insieme, estratte da |psi|^2 con Metropolis (stato fondamentale). Etichette di spin per colonna: ['su', 'su', 'giu'].",
+  "litio_eccitato.npy": "float32 (n,3,3): n 'fotografie' delle 3 posizioni degli elettroni insieme, estratte da |psi|^2 con Metropolis (stato eccitato). Etichette di spin per colonna: ['su', 'su', 'giu'].",
+  "litio_densita.npz": "r (bohr), rho_fondamentale(r) (elettroni/bohr^3, somma su tutti, sferica), rho_eccitato_0/_2: stato P (M=0) rho(r,theta) = rho0 + rho2 P2(cos theta) (theta dall'asse z), rho_ione: densita' dello ione (Li+ / Be+); transizione_t: densita' di transizione <S|sum delta(r_i-r)|P0> = t(r) cos(theta). Durante l'assorbimento la nuvola e' rho_S + 2 a(t) t(r) cos(theta) cos(omega t): un'oscillazione di dipolo lungo z (esatta dalla funzione d'onda).",
+  "litio_livelli.json": "livelli (fondamentale, eccitato P, ione), riga ottica (dE, lambda, forza d'oscillatore, vita), ionizzazione, esiti degli esami"
+ },
+ "campioni": {
+  "fondamentale": {
+   "spin_etichette": [
+    "su",
+    "su",
+    "giu"
+   ],
+   "accept": [
+    0.4881960784313725,
+    0.5149990196078431,
+    0.500114705882353
+   ],
+   "step": [
+    0.6902456734948782,
+    0.6537647535945701,
+    0.2861017688783131
+   ],
+   "iters": 790,
+   "r2_somma_campioni": 18.225522994995117,
+   "r_medio_per_elettrone": [
+    2.1643784046173096,
+    2.2404489517211914,
+    0.5728297829627991
+   ],
+   "n": 100000,
+   "buca": {
+    "stesso_spin": [
+     {
+      "coppia": [
+       0,
+       1
+      ],
+      "frazione_sotto_0p3": 2e-05,
+      "scorrelata": 0.01771
+     }
+    ],
+    "spin_opposti": [
+     {
+      "coppia": [
+       0,
+       2
+      ],
+      "frazione_sotto_0p3": 0.02916,
+      "scorrelata": 0.03595
+     },
+     {
+      "coppia": [
+       1,
+       2
+      ],
+      "frazione_sotto_0p3": 0.02829,
+      "scorrelata": 0.03347
+     }
+    ]
+   }
+  },
+  "eccitato": {
+   "spin_etichette": [
+    "su",
+    "su",
+    "giu"
+   ],
+   "accept": [
+    0.5044088235294117,
+    0.49920294117647057,
+    0.49924117647058824
+   ],
+   "step": [
+    0.6489447504249591,
+    0.628507262192315,
+    0.2871910238738055
+   ],
+   "iters": 790,
+   "r2_somma_campioni": 27.46335220336914,
+   "r_medio_per_elettrone": [
+    2.6809284687042236,
+    2.5786497592926025,
+    0.5735165476799011
+   ],
+   "n": 100000,
+   "buca": {
+    "stesso_spin": [
+     {
+      "coppia": [
+       0,
+       1
+      ],
+      "frazione_sotto_0p3": 0.0,
+      "scorrelata": 0.01767
+     }
+    ],
+    "spin_opposti": [
+     {
+      "coppia": [
+       0,
+       2
+      ],
+      "frazione_sotto_0p3": 0.02762,
+      "scorrelata": 0.03375
+     },
+     {
+      "coppia": [
+       1,
+       2
+      ],
+      "frazione_sotto_0p3": 0.02934,
+      "scorrelata": 0.03506
+     }
+    ]
+   }
+  }
+ },
+ "controlli": {
+  "integrale_rho_fondamentale": 2.999945698371603,
+  "integrale_rho_eccitato": 2.999938959948183,
+  "r2_esatto_fondamentale": 18.353792382730788,
+  "densita_al_nucleo_esatta": 13.793189997373284,
+  "dipolo_da_funzioni": 2.345182664263897,
+  "dipolo_da_densita": 2.345175811533479,
+  "raggio_nocciolo_bohr": 1.6500000000000001,
+  "penetrazione_dentro_nocciolo": {
+   "S": 0.045633392922795016,
+   "P": 0.038751294301288326
+  },
+  "buca_di_fermi": {
+   "stesso_spin": [
+    {
+     "coppia": [
+      0,
+      1
+     ],
+     "frazione_sotto_0p3": 2e-05,
+     "scorrelata": 0.01771
+    }
+   ],
+   "spin_opposti": [
+    {
+     "coppia": [
+      0,
+      2
+     ],
+     "frazione_sotto_0p3": 0.02916,
+     "scorrelata": 0.03595
+    },
+    {
+     "coppia": [
+      1,
+      2
+     ],
+     "frazione_sotto_0p3": 0.02829,
+     "scorrelata": 0.03347
+    }
+   ]
+  }
+ },
+ "note": [
+  "Stati stazionari: per animarli si pescano fotografie diverse a ogni fotogramma (come per l'elio).",
+  "Assorbimento: mescolare per un tempo breve le fotografie del fondamentale e dell'eccitato con il peso |a(t)|^2, o usare la densita' di transizione per l'oscillazione a frequenza omega = dE/hbar.",
+  "Senza struttura fine (spin-orbita assente dalla regola, DEBT-4): una sola riga al centroide."
+ ],
+ "script": "lab/tav_export.py (repo)"
+}
