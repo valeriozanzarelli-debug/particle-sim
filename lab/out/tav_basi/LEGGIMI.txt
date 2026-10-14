@@ -1,0 +1,6 @@
+Basi ECG del litio e del berillio salvate in JSON (stesso contenuto dei file locali lab/out/tav_*.npz, non tracciati).
+Ogni campo e' {dtype, shape, data piatto}; "st" e' lo stato del driver.
+Per ricostruire un .npz:
+  d=json.load(open(f)); np.savez(n, **{k:np.array(v["data"],dtype=v["dtype"]).reshape(v["shape"]) for k,v in d.items() if k!="st"}, st=json.dumps(d["st"]))
+Poi: python lab/tav_export.py li (campioni e densita') e lab/tav_drive.sh be1S / be1P per riprendere il berillio.
+Berillio: corse fermate a meta' (1S K=700, 1P K=228), non giudicate.

@@ -1,0 +1,42 @@
+{
+ "unita": "energie in Eh (theta->0, massa infinita) e eV (massa ridotta); lunghezze in bohr",
+ "fondamentale": {
+  "nome": "1s2 2s 2S",
+  "E_Eh": -7.478056538649054,
+  "g": 2
+ },
+ "eccitato": {
+  "nome": "1s2 2p 2P",
+  "E_Eh": -7.4101462165835725,
+  "g": 6
+ },
+ "ione": {
+  "nome": "Li+ 1s2 1S",
+  "E_Eh": -7.2799134287028675
+ },
+ "riga": {
+  "dE_eV": 1.847789491636001,
+  "lambda_nm_vuoto": 670.9865975600203,
+  "f_lunghezza": 0.7469974824513758,
+  "f_velocita": 0.746975415991973,
+  "dipolo_z_au": 2.344307617463536,
+  "A_s": 36890319.74518514,
+  "vita_ns": 27.107382286392852,
+  "dipolo_da_densita_transizione": 2.345175811533479,
+  "regola": "assorbe solo fotoni con energia dE (larghezza naturale hbar/tau); dopo ~vita_ns riemette lo stesso fotone in una direzione a caso (dipolo: intensita' ~ sin^2 rispetto a z)"
+ },
+ "ionizzazione_eV": 5.391327051071982,
+ "esami": {
+  "LI1": true,
+  "LI2": true,
+  "LI3": true,
+  "LI4a": true,
+  "LI4b": true,
+  "LI5a": true,
+  "LI5b": true,
+  "LI6": true,
+  "LI7": true,
+  "LI8": true,
+  "LI9": true
+ }
+}

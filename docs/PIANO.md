@@ -65,6 +65,7 @@ dove le impostazioni grafiche sono i livelli di agglomerato e il motore scala co
 | Colla dei nuclei: massa del pione, trottola quantistica, punto zero (0 parametri) non bastano (deuterone 78–160 MeV); GHS con 1 parametro: d 3.2, ³He 8.75, ⁴He 16.6 MeV a α = 0.95, ma nessun α mette a posto tutti e tre e le forme platoniche si perdono | fatto (13/10), debito: deuterone quantistico con vibrazioni accoppiate | `COLLA.md` |
 | Zoom ad agglomerati sul nodo: p(0) −0,08%, E −0,16% con meno celle | fatto | `ZOOM_NODO.md` |
 | Glueball (materia da luce autointeragente, 2+1 D SU(2)): massa base entro 4% | fatto, dettagli falliti | `GLUEBALL.md` |
+| Quark e gluoni (13–14/10): SU(3) 3+1 D in tempo immaginario, tre quark statici, tubo a Y misurato (R_Y = 1,23 ± 0,05; placchetta e a√σ = 0,400 PASS) + Yang–Mills SU(3) classico in tempo reale (si attraversano a piccola ampiezza, si urtano a grande, D ∝ amp^2,04) | fatto; G7 FAIL (fedeltà palline 0,8998); film in montaggio | `QUARK_GLUONI.md` |
 | Carica come giro su cerchio nascosto: carica sì, massa no (×10²¹) | fatto, fallito sulla massa | `CARICA_NASCOSTA.md` |
 | Forme nascoste, forma dalle palline, orbifold, occhio e flusso | fatto, emersione fallita (isole) | `FORMA_*.md`, `ORBIFOLD.md`, `OCCHIO_E_FLUSSO.md`, `GEOMETRIA_AUTOCOSTRUITA.md` |
 | Equilibrio quantistico (Born come equilibrio da vortici) | continuo sì, reticolo fragile | `EQUILIBRIO_QUANTISTICO.md`, `IDEE_RIPRESE.md` |

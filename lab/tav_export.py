@@ -79,7 +79,7 @@ def export(el, n_samp=100000):
     if not R["passa_tavola"]:
         raise SystemExit(f"{key} non passa gli esami della tavola: niente esportazione (vedi documento)")
     g, i, p = ("li2S", "liP1S", "li2P") if el == "li" else ("be1S", "beP2S", "be1P")
-    out = DEST[el]; os.makedirs(out, exist_ok=True)
+    out = os.path.join(T.OUT, f"tav_dati_{NOME[el]}"); os.makedirs(out, exist_ok=True)   # copia locale, poi DEST
     nm = NOME[el]
     svS = load_svm(g); svP = load_svm(p)
     sc = T.M0 / T.M_T_THETA_A                      # theta -> 0: lunghezze x m_T/m0, A x (m0/m_T)^2
@@ -108,6 +108,13 @@ def export(el, n_samp=100000):
         files[fn] = (f"float32 (n,{sv.s.N},3): n 'fotografie' delle {sv.s.N} posizioni degli elettroni insieme, estratte da "
                      f"|psi|^2 con Metropolis (stato {tag}). Etichette di spin per colonna: {samp_info[tag]['spin_etichette']}.")
         print(tag, samp_info[tag], f"{time.time() - t0:.0f}s", flush=True)
+        # catena continua (per la 'scia' dei surfisti): 64 camminatori, 1500 passi consecutivi
+        Xc, _ = T.metropolis(wv, sig, 64 * 1500, rng, nw=64, burn=300, every=1, scale=1.5)
+        fc = f"{nm}_{tag}_catena.npy"
+        np.save(os.path.join(out, fc), Xc.reshape(1500, 64, sv.s.N, 3))
+        files[fc] = (f"float32 (1500, 64, {sv.s.N}, 3): 64 catene di Metropolis per 1500 passi consecutivi (stato {tag}); "
+                     "le ultime posizioni di ogni elettrone danno una scia NON inventata (cammino del campionatore con misura |psi|^2), "
+                     "che pero' non e' una traiettoria fisica.")
     r = np.linspace(0, 20, 401)
     rS0, _ = radial_densities(svS, r * sc)          # densita' alla massa m_T sui raggi che a m0 corrispondono a r
     rP0, rP2 = radial_densities(svP, r * sc)
@@ -165,7 +172,17 @@ def export(el, n_samp=100000):
         script="lab/tav_export.py (repo)")
     json.dump(man, open(os.path.join(out, "manifest.json"), "w"), indent=1, ensure_ascii=False, default=float)
     print(json.dumps(man["controlli"], indent=1), f"{time.time() - t0:.0f}s")
+    copy_out(el)
 
 
+def copy_out(el):
+    import shutil
+    src = os.path.join(T.OUT, f"tav_dati_{NOME[el]}")
+    shutil.copytree(src, DEST[el], dirs_exist_ok=True)
+    print("copiato in", DEST[el])
+
+
+if __name__ == "__main__" and sys.argv[1:2] == ["copia"]:
+    copy_out(sys.argv[2]); sys.exit()
 if __name__ == "__main__":
     export(sys.argv[1], int(sys.argv[2]) if len(sys.argv) > 2 else 100000)
