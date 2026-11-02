@@ -1,0 +1,64 @@
+"""tavg_prereg2.py - EMENDAMENTO / pre-registrazione della FASE 2 dello studio tavg_ (correlazione imparata), bersaglio
+OSSIGENO (piano della goccia d'acqua). Scrive lab/out/tavg_prereg2.json. Da committare PRIMA di `tavg_corr.py train`.
+Non cambia nessuna soglia della fase 1 (tavg_prereg.json)."""
+import json, os
+
+OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "out")
+EH_EV = 27.211386245988
+
+prereg2 = {
+    "studio": "tavg_ FASE 2: correlazione imparata dagli esatti della regola, applicata alla cieca a O (e N)",
+    "data": "2026-11-02",
+    "allenamento": {
+        "regola": "SOLO risultati esatti delle macchine della regola (ECG / multi_e, theta -> 0). E_c = E_esatta - "
+                  "E_HF(livello fine radiale ROHF, stessa m_kin = 1). Nessun dato sperimentale, nessun valore di "
+                  "letteratura entra nell'allenamento.",
+        "insieme": ["H- (multi_e_ecg he1S_Z1)", "He (multi_e_v5 M1v5)", "He 2^3S (multi_e_ecg he3S_Z2)",
+                    "Li+ (tav_runs liP1S)", "Li 2S (tav_runs li2S)", "Li 2P (tav_runs li2P)", "Be+ (tav_runs beP2S)",
+                    "ioni tipo He Z = 6,7,8,9,10 (multi_e_ecg he1S_Z*)"],
+        "esclusi": {"Be 1S": "studio litio-berillio ancora PARZIALE (non giudicato a +0.43 mEh): escluso",
+                    "H2, LiH": "esatti della regola, ma serve la densita' HF molecolare accurata sullo stesso livello: "
+                               "non disponibile qui -> esclusi (dichiarato; da aggiungere quando hf_griglia li fa)"},
+        "pesi": "1/sigma, sigma = barra dell'esatto (min 1e-5 Eh) + 1e-6",
+    },
+    "famiglie": {
+        "W": {"forma": "E_c = -a int 4 rho_up rho_dn / (rho (1 + d rho^-1/3))  (primo termine di Colle-Salvetti, "
+                       "solo coppie a spin opposto)", "manopole": 2, "parametri": ["a (lineare)", "d (griglia)"]},
+        "L": {"forma": "Colle-Salvetti nella forma di Miehlich et al. 1989 (LYP): -a X1 - a b X2(c, d)",
+              "manopole": 4, "parametri": ["a, ab (lineari)", "c, d (griglia)"]},
+        "debito": "la FORMA funzionale viene dalla letteratura (Colle-Salvetti/LYP), non e' emersa dalla regola; "
+                  "i NUMERI vengono solo dai nostri esatti. Dichiarato come debito.",
+    },
+    "griglie": {"c": [0.0, 0.6, 25], "d": [0.05, 0.8, 31]},
+    "scelta_modello": "validazione incrociata lascia-uno-fuori (rms); si sceglie L solo se CV_L < 0.9 CV_W, "
+                      "altrimenti W. Scelta automatica, fatta PRIMA di guardare O/N.",
+    "previsione": "alla cieca: O, O+, N, N+ con densita' ROHF del livello fine (termine di Hund); IP = IP_HF + "
+                  "(E_c(X+) - E_c(X)). IP_HF dalla griglia agglomerata (G4) se disponibile, altrimenti dal livello "
+                  "fine (|differenza| <= 0.05 eV per G4). Nessun ritocco dopo aver visto i risultati.",
+    "esami": {
+        "C1": {"cosa": "E_c(O) prevista contro -0.2579 Eh (= -75.0673 esatta non relativistica - (-74.8094) HF)",
+               "chiave_Eh": -75.0673 + 74.809398, "soglia_rel": 0.05, "contato": True},
+        "C2": {"cosa": "IP dell'ossigeno contro 13.618 eV (sperimentale)", "chiave_eV": 13.618, "soglia_rel": 0.03,
+               "contato": True, "nota": "IP HF da solo = 11.886 eV (-12.7 %): serve la correlazione"},
+        "C3": {"cosa": "caduta N -> O: IP(N) previsto > IP(O) previsto", "contato": True,
+               "nota": "HF da solo ha gia' la caduta (13.957 > 11.886 eV): per questo c'e' C4"},
+        "C4": {"cosa": "ampiezza della caduta IP(N) - IP(O) contro 0.916 eV (14.534 - 13.618)", "chiave_eV": 0.916,
+               "soglia_eV": 0.30, "contato": True, "nota": "HF da solo da' 2.07 eV"},
+        "C5": {"cosa": "IP dell'azoto contro 14.534 eV", "chiave_eV": 14.534, "soglia_rel": 0.03, "contato": True},
+        "R1": {"cosa": "E_c(N) contro -0.1888 Eh (-54.5892 - (-54.400934)), RIPORTATO", "contato": False},
+        "R2": {"cosa": "Delta E_c ionizzazione O contro 63.7 mEh (derivato da sperimentale + HF), RIPORTATO",
+               "contato": False},
+    },
+    "decisione": "la correlazione imparata 'regge sull'ossigeno' se C1 e C2 passano. C3-C5 decidono se regge "
+                 "anche l'andamento lungo la riga. Se C1 o C2 falliscono: niente export O 'approssimato con "
+                 "correlazione'; si propone una regola dell'agglomeratore piu' stretta (correlazione per coppia/guscio "
+                 "imparata da coppie tipo He/Li/Be), NON si abbassano le soglie.",
+    "sviluppo_dichiarato": ["devtest: LYP con le costanti PUBBLICATE su He e Ne HF nostri, solo controllo del codice "
+                            "(atteso ~ -0.044 e ~ -0.38 Eh), non entra in nessun esame",
+                            "nessun fit sugli esatti e' stato eseguito prima di questo commit"],
+}
+
+if __name__ == "__main__":
+    os.makedirs(OUT, exist_ok=True)
+    json.dump(prereg2, open(os.path.join(OUT, "tavg_prereg2.json"), "w"), indent=1, ensure_ascii=False)
+    print("scritto", os.path.join(OUT, "tavg_prereg2.json"))
