@@ -45,7 +45,7 @@
     "video_piccolo": {
      "iniziale_rel": 9.76981943022355e-06,
      "max_rel": 9.77373838565919e-06,
-     "deriva_rel": 0.0
+     "deriva_rel": 2.431088659924405e-14
     },
     "video_grande": {
      "iniziale_rel": 0.00019433672505473015,
@@ -99,8 +99,8 @@
   "G7_palline": {
    "corse": {
     "video_piccolo": {
-     "min_r": 0.9731168384612381,
-     "n_fotogrammi": 11
+     "min_r": 0.9093202116913334,
+     "n_fotogrammi": 140
     },
     "video_grande": {
      "min_r": 0.899782695204353,
