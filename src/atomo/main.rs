@@ -61,6 +61,8 @@ mod test_sottoreticolo;
 mod test_diffusa;
 #[cfg(test)]
 mod test_bagliori;
+#[cfg(test)]
+mod test_banco;
 
 use camera::{Bersaglio, Cam, PointerOverHud};
 use fotone3d::Polar;
@@ -137,6 +139,8 @@ pub struct Lab {
     /// the computed scenes (calcolate.rs): their worker and what is shown
     pub cal: Option<std::sync::Arc<std::sync::Mutex<calcolate::Condiviso>>>,
     pub cal_scelta: (calcolate::Mostra, calcolate::Parte),
+    /// atom scene: how many photons of energy the coupled packet holds
+    pub n_fotoni: f64,
     /// frames per second really measured (`fps` is fixed by construction in unattended runs)
     pub fps_vero: f64,
 }
@@ -155,7 +159,7 @@ impl Lab {
             modo: Modo::Avanti, spara: false, panel_open: false, mostra_protone: true, bagliore: true, grandezza: 1.0, luce: 1.0,
             nodo_palline, nodo_info: info, frame_count: 0, palline_disegnate: 0, fps: 0.0,
             el: None, el_part: elscena::Particella::Elettrone, ritmo_el: 12.0, versione_disegnata: 0, tav: tavola::Pannello::default(),
-            cal: None, cal_scelta: (calcolate::Mostra::H2, calcolate::Parte::A), fps_vero: 0.0,
+            cal: None, cal_scelta: (calcolate::Mostra::H2, calcolate::Parte::A), n_fotoni: 1.0, fps_vero: 0.0,
         }
     }
 
@@ -288,6 +292,7 @@ impl Lab {
                     g.opz = self.opz;
                     g.accoppiato = self.accoppiato;
                     g.diffusa = self.diffusa;
+                    g.n_fotoni = self.n_fotoni;
                     if self.misura { g.misura = true; }
                     if self.azzera_clic { g.azzera = true; }
                     // the coupled atom's own 1s → 2p (the uncoupled radial value is not its resonance)
@@ -365,6 +370,7 @@ fn main() {
     if let Some(v) = arg("--stati") { if let Some(s) = orbitali::scelta_da(&v) { lab.orb_scelta = s; } }
     if let Some(v) = arg("--lambda-m").and_then(|v| v.parse().ok()) { lab.lambda_m = v; }
     if let Some(v) = arg("--strati") { lab.vista_fot = strati(&v); }
+    if let Some(v) = arg("--fotoni").and_then(|v| v.parse().ok()) { lab.n_fotoni = v; }
     if args.iter().any(|a| a == "--surfisti") { lab.opz.surfisti = true; }
     if args.iter().any(|a| a == "--collassa") { lab.opz.collassa = true; }
     let scena = match (scena_arg.as_str(), zoom.as_str()) {
@@ -617,7 +623,7 @@ fn info_scena(lab: &Lab) -> Option<String> {
                 let o = z.lock().unwrap().out.clone();
                 format!("tick {} v {:?} elicita {:?} w {:.2} theta {:?} {:.0} ms/tick", o.ticks, o.v, o.elicita, o.w, o.theta, o.ms_tick)
             }).unwrap_or_default(),
-            Scena::Atomo => lab.zz.as_ref().map(|z| { let o = z.lock().unwrap().out.clone(); format!("tick {} p1s {:.3} dip {:+.3} {:.0} ms/tick p_exc {:.3} t_dal_impulso {:?} luce_diffusa_x {:?} e_diffusa {:.3e}", o.ticks, o.p1s, o.dipolo, o.ms_tick, o.p_exc, o.t_dal_impulso, o.amp_diffusa, o.e_diffusa) }).unwrap_or_default(),
+            Scena::Atomo => lab.zz.as_ref().map(|z| { let o = z.lock().unwrap().out.clone(); format!("tick {} p1s {:.3} dip {:+.3} {:.0} ms/tick p_exc {:.6} t_dal_impulso {:?} luce_diffusa_x {:?} e_diffusa {:.3e} banco {:?} D {:.3e}", o.ticks, o.p1s, o.dipolo, o.ms_tick, o.p_exc, o.t_dal_impulso, o.amp_diffusa, o.e_diffusa, o.banco, o.d_riga) }).unwrap_or_default(),
             Scena::Orbitali => lab.orb.as_ref().map(|z| { let o = z.lock().unwrap().out.clone(); format!("t {:.1} R {:.1} livelli {:?} {:.0} ms", o.t, o.r, o.livelli.iter().map(|l| (l.0.nome(), l.1, l.2)).collect::<Vec<_>>(), o.ms) }).unwrap_or_default(),
             Scena::Elettrone => lab.el.as_ref().map(|z| { let o = z.lock().unwrap().out.clone();
                 format!("{} tick {} t {:.3} centro bagliori ({:+.4}, {:+.4}, {:+.4}) centro onda ({:+.4}, {:+.4}, {:+.4}) {:.0} ms/tick", o.particella.nome(), o.ticks, o.t,

@@ -227,8 +227,8 @@ impl LuceAtomo {
         self.chiudi_tick();
     }
 
-    /// A photon pulse of frequency ω (mc²/ħ) arriving along +x, polarised along z, with e·E ≈ `e0` at its peak.
-    pub fn impulso(&mut self, omega: f64, e0: f64) {
+    /// The packet of the light rule of frequency ω (mc²/ħ) arriving along +x, polarised along z, unit amplitude.
+    fn pacchetto(omega: f64) -> Fotone3D {
         let n = N_LUCE;
         let lambda = std::f64::consts::TAU / omega / B_LUCE; // cells
         let sigma = 1.0 * lambda;
@@ -236,6 +236,23 @@ impl LuceAtomo {
                          t_fuoco: (n as f64 / 2.0 - 2.7 * sigma - 2.0).max(4.0) };
         let mut g = Fotone3D::new(n);
         g.lancia(&l);
+        g
+    }
+
+    /// The packet with the energy of `n` photons, n ħω in the box: no amplitude chosen by hand (lab/out/banco_prereg.json).
+    /// A classical field with that energy, not a quantum photon (declared). Returns the peak of E.
+    pub fn impulso_fotoni(&mut self, omega: f64, n: f64) -> f64 {
+        let g = Self::pacchetto(omega);
+        let s: f64 = g.f.par_iter().map(|p| p.iter().map(|c| c.norm2() as f64).sum::<f64>()).sum();
+        let k = (n * omega / (0.5 * B_LUCE.powi(3) * s.max(1e-300))).sqrt() as f32;
+        self.f.f.par_iter_mut().zip(g.f.par_iter()).for_each(|(a, b)| for c in 0..3 { a[c].re += k * b[c].re; a[c].im += k * b[c].im; });
+        let fmax = g.f.par_iter().map(|p| (p[0].norm2() + p[1].norm2() + p[2].norm2()).sqrt()).reduce(|| 0.0, f32::max);
+        (k * fmax) as f64 / std::f64::consts::SQRT_2
+    }
+
+    /// A photon pulse of frequency ω (mc²/ħ) arriving along +x, polarised along z, with e·E ≈ `e0` at its peak.
+    pub fn impulso(&mut self, omega: f64, e0: f64) {
+        let g = Self::pacchetto(omega);
         // linear light: |F| = √2 |E| at a crest
         let fmax = g.f.par_iter().map(|p| (p[0].norm2() + p[1].norm2() + p[2].norm2()).sqrt()).reduce(|| 0.0, f32::max).max(1e-30);
         let k = (std::f64::consts::SQRT_2 * e0 / e_eff()) as f32 / fmax;
@@ -327,8 +344,21 @@ pub struct Esperimento {
     campo_tick: [f64; 3],
     /// coupling boost actually used by `passo` (K_ACC by default; 1 = the true charge)
     pub k_acc: f64,
+    /// what was fired and the state of the atom just before it (`spara_fotoni`)
+    pub banco: Banco,
     /// the light box split into free + scattered (docs/ATOMO.md §3.8); kept by `ricomincia`
     pub diffusa: bool,
+}
+
+/// The numbers of the live testbed at the shot.
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
+pub struct Banco {
+    pub n_fotoni: f64,
+    /// peak of e·E of the pulse
+    pub e_e: f64,
+    /// excited population at the shot and its drift per λ_C/c before it (the lattice's own: no light yet)
+    pub p0: f64,
+    pub deriva: f64,
 }
 
 impl Esperimento {
@@ -359,7 +389,7 @@ impl Esperimento {
         let (phi2, om2) = a2.ascolta(0.96, 0.99, ascolto / 3);
         at.imposta(phi.clone());
         let mut x = Esperimento { at, luce: LuceAtomo::new(), phi1s: phi, omega1s: om, phi2p: phi2, omega2p: om2, serie_p: vec![], serie_d: vec![], serie_j: vec![],
-                      t_impulso: None, r0: None, sub: 0, acc: ACCOPPIAMENTO, jstoria: vec![], jpred: [0.0; 3], campo_tick: [0.0; 3], k_acc: K_ACC, diffusa: false };
+                      t_impulso: None, r0: None, sub: 0, acc: ACCOPPIAMENTO, jstoria: vec![], jpred: [0.0; 3], campo_tick: [0.0; 3], k_acc: K_ACC, banco: Banco::default(), diffusa: false };
         x.ricomincia();
         x
     }
@@ -370,7 +400,7 @@ impl Esperimento {
         at.con_nucleo(nu);
         at.imposta(phi1s.clone());
         let mut x = Esperimento { at, luce: LuceAtomo::new(), phi1s, omega1s, phi2p, omega2p, serie_p: vec![], serie_d: vec![], serie_j: vec![],
-                      t_impulso: None, r0: None, sub: 0, acc: ACCOPPIAMENTO, jstoria: vec![], jpred: [0.0; 3], campo_tick: [0.0; 3], k_acc: K_ACC, diffusa: false };
+                      t_impulso: None, r0: None, sub: 0, acc: ACCOPPIAMENTO, jstoria: vec![], jpred: [0.0; 3], campo_tick: [0.0; 3], k_acc: K_ACC, banco: Banco::default(), diffusa: false };
         x.ricomincia();
         x
     }
@@ -407,6 +437,7 @@ impl Esperimento {
         self.serie_d.clear();
         self.serie_j.clear();
         self.t_impulso = None;
+        self.banco = Banco::default();
         self.r0 = None;
         self.sub = 0;
     }
@@ -414,6 +445,20 @@ impl Esperimento {
     pub fn spara(&mut self, omega: f64, e0: f64) {
         self.luce.impulso(omega, e0);
         self.t_impulso = Some(self.at.t());
+    }
+
+    /// Fire the packet with the energy of `n` photons; the state just before it is kept. Returns the peak of e·E.
+    pub fn spara_fotoni(&mut self, omega: f64, n: f64) -> f64 {
+        let e = e_eff() * self.k_acc / K_ACC;
+        let p0 = self.serie_p.last().map(|v| v.1).unwrap_or(0.0);
+        let deriva = match (self.serie_p.first(), self.serie_p.last()) {
+            (Some(a), Some(b)) if b.0 > a.0 && self.t_impulso.is_none() => (b.1 - a.1) / (b.0 - a.0),
+            _ => self.banco.deriva,
+        };
+        let e_e = e * self.luce.impulso_fotoni(omega, n);
+        self.t_impulso = Some(self.at.t());
+        self.banco = Banco { n_fotoni: n, e_e, p0, deriva };
+        e_e
     }
 
     /// Start from an arbitrary atom state (same lattice), empty light box, clean history.

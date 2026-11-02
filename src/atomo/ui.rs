@@ -247,12 +247,16 @@ fn stato_scena(lab: &Lab) -> (String, String) {
                                 Some(a) => format!(" · LUCE DIFFUSA ×{:.0} (rosa/verde; palline ∝ u·r²: la caduta 1/r² è tolta) · fetta |y| < 10 ħ/mc · atomo ingrandito ×{:.0} · impulso libero ×0,25 · palline bianche = corrente d'energia", a, crate::zzscena::ZOOM_ATOMO),
                                 None => String::new(),
                             }),
-                    format!("dipolo ⟨z⟩ = {:+.3} ħ/mc · ω₂₁ della regola 3-D {:.4} mc²/ħ · luce rimandata {} · {:.0} ms per tick",
-                            o.dipolo, o.omega21, o.omega_emessa.map(|w| format!("ω = {:.4} ({:+.1} %)", w, 100.0 * (w / o.omega21 - 1.0))).unwrap_or_else(|| "…".into()), o.ms_tick)),
+                    format!("carica vera · {} · ⟨z⟩ a ω₂₁ {:.2e} ħ/mc · ω₂₁ della regola 3-D {:.4} mc²/ħ · luce rimandata {} · {:.0} ms per tick",
+                            if o.t_dal_impulso.is_some() {
+                                format!("sparati {:.3e} fotoni di energia (campo classico, e·E {:.2e}) · p_exc cambiato di {:+.2e} · deriva da solo {:+.1e} per ħ/mc² · energia diffusa {:.2e} mc²",
+                                        o.banco.n_fotoni, o.banco.e_e, o.p_exc - o.banco.p0, o.banco.deriva, o.e_diffusa)
+                            } else { "premi F: il pacchetto della regola contro l'atomo, succede quello che succede".to_string() },
+                            o.d_riga, o.omega21, o.omega_emessa.map(|w| format!("ω = {:.4} ({:+.1} %)", w, 100.0 * (w / o.omega21 - 1.0))).unwrap_or_else(|| "…".into()), o.ms_tick)),
                 Some(o) if o.pronto => (
                     format!("Nd⁵⁹⁺ (Z = 60, un elettrone) · regola zig-zag dal vivo · tick {} · nello stato 1s: {:.0} %{}", o.ticks, 100.0 * o.p1s,
                             if o.preparando { " · (sto ascoltando i livelli 3-D per la luce accoppiata, ~30 s)" } else { "" }),
-                    format!("dipolo ⟨z⟩ = {:+.3} ħ/mc · campo del fotone {:+.4} · {:.0} ms per tick", o.dipolo, o.campo, o.ms_tick)),
+                    format!("dipolo ⟨z⟩ = {:+.3} ħ/mc · campo PRESCRITTO {:+.4} (luce non accoppiata) · {:.0} ms per tick", o.dipolo, o.campo, o.ms_tick)),
                 _ => ("Nd⁵⁹⁺: le palline stanno partendo...".into(), String::new()),
             }
         }
@@ -523,7 +527,7 @@ fn pannello_atomo(ctx: &egui::Context, lab: &mut Lab, cam: &mut Cam) {
         ui.separator();
         ui.label(RichText::new("LUCE").strong().color(GOLD));
         ui.checkbox(&mut lab.accoppiato, "luce dal vivo, accoppiata (Maxwell–Dirac: la stessa regola nei due versi)");
-        ui.label(RichText::new("Accoppiata: il fotone è un impulso di palline a spin 1 in una scatola di luce di 512 ħ/mc attorno all'atomo;             il suo campo spinge l'elettrone, e la corrente dell'elettrone è una sorgente della luce: la luce che l'atomo rimanda             e il suo rilassamento escono dalla regola (accoppiamento ×10 per vederlo; semiclassico: emette solo una             sovrapposizione). Popolazioni = proiezioni sugli stati 1s e 2p½ della regola 3-D (ascoltati). In questa modalità             il tempo va solo avanti (la luce presa dalla spugna non torna).").small().color(GREY));
+        ui.label(RichText::new("Accoppiata: il fotone è un impulso di palline a spin 1 in una scatola di luce di 512 ħ/mc attorno all'atomo;             il suo campo spinge l'elettrone, e la corrente dell'elettrone è una sorgente della luce: la luce che l'atomo rimanda             e il suo rilassamento escono dalla regola (carica vera, nessun rinforzo; semiclassico: emette solo una             sovrapposizione). Quanta luce: l'energia di N fotoni, sotto; con N piccolo può non vedersi niente, ed è il risultato. Popolazioni = proiezioni sugli stati 1s e 2p½ della regola 3-D (ascoltati). In questa modalità             il tempo va solo avanti (la luce presa dalla spugna non torna).").small().color(GREY));
         ui.checkbox(&mut lab.diffusa, "vista diffusa: mostra la luce che l'atomo manda fuori (amplificata, dichiarato)");
         ui.label(RichText::new("La luce è divisa in due scatole esatte (la regola è lineare): l'impulso libero, senza atomo, e la luce \
             fatta SOLO dalla corrente dell'elettrone; l'atomo sente la somma. La seconda è la luce diffusa e riemessa: ~1/30–1/50 \
@@ -533,6 +537,7 @@ fn pannello_atomo(ctx: &egui::Context, lab: &mut Lab, cam: &mut Cam) {
         if ui.button("guarda la luce (zoom fino a 350 ħ/mc)").clicked() { cam.vai(Bersaglio::Atomo, 350.0); }
         ui.separator();
         ui.label(RichText::new("FOTONE").strong().color(GOLD));
+        ui.add(egui::Slider::new(&mut lab.n_fotoni, 1.0..=1.0e6).logarithmic(true).text("fotoni di energia nel pacchetto (campo classico)"));
         if let Some(o) = &o {
             let res = o.omega_res * zz::MC2_KEV;
             if lab.e_kev <= 0.0 { lab.e_kev = res; }

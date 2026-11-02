@@ -87,6 +87,9 @@ pub struct Uscita {
     pub amp_diffusa: Option<f64>,
     pub t_dal_impulso: Option<f64>,
     pub e_diffusa: f64,
+    /// the live testbed: what was fired, and the amplitude of ⟨z⟩ at the line in the last 400 λ_C/c
+    pub banco: acc::Banco,
+    pub d_riga: f64,
     pub e0_impulso: f64,
     /// the surfers' glow tails (additive, stretched glows) and their stretch vectors
     pub scie: Arc<Vec<Ball>>,
@@ -104,6 +107,8 @@ pub struct Condiviso {
     pub ritmo: f64,
     /// a photon to send: its frequency (mc²/ħ)
     pub spara: Option<f64>,
+    /// how many photons of energy the coupled packet holds
+    pub n_fotoni: f64,
     pub ricomincia: bool,
     /// light and atom coupled (the light box of accoppiato.rs) instead of the prescribed pulse
     pub accoppiato: bool,
@@ -612,12 +617,12 @@ fn muovi_flusso(m: &mut Mondo) {
 /// Start the worker. The shared state is read by the window every frame.
 pub fn avvia() -> Arc<Mutex<Condiviso>> {
     let c = Arc::new(Mutex::new(Condiviso {
-        comando: Comando::Avanti, ritmo: 25.0, spara: None, ricomincia: false, accoppiato: true, diffusa: true, opz: Opzioni::default(), misura: false, azzera: false, fine: false,
+        comando: Comando::Avanti, ritmo: 25.0, spara: None, n_fotoni: 1.0, ricomincia: false, accoppiato: true, diffusa: true, opz: Opzioni::default(), misura: false, azzera: false, fine: false,
         vista: VistaWorker::default(),
         out: Uscita { palline: Arc::new(vec![]), onde: Arc::new(vec![]), versione: 0, ticks: 0, p1s: 1.0, dipolo: 0.0, campo: 0.0, ms_tick: 0.0,
                       omega_res: 0.0, legame_1s: 0.0, punto: [0.0; 3], pronto: false, n_clic: 0, ultimo_clic: None,
                       accoppiato: true, preparando: true, p_exc: 0.0, p2p: 0.0, omega21: 0.0, omega_emessa: None, e_luce: 0.0,
-                      amp_diffusa: None, t_dal_impulso: None, e_diffusa: 0.0, e0_impulso: E0_PI2,
+                      amp_diffusa: None, t_dal_impulso: None, e_diffusa: 0.0, banco: Default::default(), d_riga: 0.0, e0_impulso: E0_PI2,
                       scie: Arc::new(vec![]), scie_allunga: Arc::new(vec![]), n_testa: 0, r_nuvola: 3.0, passo_medio: 0.0 },
     }));
     let cc = c.clone();
@@ -631,7 +636,8 @@ pub fn avvia() -> Arc<Mutex<Condiviso>> {
         let mut riv = Rivelatore::default();
         // the coupled experiment is prepared in the background (listening to the levels of the 3-D rule, ~30 s)
         let (tx, rx) = std::sync::mpsc::channel();
-        std::thread::spawn(move || { let _ = tx.send(Esperimento::nuovo(600, zz::colore_lab()).con_diffusa()); });
+        // the true charge K = 1 (lab/out/banco_prereg.json): no boost in the scene
+        std::thread::spawn(move || { let mut e = Esperimento::nuovo(600, zz::colore_lab()).con_diffusa(); e.k_acc = 1.0; let _ = tx.send(e); });
         let mut riserva: Option<Esperimento> = None;
         // the clean 1s (an exact level of the 3-D rule, docs/BATTIMENTO_1S.md), taken from the coupled experiment when
         // it is ready: the atom without coupling restarts from it too (the radial start beats with period ~476)
@@ -642,9 +648,9 @@ pub fn avvia() -> Arc<Mutex<Condiviso>> {
         let mut ultimo_tick = Instant::now();
         loop {
             let t0 = Instant::now();
-            let (cmd, ritmo, spara, ric, fine, opz, misura, azzera, accoppiato, diffusa, vista) = {
+            let (cmd, ritmo, spara, ric, fine, opz, misura, azzera, accoppiato, diffusa, vista, n_fotoni) = {
                 let mut g = cc.lock().unwrap();
-                let s = (g.comando, g.ritmo, g.spara.take(), g.ricomincia, g.fine, g.opz, g.misura, g.azzera, g.accoppiato, g.diffusa, g.vista);
+                let s = (g.comando, g.ritmo, g.spara.take(), g.ricomincia, g.fine, g.opz, g.misura, g.azzera, g.accoppiato, g.diffusa, g.vista, g.n_fotoni);
                 g.ricomincia = false;
                 g.misura = false;
                 g.azzera = false;
@@ -704,7 +710,7 @@ pub fn avvia() -> Arc<Mutex<Condiviso>> {
                 match m.esp.as_mut() {
                     // a real pulse of light walkers, launched in the light box
                     Some(e) => {
-                        e.spara(w, E0_PI2);
+                        e.spara_fotoni(w, n_fotoni);
                         // the reference of the declared amplification: the strongest E of the free pulse at launch
                         m.e_ref = m.e_ref.max(acc::e_max(&e.luce.f.f, false));
                     }
@@ -755,6 +761,11 @@ pub fn avvia() -> Arc<Mutex<Condiviso>> {
                     amp_diffusa: match &m.esp { Some(e) if diffusa && e.luce.sc.is_some() && m.e_ref > 0.0 && m.m_sc > 0.0 => Some(m.e_ref / m.m_sc), _ => None },
                     t_dal_impulso: m.esp.as_ref().and_then(|e| e.t_impulso.map(|t| e.at.t() - t)),
                     e_diffusa: m.esp.as_ref().map(|e| if at.ticks % 8 == 0 { e.luce.energia_diffusa() } else { cc.lock().unwrap().out.e_diffusa }).unwrap_or(0.0),
+                    banco: m.esp.as_ref().map(|e| e.banco).unwrap_or_default(),
+                    d_riga: match &m.esp {
+                        Some(e) if at.ticks % 32 == 0 => { let t = e.at.t(); let k = e.serie_d.len().saturating_sub(1000); acc::ampiezza_a(&e.serie_d[k..], e.omega_21(), t - 400.0, t) }
+                        _ => cc.lock().unwrap().out.d_riga,
+                    },
                     e0_impulso: E0_PI2,
                     scie: Arc::new(scie), scie_allunga: Arc::new(scie_allunga), n_testa: m.surf.len(), r_nuvola, passo_medio,
                 };

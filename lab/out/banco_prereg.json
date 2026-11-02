@@ -1,0 +1,18 @@
+{
+ "studio": "BANCO_LUCE_ATOMO (test src/atomo/test_banco.rs)",
+ "data": "2026-11-02",
+ "direzione": "Valerio, 2/11: finche' disegnamo non va bene, deve emergere. Il banco non disegna l'interazione: e' il pacchetto d'onda della regola contro l'atomo zig-zag dal vivo, si guarda e si misura quello che succede, anche se e' debole o sbagliato. La cascata pilotata resta com'e' e non si sviluppa.",
+ "cosa_cambia": "Nella scena: carica vera K = 1 (prima K = 10) e ampiezza non scelta a mano: il pacchetto contiene N fotoni di energia, E = N hbar omega nella scatola (prima e*E = 0,013369 calibrato per un impulso pi/2). N si sceglie, di default 1.",
+ "resta_debito": "Semiclassico: la luce e' un campo classico con l'energia di N fotoni, N = 1 non e' un fotone quantistico e l'atomo non emette da uno stato puro. Atomo Nd59+ su reticolo 48^3, 1s 3-D +40 % (debito 12 di NUCLEO_1S), 1s che deriva da solo. Scatola di 512 hbar/mc, pacchetto lungo circa 1 lambda.",
+ "configurazione": {"atomo": "Esperimento::nuovo(600, None).con_diffusa(), k_acc = 1", "omega": "omega_21 della regola 3-D", "corse_N": [0, 1, 100, 10000, 100000, "N_pi2"], "N_pi2": "l'N con e*E di picco = 0,013369, l'impulso pi/2 di docs/ATOMO.md par. 3.8, calcolato non scelto", "tick_prima": 200, "tick_dopo": 1600, "misure": "dp = media di p_exc negli ultimi 200 tick meno p_exc allo sparo; D = ampiezza di <z> a omega_21 negli ultimi 800 tick; energia diffusa; energia nella scatola allo sparo"},
+ "esami": {
+  "B1_energia": {"cosa": "energia nella scatola subito dopo il lancio / (N omega)", "voto": "PASS se entro 2 %"},
+  "B2_carica": {"cosa": "la carica usata dal passo e' sqrt(4 pi alpha)", "voto": "PASS se esatta"},
+  "B3_scala_p": {"cosa": "pendenza di log dp contro log N fra N = 1e4 e 1e5, contro 1 (regime debole)", "voto": "PASS se 1 +- 0,15 e dp sopra 3 volte il controllo N = 0"},
+  "B4_rabi": {"cosa": "dp a N_pi2 contro 0,5 (impulso pi/2 con la carica vera e l'energia giusta)", "voto": "PASS se entro 0,1"},
+  "B5_un_fotone": {"cosa": "dp a N = 1 contro il controllo N = 0 e contro la scala dp(N_pi2)*(1/N_pi2)", "voto": "solo riportato: si dichiara se sta sotto il rumore del reticolo"},
+  "B6_scala_D": {"cosa": "pendenza di log D contro log N fra N = 1e4 e 1e5, contro 0,5", "voto": "PASS se 0,5 +- 0,1"}
+ },
+ "manopole": "fisica: zero (N e' la quantita' di luce che si spara, non un parametro della regola).",
+ "uscite": "lab/out/banco_risultati.json, docs/SCENE_CALCOLATE.md"
+}
