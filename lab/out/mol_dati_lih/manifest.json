@@ -29,8 +29,8 @@
  },
  "energia": {
   "E_Eh": -8.069091238002457,
-  "D_e_eV": 2.4932992344330858,
-  "D0_eV": 2.4012005774409193
+  "D_e_eV": 2.483641232159292,
+  "D0_eV": 2.396927834007781
  },
  "file": {
   "lih_elettroni.npy": "float32 (n,4,3): n 'fotografie' delle posizioni dei 4 elettroni insieme, da |Psi|^2 con Metropolis. Elettroni 0 e 2 spin su, 1 e 3 spin giu'. Due stanno stretti sul litio (guscio 1s), due formano il legame e stanno soprattutto sull'idrogeno (Li+ H-: il dipolo).",
@@ -42,65 +42,64 @@
    {
     "v": 0,
     "E_cm": 0.0,
-    "mu_D": -5.92495219980117
+    "mu_D": -5.8944909834952375
    },
    {
     "v": 1,
-    "E_cm": 1480.8121430125777,
-    "mu_D": -6.096087168916221
+    "E_cm": 1361.309816957762,
+    "mu_D": -6.002867993455406
    },
    {
     "v": 2,
-    "E_cm": 2972.6768585989244,
-    "mu_D": -6.275877229132866
+    "E_cm": 2679.776762728314,
+    "mu_D": -6.115434272078334
    },
    {
     "v": 3,
-    "E_cm": 4445.820850367827,
-    "mu_D": -6.447346761875849
+    "E_cm": 3960.371484615696,
+    "mu_D": -6.2258058884903935
    }
   ],
   "transizioni_IR": [
    {
     "da": 0,
     "a": 1,
-    "nu_cm": 1480.8121430125777,
-    "dipolo_transizione_D": 0.2264681684505901
+    "nu_cm": 1361.309816957762,
+    "dipolo_transizione_D": 0.23944683955703816
    },
    {
     "da": 0,
     "a": 2,
-    "nu_cm": 2972.6768585989244,
-    "dipolo_transizione_D": 0.03187191236847185
+    "nu_cm": 2679.776762728314,
+    "dipolo_transizione_D": 0.01939474423342536
    },
    {
     "da": 0,
     "a": 3,
-    "nu_cm": 4445.820850367827,
-    "dipolo_transizione_D": 0.011435918829887039
+    "nu_cm": 3960.371484615696,
+    "dipolo_transizione_D": 0.0016192903693564745
    },
    {
     "da": 1,
     "a": 2,
-    "nu_cm": 1491.8647155863466,
-    "dipolo_transizione_D": 0.31177299336969055
+    "nu_cm": 1318.4669457705522,
+    "dipolo_transizione_D": 0.3407443159307165
    },
    {
     "da": 1,
     "a": 3,
-    "nu_cm": 2965.0087073552495,
-    "dipolo_transizione_D": 0.055302476118223746
+    "nu_cm": 2599.061667657934,
+    "dipolo_transizione_D": 0.03295765876023046
    },
    {
     "da": 2,
     "a": 3,
-    "nu_cm": 1473.143991768903,
-    "dipolo_transizione_D": 0.36959476740978475
+    "nu_cm": 1280.5947218873819,
+    "dipolo_transizione_D": 0.416486301267121
    }
   ],
   "B_e_cm": 7.520948614478426,
-  "esempio": "un fotone di circa 1481 cm-1 (lunghezza d'onda 6.8 micron) porta la molecola da v=0 a v=1",
-  "attenzione": "I livelli di vibrazione sono troppo alti (0->1 = 1481 cm-1 contro 1360 misurato): la curva calcolata parte da R = 2,5 a0 e li' il calcolo mette un muro che schiaccia gli stati v>=1. Errore noto (PARZIALE), da rifare con la curva estesa sotto 2,5 a0. omega_e dal fit (1409 cm-1) e' giusto."
+  "esempio": "un fotone di circa 1361 cm-1 (lunghezza d'onda 7.3 micron) porta la molecola da v=0 a v=1"
  },
  "controlli": {
   "dipolo_da_campioni_au": -2.3249701118469237,
@@ -124,7 +123,13 @@
     "PASS": true
    },
    "L5": {
-    "PASS": false
+    "PASS": true
+   },
+   "V1": {
+    "PASS": true
+   },
+   "V2": {
+    "PASS": true
    }
   }
  },
