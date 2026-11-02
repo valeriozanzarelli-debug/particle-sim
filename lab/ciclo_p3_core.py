@@ -1,5 +1,5 @@
 """ciclo_p3_core.py - Phase 3 of CICLO_LIVELLI: the on-the-fly CHECK and LOCAL REFINEMENT (step 4 of the loop).
-STATUS: DEVELOPMENT (PARZIALE). No production run, no exam yet.
+STATUS: first design, superseded by ciclo_p3_mix.py (kept for the development record; hierarchy() is still used).
 
 Setting (1-D, reuses phase 2 read-only): base level = 2187 cells of 1.6 lambda_C (the phase-2 base, validated against
 the fine zig-zag in A8) with the soft-Coulomb atom; coarse level = the automatic b = 3 chain of phase 2 (B = 3, 9).

@@ -223,55 +223,83 @@ spostamento dell'1s al primo ordine come esame "Coulomb".
   3-D senza quasi-periodicità; (c7) il potenziale grosso 1-D è la restrizione di Galerkin, non imparato (in 3-D il campo
   imparato esiste già, AGGLOMERATO_COMPLETO).
 
-## 3. Fase 3: controllo al volo e raffinamento locale — PARZIALE
+## 3. Fase 3: controllo al volo e raffinamento locale — 6 PASS / 0 FAIL
 
-**Stato: PARZIALE.** Solo sviluppo, dichiarato. Nessuna corsa di produzione e nessun esame misurato. Le soglie non sono
-ancora fissate (bozza in `lab/out/ciclo_prereg.json`, `fase3`). Mi sono fermato qui perché Valerio chiudeva la sessione.
+### 3.1 Cosa ho fatto (come a un ventenne)
+Prendiamo un atomo in 1-D. La base sono 2187 celle da 1,6 λ_C. Quasi tutto lo spazio gira col livello grosso: 243
+celle, una ogni 9 celle base. Ogni 400 tick la macchina prende i pezzetti dove c'è elettrone, li rifà girare con la
+regola base e confronta. Dove la differenza supera 0,01, cioè 1,5 volte il "rumore di fondo" misurato in quiete
+(0,0064), raffina lì: quelle celle passano alle celle base. Poi rifà l'intervallo da capo, così l'errore non resta
+mai dentro.
 
-### 3.1 Cosa ho provato (come a un ventenne)
-L'idea: quasi tutto lo spazio va col livello grosso (B = 9: una cella grossa = 9 celle base, 243 numeri invece di
-2187). Dove arriva un disturbo, per esempio un campo che oscilla vicino all'atomo, si passa alle celle base solo lì.
-Prima però bisogna saper **incollare** le due descrizioni: celle grosse da una parte, celle base dall'altra.
+Il disturbo è un campo locale che oscilla sopra l'atomo. Ha una forma più fine della cella grossa, e strappa
+l'elettrone con un impulso che il livello grosso non sa rappresentare.
 
-* **Primo tentativo: FALLISCE.** Le variabili grosse automatiche della fase 2 sono "blocchi netti", cioè la media
-  sulle 9 celle con un gradino al bordo. Se le incolli alla base calcolando gli accoppiamenti direttamente dalla regola
-  fine (Galerkin), il gradino costa un'energia finta. L'accoppiamento esce circa **6 volte troppo rigido**: diagonale
-  2,4·10⁻³ contro 3,9·10⁻⁴ della regola imparata. Con 10 celle raffinate al centro compaiono **stati finti a
-  −6,7·10⁻⁴**, 20 volte più legati del vero atomo (−3,25·10⁻⁵). Lezione: la regola grossa imparata va bene da sola,
-  ma per cucirla alla base servono variabili **lisce**.
-* **Secondo tentativo: promette bene (sviluppo).** Le variabili si lisciano da sole: prendo i blocchi netti e li
-  lascio "diffondere" s volte con la regola del livello stesso. In gergo è *aggregazione liscia*, la ricetta standard
-  del multigrid algebrico. Così nessuna forma è disegnata a mano. Nella composizione 2187 → 729 → 243 celle:
+**Le due scoperte dello sviluppo** (dichiarate prima delle corse):
+* **Blocchi netti: FALLISCE.** Le variabili a blocchi netti non si cuciono alla base. Il gradino al bordo le rende
+  6 volte troppo rigide e fa comparire stati finti 20 volte più legati del vero atomo.
+* **Variabili lisciate: funziona.** Se si lisciano da sole (3 passate della regola del livello: aggregazione
+  liscia), la regola grossa coincide con quella imparata entro l'1 % e la cucitura è pulita.
+* **La perdita di norma.** Nella prima versione raffinare perdeva norma (7·10⁻³), perché le code delle funzioni lisce
+  restavano fuori. Ora ogni cella raffinata si tiene la sua coda: lo spazio vecchio sta dentro il nuovo, e la perdita
+  scende a 10⁻⁹.
 
-| s | regola di Galerkin / regola imparata (finestra lenta) | stati legati vs base (3 più bassi) |
+| s | regola di Galerkin / regola imparata | stati legati vs base |
 |---|---|---|
-| 1 | 1,37–1,41 | 10 %, 25 %, 24 % |
-| 2 | 1,03–1,06 | 1,8 %, 3,7 %, 3,6 % |
-| 3 | **1,003–1,013** | **0,48 %, 0,73 %, 0,73 %** |
+| 1 | 1,37–1,41 | 10–25 % |
+| 2 | 1,03–1,06 | 1,8–3,7 % |
+| 3 | **1,003–1,013** | **0,48–0,73 %** |
 
-  Con s = 3 la regola "incollabile" coincide con quella imparata entro l'1 %. Gli stati legati sono anche un po' meglio
-  della regola della fase 2 al livello B = 9 (1 %). Le code delle funzioni lisce calano di circa 4 volte per cella
-  grossa: sono locali. (`lab/ciclo_p3_dev.py` → `lab/out/ciclo_p3_dev.json`)
+### 3.2 Numeri contro la pre-registrazione (commit 4d988f5, prima delle corse)
+P e Q erano già stati girati in sviluppo (dichiarato). P2 (impulso spostato, più forte, k più alto) e F sono **ciechi**.
 
-### 3.2 Cosa manca (prossimo passo)
-1. Mettere nel codice la base mista: funzioni lisce mascherate più celle base raffinate, ortonormale, con passi
-   Crank–Nicolson esattamente unitari.
-2. Il controllo: per ogni pezzo di 3 celle grosse, la regola base gira su pezzo più cuscinetto e si confronta con
-   l'evoluzione mista. Sopra soglia si raffina e si rifà l'intervallo.
-3. Fissare le soglie (EPS_REF, DT, ampiezza del disturbo) da corse di sviluppo e committarle **prima** della
-   produzione.
-4. Esami B1–B5 (bozza nella pre-registrazione):
-   * B1: in quiete nessun raffinamento;
-   * B2: si raffina solo dentro il cono del disturbo;
-   * B3: la ionizzazione esce entro il 5 % della base intera, e il livello grosso da solo sbaglia;
-   * B4: la norma si conserva entro 10⁻⁹ e l'energia è costante fra due raffinamenti;
-   * B5: un disturbo lontano dall'elettrone non fa raffinare. Si raffina dove c'è errore, non dove c'è campo.
+| esame | cosa | risultato | |
+|---|---|---|---|
+| B1 | quiete: niente raffinamenti, fedeltà ≥ 0,999 | 0 celle, 0,99982 | PASS |
+| B2 | raffina solo nel cono del disturbo; frazione ≤ 0,5 | P: 29 %, margine 99 celle; P2: 35 %, margine 52 | PASS |
+| B3 | ionizzazione entro 5 %, fedeltà ≥ 0,99; il grosso da solo sbaglia > 30 % | P: 0,2252 vs 0,2273 (0,9 %), fedeltà 0,9954; P2: 0,0934 vs 0,0925 (1,0 %), 0,9969; solo grosso: −99,9 % (non ionizza) | PASS |
+| B4 | norma ≤ 10⁻⁸, energia dopo l'impulso ≤ 10⁻⁶ | norma ≤ 6·10⁻¹⁰; energia ≤ 4·10⁻⁸ (salti ai raffinamenti compresi) | PASS |
+| B5 | impulso dove l'elettrone non c'è: nessun raffinamento | 0 celle, 0,99982 | PASS |
+| B6 | **costo a pari errore** ≥ 1,5× | P: **2,05×**, P2: **1,76×** (controlli compresi) | PASS |
 
-Debiti nuovi:
-* (c8) il lisciamento (s = 3, passo 4/3ρ standard del multigrid);
-* (c9) il disturbo di prova è messo a mano. È un esame, non materiale fisico.
+Due cose da notare.
+* **Nessun livello uniforme fa lo stesso lavoro.** Il B = 3 uniforme (729 celle) azzecca la ionizzazione entro
+  2–4 %, ma sbaglia la fase dell'onda che esce: fedeltà 0,72–0,73. Quindi il livello uniforme più economico con la
+  stessa precisione è la base ovunque.
+* **Dove va il costo.** Il controllo pesa quasi metà del costo dell'adattivo (5,8·10⁵ su 1,28·10⁶). In 1-D l'atomo
+  occupa una fetta grande della scatola. In 3-D lo spazio vuoto cresce col volume: il risparmio sale, e il controllo
+  si può fare più di rado dove l'errore è lontano dalla soglia (prossimo passo per "stringere le regole").
 
-Manopole nuove: s (scelto dal controllo, non fittato) e il passo di lisciamento.
+### 3.3 Debiti e manopole della fase 3
+* (c8) Lisciamento: s = 3, scelto dal controllo e non fittato, col passo standard 4/(3ρ).
+* (c9) Il disturbo di prova è messo a mano: è un esame, non materiale fisico.
+* (c10) Manopole del controllo:
+  * EPS_REF = 0,01, preso da una misura del fondo;
+  * intervallo di 400 tick;
+  * toppa di 3 celle con cuscinetto di 27 siti, scelti perché la velocità massima della banda per l'intervallo resti
+    sotto il cuscinetto;
+  * margine di 1 cella.
+* (c11) Si raffina e basta: tornare grossi quando l'errore rientra è lavoro della fase 4.
+* (c12) Il costo è contato come gradi di libertà × passi (stencil locale), non come tempo di questo codice, che usa
+  matrici dense.
+* Manopole nuove: 5 (s, EPS_REF, DT, toppa/cuscinetto, margine).
+
+## 3bis. Dove sono rimasto (PARZIALE) e come riprendere
+Fatto: fase 3 completa (esami, figura pannello f). Mancano tre sezioni del documento:
+* "Idee geometriche e visive";
+* "Dove l'intuizione di Valerio può aiutare";
+* il totale delle manopole.
+
+Per rifare tutto (dalla cartella `lab/`, single thread, ogni comando sotto i 10 min):
+```
+python ciclo_prereg.py                       # pre-registrazione -> out/ciclo_prereg.json
+python ciclo_p3_dev.py                       # sviluppo dichiarato (costruisce le cache .pkl, ~5 min la prima volta)
+for s in Q P P2 F; do python ciclo_p3_run.py $s truth; done
+for j in "P mix" "Q mix" "F mix" "P2 mix" "P coarse" "P2 coarse" "P b3" "P2 b3"; do python ciclo_p3_run.py $j; done
+python ciclo_p3_analyze.py && python ciclo_figure.py
+```
+Fasi 1–2: `python ciclo_p1_map.py; python ciclo_p1_ledger.py`; `python ciclo_p2_1d.py <free|coulomb> <2|3|fib>`,
+`python ciclo_p2_1d.py anchor`, `python ciclo_p2_3d.py <2|3|phi|A2>`, `python ciclo_p2_analyze.py`.
 
 ## 4. Fase 4: piano pre-registrato (goccia d'acqua) — solo piano
 L'acqua non esiste ancora nel motore: `docs/MOLECOLE.md` §8.2 la esclude per il problema del segno a 5 elettroni per
