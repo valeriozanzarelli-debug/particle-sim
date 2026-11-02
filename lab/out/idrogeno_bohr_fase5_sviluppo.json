@@ -1,0 +1,13 @@
+{
+ "studio": "idrogeno_bohr fase 5 - SOLO SVILUPPO (nessuna corsa di produzione, nessuna pre-registrazione ancora): fermato il 2026-11-02 su richiesta di Valerio",
+ "codice": "src/atomo/idrogeno.rs (Galerkin, calcio_galerkin, costanti_born, massa_cinetica, IDRO_CAMPO=galerkin, IDRO_BORN=1, IDRO_RESTR=fw), src/atomo/idrogeno_main.rs (galtest, grosso5, IDRO_PARTENZA_MEDIA, IDRO_SENZA_CO)",
+ "asset": "lab/out/idrogeno_bohr_fase4_regola.json",
+ "campo_galerkin_N32_a0/8": "8 sottoreticoli x 3 punti uguali al Python (aggfull_core.GalerkinField) entro 1e-15 relativo",
+ "born": {"J_coef_rust": 3.262704226389e-4, "J_coef_python": 3.2627040231476964e-4, "I_coef_rust": 1.340357123914e-2, "m_kin_a0/8": 1.000001466324},
+ "calcio_galerkin": "unitario a 1e-14 per mezzo calcio; <V_c> dal calcio = dal generatore entro 2e-7 (N=32) e 7e-8 (N=128)",
+ "G5_dev_1s_000_a0/8_N256": {"rust_E_me_eV": -13.605310872, "python_E_eV": -13.605305313105154, "diff_rel": -4.1e-7, "nota": "Python fermato a residuo assoluto 7.7e-9 (relativo ~3e-4), Rust a 3.6e-10 relativo: il Rust e' piu' convergente; gen vs regola (Strang) 3.8e-6"},
+ "grosso_galerkin_a0/16_N256_pm8a0": {"1s_000_gen_rel": 5.20e-5, "1s_111_gen_rel": 3.04e-5, "media": 4.1e-5, "nota": "segno + = piu' legato di Dirac x mu; senza Born, senza dV; la media di cella dava -0.1116 %"},
+ "grosso_a0/16_N128_pm4a0_000": {"media_di_cella": 0.0167761, "galerkin": 0.0178585, "nota": "scatola +-4 a0 troppo piccola (cristallo); differenza galerkin - media = +0.108 %, il termine di contatto"},
+ "cucitura_fw_dev_N128_blocco7_96passi_veff32_3": {"j_fuori_48": 1.141e-4, "j_fuori_96": 1.236e-4, "j_coperte_96": 1.483e-3, "perdita_96": 1.39e-8, "stazionarieta_fuori": 6.25e-5, "ibrido_su_grosso_meno_1": 5.9585e-4, "costo_s_per_passo": 2.0, "esito": "la restrizione FW (positiva, normalizzata alla carica intera) NON toglie la corrente ferma: 1.24e-4 come la fase 4. Il confronto 'vecchia' alla pari e' stato interrotto dallo stop."},
+ "costi": "N=256: FFT 256^3 ~0.6-1 s su 2 thread; passo grosso Galerkin = 34 FFT (~25 s); LOBPCG Galerkin ~20 s per iterazione; campo 52-88 s"
+}
