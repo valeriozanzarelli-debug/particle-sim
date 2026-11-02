@@ -806,3 +806,31 @@ non in git: se persi si riparte, i kernel si rigenerano in ~12 min con `python l
 3. Rust: `EMLAB_DIR=<dir> cargo test --bin atomo emissione6_deriva_1s -- --ignored --nocapture` (causa della deriva) e
    `emissione6_rabi_vivo` (V1/V2, ~20–40 min con 2 thread).
 4. Rifare R4/E4 (fasi 2–3) con A6-1 per vedere se il residuo del 3 % e gli angoli storti erano il campo fermo.
+
+### 13.7 Il banco del portatile rifatto con A6-1: il vecchio campo storto NON era la causa
+
+Domanda (Valerio, 2/11 sera): i tre difetti misurati dal banco luce-atomo (branch
+`claude/project-thread-sxhn28`, `src/atomo/test_banco.rs`, pre-registrazione `lab/out/banco_prereg.json`)
+venivano dal campo anisotropo permanente che A6-1 ha tolto? Ho rifatto lo stesso banco, stesse soglie e
+stessi ID, con `TRASVERSO_PER_PARITA = true` (worktree locale = loro branch + merge locale di master,
+niente push sul loro branch; N = 1e5 saltato). Numeri in `lab/out/banco_a61_risultati.json`.
+
+| N | dp − controllo, vecchio → A6-1 | D a ω21, vecchio → A6-1 | diffusa/(Nω), vecchio → A6-1 |
+|---|---|---|---|
+| 0 (controllo) | dp = 5,7535e-3 → 5,7535e-3 | 4,571e-5 → 4,571e-5 | — |
+| 1 | 5,434e-5 → 5,434e-5 | 0,02107 → 0,02107 | 9,29e-8 → 9,40e-8 |
+| 100 | 5,4015e-3 → 5,4013e-3 | 0,2097 → 0,2097 | 9,22e-8 → 9,32e-8 |
+| 1e4 | 0,41285 → 0,41284 | 1,5065 → 1,5065 | 5,51e-8 → 5,58e-8 |
+| N_π/2 = 31163 | 0,76667 → 0,76667 (dp 0,7724) | 1,4145 → 1,4145 | 2,31e-8 → 2,34e-8 |
+
+Voti: B1 e B2 PASS come prima; **B4 (π/2 dà 0,772 invece di 0,5) resta FAIL**; B5 (un fotone 2,74 volte
+l'atteso a due livelli) invariato; B3 e B6 non giudicati (servono N = 1e5). Pendenze fra N = 1 e 100:
+dp 0,9987, D 0,4989, come prima.
+
+Lettura onesta: A6-1 sposta l'energia diffusa dell'1% e dp di parti su 1e5. **Nessuno dei tre difetti
+veniva dal campo storto.** Sul banco la luce diffusa dall'atomo è ~1e-7 di quella mandata, troppo poca per
+pesare; A6-1 conta nell'emissione spontanea (campo proprio accumulato per migliaia di tick), non qui.
+La deriva dell'1s a N = 0 è identica fino a 1e-14 (il campo è praticamente vuoto): è dell'atomo, e la
+candidata resta il battimento delle 4 valli (§13.3, test `emissione6_deriva_1s` ancora da correre).
+Il fattore 2,7 e lo 0,77 vanno cercati nel modo di contare (1 − |⟨1s|ψ⟩|² prende tutto ciò che non è 1s,
+la calibrazione π/2 è a due livelli): è la proiezione livello per livello del banco.
