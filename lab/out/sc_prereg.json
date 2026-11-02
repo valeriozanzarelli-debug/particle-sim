@@ -1,0 +1,57 @@
+{
+ "studio": "SCENE_CALCOLATE (prefisso sc_)",
+ "data": "2026-11-02",
+ "cosa": "Portare elio, H2, tre quark (tubo a Y) e gluoni come scene dentro il programma unico (src/atomo, bin atomo) sul renderer a bagliori dell'atomo zig-zag. Nessuna fisica nuova: si disegnano stati e campi gia' calcolati e si controlla che il disegno dica il vero.",
+ "ingressi": "gli stessi degli studi di origine: VIDEO_ELIO (he_v_), VIDEO_H2 (h2v_), QUARK_GLUONI (qg_). Parametri di fisica aggiunti: zero.",
+ "dati_persi": "I campi e i fotogrammi di qg_ (SCR nel container cloud) e le basi .npz di H2 ed elio non sono piu' disponibili: stavano fuori da git. Le corse lunghe di qg_ si rifanno nel cloud (thread Modello standard a palline, decisione di Valerio del 2/11: i calcoli lunghi dove e' piu' efficiente, il portatile per grafica e compilazioni) con gli stessi script, gli stessi semi e le stesse configurazioni di lab/out/qg_prereg.json e lab/out/qg_aggiunta.json, ed esporta con lab/sc_esporta_quark.py e lab/sc_esporta_gluoni.py. Le basi di H2 ed elio (decine di minuti) si rifanno sul portatile a bassa priorita' (lab/h2v_wf.py, lab/sc_elio_base.py). Versioni diverse di numpy e un'altra macchina possono cambiare i numeri casuali: i voti di qg_ si ridanno da capo e il confronto con i voti storici si riporta, compreso se peggiora. I file di voto storici non si sovrascrivono: i nuovi vanno in lab/out/qg_verdetto_portatile.json e lab/out/sc_esami.json.",
+ "metodo": {
+  "elio_H2_parti_A_B": "camminatori Metropolis su |Psi|^2 dentro il programma (stesso passo di h2v_sim: 0,03 a0 x 3 mosse a fotogramma), Psi = gaussiane correlate lette da assets/scene_calcolate/; coda corta = posizioni passate vere del camminatore. Il moto e' il campionatore, non una traiettoria (si scrive a schermo). Parte B: luce pesata con g(r2|r1) = |Psi(r1,r2)|^2 / (rho1(r1) rho1(r2)), riferimento su un giro scelto (dichiarato).",
+  "H2_parte_C": "banca di fotografie indipendenti di |Psi_R|^2 per ognuno degli 11 R della griglia; a ogni fotogramma si pesca con i pesi w_R(t) del pacchetto (v0+v1)/sqrt2. Protoni a R medio(t). Periodo mostrato in 4 s (rallentato, dichiarato). Niente coda in questa parte: le fotografie sono indipendenti, una coda sarebbe un moto finto.",
+  "quark": "banca di palline campionate da f (come qg_render1.carica) sul campo d = 4, T = 4; palline che si accendono e si spengono sul posto (moto = campionatore; e' una istantanea in tempo immaginario, non un film, e si scrive a schermo).",
+  "gluoni": "le palline portate da Poynting di qg_gluoni, sottoinsieme di 20000 (il primo pezzo: nascono in ordine casuale), interpolazione lineare fra fotogrammi salvati, coda con le posizioni passate vere."
+ },
+ "esami": {
+  "S0_psi": {
+   "cosa": "Psi calcolata dal programma contro Psi di Python su 200 punti fissi (He; H2 a R = 1,40)",
+   "voto": "PASS se differenza relativa massima <= 1e-10"
+  },
+  "S1_basi_H2": {
+   "cosa": "basi H2 rifatte contro le energie di Debiti (lab/out/aggmol_h2.json), 11 R (e' V0 di h2v_)",
+   "voto": "PASS se max |diff| <= 1e-6 Eh"
+  },
+  "S2_base_He": {
+   "cosa": "base He rifatta (K = 200, stesso seme): energia con la massa di fase 5 contro -2,9037213 Eh dell'esportazione",
+   "voto": "PASS se |diff| <= 1e-6 Eh"
+  },
+  "S3_H2_camminatori": {
+   "cosa": "dopo 2000 fotogrammi: P(elettroni da parti opposte) contro 0,5749; P(altro a z>0 | uno a z<-0,35) contro 0,5928; <|z|> contro il valore analitico (WF.abs_z)",
+   "voto": "PASS se entro 0,01; 0,02; 0,01"
+  },
+  "S4_He_camminatori": {
+   "cosa": "dopo 2000 fotogrammi: <r> contro 0,929472, <r12> contro 1,42207, P(r12<0,5) coppie vere / rimescolate",
+   "voto": "PASS se entro 0,5 %, 0,5 %, e rapporto <= 0,85"
+  },
+  "S5_media_g": {
+   "cosa": "media di g sulle palline in ogni fotogramma della parte B (deve essere 1), He e H2",
+   "voto": "PASS se entro +-0,03 per He (come E5 di he_v_) e +-0,05 per H2"
+  },
+  "S6_vibrazione": {
+   "cosa": "periodo di R(t) della scena contro h/(E1-E0) = 8,00485 fs; <|z|> delle palline a R massimo e minimo contro il calcolo (come V7 di h2v_)",
+   "voto": "PASS se entro 1 % e 0,03 a0"
+  },
+  "S7_quark": {
+   "cosa": "rifacimento dei voti A, B, C di qg_prereg (placchetta, a sqrt(sigma), R_Y a d = 4, T = 4) con le stesse soglie; palline della banca contro f per cella del reticolo",
+   "voto": "PASS A, B, C come in qg_prereg e Pearson >= 0,95"
+  },
+  "S8_gluoni": {
+   "cosa": "rifacimento di G1, G2, G7 di qg_prereg su video_grande (e video_piccolo, video_tre se finite); fedelta' del sottoinsieme di 20000 palline contro tutte le 160000 per cella 8^3 (i campi non sono nei fotogrammi)",
+   "voto": "G1, G2 come in qg_prereg; G7 come in qg_prereg (nel cloud FAIL 0,8998: si riporta com'e'); sottoinsieme PASS se r >= 0,85 in ogni fotogramma"
+  },
+  "S9_fotogrammi": {
+   "cosa": "fotogrammi al secondo veri (non quelli fissi delle foto automatiche) sulla Intel UHD, finestra 1600x900, preset bassa, ognuna delle 4 scene, misurati a calcoli di fondo fermi",
+   "voto": "PASS se >= 24 fps in ogni scena; se no si scrive quanti e si abbassa il numero di palline"
+  }
+ },
+ "manopole": "fisica: zero. Grafica: numero di palline, durate dei bagliori, colori di g, giro del riferimento, rallentamento, camera. Si contano nel documento docs/SCENE_CALCOLATE.md.",
+ "debiti_ereditati": "lo stato e' del risolutore ECG, non della regola zig-zag che cammina; Born-Oppenheimer per H2; quark statici e quenched, reticolo grossolano; gluoni classici senza confinamento. Si ripetono a schermo."
+}
