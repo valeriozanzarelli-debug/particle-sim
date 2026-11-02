@@ -104,26 +104,32 @@ pub fn aggiorna(
             }
             None => (None, None, 0),
         }
-    } else if lab.scena == Scena::Calcolate {
-        // the computed scenes go through the same level of detail, their glows and tails come from their worker
-        let o = lab.cal.as_ref().map(|c| c.lock().unwrap().out.clone());
+    } else {
+        // the other scenes drawn as glows with tails go through the same level of detail
+        let o = match lab.scena {
+            Scena::Calcolate => lab.cal.as_ref().map(|c| { let o = c.lock().unwrap().out.clone(); (o.n_testa, o.raggio, o.scia, o.scie, o.scie_allunga, o.versione) }),
+            Scena::Orbitali => lab.orb.as_ref().map(|c| { let o = c.lock().unwrap().out.clone(); (o.n_testa, o.raggio_lod, o.scia, o.scie, o.scie_allunga, o.versione) }),
+            Scena::Tavola => lab.tav.out().map(|o| (o.n_testa, 3.0, 0.0, o.scie, o.scie_allunga, o.versione)),
+            _ => None,
+        };
         match o {
-            Some(o) => {
-                let nodo = crate::grafica::Nodo { nome: "calcolata", centro: [0.0; 3], figli: vec![],
-                    gruppo: crate::grafica::Gruppo { n: o.n_testa.max(1), raggio: o.raggio, scia: o.scia } };
+            Some((n, r, sc, s, sa, v)) if n > 0 => {
+                let nodo = crate::grafica::Nodo { nome: "bagliori", centro: [0.0; 3], figli: vec![], gruppo: crate::grafica::Gruppo { n, raggio: r, scia: sc } };
                 let mut dec = Vec::with_capacity(1);
                 crate::grafica::percorri(&nodo, bpp, 3.7 * lab.grandezza as f64, graf.lod as f64 * budget.fattore, 1.0, &mut dec);
-                let l = dec[0].lod;
-                (Some(l), Some((o.scie.clone(), o.scie_allunga.clone(), o.versione)), o.n_testa)
+                (Some(dec[0].lod), Some((s, sa, v)), n)
             }
-            None => (None, None, 0),
+            _ => (None, None, 0),
         }
-    } else { (None, None, 0) };
-    if lab.scena == Scena::Calcolate {
-        if let Some(c) = &lab.cal {
-            c.lock().unwrap().vista = crate::grafica::VistaWorker { occhio: occhio_dir, r_cam, bpp, lod_f: lod_atomo.map(|l| l.f).unwrap_or(1.0), scia_s: graf.scia_s as f64,
-                taglio: graf.taglio, taglio_prof: taglio_prof as f64, fetta: graf.fetta, zoom_atomo: graf.zoom_atomo, budget: graf.budget_luce() };
-        }
+    };
+    let bagliori_vivi = lab.scena != Scena::Atomo && lod_atomo.is_some();
+    let vista = crate::grafica::VistaWorker { occhio: occhio_dir, r_cam, bpp, lod_f: lod_atomo.map(|l| l.f).unwrap_or(1.0), scia_s: graf.scia_s as f64,
+        taglio: graf.taglio, taglio_prof: taglio_prof as f64, fetta: graf.fetta, zoom_atomo: graf.zoom_atomo, budget: graf.budget_luce() };
+    match lab.scena {
+        Scena::Calcolate => if let Some(c) = &lab.cal { c.lock().unwrap().vista = vista; },
+        Scena::Orbitali => if let Some(c) = &lab.orb { c.lock().unwrap().vista = vista; },
+        Scena::Tavola => if let Some(c) = &lab.tav.mondo { c.lock().unwrap().vista = vista; },
+        _ => {}
     }
     if lab.scena == Scena::Atomo {
         if let Some(c) = &lab.zz {
@@ -266,12 +272,14 @@ pub fn aggiorna(
         Scena::Calcolate => (3.7 * bpp, lab.luce),
         Scena::Elettrone => ((0.0035 * r_cam).min(0.12), lab.luce),
         // the periodic-table scene is in bohr: glows ~1/30 of the view, at most 0.08 a0 (drawing choice)
+        Scena::Tavola if bagliori_vivi => (3.7 * bpp, lab.luce),
         Scena::Tavola => ((0.004 * r_cam).min(0.08 * lab.tav.raggio_cam.max(1.0)), lab.luce),
         // balls about half a grid step at the full view (the grid step is 2R/64), smaller when zooming in
+        Scena::Orbitali if bagliori_vivi => (3.7 * bpp, lab.luce * (1.0 - 0.8 * g_nodo)),
         Scena::Orbitali => ((0.0045 * r_cam).min(0.018 * lab.orb_r), lab.luce * (1.0 - 0.8 * g_nodo)),
     };
     // the atom's surfers: crisper (tighter glow, hotter core)
-    let (soft, core) = if scena == Scena::Atomo || scena == Scena::Calcolate { (4.0, 0.9) } else { (3.0, 0.3) };
+    let (soft, core) = if scena == Scena::Atomo || bagliori_vivi { (4.0, 0.9) } else { (3.0, 0.3) };
     if let Some(m) = mats.get_mut(&vis.mats[0]) { m.params = BallParams { size: (s_main * lab.grandezza as f64) as f32, gain: g_main, soft, core, blend: 0.0 }; }
     if let Some(m) = mats.get_mut(&vis.mats[1]) { m.params = BallParams { size: ((0.004 * r_cam).min(0.06 * fm)) as f32, gain: 1.3 * g_nodo, soft: 3.0, core: 0.4, blend: 0.0 }; }
     // wave balls: a little smaller than the glowing layers, as in the photon laboratory
@@ -289,7 +297,7 @@ pub fn aggiorna(
             let px_mondo = (2.0 * (cam.fov as f64 * 0.5).tan() / cam.altezza_px as f64) as f32;
             si.n_lod = 0; si.lod = [1.0, 1.0, 1.0, 0.0]; si.prof = [0.0; 4]; si.taglio = [0.0; 4];
             if let Some(l) = lod_atomo {
-                let r_prof = if scena == Scena::Calcolate { 2.0 } else { zz_r_nuvola(lab) };
+                let r_prof = if bagliori_vivi { 2.0 } else { zz_r_nuvola(lab) };
                 let prof = [r_cam as f32, 2.0 * r_prof as f32, graf.profondita, px_mondo];
                 match s {
                     ZzStratoI::Palline => {

@@ -14,7 +14,7 @@ use std::time::{Duration, Instant};
 use rayon::prelude::*;
 use serde_json::Value;
 
-use crate::bagliori::{scia_in, Livello};
+use crate::bagliori::{Livello, Storie};
 use crate::grafica::{self, VistaWorker};
 use crate::render::{schermo, Ball};
 use crate::rng::Rng;
@@ -45,9 +45,6 @@ const MOSSE: usize = 3;
 /// Photographs alive in part C and their life (frames).
 const N_FOTO_C: usize = 2000;
 const VITA_C: u32 = 6;
-/// Past positions kept for a tail, and the most tail pieces per frame.
-const S_MAX: usize = 16;
-const MAX_SCIA: f64 = 60_000.0;
 /// How fast a tail's smoothed path follows its glow, per frame.
 const LISCIA: f32 = 0.3;
 const STOPS: [[f32; 3]; 5] = [[0.20, 0.95, 1.00], [0.25, 0.45, 1.00], [0.70, 0.30, 1.00], [1.00, 0.35, 0.70], [1.00, 0.85, 0.30]];
@@ -189,10 +186,8 @@ pub struct Mondo {
     pub cammina: Vec<[[f64; 3]; 2]>,
     p2: Vec<f64>,
     rngs: Vec<Rng>,
-    /// past screen positions of each electron glow, newest at `testa`
-    storia: Vec<[[f32; 3]; S_MAX]>,
-    testa: usize,
-    pieni: usize,
+    /// the recent past of each electron glow
+    storia: Storie,
     foto: Vec<Foto>,
     rng: Rng,
     pub parte: Parte,
@@ -214,13 +209,13 @@ impl Mondo {
         let s = &dati.stati[k];
         let p2: Vec<f64> = cammina.par_iter().map(|c| { let v = s.psi(&c[0], &c[1]); v * v }).collect();
         let rngs = (0..n.div_ceil(BLOCCO)).map(|i| Rng::new(1000 + i as u64)).collect();
-        let storia = cammina.iter().flat_map(|c| [[schermo(c[0]).to_array(); S_MAX], [schermo(c[1]).to_array(); S_MAX]]).collect();
+        let storia = Storie::new(cammina.iter().flat_map(|c| [schermo(c[0]).to_array(), schermo(c[1]).to_array()]), LISCIA);
         let mut rng = Rng::new(77);
         let foto = (0..N_FOTO_C).map(|j| Foto { k, i: (rng.next_u64() % n_foto as u64) as usize, rot: 0.0, eta: (j as u32) % VITA_C }).collect();
-        Mondo { dati, cammina, p2, rngs, storia, testa: 0, pieni: 1, foto, rng, parte: Parte::A, f: 0, media_g: 1.0, vista: VistaWorker::default(), ritmo_vero: RITMO }
+        Mondo { dati, cammina, p2, rngs, storia, foto, rng, parte: Parte::A, f: 0, media_g: 1.0, vista: VistaWorker::default(), ritmo_vero: RITMO }
     }
 
-    pub fn metti_parte(&mut self, p: Parte) { self.parte = p; self.f = 0; self.pieni = 1; }
+    pub fn metti_parte(&mut self, p: Parte) { self.parte = p; self.f = 0; self.storia.ricomincia(); }
 
     /// cos(ωt) of the packet at frame f of part C.
     pub fn cos_wt(&self) -> f64 { (std::f64::consts::TAU * self.f as f64 / (RITMO * PERIODO_C_S)).cos() }
@@ -255,15 +250,7 @@ impl Mondo {
                 }
             }
         });
-        self.testa = (self.testa + 1) % S_MAX;
-        self.pieni = (self.pieni + 1).min(S_MAX);
-        // the tail follows a smoothed path (drawing choice, declared): the sampler's jagged walk would read as a wire
-        let (t, u) = (self.testa, (self.testa + S_MAX - 1) % S_MAX);
-        let liscia = |prima: [f32; 3], ora: [f32; 3]| [prima[0] + LISCIA * (ora[0] - prima[0]), prima[1] + LISCIA * (ora[1] - prima[1]), prima[2] + LISCIA * (ora[2] - prima[2])];
-        for (i, c) in self.cammina.iter().enumerate() {
-            self.storia[2 * i][t] = liscia(self.storia[2 * i][u], schermo(c[0]).to_array());
-            self.storia[2 * i + 1][t] = liscia(self.storia[2 * i + 1][u], schermo(c[1]).to_array());
-        }
+        self.storia.registra(self.cammina.iter().flat_map(|c| [schermo(c[0]).to_array(), schermo(c[1]).to_array()]));
     }
 
     /// The glows of this frame. Electrons first (their indices are the level-of-detail keys), then the nuclei.
@@ -291,12 +278,7 @@ impl Mondo {
                 let luci: Vec<(f64, f64)> = punti.par_iter().map(|p| (d.rho1(p), b.map(|r| d.g(&r, rho_b, p)).unwrap_or(1.0))).collect();
                 self.media_g = luci.iter().map(|x| x.1).sum::<f64>() / luci.len().max(1) as f64;
                 let mezzo = [0.5 * (STOPS[1][0] + STOPS[4][0]), 0.5 * (STOPS[1][1] + STOPS[4][1]), 0.5 * (STOPS[1][2] + STOPS[4][2])];
-                let n = punti.len();
-                let f_lod = self.vista.lod_f.clamp(0.0, 1.0);
-                let k = ((self.vista.scia_s * self.ritmo_vero).round() as usize).min(S_MAX - 1).min(self.pieni.saturating_sub(1));
-                let f_scia = f_lod * (MAX_SCIA / (((f_lod as f64) * n as f64).max(1.0) * k.max(1) as f64)).min(1.0) as f32;
-                let mut passati = [[0.0f32; 3]; S_MAX];
-                for (i, (p, (r, g))) in punti.iter().zip(&luci).enumerate() {
+                for (p, (r, g)) in punti.iter().zip(&luci) {
                     let (col, a) = match b {
                         None => (base, alfa(*r)),
                         Some(_) => {
@@ -307,15 +289,8 @@ impl Mondo {
                         }
                     };
                     l.bagliore(schermo(**p).to_array(), 1.0, col, a);
-                    if k > 0 {
-                        let w = grafica::peso(i as u32, f_scia);
-                        if w > 0.0 {
-                            for (j, q) in passati.iter_mut().take(k + 1).enumerate() { *q = self.storia[i][(self.testa + S_MAX - j) % S_MAX]; }
-                            passati[0] = schermo(**p).to_array();
-                            scia_in(&mut l.scie, &mut l.scie_allunga, &passati[..k + 1], [col[0], col[1], col[2], a], w);
-                        }
-                    }
                 }
+                (l.scie, l.scie_allunga) = self.storia.scie(&l.teste, self.vista.lod_f, self.vista.scia_s, self.ritmo_vero);
                 if let Some(r) = b { l.bagliore(schermo(r).to_array(), 7.0, [1.0, 0.2, 0.6], 8.0); }
             }
             Parte::C => {

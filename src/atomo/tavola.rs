@@ -182,6 +182,10 @@ pub enum Oggetto { Esportazione(Arc<Esportazione>), Idrogeno }
 pub struct Uscita {
     pub palline: Arc<Vec<Ball>>,
     pub onde: Arc<Vec<Ball>>,
+    /// hydrogen: the glows' tails; its first n_testa balls follow the level of detail
+    pub scie: Arc<Vec<Ball>>,
+    pub scie_allunga: Arc<Vec<[f32; 3]>>,
+    pub n_testa: usize,
     pub versione: u64,
     pub pronto: bool,
     /// what is shown and how large it is (bohr)
@@ -202,6 +206,7 @@ pub struct Condiviso {
     pub metti: Option<Oggetto>,
     pub buca: bool,
     pub fine: bool,
+    pub vista: crate::grafica::VistaWorker,
     /// hydrogen scene: what the panel asks (cascata.rs)
     pub cascata: crate::cascata::Richiesta,
     pub out: Uscita,
@@ -342,8 +347,8 @@ enum Mondo { Vuoto, Nuvola(Nuvola), Idrogeno(Box<crate::cascata::Mondo>) }
 
 pub fn avvia() -> Arc<Mutex<Condiviso>> {
     let c = Arc::new(Mutex::new(Condiviso {
-        comando: Comando::Avanti, ritmo: 30.0, metti: None, buca: false, fine: false, cascata: Default::default(),
-        out: Uscita { palline: Arc::new(vec![]), onde: Arc::new(vec![]), versione: 0, pronto: false, nome: String::new(), raggio: 3.0,
+        comando: Comando::Avanti, ritmo: 30.0, metti: None, buca: false, fine: false, vista: Default::default(), cascata: Default::default(),
+        out: Uscita { palline: Arc::new(vec![]), onde: Arc::new(vec![]), scie: Arc::new(vec![]), scie_allunga: Arc::new(vec![]), n_testa: 0, versione: 0, pronto: false, nome: String::new(), raggio: 3.0,
                       righe: ("Tavola periodica: premi un elemento acceso".into(), String::new()), ms: 0.0, spettro: None, livello: 0, dal_lancio: None },
     }));
     let cc = c.clone();
@@ -354,9 +359,9 @@ pub fn avvia() -> Arc<Mutex<Condiviso>> {
         let mut ultimo = Instant::now();
         loop {
             let t0 = Instant::now();
-            let (cmd, ritmo, metti, buca, fine, rich) = {
+            let (cmd, ritmo, metti, buca, fine, rich, vista) = {
                 let mut g = cc.lock().unwrap();
-                (g.comando, g.ritmo, g.metti.take(), g.buca, g.fine, std::mem::take(&mut g.cascata))
+                (g.comando, g.ritmo, g.metti.take(), g.buca, g.fine, std::mem::take(&mut g.cascata), g.vista)
             };
             if fine { break; }
             let dt_schermo = t0.duration_since(ultimo).as_secs_f64().min(0.1);
@@ -377,22 +382,23 @@ pub fn avvia() -> Arc<Mutex<Condiviso>> {
                 Mondo::Vuoto => None,
                 Mondo::Nuvola(n) => {
                     if avanti { n.passo(buca); }
-                    Some((n.disegna(buca), vec![], n.raggio(), righe_esportazione(&n.e, buca), None, 0, None))
+                    Some((n.disegna(buca), vec![], n.raggio(), righe_esportazione(&n.e, buca), None, 0, None, (vec![], vec![]), 0))
                 }
                 Mondo::Idrogeno(m) => {
                     m.richiesta(rich);
                     if avanti { m.passo(dt_schermo); }
                     let (p, o) = m.disegna();
-                    Some((p, o, m.raggio_vista(), m.righe(), Some(m.sp.clone()), m.livello(), m.dal_lancio()))
+                    let sc = m.scie(&p, &vista, ritmo);
+                    Some((p, o, m.raggio_vista(), m.righe(), Some(m.sp.clone()), m.livello(), m.dal_lancio(), sc, crate::cascata::N_SURF))
                 }
             };
-            if let Some((p, o, r, righe, spettro, livello, dal_lancio)) = disegno {
+            if let Some((p, o, r, righe, spettro, livello, dal_lancio, sc, n_testa)) = disegno {
                 versione += 1;
                 let el = t0.elapsed().as_secs_f64() * 1e3;
                 ms += 0.15 * (el.min(500.0) - ms);
                 let mut g = cc.lock().unwrap();
                 let nome = nome.unwrap_or_else(|| g.out.nome.clone());
-                g.out = Uscita { palline: Arc::new(p), onde: Arc::new(o), versione, pronto: true, nome, raggio: r, righe, ms, spettro, livello, dal_lancio };
+                g.out = Uscita { palline: Arc::new(p), onde: Arc::new(o), scie: Arc::new(sc.0), scie_allunga: Arc::new(sc.1), n_testa, versione, pronto: true, nome, raggio: r, righe, ms, spettro, livello, dal_lancio };
             }
             let want = Duration::from_secs_f64(1.0 / ritmo.max(0.5));
             let el = t0.elapsed();

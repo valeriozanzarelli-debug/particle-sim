@@ -285,6 +285,12 @@ pub enum Comando { Avanti, Pausa, Indietro }
 pub struct Uscita {
     pub palline: Arc<Vec<Ball>>,
     pub onde: Arc<Vec<Ball>>,
+    /// the glows' tails; the first n_testa balls of `palline` follow the level of detail over radius `raggio_lod`
+    pub scie: Arc<Vec<Ball>>,
+    pub scie_allunga: Arc<Vec<[f32; 3]>>,
+    pub n_testa: usize,
+    pub raggio_lod: f64,
+    pub scia: f64,
     pub versione: u64,
     pub t: f64,
     pub scelta: Scelta,
@@ -306,6 +312,7 @@ pub struct Condiviso {
     pub misura: bool,
     pub azzera: bool,
     pub fine: bool,
+    pub vista: crate::grafica::VistaWorker,
     pub out: Uscita,
 }
 
@@ -315,7 +322,7 @@ struct Mondo {
     t: f64,
     dt: f64,
     surf: Vec<[f64; 3]>,
-    scie: Vec<Vec<[f64; 3]>>,
+    storie: crate::bagliori::Storie,
     rng: Rng,
 }
 
@@ -340,8 +347,8 @@ impl Mondo {
         let v = g.al_tempo(0.0);
         let mut rng = Rng::new(77);
         let surf = nasci(&g, &v, N_SURF_ORB, &mut rng);
-        let scie = surf.iter().take(N_SCIE).map(|p| vec![*p]).collect();
-        Mondo { g, scelta: s, t: 0.0, dt, surf, scie, rng }
+        let storie = crate::bagliori::Storie::new(surf.iter().map(|p| schermo(*p).to_array()), 1.0);
+        Mondo { g, scelta: s, t: 0.0, dt, surf, storie, rng }
     }
 
     fn passo(&mut self, verso: f64, surfisti: bool) -> Vec<[C; 4]> {
@@ -354,8 +361,8 @@ impl Mondo {
             for (j, p) in nuovi.into_iter().enumerate() {
                 let i = (self.rng.next_u64() as usize + j) % N_SURF_ORB;
                 self.surf[i] = p;
+                self.storie.azzera(i, schermo(p).to_array());
             }
-            for (s, p) in self.scie.iter_mut().zip(self.surf.iter()) { *s = vec![*p]; }
             return v;
         }
         // surfers: v = j/ρ of the wave (≤ c), in 4 midpoint sub-steps
@@ -370,14 +377,13 @@ impl Mondo {
                 for c in 0..3 { p[c] += h * v2[c]; }
             }
         });
-        // a few are reborn with |ψ|² every step (they would otherwise drift on the coarse grid)
+        self.storie.registra(self.surf.iter().map(|p| schermo(*p).to_array()));
+        // a few are reborn with |ψ|² every step (they would otherwise drift on the coarse grid), without a tail across the jump
         let nuovi = nasci(g, &v, 25, &mut self.rng);
         for (j, p) in nuovi.into_iter().enumerate() {
-            let i = N_SCIE + (self.rng.next_u64() as usize + j) % (N_SURF_ORB - N_SCIE);
+            let i = (self.rng.next_u64() as usize + j) % N_SURF_ORB;
             self.surf[i] = p;
-        }
-        for (s, p) in self.scie.iter_mut().zip(self.surf.iter()) {
-            if verso > 0.0 { s.push(*p); if s.len() > 60 { s.remove(0); } } else if s.len() > 1 { s.pop(); } else { *s = vec![*p]; }
+            self.storie.azzera(i, schermo(p).to_array());
         }
         v
     }
@@ -408,20 +414,21 @@ fn disegna(m: &Mondo, v: &[[C; 4]], surfisti: bool) -> (Vec<Ball>, Vec<Ball>) {
         }
         out
     }).collect() };
-    // the surfers: soft glows with the phase colour where they are, no trails (Valerio, 13/10)
-    let onde: Vec<Ball> = m.surf.par_iter().map(|p| {
+    // the surfers: the glows of the zig-zag atom, the phase colour where they are, their short tails come from `Storie`
+    let teste: Vec<Ball> = if surfisti { m.surf.par_iter().map(|p| {
         let s = campiona(g, v, *p);
         let r: f64 = s.iter().map(|c| c.norm2()).sum();
-        let a = (0.12 + 0.4 * (r as f32 / rmax).powf(0.35)).min(0.6);
-        (schermo(*p).to_array(), 0.7, phase_color(fase(&s), a))
-    }).collect();
-    (palline, onde)
+        let a = (0.08 + 0.55 * (r as f32 / rmax).powf(0.35)).min(0.63);
+        (schermo(*p).to_array(), 1.0, phase_color(fase(&s), a))
+    }).collect() } else { vec![] };
+    (if surfisti { teste } else { palline }, vec![])
 }
 
 pub fn avvia() -> Arc<Mutex<Condiviso>> {
     let c = Arc::new(Mutex::new(Condiviso {
-        comando: Comando::Avanti, ritmo: 30.0, scegli: None, opz: Opzioni::default(), misura: false, azzera: false, fine: false,
+        comando: Comando::Avanti, ritmo: 30.0, scegli: None, opz: Opzioni::default(), misura: false, azzera: false, fine: false, vista: Default::default(),
         out: Uscita { palline: Arc::new(vec![]), onde: Arc::new(vec![]), versione: 0, t: 0.0, scelta: Scelta::default(), livelli: vec![],
+                      scie: Arc::new(vec![]), scie_allunga: Arc::new(vec![]), n_testa: 0, raggio_lod: 20.0, scia: 0.0,
                       r: 20.0, periodo: 1.0, ms: 0.0, pronto: false, n_clic: 0, ultimo_clic: None },
     }));
     let cc = c.clone();
@@ -435,9 +442,9 @@ pub fn avvia() -> Arc<Mutex<Condiviso>> {
         let mut opz_prima = Opzioni::default();
         loop {
             let t0 = Instant::now();
-            let (cmd, ritmo, scegli, fine, opz, misura, azzera) = {
+            let (cmd, ritmo, scegli, fine, opz, misura, azzera, vista) = {
                 let mut g = cc.lock().unwrap();
-                let s = (g.comando, g.ritmo, g.scegli.take(), g.fine, g.opz, g.misura, g.azzera);
+                let s = (g.comando, g.ritmo, g.scegli.take(), g.fine, g.opz, g.misura, g.azzera, g.vista);
                 g.misura = false;
                 g.azzera = false;
                 s
@@ -461,12 +468,16 @@ pub fn avvia() -> Arc<Mutex<Condiviso>> {
             }
             if cambiato || versione == 0 {
                 let (mut p, o) = disegna(&m, &v, opz.surfisti);
+                let n_testa = if opz.surfisti { p.len() } else { 0 };
+                let (scie, scie_allunga) = if opz.surfisti { m.storie.scie(&p, vista.lod_f, vista.scia_s, ritmo) } else { (vec![], vec![]) };
+                let r2 = m.surf.iter().step_by(10).map(|q| q[0] * q[0] + q[1] * q[1] + q[2] * q[2]).sum::<f64>() / (N_SURF_ORB / 10) as f64;
+                let scia = scie_allunga.iter().map(|a| ((a[0] * a[0] + a[1] * a[1] + a[2] * a[2]) as f64).sqrt()).sum::<f64>() / n_testa.max(1) as f64;
                 riv.disegna(&mut p, 0.08 * m.g.r, opz.mostra_clic);
                 versione += 1;
                 let el = t0.elapsed().as_secs_f64() * 1e3;
                 ms += 0.15 * (el.min(500.0) - ms);
                 let livelli = m.g.stati.iter().zip(&m.g.omega).map(|(s, w)| (*s, *w, dirac_esatto(s.n, s.kappa()))).collect();
-                let out = Uscita { palline: Arc::new(p), onde: Arc::new(o), versione, t: m.t, scelta: m.scelta.clone(), livelli,
+                let out = Uscita { palline: Arc::new(p), onde: Arc::new(o), scie: Arc::new(scie), scie_allunga: Arc::new(scie_allunga), n_testa, raggio_lod: 1.5 * r2.sqrt().max(0.1), scia, versione, t: m.t, scelta: m.scelta.clone(), livelli,
                                    r: m.g.r, periodo: m.g.periodo(), ms, pronto: true, n_clic: riv.clic.len(), ultimo_clic: riv.ultimo() };
                 cc.lock().unwrap().out = out;
             }

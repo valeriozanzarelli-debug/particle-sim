@@ -72,6 +72,56 @@ pub fn scia_in(out: &mut Vec<Ball>, st: &mut Vec<[f32; 3]>, passati: &[[f32; 3]]
     }
 }
 
+/// Past positions kept per glow.
+pub const S_MAX: usize = 16;
+/// The most tail pieces per frame.
+pub const MAX_SCIA: f64 = 60_000.0;
+
+/// The recent past of a group of glows, for their tails. `liscia` = 1 keeps the true path (glows riding a current);
+/// below 1 the tail follows a smoothed path (a sampler's jagged walk would read as a wire: a declared drawing choice).
+#[derive(Clone, Debug)]
+pub struct Storie { buf: Vec<[[f32; 3]; S_MAX]>, testa: usize, pieni: usize, liscia: f32 }
+
+impl Storie {
+    pub fn new(pos: impl Iterator<Item = [f32; 3]>, liscia: f32) -> Self {
+        Storie { buf: pos.map(|p| [p; S_MAX]).collect(), testa: 0, pieni: 1, liscia }
+    }
+    /// One step: `pos(i)` is where glow i is now.
+    pub fn registra(&mut self, pos: impl Iterator<Item = [f32; 3]>) {
+        let (t, u) = ((self.testa + 1) % S_MAX, self.testa);
+        self.testa = t;
+        self.pieni = (self.pieni + 1).min(S_MAX);
+        let a = self.liscia;
+        for (b, p) in self.buf.iter_mut().zip(pos) {
+            let q = b[u];
+            b[t] = [q[0] + a * (p[0] - q[0]), q[1] + a * (p[1] - q[1]), q[2] + a * (p[2] - q[2])];
+        }
+    }
+    /// Glow i was moved by hand (reborn elsewhere): no tail across the jump.
+    pub fn azzera(&mut self, i: usize, p: [f32; 3]) { self.buf[i] = [p; S_MAX]; }
+    /// Forget the past of all the glows (the tails start again).
+    pub fn ricomincia(&mut self) { self.pieni = 1; }
+    /// The tails of the first glows of `teste` under the level of detail's kept fraction `lod_f`: `scia_s` seconds at `ritmo` steps per second.
+    pub fn scie(&self, teste: &[Ball], lod_f: f32, scia_s: f64, ritmo: f64) -> (Vec<Ball>, Vec<[f32; 3]>) {
+        let n = self.buf.len().min(teste.len());
+        let k = ((scia_s * ritmo).round() as usize).min(S_MAX - 1).min(self.pieni.saturating_sub(1));
+        if k == 0 || n == 0 { return (vec![], vec![]); }
+        let f = lod_f.clamp(0.0, 1.0);
+        let f = f * (MAX_SCIA / ((f as f64 * n as f64).max(1.0) * k as f64)).min(1.0) as f32;
+        let cap = (f as f64 * n as f64 * k as f64) as usize + 16;
+        let (mut balls, mut st) = (Vec::with_capacity(cap), Vec::with_capacity(cap));
+        let mut passati = [[0.0f32; 3]; S_MAX];
+        for i in 0..n {
+            let w = crate::grafica::peso(i as u32, f);
+            if w <= 0.0 { continue; }
+            for (j, q) in passati.iter_mut().take(k + 1).enumerate() { *q = self.buf[i][(self.testa + S_MAX - j) % S_MAX]; }
+            passati[0] = teste[i].0;
+            scia_in(&mut balls, &mut st, &passati[..k + 1], teste[i].2, w);
+        }
+        (balls, st)
+    }
+}
+
 #[cfg(test)]
 mod prove {
     use super::*;

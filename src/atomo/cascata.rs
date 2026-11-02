@@ -183,6 +183,10 @@ pub struct Mondo {
     /// the wave's own clock (λ_C/c): the phases e^{−i(ω−1)τ}
     tau: f64,
     surf: Vec<[f64; 3]>,
+    /// the recent past of the glows, for their tails (smoothed: during a jump the sampler moves them by large steps)
+    storie: crate::bagliori::Storie,
+    /// screen time when the drawn state last stopped changing: the sampler keeps its large step a little longer
+    fine_salto: f64,
     luci: Vec<Luce>,
     pub ns_al_secondo: f64,
     rng: Rng,
@@ -201,8 +205,9 @@ impl Mondo {
     pub fn new() -> Self { Self::con(Arc::new(Spettro::calcola())) }
     pub fn con(sp: Arc<Spettro>) -> Self {
         let mut rng = Rng::new(2026);
-        let surf = (0..N_SURF).map(|_| { let r = esponenziale_1s(&mut rng); r }).collect();
-        Mondo { sp, fase: Fase::Fermo { liv: 0, salto: None, verso: None }, t: 0.0, tau: 0.0, surf, luci: vec![], ns_al_secondo: 1.0, rng, emesse: vec![], avviso: String::new(), lancio: None }
+        let surf: Vec<[f64; 3]> = (0..N_SURF).map(|_| esponenziale_1s(&mut rng)).collect();
+        let storie = crate::bagliori::Storie::new(surf.iter().map(|x| schermo([x[0] / BOHR, x[1] / BOHR, x[2] / BOHR]).to_array()), 0.5);
+        Mondo { sp, fase: Fase::Fermo { liv: 0, salto: None, verso: None }, t: 0.0, tau: 0.0, surf, storie, fine_salto: f64::MIN, luci: vec![], ns_al_secondo: 1.0, rng, emesse: vec![], avviso: String::new(), lancio: None }
     }
 
     pub fn livello(&self) -> usize { match self.fase { Fase::Fermo { liv, .. } => liv, Fase::Assorbe { a, .. } => a, Fase::Emette { a, .. } => a } }
@@ -269,8 +274,8 @@ impl Mondo {
         self.tau += dt * std::f64::consts::TAU / w21 / BATTITO_SCHERMO;
         // state machine
         match self.fase {
-            Fase::Assorbe { a, t0, .. } if self.t >= t0 + DURATA_ASSORBE => { self.fase = self.attesa(a); }
-            Fase::Emette { a, t0, .. } if self.t >= t0 + DURATA_SALTO => { self.fase = self.attesa(a); }
+            Fase::Assorbe { a, t0, .. } if self.t >= t0 + DURATA_ASSORBE => { self.fase = self.attesa(a); self.fine_salto = self.t; }
+            Fase::Emette { a, t0, .. } if self.t >= t0 + DURATA_SALTO => { self.fase = self.attesa(a); self.fine_salto = self.t; }
             Fase::Fermo { liv, salto: Some(ts), verso: Some(f) } if self.t >= ts => {
                 let r = self.sp.riga(liv, f).cloned();
                 if let Some(r) = r {
@@ -288,7 +293,9 @@ impl Mondo {
         let dtau = dt * std::f64::consts::TAU / w21 / BATTITO_SCHERMO;
         let seme = self.rng.next_u64();
         let n_max = st.iter().filter(|x| x.1.abs() > 1e-3).map(|x| self.sp.liv[x.0].n).max().unwrap_or(1) as f64;
-        let passo_m = 0.3 * n_max * n_max * BOHR;
+        // large steps while the drawn state changes and for ASSESTO s after; in a level the current alone moves the glows
+        let in_salto = !matches!(self.fase, Fase::Fermo { .. }) || self.t - self.fine_salto < ASSESTO;
+        let passo_m = if in_salto { 0.3 } else { 0.02 } * n_max * n_max * BOHR;
         let me = &*self;
         let nuovi: Vec<[f64; 3]> = me.surf.par_iter().enumerate().map(|(k, p)| {
             let mut rng = Rng::new(seme ^ (k as u64).wrapping_mul(0x9E37_79B9_7F4A_7C15));
@@ -319,7 +326,13 @@ impl Mondo {
             p
         }).collect();
         self.surf = nuovi;
+        self.storie.registra(self.surf.iter().map(|x| schermo([x[0] / BOHR, x[1] / BOHR, x[2] / BOHR]).to_array()));
+        // no tails over the sampler's large steps: they would be straws, not a motion
+        if in_salto { self.storie.ricomincia(); }
     }
+
+    /// The glows' tails (the first glows of `teste` are the electron's).
+    pub fn scie(&self, teste: &[Ball], v: &crate::grafica::VistaWorker, ritmo: f64) -> (Vec<Ball>, Vec<[f32; 3]>) { self.storie.scie(&teste[..N_SURF.min(teste.len())], v.lod_f, v.scia_s, ritmo) }
 
     /// Wait in level `liv`: draw the jump time from its computed lifetime and the line from its branching ratios.
     fn attesa(&mut self, liv: usize) -> Fase {
@@ -346,7 +359,7 @@ impl Mondo {
         let mut p: Vec<Ball> = self.surf.par_iter().map(|x| {
             let s = self.psi(&st, *x);
             let f = if s[0].norm2() >= s[1].norm2() { s[0].arg() } else { s[1].arg() };
-            (schermo([x[0] / BOHR, x[1] / BOHR, x[2] / BOHR]).to_array(), 1.0, phase_color(f, 0.42))
+            (schermo([x[0] / BOHR, x[1] / BOHR, x[2] / BOHR]).to_array(), 1.0, phase_color(f, 0.25))
         }).collect();
         p.push((schermo([0.0; 3]).to_array(), 2.2, [1.0, 0.6, 0.25, 0.9]));
         let mut onde = vec![];
@@ -408,7 +421,7 @@ impl Mondo {
                 else { format!("ASSORBE {} → {} · {} · l'onda batte alla frequenza della riga (mostrata rallentata)", liv(da), liv(a), sp.riga(a, da).map(|r| format!("{} {:.2} nm, {:.3} eV", r.nome, r.nm, r.ev)).unwrap_or_default()) },
             Fase::Emette { da, a, .. } => format!("RIEMETTE {} → {} · {} (guscio di luce, figura sin²θ attorno al dipolo)", liv(da), liv(a), sp.riga(da, a).map(|r| format!("{} {:.2} nm, {:.3} eV", r.nome, r.nm, r.ev)).unwrap_or_default()),
         };
-        let b = format!("rallentatore 1 s = {} ns · battito dell'onda rallentato ×{:.0e} · emesse: {}{}", self.ns_al_secondo,
+        let b = format!("PILOTATO: l'impulso π, i tempi dei salti (pescati dalla vita calcolata) e i gusci di luce sono scritti, non la regola viva con la luce · rallentatore 1 s = {} ns · battito dell'onda rallentato ×{:.0e} · emesse: {}{}", self.ns_al_secondo,
             BATTITO_SCHERMO * (sp.liv[2].omega() - sp.liv[0].omega()) / T_UNIT_S / std::f64::consts::TAU,
             if self.emesse.is_empty() { "—".to_string() } else { self.emesse.join(", ") },
             if self.avviso.is_empty() { String::new() } else { format!(" · {}", self.avviso) });
@@ -418,6 +431,8 @@ impl Mondo {
 
 /// Screen seconds from the launch to the photon reaching the atom.
 const ARRIVO: f64 = 2.0;
+/// Screen seconds the sampler keeps its large step after the drawn state stopped changing.
+const ASSESTO: f64 = 4.0;
 
 impl Default for Mondo { fn default() -> Self { Self::new() } }
 
