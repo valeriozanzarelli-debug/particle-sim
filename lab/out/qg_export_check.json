@@ -1,0 +1,63 @@
+{
+ "quark_Y": {
+  "n": 60000,
+  "byte": 1200000,
+  "max_err_palline": 2.3833891127367224e-07,
+  "tolleranza_f32": 7.152150407545258e-07,
+  "max_err_campo": 4.5163672801606936e-10,
+  "tolleranza_campo": 1.4869179056104855e-09,
+  "range_quota": [
+   0.12950816750526428,
+   0.879825234413147
+  ],
+  "range_livello": [
+   0.06771837174892426,
+   1.0
+  ],
+  "ok": true
+ },
+ "gluoni_video_grande": {
+  "n": 20000,
+  "fotogrammi": 48,
+  "byte": 7680000,
+  "max_err_q_u16": 0.0,
+  "max_err_rb": 0.0019607843137254832,
+  "tolleranza_rb": 0.00196078431372549,
+  "max_err_lv_su_255": 0.49998668840619587,
+  "tolleranza_lv": 0.5,
+  "max_err_t": 0.0,
+  "G7_min": 0.899782695204353,
+  "S8_min": 0.9951757460661365,
+  "ok": true
+ },
+ "gluoni_video_piccolo": {
+  "n": 20000,
+  "fotogrammi": 48,
+  "byte": 7680000,
+  "max_err_q_u16": 0.0,
+  "max_err_rb": 0.0019607843137254832,
+  "tolleranza_rb": 0.00196078431372549,
+  "max_err_lv_su_255": 0.4997872770392746,
+  "tolleranza_lv": 0.5,
+  "max_err_t": 0.0,
+  "G7_min": 0.9093202116913334,
+  "S8_min": 0.9957645336330486,
+  "ok": true
+ },
+ "gluoni_video_tre": {
+  "n": 20000,
+  "fotogrammi": 48,
+  "byte": 7680000,
+  "max_err_q_u16": 0.0,
+  "max_err_rb": 0.0019607843137254832,
+  "tolleranza_rb": 0.00196078431372549,
+  "max_err_lv_su_255": 0.4999917875837987,
+  "tolleranza_lv": 0.5,
+  "max_err_t": 0.0,
+  "G7_min": 0.9341133007499474,
+  "S8_min": 0.9932879877767224,
+  "ok": true
+ },
+ "tutto_ok": true,
+ "byte_totali": 24288492
+}

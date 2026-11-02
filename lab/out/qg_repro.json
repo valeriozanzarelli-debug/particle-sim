@@ -10,7 +10,12 @@
   "nota": "il pezzo 0 di ottobre ha fatto 5 misure in 480 s, oggi 22 in 560 s (macchina meno carica): il confine dei pezzi dipende dal tempo, i numeri no"
  },
  "parte2_esami_YM": {
-  "rifatti": ["a1", "a1_stesso", "rif", "rif_stesso"],
+  "rifatti": [
+   "a1",
+   "a1_stesso",
+   "rif",
+   "rif_stesso"
+  ],
   "fine_npz_eE_eB_S": "identici bit per bit (max diff 0)",
   "diag_json_H_HE_HB_gauss_unit": "identici (max diff 0)",
   "D(1.0)_ricalcolato": 0.20510557647321834,
@@ -25,5 +30,9 @@
    "G1 video_piccolo deriva_rel 0.0 -> 1.7e-15 (stessa ragione, zero di macchina)"
   ]
  },
- "esito": "nessun numero diverso: tutto riproduce bit per bit"
+ "esito": "nessun numero diverso: tutto riproduce bit per bit",
+ "parte2_video": {
+  "rifatto": "video_piccolo da zero per 19 passi in SCR/repro_vid",
+  "fotogrammi_f0000_f0004": "identici bit per bit (q, rb, eb, t, fid)"
+ }
 }
