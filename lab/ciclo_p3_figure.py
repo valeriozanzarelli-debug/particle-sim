@@ -19,6 +19,6 @@ def panel(ax):
     b6 = r["B6"]["value"]["P"]
     ax.set_ylim(1e-9, 1); ax.set_xlim(-1200, 1200)
     ax.set_xlabel("x dall'atomo (λ_C)"); ax.set_ylabel("densità a fine corsa (per 3 celle base)")
-    ax.set_title(f"f) controllo al volo: raffina solo dove l'elettrone esce (arancio, {ref.sum()}/243 celle); "
+    ax.set_title(f"f) controllo al volo: raffina solo dove l'elettrone esce\n(arancio, {ref.sum()}/243 celle); "
                  f"risparmio {b6['saving']:.1f}x", fontsize=8.5)
     ax.legend(fontsize=6.5, loc="lower center")
