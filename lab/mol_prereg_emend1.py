@@ -1,0 +1,30 @@
+"""mol_prereg_emend1.py - amendment 1 to the mol_ pre-registration (LiH), written and committed BEFORE its runs
+(2 Nov 2026). Writes lab/out/mol_prereg_emend1.json. Nothing of mol_prereg.json is changed; old verdicts stay recorded."""
+import json, os
+OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "out")
+em = {
+    "amends": "lab/out/mol_prereg.json (commit 2435e02), study LiH",
+    "date": "2026-11-02",
+    "why": "phase-1 result: the curve started at R = 2.5 a0, and the DVR put a hard wall there that squeezed the v >= 1 "
+           "levels (v0->1 came out 1481 cm-1 vs 1360 measured; declared in docs/MOLECOLE_PICCOLE.md par. 2). "
+           "L5 failed (Li +0.56 mEh vs 0.5).",
+    "config": {
+        "RGRID_extra": [2.1, 2.25, 2.4],
+        "curve_start": "same as phase 1: R0 basis (lab/out/mol_lih_re.npz) stretched z -> z R/R0, nsweep_curve = 2, "
+                       "seed_curve + 1000 R, ntrial 60/30",
+        "DVR_range": "[2.1, 5.0] a0 (all 13 points), sinc-DVR 1200 points on the cubic spline, same reduced mass",
+        "Li": "resume the phase-1 Li basis (K = 300), grow to K_LI2 = 450 and do nsweep_li2 = 3 sweeps (seed_li2 = 8); "
+              "if it does not finish in ~1 h, the last checkpoint is judged and declared",
+        "K_LI2": 450, "nsweep_li2": 3, "seed_li2": 8
+    },
+    "exams": {
+        "V1": {"what": "vibrational quantum v0->1 vs 1359.7 cm-1 (7LiH)", "ref": 1359.7, "tol_rel": 0.02},
+        "V2": {"what": "D_0 = E(Li) + E(H) - E(v=0) vs 2.429 eV", "ref": 2.429, "tol_eV": 0.0434},
+        "L2_rejudged": "D_e with the new Li energy, same threshold (43.4 meV)",
+        "L4_rejudged": "dipole averaged over v = 0 on the extended curve, same threshold (2 %)",
+        "L5_rejudged": "Li with K = 450, same threshold (0.5 mEh)"
+    },
+    "unchanged": "L0, L1, L3 (fit window 2.7-3.5 unchanged; their values do not depend on the new points)"
+}
+json.dump(em, open(os.path.join(OUT, "mol_prereg_emend1.json"), "w"), indent=1, ensure_ascii=False)
+print("written")

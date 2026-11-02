@@ -36,7 +36,7 @@ GIF corta `docs/fig/qg_gluoni_urto.gif` dal film `qg_gluoni_urto_1080p.mp4` (amp
 | G4 | ampiezza grande: si urtano | D(1,0) = 0,205 | ≥ 0,10 | **PASS** |
 | G5 | stesso colore = quasi niente urto | D_stesso = 0,018 | ≤ D/3 = 0,068 | **PASS** |
 | G6 | D ∝ ampiezza² | pendenza 2,04 | 1,6–2,4 (previsto 2) | **PASS** |
-| G7 | palline fedeli al campo (r ≥ 0,9 in ogni fotogramma) | video_grande: min r = **0,8998** | ≥ 0,9 | **FAIL** (di un soffio) |
+| G7 | palline fedeli al campo (r ≥ 0,9 in ogni fotogramma) | video_grande: min r = **0,8998**; video_piccolo: 0,9093 (140 + 140 fotogrammi) | ≥ 0,9 | **FAIL** (di un soffio, 1 fotogramma su 280) |
 
 **Validazione, non scoperta.** Il tubo a Y fra tre quark statici è un risultato noto della QCD su reticolo
 (Takahashi–Suganuma 2001, Bissey et al. 2007). Lo scattering non lineare dei gluoni classici è fisica nota. Il valore
@@ -99,11 +99,11 @@ lineare (corsa di riferimento ad ampiezza 0,005 riscalata).
 **Gauss ed energia.** Il residuo di Gauss iniziale non è zero (le code dei due pacchetti si toccano: 1,7·10⁻⁶ ×
 ampiezza/0,005), ma si **conserva** fino a 10⁻¹⁴. L'energia si conserva entro 5·10⁻⁵.
 
-**Il film (in corso al momento di scrivere).** Palline = pezzetti fissi dell'energia. Nascono con densità ∝ energia e
+**Il film.** Palline = pezzetti fissi dell'energia. Nascono con densità ∝ energia e
 sono **portate dal vettore di Poynting di Yang–Mills** (v = S/ε, dentro la simulazione). Tre corse:
 `video_piccolo` (ampiezza 0,05, si attraversano), `video_grande` (ampiezza 1, si urtano: **finita**), `video_tre`
-(tre gluoni T¹, T², T⁴ da x, y, z, aggiunta dichiarata). Esame G7 su `video_grande`: correlazione palline–energia
-minima 0,8998, sotto la soglia 0,9: **FAIL** di un soffio. Le palline seguono una corrente di energia sul reticolo
+(tre gluoni T¹, T², T⁴ da x, y, z, aggiunta dichiarata). Esame G7 (finale del 2/11, tutte e due le corse finite):
+`video_grande` minima 0,8998 (a t = 50,0; è l'unico fotogramma sotto 0,9), `video_piccolo` minima 0,9093: **FAIL** di un soffio. Le palline seguono una corrente di energia sul reticolo
 che non è esattamente conservata (S e ε definiti sui siti).
 
 **Cosa si vede nel film (onestà).** Dopo l'incontro l'energia si allarga anche di lato: in parte è l'urto (il 20 %
@@ -153,8 +153,8 @@ commutano invece non dipende dalla gauge.
 4. **Quenched**: niente quark dinamici.
 5. **Corsa `video_tre` aggiunta dopo** la pre-registrazione, solo per il film.
 6. **G7 FAIL** (0,8998): la corrente S/ε sul reticolo non è esattamente conservata.
-7. Il film della parte 2 e l'orbita lenta della parte 1 **non sono ancora montati** al momento di questo documento
-   (corse ancora in corso, con checkpoint). Comandi:
+7. (Chiuso il 2/11, vedi §8.) Il film della parte 2 e l'orbita lenta della parte 1 non erano ancora montati al momento
+   della prima stesura. Comandi:
    `python3 lab/qg_gluoni.py video_piccolo|video_tre` (riprendibili), poi `python3 lab/qg_verdetto.py parte2`,
    `python3 lab/qg_render2.py refs` e `batch i0 i1` → `<SCR>/qg_film_1920/*.jpg`, montaggio con ffmpeg come
    `lab/vz_video.sh`. Orbita: `python3 lab/qg_render1.py orbita prod 4 4 <n> <i0> <i1>`.
@@ -196,3 +196,43 @@ ffmpeg -framerate 24 -i SCR/qg_film_<corsa>_1920/%05d.jpg -c:v libx264 -crf 18 -
 ```
 L'esposizione dei film è fissata in `SCR/qg_film_refs.json` (fotogramma 0 di ogni corsa). Se manca, va rigenerata con
 `python3 lab/qg_render2.py refs`.
+
+## 8. Ripresa del 2/11: controllo di riproducibilità, G7 finale, esportazione per il programma
+
+I dati di ottobre **non erano persi**: tutto era ancora in `SCR`.
+
+**Riproducibilità (stessi semi, stesso codice).** Esito in `lab/out/qg_repro.json`. **Nessun numero diverso.**
+* Parte 1: la produzione (seme 2026) rifatta da zero in una cartella a parte: 150 sweep di termalizzazione + 22 misure.
+  Confronto con le prime 22 misure di ottobre (`qg_prod_mis_0000` + inizio di `_0001`), tutte le chiavi (placchette,
+  loop di Wilson, correlatori 12³, loop barionici): differenza massima **0**, bit per bit. Anche le 150 placchette
+  della termalizzazione: 0. (Il pezzo di ottobre aveva fatto 5 misure in 480 s, oggi 22 in 560 s: il confine dei pezzi
+  dipende dal tempo, i numeri no.)
+* Parte 2: rifatte le corse d'esame `a1`, `a1_stesso`, `rif`, `rif_stesso`: campi finali e diagnostica identici
+  (differenza 0); D(1,0) = 0,205106 e D_stesso = 0,017613 identici. `video_piccolo` rifatta da zero per 19 passi: i
+  fotogrammi f0000–f0004 identici.
+* Voti ricalcolati da capo (`qg_analisi1.py` sulle 600 misure, poi `qg_verdetto.py`): A, B, C, D, G1–G6 identici.
+  L'unica voce cambiata è G7 di `video_piccolo` (da 11 a 140 fotogrammi), perché a ottobre il voto era stato scritto
+  con la corsa appena partita: non è un problema di riproducibilità.
+
+**Film finiti.** `video_piccolo` (da 302/560) e `video_tre` (da 437/560) ripresi dai checkpoint e finiti (560/560).
+**G7 finale (votato sulle due corse pre-registrate, 140 fotogrammi ciascuna): FAIL** — `video_grande` min r = 0,8998
+(1 fotogramma sotto 0,9 su 140, mediana 0,974), `video_piccolo` min r = 0,9093 (nessuno sotto, mediana 0,974).
+`video_tre` (aggiunta, non votata): min r = 0,934, mediana 0,978; Gauss iniziale 3,8·10⁻⁴ con deriva 1,1·10⁻¹⁴, energia
+entro 8,2·10⁻⁵. Film (stesso aspetto zig-zag, coda corta che si spegne): `qg_gluoni_piccolo_1080p.mp4`,
+`qg_gluoni_tre_1080p.mp4` (20 s, in `/mnt/project-files/modello-standard/`, fuori da git); fermo-immagine
+`docs/fig/qg_gluoni_tre.jpg`, `docs/fig/qg_gluoni_piccolo.jpg`, GIF `docs/fig/qg_gluoni_tre.gif`.
+
+![tre gluoni](fig/qg_gluoni_tre.gif)
+
+**Esportazione per il programma unico** (`assets/scene/quark_gluoni/`, in git, 24,3 MB; copia in
+`/mnt/project-files/modello-standard/scene_quark_gluoni/`). Formato e byte dello stesso tipo degli esportatori del
+thread delle scene (`scena-quark-v1`, `scena-gluoni-v1`); spiegazione completa e lettori in Python e Rust in
+`assets/scene/quark_gluoni/LEGGIMI.md`. Script `lab/qg_esporta.py`; controllo di lettura `lab/qg_export_check.py` →
+`lab/out/qg_export_check.json` (tutto ok, entro l'errore di quantizzazione).
+* `quark_Y/`: 60 000 palline (x, y, z dal centro del triangolo, quota elettrica, livello f/f_max) in ordine casuale,
+  più il campo misurato sul reticolo 12³ (f, errore, Δp_t, Δp_s).
+* `gluoni_video_{grande,piccolo,tre}/`: 20 000 palline (le stesse, nello stesso ordine, in ogni fotogramma: le code
+  sono traiettorie vere), posizione u16, quota elettrica e luminosità u8; **un fotogramma salvato su 3** (48 su 140,
+  passo di tempo 1,2) per stare sotto 25 MB (dichiarato). Fedeltà G7 per fotogramma nel manifest.
+* Debiti nuovi: nessuno di fisica. Scelte di disegno dichiarate: numero di palline, 1 fotogramma su 3, legge di
+  luminosità, ε_max.

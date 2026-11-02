@@ -349,3 +349,45 @@ fn emissione_valle_e_flusso() {
         assert!(err < 1e-12, "continuity {err:e}");
     }
 }
+
+/// PHASE 4 OF docs/EMISSIONE.md (§13, exam V1/V2 of lab/out/emiss6_prereg.json): ABSORPTION ON THE LIVE ATOM, true
+/// charge. The Laboratorio atom as it is (Z = 60, 48³, a = 0.5, learned nucleus, 1s in the valley k = 0) in a weak
+/// classical field e E0 cos(ω t) along z at the atom's own 1s → 2p3/2 line (the exact level the 1s talks to along z,
+/// `livelli_di_dipolo`). The Rabi frequency Ω is measured from the time evolution (P_e = P sin²(W t/2), Ω = W √P);
+/// then |d_z| = Ω / (e E0) and f(1s → 2p3/2) = 2 ω |d_z|². The field enters the walk's phase (no light box, so no K).
+/// Output: EMLAB_DIR/emiss6_rabi_vivo.csv (t, P_g, P_e) and .json. Run:
+/// EMLAB_DIR=<dir> cargo test --bin atomo emissione6_rabi_vivo -- --ignored --nocapture
+#[test]
+#[ignore]
+fn emissione6_rabi_vivo() {
+    use std::io::Write;
+    let t0 = std::time::Instant::now();
+    let x = Esperimento::new(600);
+    let (phi1s, w1) = (x.phi1s.clone(), x.omega1s);
+    let lv = x.at.livelli_di_dipolo(&phi1s, 2, 0.96, 0.99, 0.005, 1200, 1e-5);
+    assert!(!lv.is_empty(), "no 2p level reached along z");
+    let top = &lv[0];
+    let (w2, dz) = (top.lv.omega, top.d[2].norm2().sqrt());
+    let om_target: f64 = std::env::var("OMEGA_R").ok().and_then(|v| v.parse().ok()).unwrap_or(2e-4);
+    let e0 = om_target / dz;
+    let w = w2 - w1;
+    let mut at = crate::zz::Atomo::new_in(None);
+    at.con_nucleo(crate::zz::NUCLEO);
+    at.imposta(phi1s.clone());
+    at.impulsi = vec![crate::zz::Impulso { e0, omega: w, t0: 0.0, sigma: 1e15 }];
+    let cicli: f64 = std::env::var("CICLI").ok().and_then(|v| v.parse().ok()).unwrap_or(1.3);
+    let tmax = cicli * std::f64::consts::TAU / om_target;
+    let ogni = env_usize("OGNI", 40) as u64;
+    std::fs::create_dir_all(dir()).unwrap();
+    let mut f = std::fs::File::create(format!("{}/emiss6_rabi_vivo.csv", dir())).unwrap();
+    writeln!(f, "t,p_g,p_e").unwrap();
+    while at.t() < tmax {
+        at.avanti();
+        if at.ticks % ogni == 0 { writeln!(f, "{:.4},{:.9},{:.9}", at.t(), at.proiezione(&phi1s), at.proiezione(&top.lv.v)).unwrap(); }
+    }
+    let altri: Vec<String> = lv.iter().take(4).map(|l| format!("{{\"omega\": {:.7}, \"d2\": {:.6}, \"dz\": {:.6}}}", l.lv.omega, l.d2(), l.d[2].norm2().sqrt())).collect();
+    let testo = format!("{{\"omega1s\": {w1:.7}, \"omega2p\": {w2:.7}, \"omega\": {w:.7}, \"dz_statico\": {dz:.6}, \"e0\": {e0:.6e}, \"omega_r_atteso\": {om_target:.6e}, \"tmax\": {tmax:.1}, \"livelli\": [{}], \"secondi\": {:.0}}}",
+        altri.join(", "), t0.elapsed().as_secs_f64());
+    std::fs::write(format!("{}/emiss6_rabi_vivo.json", dir()), &testo).unwrap();
+    eprintln!("{testo}");
+}

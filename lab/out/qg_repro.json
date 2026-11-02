@@ -1,0 +1,38 @@
+{
+ "data": "2026-11-02",
+ "cosa": "controllo di riproducibilita' (stessi semi, stesso codice, stessa macchina cloud) sui dati di ottobre in SCR",
+ "parte1_prod": {
+  "rifatto": "python3 lab/qg_run.py prod --budget 560 in SCR/repro (da zero, seme 2026): 150 sweep di termalizzazione + 22 misure",
+  "confronto": "contro qg_prod_mis_0000.npz (5 misure) + le prime 17 di qg_prod_mis_0001.npz, tutte le chiavi (placchette, loop di Wilson, correlatori 12^3, loop barionici)",
+  "max_diff_assoluta": 0.0,
+  "bit_per_bit": true,
+  "termalizzazione_150_righe_max_diff": 0.0,
+  "nota": "il pezzo 0 di ottobre ha fatto 5 misure in 480 s, oggi 22 in 560 s (macchina meno carica): il confine dei pezzi dipende dal tempo, i numeri no"
+ },
+ "parte2_esami_YM": {
+  "rifatti": [
+   "a1",
+   "a1_stesso",
+   "rif",
+   "rif_stesso"
+  ],
+  "fine_npz_eE_eB_S": "identici bit per bit (max diff 0)",
+  "diag_json_H_HE_HB_gauss_unit": "identici (max diff 0)",
+  "D(1.0)_ricalcolato": 0.20510557647321834,
+  "D_stesso(1.0)_ricalcolato": 0.017612527938729246
+ },
+ "voti_ricalcolati": {
+  "come": "qg_analisi1.py prod sulle 600 misure esistenti + qg_verdetto.py parte1 parte2, in una cartella a parte",
+  "qg_prod_analisi.json e qg_prod_campi.npz": "identici (max diff 0)",
+  "A_B_C_D_G1_G6": "identici a lab/out/qg_verdetto.json",
+  "differenze": [
+   "G7 video_piccolo: n_fotogrammi 11 -> 76 e min_r 0.97312 -> 0.96471 (diff 0.0084): il voto di ottobre era stato scritto con la corsa al fotogramma 11; i dati sono cresciuti fino al checkpoint (302 passi). Non e' una differenza di riproducibilita'.",
+   "G1 video_piccolo deriva_rel 0.0 -> 1.7e-15 (stessa ragione, zero di macchina)"
+  ]
+ },
+ "esito": "nessun numero diverso: tutto riproduce bit per bit",
+ "parte2_video": {
+  "rifatto": "video_piccolo da zero per 19 passi in SCR/repro_vid",
+  "fotogrammi_f0000_f0004": "identici bit per bit (q, rb, eb, t, fid)"
+ }
+}

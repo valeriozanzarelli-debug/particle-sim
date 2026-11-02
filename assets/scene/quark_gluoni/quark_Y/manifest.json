@@ -1,0 +1,80 @@
+{
+ "formato": "particle-sim/scena-quark-v1",
+ "n": 60000,
+ "colonne": [
+  "x",
+  "y",
+  "z",
+  "quota",
+  "livello"
+ ],
+ "dtype": "<f4",
+ "righe": 60000,
+ "byte": 1200000,
+ "unita": "passi di reticolo dal centro del triangolo",
+ "passo_reticolo_fm": 0.17,
+ "d": 4,
+ "T": 4,
+ "beta": 5.7,
+ "L": 12,
+ "quark": [
+  [
+   2.666666666666667,
+   -1.3333333333333333,
+   -1.3333333333333333
+  ],
+  [
+   -1.3333333333333333,
+   2.666666666666667,
+   -1.3333333333333333
+  ],
+  [
+   -1.3333333333333333,
+   -1.3333333333333333,
+   2.666666666666667
+  ]
+ ],
+ "quota": "quota elettrica dell'azione espulsa dpt/(dpt+dps), 0..1 (colore)",
+ "livello": "f/f_max, 0..1 (luminosita' 0.1 + 0.9 livello^0.35)",
+ "R_Y": [
+  1.229821061339634,
+  0.05387102849531406
+ ],
+ "placchetta": [
+  0.5492115444950874,
+  0.00010944324382435701
+ ],
+ "a_sqrt_sigma": [
+  0.40029535766339175,
+  0.0028652141059791717
+ ],
+ "n_misure": 600,
+ "voti": {
+  "A_placchetta": "PASS",
+  "B_tensione": "PASS",
+  "C_Y_contro_Delta": "PASS (Y)",
+  "D_energia_3Q": "riportato"
+ },
+ "stato": "istantanea in tempo immaginario (Monte Carlo SU(3), quark statici): non e' un film",
+ "campo": {
+  "file": "campo.f32",
+  "dtype": "<f4",
+  "forma": [
+   4,
+   12,
+   12,
+   12
+  ],
+  "canali": [
+   "f",
+   "f_errore",
+   "dpt",
+   "dps"
+  ],
+  "assi": "canale, x, y, z (indice = sito; il punto di giunzione delle linee e' il sito 0, i quark nei siti d*e_x, d*e_y, d*e_z; reticolo periodico)",
+  "significato": "f = (dpt + dps)/2 = meno la variazione della densita' d'azione attorno ai quark (tubo di flusso dove f > 0); errore jackknife; dpt, dps parti temporale e spaziale; senza sottrazione del fondo"
+ },
+ "ordine": "casuale (si possono accendere le prime k)",
+ "seme": 7,
+ "commit_sorgente": "a64867f"
+}

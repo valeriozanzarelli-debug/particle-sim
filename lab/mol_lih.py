@@ -21,6 +21,10 @@ JS = os.path.join(OUT, "mol_lih.json")
 PRE = json.load(open(os.path.join(OUT, "mol_prereg.json")))["LiH"]
 CFG = PRE["config"]
 R0 = CFG["R0"]
+_EMP = os.path.join(OUT, "mol_prereg_emend1.json")
+EM = json.load(open(_EMP)) if os.path.exists(_EMP) else None
+if EM:                                           # amendment 1: extra points below 2.5 a0 (the wall), larger Li
+    CFG = dict(CFG, RGRID=sorted(EM["config"]["RGRID_extra"] + CFG["RGRID"]))
 BUDGET = 530.0
 
 
@@ -111,6 +115,20 @@ def job_li(log=print):
         res = load(); res["Li"] = dict(E=sv.E, K=len(sv.A)); save(res); log(f"LI DONE E={sv.E:.8f}")
 
 
+def job_li2(log=print):
+    """amendment 1: resume the phase-1 Li basis, grow to K_LI2, nsweep_li2 sweeps"""
+    t0 = time.time()
+    c = EM["config"]
+    sv = M.SVM(sys_li(), M.make_gen(3, groups_li()), np.random.default_rng(c["seed_li2"]))
+    if not os.path.exists(ck_path("li2")):
+        z = np.load(ck_path("li"))
+        sv.set(z["A"], z["s"]); ck_save("li2", sv, dict(sweep=0, k=0))
+    done = grow_refine("li2", sv, c["K_LI2"], c["nsweep_li2"], CFG["ntrial_grow"], CFG["ntrial_ref"], t0, log)
+    res = load(); res["Li2"] = dict(E=sv.E, K=len(sv.A), finished=bool(done)); save(res)
+    if done:
+        log(f"LI2 DONE E={sv.E:.8f}")
+
+
 def job_re(log=print):
     t0 = time.time()
     sv = M.SVM(sys_lih(R0), M.make_gen(4, groups_lih(R0)), np.random.default_rng(CFG["seed_re"]))
@@ -172,7 +190,7 @@ def job_analyze(log=print):
     EH_EV = 27.211386245988; HART_CM = 219474.6313632
     we = float(np.sqrt(k2 / mu_red) * HART_CM)
     EH = -0.5 * M.M_KIN
-    ELi = res["Li"]["E"]
+    ELi = res["Li2"]["E"] if EM and "Li2" in res else res["Li"]["E"]
     De = (ELi + EH - Emin) * EH_EV
     # vibrational levels: sinc-DVR on the spline (R in [Rs0, Rsmax])
     n = 1200; g = np.linspace(Rs[0], Rs[-1], n); h = g[1] - g[0]
@@ -200,6 +218,13 @@ def job_analyze(log=print):
     v["L3"] = dict(val=we, ref=T["L3"]["ref"], rel=we / T["L3"]["ref"] - 1, PASS=bool(abs(we / T["L3"]["ref"] - 1) <= T["L3"]["tol_rel"]))
     v["L4"] = dict(val=mu_v0, ref=T["L4"]["ref"], rel=mu_v0 / T["L4"]["ref"] - 1, PASS=bool(abs(mu_v0 / T["L4"]["ref"] - 1) <= T["L4"]["tol_rel"]))
     v["L5"] = dict(val=ELi, ref=T["L5"]["ref"], err_mEh=1e3 * (ELi - T["L5"]["ref"]), PASS=bool(abs(ELi - T["L5"]["ref"]) <= T["L5"]["tol_Eh"]))
+    if EM:
+        X = EM["exams"]
+        v["V1"] = dict(val=nu01, ref=X["V1"]["ref"], rel=nu01 / X["V1"]["ref"] - 1,
+                       PASS=bool(abs(nu01 / X["V1"]["ref"] - 1) <= X["V1"]["tol_rel"]))
+        v["V2"] = dict(val=D0, ref=X["V2"]["ref"], diff=D0 - X["V2"]["ref"], PASS=bool(abs(D0 - X["V2"]["ref"]) <= X["V2"]["tol_eV"]))
+        if "verdict" in res and "V1" not in res["verdict"]:
+            res["verdict_fase1"] = res["verdict"]; res["analysis_fase1"] = res["analysis"]
     res["analysis"] = out; res["verdict"] = v
     save(res)
     log(json.dumps(out, indent=1)); log(json.dumps(v, indent=1, default=float))
@@ -207,4 +232,4 @@ def job_analyze(log=print):
 
 if __name__ == "__main__":
     job = sys.argv[1]
-    {"li": job_li, "re": job_re, "curve": job_curve, "analyze": job_analyze}[job]()
+    {"li": job_li, "li2": job_li2, "re": job_re, "curve": job_curve, "analyze": job_analyze}[job]()

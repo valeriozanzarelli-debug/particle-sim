@@ -96,7 +96,7 @@ def carica(tag, d, T, seed=7):
     quota = np.clip(vt[idx] / np.maximum(vt[idx] + vs[idx], 1e-12), 0, 1)
     q = np.array([[d, 0, 0], [0, d, 0], [0, 0, d]], float) - d / 3.0
     return {"pos": pos, "col": tinta_quota(quota), "wt": 0.1 + 0.9 * lev ** 0.35, "quarks": q, "an": an,
-            "quota_media": float(np.average(quota, weights=lev))}
+            "quota_media": float(np.average(quota, weights=lev)), "quota": quota, "livello": lev}
 
 
 def disegna(sc, view, w, h):
