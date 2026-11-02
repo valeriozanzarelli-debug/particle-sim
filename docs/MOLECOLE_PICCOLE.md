@@ -1,4 +1,4 @@
-# Molecole piccole (studio `mol_`) — PARZIALE
+# Molecole piccole (studio `mol_`) — LiH chiuso; livello approssimato non ancora fatto
 
 Nota sul nome: il compito chiedeva `docs/MOLECOLE.md`, ma quel file esiste già ed è il documento storico della
 strada DMC (`src/molecole/`). Per non sovrascriverlo, questo studio sta qui.
@@ -6,27 +6,33 @@ strada DMC (`src/molecole/`). Per non sovrascriverlo, questo studio sta qui.
 File: macchina ECG a N elettroni e più nuclei `lab/mol_ecg.py` (+ nucleo numba `lab/mol_fast.py`), LiH
 `lab/mol_lih.py`, esportazione `lab/mol_export.py`, figura `lab/mol_figure.py`, geometrie dell'acqua
 `lab/mol_acqua_geom.py` (solo geometria, nessuna energia ancora). Pre-registrazione `lab/mol_prereg.py` →
-`lab/out/mol_prereg.json`, **commit 2435e02, prima delle corse di produzione**. Esiti `lab/out/mol_lih.json`.
+`lab/out/mol_prereg.json`, **commit 2435e02, prima delle corse di produzione**. Emendamento 1 (2/11, tre punti sotto
+2,5 a₀, Li più grande, esami V1–V2) `lab/mol_prereg_emend1.py` → `lab/out/mol_prereg_emend1.json`, **commit 45a880c,
+prima delle sue corse**. Esiti `lab/out/mol_lih.json` (i verdetti della fase 1 restano in `verdict_fase1`).
 
 ![figura](../lab/out/mol_figure.png)
 
 ## 0. In breve
 
-**LiH con tutti e 4 gli elettroni correlati (livello "esatto"): 5 PASS / 1 FAIL.** Ingressi: m_e, α (nella regola),
-Z = 3 e 1, masse del nucleo di ⁷Li e del protone (solo per la vibrazione). Massa cinetica della regola m0 = 1,0000000046.
+**LiH con tutti e 4 gli elettroni correlati (livello "esatto"): 8 PASS / 0 FAIL** dopo l'emendamento 1 (fase 1:
+5 PASS / 1 FAIL, vedi §2). Ingressi: m_e, α (nella regola), Z = 3 e 1, masse del nucleo di ⁷Li e del protone (solo
+per la vibrazione). Massa cinetica della regola m0 = 1,0000000046.
 
 | esame | cosa | risultato | soglia | esito |
 |---|---|---|---|---|
 | L0 | E(LiH, R = 3,015) contro −8,070553 Eh | −8,069091 (+1,46 mEh) | 2 mEh | **PASS** |
 | L1 | lunghezza di legame (minimo della curva) | **3,0146 a₀** (−0,015 %) | 0,5 % | **PASS** |
-| L2 | D_e contro 2,515 eV | **2,493 eV** (−22 meV) | 43 meV | **PASS** |
+| L2 | D_e contro 2,515 eV (con Li a K = 450) | **2,484 eV** (−31 meV) | 43 meV | **PASS** |
 | L3 | ω_e armonico contro 1405,6 cm⁻¹ | **1408,9 cm⁻¹** (+0,24 %) | 2 % | **PASS** |
-| L4 | dipolo medio su v = 0 contro 5,882 D | **5,925 D** (+0,73 %); a R_e 5,843 D | 2 % | **PASS** (vedi §2) |
-| L5 | atomo di Li con la stessa macchina contro −7,478060 | −7,477501 (+0,56 mEh) | 0,5 mEh | **FAIL** |
+| L4 | dipolo medio su v = 0 contro 5,882 D (curva estesa) | **5,894 D** (+0,21 %); a R_e 5,843 D | 2 % | **PASS** |
+| L5 | atomo di Li (K = 450) contro −7,478060 | −7,477856 (+0,20 mEh) | 0,5 mEh | **PASS** |
+| V1 | quanto vibrazionale v0→1 contro 1359,7 cm⁻¹ | **1361,3 cm⁻¹** (+0,12 %) | 2 % | **PASS** |
+| V2 | D_0 contro 2,429 eV | **2,397 eV** (−32 meV) | 43 meV | **PASS** |
 
 Detto semplice: **quattro elettroni, due nuclei, nessuna chimica in ingresso: il legame Li–H esce dove deve (entro
-5 millesimi di raggio di Bohr), profondo giusto entro 22 meV, vibra giusto entro lo 0,24 %, e la molecola è
-polarizzata come Li⁺H⁻ con il dipolo giusto entro l'1 %.** È una **validazione** (LiH è noto), non una scoperta.
+5 millesimi di raggio di Bohr), la molecola vibra giusta entro l'1–2 per mille (1361 contro 1360 cm⁻¹), è polarizzata
+come Li⁺H⁻ con il dipolo giusto entro lo 0,2 %, e la buca è profonda giusta entro ~30 meV.** È una **validazione**
+(LiH è noto), non una scoperta.
 
 ## 1. Come è fatto
 
@@ -34,33 +40,35 @@ polarizzata come Li⁺H⁻ con il dipolo giusto entro l'1 %.** È una **validazi
   antisimmetria con la funzione di spin (singoletto 12 × singoletto 34, tutte le 4! permutazioni), base cresciuta a caso
   e raffinata (SVM). Nuovo: test veloce dei candidati con l'equazione secolare (una diagonalizzazione per passo invece
   di una per candidato) e nucleo numba: ~5× più veloce dell'implementazione numpy, controllato a 10⁻¹⁵.
-- Base: K = 600 funzioni a R = 3,015 (3 passate di raffinamento, ~25 min), poi per ogni R della griglia (10 punti,
-  2,5–5,0 a₀) la stessa base stirata (centri z → z R/R0) e 2 passate (~10 min per punto). Li: K = 300, 3 passate.
+- Base: K = 600 funzioni a R = 3,015 (3 passate di raffinamento, ~25 min), poi per ogni R della griglia (13 punti,
+  2,1–5,0 a₀; i tre sotto 2,5 aggiunti con l'emendamento 1) la stessa base stirata (centri z → z R/R0) e 2 passate (~10 min per punto). Li: K = 300, 3 passate (fase 1), poi K = 450, altre 3 passate (emendamento 1).
 - Curva: fit quartico su 2,7–3,5 a₀ per R_e e ω_e (pre-registrato). Vibrazione: DVR sulla spline, massa ridotta dei
   nuclei. Dipolo: dal vettore ECG esatto, μ(R) = R − ⟨Σz⟩.
 
 ## 2. Fallimenti e cose da sapere (onestà)
 
-- **L5 FAIL**: Li a K = 300 resta 0,56 mEh sopra il valore esatto (soglia 0,5). La macchina converge piano
-  (algebricamente in K); serve K più grande. D_e beneficia di una parziale cancellazione: LiH è a +1,46 mEh, Li a
-  +0,56, quindi D_e è sottostimato di ~0,9 mEh = 24 meV, esattamente il −22 meV osservato.
-- **Livelli di vibrazione sbagliati (non era un esame, va detto)**: il salto 0→1 esce 1481 cm⁻¹ contro 1360 misurato.
-  Causa: la curva comincia a R = 2,5 a₀ e la DVR mette lì un muro che schiaccia gli stati v ≥ 1. Anche il dipolo medio
-  su v = 0 (L4) risente un po' del muro: è PASS ma va ricontrollato con la curva estesa a R < 2,5. ω_e (dal fit vicino
-  al minimo) non ne risente. Da rifare: 2–3 punti a R = 2,1–2,4 (~30 min).
-- Riferimenti: energie BO non relativistiche (solo esame); D_e, ω_e, dipolo sperimentali contengono piccoli effetti
-  non modellati (relatività, correzioni adiabatiche), sotto le soglie.
+- **Fase 1 (13/10), L5 FAIL**: Li a K = 300 era 0,56 mEh sopra il valore esatto (soglia 0,5). Con l'emendamento 1
+  (base ripresa e cresciuta a K = 450, 3 passate, ~15 min) è **+0,20 mEh: PASS**. Il verdetto della fase 1 resta
+  scritto come FAIL.
+- **D_e peggiora quando l'atomo migliora** (va detto): con Li a K = 300 D_e era −22 meV, ora −31 meV. Prima c'era una
+  cancellazione parziale fra l'errore del Li (+0,56 mEh) e quello di LiH (+1,46 mEh); ora resta quasi solo l'errore di
+  LiH. Il −31 meV (e il −32 di D_0) è quindi **l'errore della base a 4 elettroni**, cioè 1,1–1,2 mEh: PASS ma vicino
+  alla soglia (43 meV). Per scendere servono K ≈ 900–1000 per LiH (ore per punto).
+- **Il muro a 2,5 a₀ (fase 1)**: la curva cominciava a 2,5 e la DVR metteva lì un muro che schiacciava gli stati
+  v ≥ 1 (0→1 usciva 1481 cm⁻¹). Con tre punti in più a 2,1 / 2,25 / 2,4 a₀ (~10 min l'uno, stessa ricetta) il salto
+  è **1361,3 cm⁻¹ contro 1359,7** e il dipolo medio su v = 0 passa da 5,925 a 5,894 D. ω_e (fit vicino al minimo) non
+  cambia. Livelli calcolati: 0, 1361, 2680, 3960, 5201 cm⁻¹ (spaziature che calano: l'anarmonicità esce da sola).
+- Riferimenti: energie BO non relativistiche (solo esame); D_e, D_0, ω_e, dipolo sperimentali contengono piccoli
+  effetti non modellati (relatività, correzioni adiabatiche), sotto le soglie.
 
 ## 3. Esportazione (per il renderer)
 
-Cartella `LiH/` con `manifest.json` (tier **"esatto"**, geometria trovata, energie, esami), `lih_elettroni.npy`
-(40 000 fotografie dei 4 elettroni insieme da |Ψ|², float32 (n,4,3), spin 0/2 su, 1/3 giù), `lih_densita.npz`
-(densità in coordinate cilindriche), livelli di vibrazione e righe IR con dipoli di transizione (con l'avviso del
-muro). Controllo: dipolo dai campioni −2,325 u.a. contro −2,299 esatto (1 %). **La cartella
-`/mnt/project-files/debiti/dati/molecole/` dava errore di I/O al momento della scrittura**: i file sono pronti in
-`<scratchpad>/molecole/LiH/` e vanno copiati dal coordinatore (o rigenerati con
-`MOL_DEST=/mnt/project-files/debiti/dati/molecole python lab/mol_export.py lih`, ~3 min, serve
-`lab/out/mol_lih_R3.015.npz`, non committato).
+`lab/out/mol_dati_lih/manifest.json` (tier **"esatto"**, geometria trovata, energie, esami, livelli di vibrazione e
+righe IR con i dipoli di transizione: v0→1 a 1361 cm⁻¹ = 7,35 μm, dipolo di transizione 0,24 D), con accanto (non
+tracciati) `lih_elettroni.npy` (40 000 fotografie dei 4 elettroni insieme da |Ψ|², float32 (n,4,3), spin 0/2 su, 1/3
+giù) e `lih_densita.npz` (densità in coordinate cilindriche). Controllo: dipolo dai campioni −2,325 u.a. contro
+−2,299 esatto (1 %). Basi in JSON per rigenerare tutto senza i `.npz` locali: `lab/out/mol_basi/` (R_e, Li K = 300 e
+K = 450, punti 2,1 / 2,25 / 2,4; formato di `lab/out/tav_basi/LEGGIMI.txt`, chiavi A, s, stage, rng).
 
 ## 4. Livello "approssimato" (N₂, O₂, H₂O, NH₃, CH₄, CO₂, dimero e trimero d'acqua): NON ANCORA MISURATO
 
@@ -119,15 +127,17 @@ livello approssimato: dipende dai tempi di `hf_griglia` per 16 elettroni di vale
 
 ## 8. Cosa resta (in ordine)
 
-1. Estendere la curva di LiH a R = 2,1–2,4 a₀ e rifare livelli/dipolo v = 0 (~30 min). Li con K = 450.
+1. (Fatto il 2/11: curva estesa, Li a K = 450.) Per D_e più preciso: LiH a K ≈ 900 (ore per punto).
 2. Quando `tavg_grid` ha i blocchi N e H e il suo documento: emendamento della pre-registrazione, poi H₂O → dimero e
    trimero d'acqua (richiesta di Valerio) → N₂, O₂, NH₃, CH₄, CO₂.
-3. Copiare l'esportazione di LiH in `/mnt/project-files/debiti/dati/molecole/LiH/`.
+3. Esportazione di LiH: `lab/out/mol_dati_lih/` (il coordinatore la copia dove serve).
 
 ## 9. Come rieseguire
 
 ```
 python lab/mol_prereg.py                          # già committato (2435e02)
 python lab/mol_lih.py li ; python lab/mol_lih.py re ; python lab/mol_lih.py curve   # ripetere finché DONE
-python lab/mol_lih.py analyze ; python lab/mol_export.py lih ; python lab/mol_figure.py
+python lab/mol_prereg_emend1.py                   # già committato (45a880c)
+python lab/mol_lih.py li2 ; python lab/mol_lih.py curve   # emendamento 1: Li K=450, punti 2,1-2,4 (ripetere finché DONE)
+python lab/mol_lih.py analyze ; MOL_DEST=<cartella> python lab/mol_export.py lih ; python lab/mol_figure.py
 ```
