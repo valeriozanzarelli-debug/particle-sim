@@ -139,3 +139,38 @@ Poi: verdetti G1–G7, export in `/mnt/project-files/debiti/dati/<nome>/` (tier 
 
 Figura: `lab/out/tavg_figure.png` (a: correlazione imparata, allenamento e cieco; b: IP di N e O; c: la prova della
 rottura di simmetria).
+
+## Fase 3 — correlazione per coppia nel campo vero (PARZIALE, fermata il 2/11 su richiesta)
+
+Soglie per O alla cieca: quelle dell'emendamento ec4a4ba (E_c entro 5 %, IP entro 3 %). Emendamento della fase 3
+**non ancora scritto** (va committato prima dei fit).
+
+- **Fatto, passo 1: il blocco dentro l'ECG** (`lab/tavg_pecg.py`). La parte locale si calcola esatta per quadratura
+  radiale, quella separabile (s) come somma di 40 gaussiane (regola automatica: livelli s del blocco entro 2·10⁻⁷).
+  Controllo di macchina con un solo elettrone nel blocco (`python tavg_pecg.py check 8 7 6` →
+  `lab/out/tavg_pecg_check.json`), tutto **PASS**:
+  - energia s: O +4,8·10⁻⁷, N +7,6·10⁻⁷, C +2,0·10⁻⁷ Eh;
+  - energia p: ≤ 8·10⁻⁸ Eh;
+  - forma dell'orbitale: 1 − |sovrapposizione| ≤ 1,2·10⁻⁸.
+- **Problema aperto (sviluppo, dichiarato)**: con 2 elettroni la crescita stocastica (SVM) collassa a K ≈ 80. Gli
+  elementi di matrice separabili sono esatti solo a ~10⁻⁹ relativo, perché le gaussiane cancellano coefficienti
+  fino a 10⁵. Lisciare il proiettore non è la soluzione: sposta i livelli di 10⁻³ Eh già con un raggio di 0,01 a₀.
+- **Strade per sbloccare**, da provare in quest'ordine:
+  1. una soglia di dipendenza lineare più severa nell'SVM, con ortogonalizzazione canonica (`canon_eig`);
+  2. calcolo dei termini separabili in precisione estesa;
+  3. integrale separabile per quadratura diretta, solo nella 2D a 2 elettroni.
+- **Piano che resta, invariato**:
+  1. stati a coppia nei blocchi C, N, O: 2s² ¹S, 2s2p ³P°/¹P° con l'ECG (L = 0, 1); 2p² ³P/¹D con un'interazione
+     di configurazioni a onde parziali, validata contro l'ECG sugli stati in comune;
+  2. una legge per tipo di coppia, con le manopole contate;
+  3. verifica a 3 elettroni (2s²2p ²P° nel blocco, ECG L = 1);
+  4. Be dall'agente berillio;
+  5. emendamento committato, poi O alla cieca.
+
+Per riprendere:
+```
+cd lab
+export OMP_NUM_THREADS=1 NUMBA_NUM_THREADS=1 MKL_NUM_THREADS=1
+timeout 590 python tavg_pecg.py check 8 7 6     # rifà il controllo a 1 elettrone (~10 s ciascuno)
+# poi: risolvere la precisione del termine separabile a 2 elettroni (vedi sopra), corse a coppia, emendamento
+```
