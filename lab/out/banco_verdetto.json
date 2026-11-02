@@ -1,0 +1,17 @@
+{
+ "studio": "BANCO_LUCE_ATOMO, voti contro lab/out/banco_prereg.json (corsa lab/out/banco_risultati.json, commit 64b6e7a)",
+ "controllo_N0": {"dp": 0.00575345, "D": 4.57e-05, "nota": "il reticolo da solo: 1s che deriva. La corsa e' deterministica: stessa partenza, stessa deriva, quindi la differenza con N = 0 e' misurabile anche sotto la deriva"},
+ "B1_energia": {"valore": "1,0000000 (N = 1: 0,99999977)", "voto": "PASS"},
+ "B2_carica": {"valore": "e = sqrt(4 pi alpha), K = 1", "voto": "PASS"},
+ "B3_scala_p": {"valore": "pendenza 0,26 fra 1e4 e 1e5 (dp - controllo 0,41285 e 0,74584)", "voto": "FAIL", "causa": "errore di progetto dell'esame: a 1e4 non si e' gia' piu' in regime debole"},
+ "B4_rabi": {"valore": "dp(N_pi2 = 31163) = 0,772 contro 0,5", "voto": "FAIL", "nota": "p_exc = 1 - |<1s|psi>|^2 conta tutto cio' che non e' 1s; la calibrazione pi/2 viene da due soli livelli. Stesso valore della vecchia foto con K = 10 (0,749 in docs/ATOMO.md), quindi non dipende dal togliere K ma da come si conta"},
+ "B5_un_fotone": {"valore": "dp - controllo = 5,434e-05; attesa dalla calibrazione pi/2 a due livelli (pi/4)^2/N_pi2 = 1,98e-05: rapporto 2,7", "voto": "riportato", "nota": "visibile solo per differenza col controllo: la deriva del reticolo (5,75e-03) e' 106 volte piu' grande"},
+ "B6_scala_D": {"valore": "pendenza -0,65 fra 1e4 e 1e5", "voto": "FAIL", "causa": "stesso errore di progetto di B3"},
+ "dopo_i_dati_non_pre_registrato": {
+  "dp_contro_N_fra_1_e_100": {"pendenza": 0.9987, "dp_meno_controllo": [5.434e-05, 0.005401]},
+  "D_contro_N_fra_1_e_100": {"pendenza": 0.4989, "D": [0.02107, 0.20967]},
+  "energia_diffusa_su_N_omega": {"N1": 9.29e-08, "N100": 9.21e-08, "N1e4": 5.5e-08},
+  "lettura": "regime debole lineare pulito fra N = 1 e 100: dp proporzionale a N, D a sqrt(N), diffusa proporzionale a N. Sono andamenti attesi per un campo classico, non una verifica dei valori assoluti: per quelli serve la proiezione sui singoli livelli contro la formula esatta."
+ },
+ "conteggio": "2 PASS, 3 FAIL, 1 riportato su 6"
+}
