@@ -3673,6 +3673,7 @@ dependencies = [
  "pollster",
  "rand",
  "rayon",
+ "serde_json",
  "wgpu",
 ]
 

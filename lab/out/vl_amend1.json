@@ -1,0 +1,10 @@
+{
+ "studio": "VIDEO ATOMO, emendamento 1",
+ "data": "2026-10-13",
+ "scritto_prima_di": "rifare il moto delle palline dell'elettrone, gli esami e i fotogrammi",
+ "motivo": "Debiti (SURFISTI_ESATTI B5 e controlli di spin): nessuno stato stazionario dell'atomo 3-D porta corrente netta sui collegamenti del reticolo (flusso netto per collegamento su ogni coppia di tick <= 5e-13). La j esportata (bilineare per cella R+sR - L+sL) NON e' quel flusso: la sua parte rotazionale (che nella prima versione faceva girare le palline ~4 volte attorno a z, 0.12 di Bohm-Dirac) e' quindi una lettura finta. Nella prima versione l'84% della j era gia' stato tolto come compressione finta; ora si toglie tutta.",
+ "cambio": "flusso dell'elettrone = solo quello imposto dalla continuita', di energia cinetica minima: J = -rho_s grad(chi), div(rho_s grad chi) = d rho_s/dt (sulle facce, per intervallo). La j esportata non si usa piu'. In un livello puro le palline stanno ferme; si muovono solo per la sovrapposizione creata dalla luce. Nessuna rotazione aggiunta.",
+ "invariati": "esami E1-E7 e soglie, palline (120000, stesso seme), smussamento, luce, video",
+ "scritta_a_schermo": "in un livello puro questo reticolo non porta corrente: le palline stanno ferme (debito aperto: le copie del reticolo, da provare)",
+ "versione_precedente": "fotogrammi della prima versione (giro finto) buttati; numeri della prima versione restano nel documento come fallimento dichiarato"
+}

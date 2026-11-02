@@ -77,7 +77,11 @@ impl Plugin for BallsPlugin {
 /// One ball: position, size factor, colour (alpha = brightness).
 pub type Ball = ([f32; 3], f32, [f32; 4]);
 
-pub fn quads(items: &[Ball]) -> Mesh {
+pub fn quads(items: &[Ball]) -> Mesh { quads_s(items, &[]) }
+
+/// Like `quads`, with a STRETCH per ball (screen-space vector, scene units): the ball becomes a soft ellipse
+/// elongated along it (half-length added to the radius). Missing entries = round balls.
+pub fn quads_s(items: &[Ball], allunga: &[[f32; 3]]) -> Mesh {
     let hidden = [([0.0f32, -1.0e9, 0.0], 0.0f32, [0.0f32; 4])];
     let items = if items.is_empty() { &hidden[..] } else { items };
     let n = items.len();
@@ -88,9 +92,10 @@ pub fn quads(items: &[Ball]) -> Mesh {
     let mut idx: Vec<u32> = Vec::with_capacity(6 * n);
     const CORNERS: [[f32; 2]; 4] = [[-1.0, -1.0], [1.0, -1.0], [1.0, 1.0], [-1.0, 1.0]];
     for (q, it) in items.iter().enumerate() {
+        let st = allunga.get(q).copied().unwrap_or([0.0; 3]);
         for c in CORNERS {
             pos.push(it.0);
-            ex.push([it.1, 0.0, 0.0, 0.0]);
+            ex.push([it.1, st[0], st[1], st[2]]);
             col.push(it.2);
             uv.push(c);
         }

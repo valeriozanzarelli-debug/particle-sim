@@ -1,0 +1,56 @@
+{
+ "meta": {
+  "study": "MOLTI_ELETTRONI",
+  "version": 2,
+  "amends": "lab/out/multi_e_prereg.json (v1, commit 9b1e4d0)",
+  "written": "2026-10-13T03:38:48",
+  "git_head_before": "9b6c207047d9549997e7c56b427d2fa77dd44d01",
+  "decided_by": "sessione principale (coordinatore), su regola permanente di Valerio: 'non do approvazioni io: si sceglie il default ragionevole, lo si dichiara e si va avanti'. Decisioni 1-4 del messaggio del coordinatore.",
+  "data_already_seen_before_writing": [
+   "G1 v1 e la sua diagnosi post hoc: Hooke |E-2| = 7.3e-7 / 1.6e-8 / 6.3e-9 / 5.8e-9 a K = 100/200/300/400 (seme 12, crescita + 3 giri a ogni K); MC: z peggiore 1.78, quadratura = formula a 2e-16",
+   "DMC dell'elio 1S e 2^3S (energie), D6 v1 e diagnosi (tau = 0.01, 0.0025, 0.000625, seme 11)",
+   "nessuna corsa ECG di produzione (He, He+, H-, He-like) e nessuna corsa con l'operatore pieno: mai fatte"
+  ],
+  "honesty_note": "G1'-Hooke usa la stessa ricetta e lo stesso seme della diagnosi post hoc: il risultato (6.3e-9) e' quindi gia' noto e la corsa e' una riproduzione, non una prova cieca. Lo diciamo qui."
+ },
+ "G1_prime": {
+  "reason": "G1 v1 FAIL per (a) MC sottodimensionato nella pre-registrazione (sigma > soglia), (b) convergenza in K della base sulla cuspide di Hooke, con un pavimento numerico ~6e-9 (cond(S) ~ 1e12). Formula verificata a 2e-16.",
+  "Hooke": "omega = 1/2, seme 12, crescita SVM fino a K = 100, 200, 300 con 3 giri di raffinamento a ogni tappa, ricostruzione da zero: |E(K=300) - 2| < 1e-8",
+  "MC": "per ogni elemento dei 3 casi (seme 5, come v1): (i) controllo deterministico indipendente <1/|u|> = (2/sqrt pi) int_0^inf (1 + 2 t^2 sigma2)^-3/2 dt (quadratura adattiva) = formula a 1e-12 relativo; (ii) Monte Carlo con 1e8 campioni: |z| = |MC - formula|/errore standard < 3",
+  "H, Li_nonint, Be_nonint": "PASS della v1 restano (nessun cambio di codice nel calcolo degli elementi)",
+  "if_pass": "si sblocca la produzione ECG: M1, M2, M3, E1, E2, R5, R6, D1, G4 e Q1",
+  "if_fail": "ECG resta ferma; si dichiara"
+ },
+ "ECG_production": {
+  "config": "come v1 configurations.ECG (stesse ricette, budget K: 2e 1S 200, 2e 3S 150, H- 200, 1e 40), seme 2026, a m_kin(theta_A) = 1.0003832623 (D dal livello 1), poi theta -> 0 con E x m0/m_A (DV8)",
+  "error_bar": "|E(K) - E(K - 50)| (convergenza) + |E| x 2.6e-6 (m_kin(0), R3) in quadratura; la base non e' estrapolata",
+  "exams_unchanged_from_v1": "M1 (-2.903724377, 0.29 mEh), M2 (-2.175229378, 0.22 mEh), M3 (-0.527751017, 0.05 mEh, sotto -0.5), E1 (24.587389 eV, 0.01 eV, He+ dall'ECG a 1e), E2 (0.754195 eV, 0.005 eV), R5, R6, G4",
+  "D1": "|E_DMC(tau -> 0, theta_A) - E_ECG(theta_A)| <= max(3 sigma, 0.1 mEh), sigma <= 1e-4. E_DMC = la serie gia' corsa (3 tau, lettura v1: -2.904830 +- 0.000071). Si giudica con la sigma pre-registrata v1; si riporta anche con la sigma controllata (8.2e-5).",
+  "D2": "resta FERMO (G5 FAIL non e' emendato); si riporta solo il confronto DMC 2^3S - ECG 2^3S",
+  "full_operator_runs": "R5: 1e Z = 10; R6: He-like Z = 6..10; ciascuno con la banda ri-imparata (relearn_A, dirac4 B=2) e con il livello esistente (existing_A): base della corsa NR + 2 giri di raffinamento con l'operatore pieno T = S sum_i F(s_i) (tabelle F rigenerate, lab/out/multi_e_Ftab.npz). Il riferimento NR di ogni banda usa la SUA m_kin (scala esatta).",
+  "G4": "parte di <T_full> da |k| oltre la zona del livello (tabella Fb) / <T_full> < 1e-6 per ogni stato pieno usato"
+ },
+ "Q1_band_non_quadratic_He": {
+  "reason": "decisione 4: la parte non quadratica della banda del livello 1 (DEBT-4 / DEBT-9) va quantificata sull'elio: e' quella che i camminatori del continuo (nucleo gaussiano, solo k^2/2m) non vedono.",
+  "what": "Delta_band = E_full(existing_A) - E_NR(m_A) per He 1^1S, ECG (base NR K = 200 + 2 giri con l'operatore pieno); riportato anche il primo ordine <T_full - T_NR> sullo stato NR e la scomposizione in k^4: Delta_band / (-alpha^2 <sum p^4>/8) = frazione di 'relativita'' portata dalla banda sull'elio.",
+  "prediction_before_running": "-0.28 mEh +- 30 % (stima con <p^4> dell'orbitale del campo medio, 52.89 per elettrone, per la frazione media di k^4 del livello a k = 10, 0.40)",
+  "check": "Q1 PASS se Delta_band cade in [-0.36, -0.20] mEh (la stima e' capita); altrimenti si cerca la causa (dipendenza della frazione k^4 da k, anisotropia). In ogni caso Delta_band entra nel bilancio d'errore dell'elio come termine misurato, non stimato.",
+  "D0b_status": "camminatori sul reticolo per l'elio: resta opzionale (Q1 da' il numero con l'ECG sullo stesso operatore)"
+ },
+ "D6_prime": {
+  "reason": "D6 v1 FAIL con quattro cause trovate (buco a tau finito, fit non pesato, stimatore estrapolato sbagliato con guida senza cuspide, modello del fit troppo corto: bias -0.125 su una funzione con c = 0 esatto).",
+  "what": "cuspide del MISTO: con guida u = 0 la densita' mista psi_T phi ha cuspide esattamente m_kin/2 (= 0.50019)",
+  "design_choice_declared": "le due opzioni approvate (termine cubico su r < 0.25, oppure finestra r < 0.1) sono state valutate PRIMA, senza dati DMC: bias del modello sulla densita' di coppia del campo medio (c = 0 esatto) e fattore di rumore di Poisson del fit pesato. Cubico r < 0.25: bias +0.018, rumore 3.5x il quadratico; quadratico r < 0.1: bias -0.012, rumore 10x. Con il budget di calcolo entrambe darebbero sigma(c) >~ 0.1, cioe' nessun verdetto. Stimatore PRIMARIO scelto: rapporto g(r) = I_mix(r)/I_VMC(r) (la forma comune del campo medio si cancella; g -> phi/psi_T condizionato a r12, cuspide m/2), fit pesato g0 (1 + c r + d r^2) su r < 0.25 a0 (25 gusci da 0.01), pesi = volume del guscio (Poisson), modello mediato esattamente su ogni guscio. Bias del modello su Jastrow sintetiche exp(0.5 r/(1 + b r)): +0.003 (b = 0.3), -0.012 (b = 1), -0.05 (b = 2). SECONDARIO (riportato): cubico pesato su h_mix, r < 0.25.",
+  "runs": "He_u0 (guida = orbitale del campo medio, u = 0), 4000 camminatori, SEMI NUOVI (DMC_SEED = 1), tau = 0.0025 (4000 a.u.), 0.00125 (3000 a.u.), 0.000625 (2000 a.u.) di produzione; VMC stessa guida, seme nuovo, 8000 a.u.; istogrammi per pezzi da 2 a.u.; errori jackknife a 20 gruppi",
+  "extrapolation": "c(tau) lineare in tau sui 3 punti, pesata; il quadratico solo se p(chi2 lineare) < 0.05",
+  "target": "|c(tau -> 0) - m_kin/2| <= 0.05",
+  "verdict_requires": "sigma(c(tau -> 0)) <= 0.03; altrimenti INCONCLUSIVO (si allungano le corse dai checkpoint, mai la tolleranza)"
+ },
+ "L1m_mass_learned_separately (opzionale)": {
+  "when": "solo dopo M1 ed E1; il risultato attuale dell'agglomeratore (L1c: nessun Pauli passa; m0 = 1.0000138) resta il riferimento e non si sostituisce",
+  "what": "stesso apprendimento del livello Pauli b = 16, w = 4 sull'osservabile 1s di Z = 10, ma in due tempi: (1) massa dal fit di curvatura a k piccoli (|k| in [1e-3, 4e-3]/cella, 26 direzioni), tenuta fissa; (2) stencil imparato sul resto con il vincolo di quella curvatura",
+  "exams": "L1m-a: il candidato passa il controllo di energia a 3e-5 (oggi 2.4e-4); L1m-b: m_kin entro 1e-5 da tan(theta)/theta; L1m-c: R6 sul nuovo livello = 1 +- 0.10",
+  "status": "pre-registrato; si corre solo se resta tempo dopo M1/E1/D6' (altrimenti NON FATTO, dichiarato)"
+ },
+ "quality_gate": "niente litio finche' l'elio (ECG + DMC) non e' capito voce per voce, incluso Q1"
+}

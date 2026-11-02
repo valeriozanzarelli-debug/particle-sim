@@ -1,0 +1,2 @@
+{"azione":"foto","args":{"scena":"atomo","frames":1200,"spara-al":600,"distanza":150,"pitch":0.5,"pannello":true},
+ "nota":"raffica per fotografare l'atomo MENTRE assorbe: in cloud (stessa regola, CPU) il campo dell'impulso sta sull'atomo da ~10 a ~300 tick dopo lo sparo e p_exc sale 0 -> 0.6; il rapporto fotogrammi/tick sulla Intel non e' noto, quindi quattro scatti a distanze diverse dallo sparo"}

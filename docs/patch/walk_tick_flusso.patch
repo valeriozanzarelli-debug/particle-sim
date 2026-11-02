@@ -1,0 +1,39 @@
+--- a/src/zigzag/walk.rs
++++ b/src/zigzag/walk.rs
+@@ -119,6 +119,36 @@
+ 
+     pub fn norm2(&self) -> f64 { self.psi.par_iter().map(|p| p.iter().map(|c| c.norm2()).sum::<f64>()).sum() }
+ 
++    /// One tick that also returns the EXACT probability flux across every link (s, s + e_j) during the tick
++    /// (docs/SURFISTI_ESATTI.md; the same as zz.rs `Atomo::avanti_flusso`): the part moving +1 at s minus the part
++    /// moving −1 at s + e_j. For surfers that ride the exact current (study "bagliori", docs/BAGLIORI.md).
++    pub fn tick_flusso(&mut self) -> [Vec<f64>; 3] {
++        let n = self.n;
++        let mut f = [vec![0.0; self.psi.len()], vec![0.0; self.psi.len()], vec![0.0; self.psi.len()]];
++        for j in order(self.ticks) {
++            self.shift(j);
++            let tmp = &self.tmp;
++            f[j].par_iter_mut().enumerate().for_each(|(s, v)| {
++                let a = tmp[s][1].norm2() + tmp[s][2].norm2();
++                let b = { let q = &tmp[nb(s, j, 1, n)]; q[0].norm2() + q[3].norm2() };
++                *v = a - b;
++            });
++        }
++        let (ct, st) = (self.theta.cos(), self.theta.sin());
++        let mi = C::new(0.0, -st);
++        let ph = self.phase.as_deref();
++        self.psi.par_iter_mut().enumerate().for_each(|(s, p)| {
++            let e = ph.map_or(C::ONE, |v| v[s]);
++            for q in 0..2 {
++                let (l, r) = (p[q], p[2 + q]);
++                p[q] = e * (l * ct + mi * r);
++                p[2 + q] = e * (r * ct + mi * l);
++            }
++        });
++        self.ticks += 1;
++        f
++    }
++
+     /// Spinor at a point (trilinear interpolation of the components), for the surfers.
+     pub fn sample(&self, p: [f64; 3]) -> [C; 4] {
+         let n = self.n;

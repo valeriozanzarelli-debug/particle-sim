@@ -79,16 +79,24 @@ ax.set_title("(c) Nodi 'leggermente legati' (Gillard-Harland-Speight)"); ax.lege
 
 # (d) shapes
 ax = fig.add_subplot(2, 2, 4); ax.axis("off"); ax.set_title("(d) Forme (densita' barionica proiettata)")
-jobs = [("an_B2", "B=2 pione massivo"), ("an_B4", "B=4 pione massivo"),
-        (R["C3a_shapes"].get("0.95_B2", {}).get("job"), "B=2 GHS 0.95"), (R["C3a_shapes"].get("0.95_B4", {}).get("job"), "B=4 GHS 0.95")]
+# each panel: preferred job first, then fallbacks (cloud 2026-10-13: the laptop field files are not in the repo, so the
+# panels use the fields of the runs made on the cloud: B=3 at alpha = 0 and 0.95, pair/tetrahedron starts at alpha = 0.95)
+cands = [[("an_B2", "B=2 pione massivo"), ("ghs0_B3", "B=3 GHS alpha=0 (tetraedro)")],
+         [("an_B4", "B=4 pione massivo"), ("ghs50_B3", "B=3 GHS alpha=0.5")],
+         [(R["C3a_shapes"].get("0.95_B2", {}).get("job"), "B=2 GHS 0.95"), ("ghs95_B2pair", "B=2 GHS 0.95 (da coppia)")],
+         [(R["C3a_shapes"].get("0.95_B4", {}).get("job"), "B=4 GHS 0.95"), ("ghs95_B4tet", "B=4 GHS 0.95 (da tetraedro)")],
+         [("ghs95_B3", "B=3 GHS 0.95")]]
+jobs = []
+for cl in cands:
+    ok = [(j, l) for j, l in cl if j is not None and os.path.exists(os.path.join(OUT, f"colla_fields_{j}.npz"))]
+    if ok:
+        jobs.append(ok[0])
 for i, (j, lab) in enumerate(jobs):
-    if j is None or not os.path.exists(os.path.join(OUT, f"colla_fields_{j}.npz")):
-        continue
     bb = np.clip(np.load(os.path.join(OUT, f"colla_fields_{j}.npz"))["b"], 0, None)
-    sub = fig.add_axes([0.53 + 0.11 * i, 0.12, 0.1, 0.25])
+    sub = fig.add_axes([0.52 + 0.093 * i, 0.12, 0.085, 0.25])
     sub.imshow(bb.sum(axis=2).T, origin="lower", cmap="magma"); sub.set_xticks([]); sub.set_yticks([])
-    sub.set_title(lab, fontsize=8)
-    sub2 = fig.add_axes([0.53 + 0.11 * i, 0.06, 0.1, 0.06]); sub2.axis("off")
+    sub.set_title(lab.replace(" (", "\n("), fontsize=7)
+    sub2 = fig.add_axes([0.52 + 0.093 * i, 0.06, 0.085, 0.06]); sub2.axis("off")
 fig.tight_layout()
 fig.savefig(os.path.join(OUT, "colla_figure.png"), dpi=110)
 print("saved")

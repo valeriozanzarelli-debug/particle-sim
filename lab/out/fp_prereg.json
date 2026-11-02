@@ -1,0 +1,39 @@
+{
+ "studio": "fotone_palline",
+ "data": "2026-10-12",
+ "scopo": "togliere l'elica disegnata (tubo della punta di E) e mostrare il fotone solo con palline: ogni pallina = un pezzetto di energia del campo, seminata UNA volta con densita' ~ u, poi trasportata dalla velocita' dell'energia v = 2 E x cB / (E^2 + c^2 B^2); forma = allungata lungo E, colore = direzione di E attorno all'asse. Nessuna linea, nessun tubo, nessuna rinascita.",
+ "regola": "zig-zag per la luce (zz_core.Walk 'light'), scritta in spazio k: per ogni asse exp(-i a k_j S_j), identica al roll del reticolo su scatola periodica (gate G0)",
+ "configurazioni": {
+  "celle_per_lambda": 24,
+  "scatola_celle": [
+   144,
+   144,
+   192
+  ],
+  "w0_lambda": 2.0,
+  "sigma_lungo_lambda": 1.0,
+  "polarizzazioni": [
+   "circolare+",
+   "circolare-",
+   "lineare_x"
+  ],
+  "palline": 300000,
+  "tick_volo": 96,
+  "seme": 20261012
+ },
+ "gate": {
+  "G0": "regola in spazio k contro zz_core.Walk.tick su 32^3 campo casuale, 4 tick: max |diff|/max|F| <= 1e-10"
+ },
+ "esami": {
+  "F1_conservazione": "dopo 96 tick senza rinascite: correlazione di Pearson tra istogramma delle palline proiettato (x,z), bin 4x4 celle, e u proiettato dal campo >= 0.95; distanza in variazione totale TV(96) <= TV(0) + 0.05 (TV(0) = solo rumore di campionamento)",
+  "F2_spin": "media sulle palline di (r_perp x v)_z, r_perp dall'asse del fascio, divisa per lambda/(2 pi) (= J_z/U * omega, cioe' hbar di spin per hbar*omega di energia): circolare+ = +1 entro 5%, circolare- = -1 entro 5%, lineare |valore| <= 0.05. Media sui tick 0..96. Si riporta anche lo stesso numero calcolato direttamente dal campo (int r x (E x B) / int u)",
+  "F3_velocita": "media di v_z delle palline sui 96 tick contro velocita' del baricentro di u dal campo: entro 1%",
+  "F4_niente_geometria": "nel disegno ogni pixel viene da palline (macchie gaussiane): nessuna linea, tubo, superficie. Verifica: lettura del codice di disegno (fp_render.py)"
+ },
+ "manopole_visive": "dimensione delle macchie, esposizione, allungamento massimo, palette: solo estetica, non toccano gli esami (contate e dichiarate nel documento)",
+ "debiti_noti": [
+  "le palline sono una LETTURA del campo (traccianti del flusso di energia), non le palline della regola",
+  "fotone classico (onda normalizzata), niente clic del singolo fotone",
+  "prototipo CPU in Python; il porto GPU (WGSL) e' un passo dopo"
+ ]
+}

@@ -1,0 +1,13 @@
+{
+  "id": "2026-10-13_foto_atomo_accoppiato",
+  "azione": "foto",
+  "ok": true,
+  "inizio": "2026-10-12T23:25:16Z",
+  "fine": "2026-10-13T00:05:03Z",
+  "durata_s": 2386.4,
+  "git": "8620cfbe0dca1ebafd1892e2adb4e4638f89420c",
+  "macchina": "LAPTOP-01UIII6L",
+  "exit": 0,
+  "secondi": 87.7,
+  "comando": "--scena atomo --frames 4500 --spara-al 3600 --distanza 300 --pitch 0.5 --foto C:\\Users\\valer\\Desktop\\Programma di simulazione\\ponte_lab\\ponte\\risultati\\2026-10-13_foto_atomo_accoppiato\\foto.png"
+}

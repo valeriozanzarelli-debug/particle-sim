@@ -1,0 +1,23 @@
+{
+ "esame": "R4_tempi_intel",
+ "macchina": "LAPTOP-01UIII6L (Intel UHD; GTX 1650 Ti rotta)",
+ "git": "647a888",
+ "bassa": {
+  "palline_disegnate": 61164,
+  "fps": 60,
+  "ms_tick": 32
+ },
+ "media": {
+  "palline_disegnate": 181164,
+  "fps": 60,
+  "ms_tick": 74
+ },
+ "alta": {
+  "palline_disegnate": 751164,
+  "fps": 60,
+  "ms_tick": 258
+ },
+ "soglia_bassa": "fps >= 20 e ms_tick <= 50",
+ "pass": true,
+ "nota": "60 fps e' il tetto del vsync: il disegno a istanze non e' il collo di bottiglia nemmeno a 751 mila palline; il collo e' la regola sulla CPU (ms/tick). ms/tick = media mobile riportata dal Laboratorio, regola + palline + misure."
+}

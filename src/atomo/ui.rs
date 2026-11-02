@@ -89,7 +89,7 @@ pub fn draw_hud(mut ctx: EguiContexts, mut lab: ResMut<Lab>, mut cam: ResMut<Cam
             if ui.add(b).on_hover_text("pannello (Tab) · pausa (Spazio) · lancia un fotone (F) · 1 vista intera · 2 nucleo · 3 elettrone").clicked() {
                 lab.panel_open = !lab.panel_open;
             }
-            for (s, n) in [(Scena::Fotone, "fotone libero"), (Scena::Atomo, "atomo zig-zag"), (Scena::Orbitali, "orbitali")] {
+            for (s, n) in [(Scena::Fotone, "fotone libero"), (Scena::Atomo, "atomo zig-zag"), (Scena::Orbitali, "orbitali"), (Scena::Elettrone, "elettrone libero"), (Scena::Tavola, "tavola periodica")] {
                 if ui.add(egui::Button::new(n).fill(Color32::from_black_alpha(90)).selected(lab.scena == s)).clicked() && lab.scena != s {
                     lab.cambia_scena(s);
                     if s == Scena::Fotone { cam.yaw = 0.42; cam.pitch = 0.28; }
@@ -100,7 +100,11 @@ pub fn draw_hud(mut ctx: EguiContexts, mut lab: ResMut<Lab>, mut cam: ResMut<Cam
             }
             ui.separator();
             let bt = cam.bersaglio;
-            if lab.scena != Scena::Fotone {
+            if lab.scena == Scena::Elettrone {
+                for (p, n) in [(crate::elscena::Particella::Elettrone, "elettrone"), (crate::elscena::Particella::Muone, "muone (massa × 206,77)")] {
+                    if ui.add(egui::Button::new(n).fill(Color32::from_black_alpha(90)).selected(lab.el_part == p)).clicked() { lab.el_part = p; }
+                }
+            } else if lab.scena != Scena::Fotone {
                 if ui.add(egui::Button::new("1 intero").fill(Color32::from_black_alpha(90)).selected(bt == Bersaglio::Atomo)).clicked() { vai(lab, &mut cam, Bersaglio::Atomo); }
                 if ui.add(egui::Button::new("2 nucleo").fill(Color32::from_black_alpha(90)).selected(bt == Bersaglio::Nucleo)).clicked() { vai(lab, &mut cam, Bersaglio::Nucleo); }
                 if ui.add(egui::Button::new("3 elettrone").fill(Color32::from_black_alpha(90)).selected(bt == Bersaglio::Elettrone)).clicked() { vai(lab, &mut cam, Bersaglio::Elettrone); }
@@ -152,8 +156,27 @@ pub fn draw_hud(mut ctx: EguiContexts, mut lab: ResMut<Lab>, mut cam: ResMut<Cam
             Scena::Fotone => pannello_fotone(ctx, lab),
             Scena::Atomo => pannello_atomo(ctx, lab, &mut cam),
             Scena::Orbitali => pannello_orbitali(ctx, lab),
+            Scena::Elettrone => pannello_elettrone(ctx, lab),
+            Scena::Tavola => {}
         }
     }
+    // the periodic table: always called in its scene (the camera follows what is shown), the window only with the panel
+    if lab.scena == Scena::Tavola { crate::tavola::pannello(ctx, lab, &mut cam); }
+}
+
+fn pannello_elettrone(ctx: &egui::Context, lab: &mut Lab) {
+    let mut open = true;
+    egui::Window::new("Un elettrone libero a bagliori (regola zig-zag)").open(&mut open).default_pos([12.0, 80.0]).default_width(440.0).show(ctx, |ui| {
+        ui.label(RichText::new("Un pacchetto dell'elettrone fermo nel vuoto, con la stessa regola di tutto il resto: ogni pallina corre a c \
+            e il flip di massa la gira da destra a sinistra. Ogni bagliore è un surfista che cavalca la corrente dell'onda (v = j/ρ): \
+            nessuna scia, nessuna forma disegnata.").color(GOLD));
+        ui.label(RichText::new("Il pacchetto mescola energie positive e negative, quindi TREMA (Zitterbewegung, Schrödinger 1930): il suo \
+            centro gira su un cerchio di ~ħ/2mc a ~2mc²/ħ. Mai visto sull'elettrone vero (troppo piccolo e veloce: 10⁻¹³ m, 10²¹ giri al \
+            secondo). Il muone: stessa scena con la massa 206,77 volte più grande (un ingresso): tutto 207 volte più piccolo e più veloce.").small());
+        ui.add(egui::Slider::new(&mut lab.ritmo_el, 1.0..=60.0).logarithmic(true).text("tick al secondo"));
+        if ui.button("ricomincia").clicked() { lab.spara = true; }
+    });
+    if !open { lab.panel_open = false; }
 }
 
 fn vai(lab: &mut Lab, cam: &mut Cam, b: Bersaglio) {
@@ -168,6 +191,7 @@ fn clic_scena(lab: &Lab) -> Option<(usize, Option<[f64; 3]>)> {
         Scena::Fotone => lab.fot.as_ref().map(|z| { let o = &z.lock().unwrap().out; (o.n_clic, o.ultimo_clic) }),
         Scena::Atomo => lab.zz.as_ref().map(|z| { let o = &z.lock().unwrap().out; (o.n_clic, o.ultimo_clic) }),
         Scena::Orbitali => lab.orb.as_ref().map(|z| { let o = &z.lock().unwrap().out; (o.n_clic, o.ultimo_clic) }),
+        Scena::Elettrone | Scena::Tavola => None,
     }
 }
 
@@ -183,7 +207,7 @@ fn pannello_misura(ui: &mut egui::Ui, lab: &mut Lab) {
     let etichetta = match lab.scena {
         Scena::Fotone => "dopo la misura: il fotone è assorbito (ne parte un altro)",
         Scena::Atomo => "dopo la misura: collassa (un pacchetto stretto nel punto del clic)",
-        Scena::Orbitali => "dopo la misura: collassa (non disponibile qui: usa la scena atomo)",
+        Scena::Orbitali | Scena::Elettrone | Scena::Tavola => "dopo la misura: collassa (non disponibile qui: usa la scena atomo)",
     };
     ui.add_enabled(lab.scena != Scena::Orbitali, egui::Checkbox::new(&mut lab.opz.collassa, etichetta));
     if !lab.opz.collassa || lab.scena == Scena::Orbitali {
@@ -217,8 +241,12 @@ fn stato_scena(lab: &Lab) -> (String, String) {
             let o = lab.zz.as_ref().map(|z| z.lock().unwrap().out.clone());
             match o {
                 Some(o) if o.pronto && o.accoppiato => (
-                    format!("Nd⁵⁹⁺ · luce e atomo ACCOPPIATI (la stessa regola nei due versi) · tick {} · 1s {:.0} % · 2p½ {:.1} % · eccitato {:.0} %",
-                            o.ticks, 100.0 * (1.0 - o.p_exc), 100.0 * o.p2p, 100.0 * o.p_exc),
+                    format!("Nd⁵⁹⁺ · luce e atomo ACCOPPIATI (la stessa regola nei due versi) · tick {} · 1s {:.0} % · 2p½ {:.1} % · eccitato p_exc = {:.0} %{}",
+                            o.ticks, 100.0 * (1.0 - o.p_exc), 100.0 * o.p2p, 100.0 * o.p_exc,
+                            match o.amp_diffusa {
+                                Some(a) => format!(" · LUCE DIFFUSA ×{:.0} (rosa/verde; palline ∝ u·r²: la caduta 1/r² è tolta) · fetta |y| < 10 ħ/mc · atomo ingrandito ×{:.0} · impulso libero ×0,25 · palline bianche = corrente d'energia", a, crate::zzscena::ZOOM_ATOMO),
+                                None => String::new(),
+                            }),
                     format!("dipolo ⟨z⟩ = {:+.3} ħ/mc · ω₂₁ della regola 3-D {:.4} mc²/ħ · luce rimandata {} · {:.0} ms per tick",
                             o.dipolo, o.omega21, o.omega_emessa.map(|w| format!("ω = {:.4} ({:+.1} %)", w, 100.0 * (w / o.omega21 - 1.0))).unwrap_or_else(|| "…".into()), o.ms_tick)),
                 Some(o) if o.pronto => (
@@ -242,6 +270,21 @@ fn stato_scena(lab: &Lab) -> (String, String) {
                 _ => ("Orbitali: la regola radiale sta ascoltando i livelli...".into(), String::new()),
             }
         }
+        Scena::Elettrone => {
+            let o = lab.el.as_ref().map(|z| z.lock().unwrap().out.clone());
+            match o {
+                Some(o) if o.pronto => {
+                    let m = o.particella.massa();
+                    let c = o.centro_palline;
+                    (format!("UN {} LIBERO a bagliori · regola zig-zag · tremito atteso a ~2mc²/ħ = {:.3e} rad/s, raggio ~ħ/2mc = {}",
+                             o.particella.nome().to_uppercase(), 2.0 * m / zz::T_UNIT_S, fmt_len(0.5 * zz::LAMBDA_C_M / m)),
+                     format!("tick {} · t = {} · centro dei bagliori ({:+.3}, {:+.3}, {:+.3}) ħ/mc · {:.0} ms per tick",
+                             o.ticks, fmt_t(o.t * zz::T_UNIT_S / m), c[0], c[1], c[2], o.ms_tick))
+                }
+                _ => ("L'elettrone sta partendo...".into(), String::new()),
+            }
+        }
+        Scena::Tavola => crate::tavola::stato(lab),
     }
 }
 
@@ -270,6 +313,12 @@ fn barra_tempo(ctx: &egui::Context, lab: &mut Lab) {
                         let t = lab.orb.as_ref().map(|z| z.lock().unwrap().out.t).unwrap_or(0.0);
                         ui.label(RichText::new(format!("t = {}", fmt_t(t * zz::T_UNIT_S))).monospace().color(CYAN));
                     }
+                    Scena::Elettrone => {
+                        ui.add(egui::Slider::new(&mut lab.ritmo_el, 1.0..=60.0).logarithmic(true).show_value(false)).on_hover_text("tick al secondo");
+                        let ticks = lab.el.as_ref().map(|z| z.lock().unwrap().out.ticks).unwrap_or(0);
+                        ui.label(RichText::new(format!("t = {}", fmt_t(ticks as f64 * spt))).monospace().color(CYAN));
+                        if ui.button("ricomincia").clicked() { lab.spara = true; }
+                    }
                     Scena::Atomo => {
                         if ui.button("⏭").on_hover_text("più veloce").clicked() { lab.ritmo = if lab.ritmo < 60.0 { 60.0 } else { 25.0 }; }
                         ui.add(egui::Slider::new(&mut lab.ritmo, 1.0..=60.0).logarithmic(true).show_value(false)).on_hover_text("tick al secondo (al massimo quanto regge il PC)");
@@ -277,6 +326,7 @@ fn barra_tempo(ctx: &egui::Context, lab: &mut Lab) {
                         ui.label(RichText::new(format!("1 s ≤ {}", fmt_t(spt * lab.ritmo))).monospace().color(GREY));
                         ui.label(RichText::new(format!("t = {}", fmt_t(ticks as f64 * spt))).monospace().color(CYAN));
                     }
+                    Scena::Tavola => crate::tavola::barra(ui, lab),
                 }
                 ui.separator();
                 if ui.add(egui::Button::new(RichText::new(" MISURA (M) ").strong()).fill(Color32::from_rgb(40, 100, 60))).on_hover_text("un clic del rivelatore, con probabilità |ψ|²").clicked() { lab.misura = true; }
@@ -385,11 +435,30 @@ fn pannello_fotone(ctx: &egui::Context, lab: &mut Lab) {
                 ui.label(RichText::new(format!("al fuoco w0 = {:.2} λ", w0 / lam)).color(GREY));
                 ui.label("");
                 ui.end_row();
+                // the same observables at every preset (CPU and GPU path): spin from the balls, energy flow
+                ui.label("spin letto dalle palline");
+                match o.spin_palline {
+                    Some(s) if o.ticks >= 2 => {
+                        ui.label(format!("{:+.3} ħ", s));
+                        ui.label(RichText::new(format!("atteso {:+.0}", o.par.polar.elicita())).color(GREY));
+                        ui.label(if (s - o.par.polar.elicita()).abs() < 0.1 { RichText::new("ok").color(GREEN) } else { RichText::new("no").color(RED) });
+                    }
+                    _ => { ui.label("…"); ui.label(""); ui.label(""); }
+                }
+                ui.end_row();
+                ui.label("flusso di energia (Σ E×B)");
+                let pn = (o.poynting[0].powi(2) + o.poynting[1].powi(2) + o.poynting[2].powi(2)).sqrt();
+                let d = crate::fotone3d::norma(crate::fotscena::DIREZIONI[o.par.dir % crate::fotscena::DIREZIONI.len()].1);
+                let cos = if pn > 0.0 { (o.poynting[0] * d[0] + o.poynting[1] * d[1] + o.poynting[2] * d[2]) / pn } else { 0.0 };
+                ui.label(format!("cos con il volo {:.4}", cos));
+                ui.label(RichText::new(format!("energia {:.4e}", o.energia)).color(GREY));
+                ui.label(if cos > 0.99 { RichText::new("ok").color(GREEN) } else { RichText::new("no").color(RED) });
+                ui.end_row();
             });
             ui.label(RichText::new("La velocità è quella del centro dell'energia |F|²: un impulso stretto contiene onde un po' oblique, \
                 quindi lungo l'asse va appena meno di c (anche nelle onde continue: il confronto giusto è con la colonna grigia). \
                 Lungo un asse del reticolo la regola porta la luce a c esatto; in diagonale il reticolo la rallenta (debito).").small().color(GREY));
-            ui.label(RichText::new(format!("costo: {:.0} ms per tick · {} palline · {:.0} fps", o.ms_tick, lab.palline_disegnate, lab.fps)).small().color(GREY));
+            ui.label(RichText::new(format!("costo: {:.0} ms per tick · {} palline · {:.0} fps · regola sulla {}", o.ms_tick, lab.palline_disegnate, lab.fps, o.regola)).small().color(GREY));
         }
         ui.separator();
         ui.label(RichText::new("STRATI (tutti dallo stesso campo F = E + icB delle palline)").strong().color(GOLD));
@@ -397,7 +466,7 @@ fn pannello_fotone(ctx: &egui::Context, lab: &mut Lab) {
         ui.horizontal(|ui| {
             ui.checkbox(&mut v.traccianti, "palline che corrono col campo");
             ui.checkbox(&mut v.fronti, RichText::new("fronti d'onda").color(GOLD));
-            ui.checkbox(&mut v.elica, "elica di E");
+            ui.checkbox(&mut v.allunga, "palline allungate lungo E");
         });
         ui.horizontal(|ui| {
             ui.checkbox(&mut v.e_vettori, "tratti E");
@@ -420,7 +489,7 @@ fn pannello_fotone(ctx: &egui::Context, lab: &mut Lab) {
         pannello_misura(ui, lab);
         ui.label(RichText::new("DEBITI: l'ampiezza è quella di un'onda classica normalizzata (la regola è lineare: un fotone e un \
             impulso forte hanno la stessa forma; il \"clic\" di un solo fotone non c'è ancora). Il reticolo cubico rallenta un po' \
-            l'apertura di lato del fascio (fattore ka/tan ka: −21 % con 8 celle per λ, −6 % con 16, −2 % con 24) e rallenta la luce \
+            l'apertura di lato del fascio (fattore ka/tan ka: −21 % con 8 celle per λ, per questo il preset più basso ne usa 12; −6 % con 16, −2 % con 24) e rallenta la luce \
             obliqua (0,88 c in diagonale con 8 celle per λ). Lungo un asse va a c esatto.").small());
     });
     if !open { lab.panel_open = false; }
@@ -438,6 +507,12 @@ fn pannello_atomo(ctx: &egui::Context, lab: &mut Lab, cam: &mut Cam) {
         ui.label(RichText::new("LUCE").strong().color(GOLD));
         ui.checkbox(&mut lab.accoppiato, "luce dal vivo, accoppiata (Maxwell–Dirac: la stessa regola nei due versi)");
         ui.label(RichText::new("Accoppiata: il fotone è un impulso di palline a spin 1 in una scatola di luce di 512 ħ/mc attorno all'atomo;             il suo campo spinge l'elettrone, e la corrente dell'elettrone è una sorgente della luce: la luce che l'atomo rimanda             e il suo rilassamento escono dalla regola (accoppiamento ×10 per vederlo; semiclassico: emette solo una             sovrapposizione). Popolazioni = proiezioni sugli stati 1s e 2p½ della regola 3-D (ascoltati). In questa modalità             il tempo va solo avanti (la luce presa dalla spugna non torna).").small().color(GREY));
+        ui.checkbox(&mut lab.diffusa, "vista diffusa: mostra la luce che l'atomo manda fuori (amplificata, dichiarato)");
+        ui.label(RichText::new("La luce è divisa in due scatole esatte (la regola è lineare): l'impulso libero, senza atomo, e la luce \
+            fatta SOLO dalla corrente dell'elettrone; l'atomo sente la somma. La seconda è la luce diffusa e riemessa: ~1/30–1/50 \
+            dell'impulso in ampiezza, quindi si disegna moltiplicata per il fattore ×A scritto in alto (A = impulso / diffusa lontano \
+            dall'atomo, aggiornato). Le palline bianche si muovono con la velocità dell'energia v = S/u = (E × B)/u della luce \
+            diffusa: vanno via dall'atomo a c.").small().color(GREY));
         if ui.button("guarda la luce (zoom fino a 350 ħ/mc)").clicked() { cam.vai(Bersaglio::Atomo, 350.0); }
         ui.separator();
         ui.label(RichText::new("FOTONE").strong().color(GOLD));
@@ -536,7 +611,7 @@ fn pannello_orbitali(ctx: &egui::Context, lab: &mut Lab) {
     let o = lab.orb.as_ref().map(|z| z.lock().unwrap().out.clone());
     egui::Window::new("Orbitali di un elettrone (regola zig-zag)").open(&mut open).default_pos([12.0, 80.0]).default_width(480.0).vscroll(true).show(ctx, |ui| {
         ui.label(RichText::new("Un solo elettrone attorno al nucleo di neodimio (Z = 60): gli stati sono quelli che dà la regola zig-zag \
-            nella sua forma radiale (stessa cella, stessa fase di Coulomb), messi in 3-D con le funzioni d'angolo di Dirac. \
+            nella sua forma radiale (stessa fase di Coulomb, celle a cipolla: fini al nucleo, 0,5 ħ/mc lontano), messi in 3-D con le funzioni d'angolo di Dirac. \
             Una sovrapposizione evolve con le frequenze della regola: la nuvola batte.").color(GOLD));
         ui.label(RichText::new("Da lontano: gusci morbidi a tre livelli di densità (colore = fase dell'onda: gira nel tempo e attorno a z \
             come e^{imφ}). Da vicino: palline-surfista portate dalla corrente dell'onda (v = j/ρ ≤ c), sei con la scia.").small().color(GREY));
@@ -571,21 +646,21 @@ fn pannello_orbitali(ctx: &egui::Context, lab: &mut Lab) {
         }
         ui.separator();
         if let Some(o) = &o {
-            ui.label(RichText::new("LIVELLI (dalla regola radiale, cella 0,5 ħ/mc)").strong().color(GOLD));
+            ui.label(RichText::new("LIVELLI (regola radiale, celle dello zoom automatico 2⁻⁹…0,5 ħ/mc)").strong().color(GOLD));
             egui::Grid::new("liv").striped(true).show(ui, |ui| {
                 ui.label("stato"); ui.label("legame, regola"); ui.label("Dirac esatto"); ui.end_row();
                 for (s, w, d) in &o.livelli {
                     ui.label(s.nome());
                     ui.label(format!("{:.2} keV", (1.0 - w) * zz::MC2_KEV));
-                    ui.label(format!("{:.2} keV ({:+.0} %)", (1.0 - d) * zz::MC2_KEV, 100.0 * ((1.0 - w) / (1.0 - d) - 1.0)));
+                    ui.label(format!("{:.2} keV ({:+.2} %)", (1.0 - d) * zz::MC2_KEV, 100.0 * ((1.0 - w) / (1.0 - d) - 1.0)));
                     ui.end_row();
                 }
             });
             ui.label(RichText::new(format!("raggio mostrato {:.0} ħ/mc = {} · {:.0} ms per passo", o.r, fmt_len(o.r * zz::LAMBDA_C_M), o.ms)).small().color(GREY));
         }
         pannello_misura(ui, lab);
-        ui.label(RichText::new("DEBITI: le celle grosse (0,5 ħ/mc) legano troppo (1s +40 % rispetto a Dirac; gli stati alti meno). \
-            Gli orbitali n = 3, 4 non stanno nella scatola dal vivo (48³): la forma viene dalla regola radiale, esatta per un \
+        ui.label(RichText::new("DEBITI: con celle uguali da 0,5 ħ/mc l'1s legava +40 % (la prima cella faceva da specchio sbagliato); con lo zoom al \
+            nucleo tutti i livelli stanno entro 0,4 % (NUCLEO_1S). L'atomo 3-D dal vivo ha ancora le celle cubiche da 0,5. Gli orbitali n = 3, 4 non stanno nella scatola dal vivo (48³): la forma viene dalla regola radiale, esatta per un \
             elettrone in un campo centrale; qui niente fotone e niente tremolio di Zitterbewegung (stati di sola energia positiva). \
             Gli atomi con più elettroni aspettano la regola a molti elettroni degli agglomerati: non li fingiamo con orbitali \
             di tabella.").small());

@@ -1,0 +1,11 @@
+{
+  "id": "2026-10-13_build_surfisti",
+  "azione": "build",
+  "ok": true,
+  "inizio": "2026-10-13T17:47:35Z",
+  "fine": "2026-10-13T17:47:37Z",
+  "durata_s": 1.3,
+  "git": "359707a5aaa0bf9b129950dcf3fdd2cb3e597a05",
+  "macchina": "LAPTOP-01UIII6L",
+  "exit": 0
+}

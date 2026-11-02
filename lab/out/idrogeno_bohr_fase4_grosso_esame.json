@@ -1,0 +1,82 @@
+{
+ "criteri": {
+  "G1_livelli": "1s (con Born), 2s (con Born), 2p1/2, 2p3/2 entro +-0.005 % di Dirac (riferimento di agg2s_analyze); prima (vecchio maestro) +0.026..+0.038 %",
+  "G2_nucleo": "rho_B(0) dell'1s (media dei bordi) entro 0.5 % dell'esatto (prima: grezzo 0.916 -> Born 0.998)",
+  "G3_massa": "senza Born, 1s e 2s entro 0.005 % di m_kin x Dirac piu' l'errore di cella atteso (descrittivo)"
+ },
+ "dV_eV": {
+  "s1": 0.0006394689752839619,
+  "s2": 7.959201682939751e-05,
+  "p_lo": -3.0123621316859957e-05,
+  "p_hi": 1.5115621623653892e-05
+ },
+ "born": {
+  "mean_max": 0.8311896359693582,
+  "mean_max3": 0.5990709940267964,
+  "I_coef": 0.013403570582492155,
+  "J_coef": 0.00032627040231476964
+ },
+ "m_kin": 1.0000014663242311,
+ "livelli": {
+  "1s1/2": {
+   "E_senza_born_eV": -13.604665909120882,
+   "dE_born_eV": -0.001600684921932297,
+   "E_eV": -13.606266594042815,
+   "dirac_eV": -13.605874258116904,
+   "rel": 2.8835774788626978e-05,
+   "rel_senza_born": -8.88108307557367e-05,
+   "rel_mkin_dirac_senza_born": -9.027702261155124e-05,
+   "periodico_000_rel": 2.8830998101136984e-05
+  },
+  "2s1/2": {
+   "E_senza_born_eV": -3.4013955585732814,
+   "dE_born_eV": -0.00020001411209771486,
+   "E_eV": -3.401595572685379,
+   "dirac_eV": -3.401479885597528,
+   "rel": 3.401081051257471e-05,
+   "rel_senza_born": -2.4791275292757042e-05,
+   "rel_mkin_dirac_senza_born": -2.625756102181409e-05,
+   "periodico_000_rel": 0.0005640899626004892
+  },
+  "2p1/2": {
+   "E_senza_born_eV": -3.4014984668098003,
+   "dE_born_eV": 0.0,
+   "E_eV": -3.4014984668098003,
+   "dirac_eV": -3.401479885597528,
+   "rel": 5.462684742330026e-06,
+   "rel_senza_born": 5.462684742330026e-06,
+   "rel_mkin_dirac_senza_born": 3.996354651203404e-06,
+   "periodico_000_rel": -0.00016382768743961051
+  },
+  "2p3/2": {
+   "E_senza_born_eV": -3.4014532275668596,
+   "dE_born_eV": 0.0,
+   "E_eV": -3.4014532275668596,
+   "dirac_eV": -3.401434601437786,
+   "rel": 5.4759627206024675e-06,
+   "rel_senza_born": 5.4759627206024675e-06,
+   "rel_mkin_dirac_senza_born": 4.00963260993592e-06,
+   "periodico_000_rel": -0.00016381666326692468
+  }
+ },
+ "esami": {
+  "G1_livelli": {
+   "passed": true,
+   "peggiore_rel": 3.401081051257471e-05
+  },
+  "G2_nucleo": {
+   "passed": true,
+   "rho_c_su_esatto_1s": 0.9182164551161685,
+   "rho_B_su_esatto_1s": 1.000719913006766,
+   "rho_c_su_esatto_2s": 0.9178883187672816,
+   "rho_B_su_esatto_2s": 1.0003622929960563
+  },
+  "G3_massa": {
+   "descrittivo": true,
+   "s_senza_born_vs_mkin_dirac": {
+    "1s1/2": -9.027702261155124e-05,
+    "2s1/2": -2.625756102181409e-05
+   }
+  }
+ }
+}

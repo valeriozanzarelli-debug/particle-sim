@@ -1,0 +1,357 @@
+{
+ "esami": {
+  "C1_perdita": {
+   "passed": true,
+   "dettaglio": "mediana |perdita| passi 121..240 = 3.12e-08 per passo (soglia 2e-7; fase 3 ~5e-6)"
+  },
+  "C2_stazionarieta_fuori": {
+   "passed": true,
+   "dettaglio": "1.737e-05 contro 10 x pavimento = 1.947e-05 (8.9 x)"
+  },
+  "C2b_stazionarieta_fase3": {
+   "passed": true,
+   "dettaglio": "stazionarieta grosso 1.116e-05 (soglia 1e-4; fine 3.012e-04)"
+  },
+  "C3_corrente_fuori": {
+   "passed": false,
+   "dettaglio": "j_fuori al passo 240 = 1.241e-04 contro 10 x pavimento = 7.105e-06 (175 x) [previsione: FAIL]"
+  },
+  "V1_monotona": {
+   "passed": false,
+   "dettaglio": "variazioni relative 3->5->7->9->11: -1.87e-04, -3.53e-04, +2.85e-05, -2.65e-05 (negativo = piu' legato)"
+  },
+  "V2_plateau": {
+   "passed": true,
+   "dettaglio": "|E11-E9|/|E| = 2.65e-05 (soglia 3e-5), |E9-E7|/|E| = 2.85e-05 (soglia 1e-4)"
+  },
+  "V3_picco": {
+   "passed": false,
+   "dettaglio": "|E7-(E5+E9)/2|/|E| = 1.91e-04"
+  },
+  "C4_R_energia": {
+   "passed": true,
+   "dettaglio": "E1 ibrido N=256 blocco 9 = -13.591198 eV (-0.0535 % da Dirac x mu; soglia 0.10 %)"
+  },
+  "M1_convergenza": {
+   "passed": true,
+   "dettaglio": "maestro scelto j = 4; |dm| per j: 1:2.80e-04, 2:7.00e-05, 3:1.75e-05, 4:4.37e-06"
+  },
+  "M2_massa": {
+   "passed": true,
+   "dettaglio": "m - 1 (a0/16, a0/8) = 1.457e-06, 1.466e-06 (prima 3.73e-4)"
+  },
+  "M4_kcheck": {
+   "passed": true,
+   "dettaglio": "B=4096: w 4, packet 3.6e-21, energia 6.0e-07, bz90 0.05; B=8192: w 4, packet 8.5e-24, energia 3.4e-05, bz90 0.04"
+  },
+  "M3_2p_rust": {
+   "passed": true,
+   "dettaglio": "2p (Rust, a0/8, N=256, media bordi 000/111) -3.399611 eV, +0.00037 % da Dirac x mu (000 -0.0166 %, 111 +0.0173 %; prima +0.0338 %)"
+  },
+  "G1_livelli": {
+   "passed": true,
+   "dettaglio": {
+    "peggiore_rel": 3.401081051257471e-05
+   }
+  },
+  "G2_nucleo": {
+   "passed": true,
+   "dettaglio": {
+    "rho_c_su_esatto_1s": 0.9182164551161685,
+    "rho_B_su_esatto_1s": 1.000719913006766,
+    "rho_c_su_esatto_2s": 0.9178883187672816,
+    "rho_B_su_esatto_2s": 1.0003622929960563
+   }
+  }
+ },
+ "numeri": {
+  "C_pavimento": {
+   "ibrido_su_grosso": -5.8842e-15,
+   "E_eV": -13.826572,
+   "E_rel_pct": 1.6774,
+   "staz_grosso": 1.947e-06,
+   "staz_fine": 0.0,
+   "staz_fuori": 1.947e-06,
+   "j": [
+    [
+     48,
+     0.0,
+     2.812e-05
+    ],
+    [
+     96,
+     0.0,
+     7.507e-06
+    ],
+    [
+     144,
+     0.0,
+     2.388e-06
+    ],
+    [
+     192,
+     0.0,
+     1.144e-06
+    ],
+    [
+     240,
+     0.0,
+     7.105e-07
+    ]
+   ],
+   "perdita_mediana_2a_meta": 0.0,
+   "sfasamento_medio_2a_meta": 0.0,
+   "finestre": [
+    [
+     8,
+     240,
+     -13.826572,
+     1.6774
+    ],
+    [
+     80,
+     240,
+     -13.826572,
+     1.6774
+    ],
+    [
+     120,
+     240,
+     -13.826572,
+     1.6774
+    ],
+    [
+     160,
+     240,
+     -13.826572,
+     1.6774
+    ]
+   ],
+   "partenza": []
+  },
+  "C_ibrido": {
+   "ibrido_su_grosso": 0.0005584,
+   "E_eV": -13.834293,
+   "E_rel_pct": 1.7342,
+   "staz_grosso": 1.116e-05,
+   "staz_fine": 0.0003012,
+   "staz_fuori": 1.737e-05,
+   "j": [
+    [
+     48,
+     0.001506,
+     0.000116
+    ],
+    [
+     96,
+     0.001492,
+     0.0001151
+    ],
+    [
+     144,
+     0.001479,
+     0.0001204
+    ],
+    [
+     192,
+     0.001479,
+     0.0001233
+    ],
+    [
+     240,
+     0.001479,
+     0.0001241
+    ]
+   ],
+   "perdita_mediana_2a_meta": 3.11625e-08,
+   "sfasamento_medio_2a_meta": 5.114930833333334e-06,
+   "finestre": [
+    [
+     8,
+     240,
+     -13.834293,
+     1.7342
+    ],
+    [
+     80,
+     240,
+     -13.834293,
+     1.7342
+    ],
+    [
+     120,
+     240,
+     -13.834293,
+     1.7342
+    ],
+    [
+     160,
+     240,
+     -13.834293,
+     1.7342
+    ]
+   ],
+   "partenza": [
+    [
+     "0",
+     "+5.0196e1",
+     "-13.834192",
+     "+1.7335",
+     "3.775e-7"
+    ],
+    [
+     "1",
+     "+5.0240e1",
+     "-13.834382",
+     "+1.7349",
+     "2.355e-10"
+    ],
+    [
+     "2",
+     "+5.0241e1",
+     "-13.834384",
+     "+1.7349",
+     "2.598e-14"
+    ]
+   ]
+  },
+  "C3b_j_coperte": 0.001479,
+  "V": {
+   "3": {
+    "E_eV": -13.826824,
+    "ibrido_su_grosso": 1.8239e-05,
+    "staz_fuori": 2.169e-05
+   },
+   "5": {
+    "E_eV": -13.829411,
+    "ibrido_su_grosso": 0.00020533,
+    "staz_fuori": 1.914e-05
+   },
+   "7": {
+    "E_eV": -13.834293,
+    "ibrido_su_grosso": 0.00055837,
+    "staz_fuori": 3.797e-05
+   },
+   "9": {
+    "E_eV": -13.833899,
+    "ibrido_su_grosso": 0.00052992,
+    "staz_fuori": 4.175e-05
+   },
+   "11": {
+    "E_eV": -13.834265,
+    "ibrido_su_grosso": 0.00055639,
+    "staz_fuori": 4.598e-05
+   }
+  },
+  "R": {
+   "ibrido_su_grosso": 0.00058219,
+   "E_eV": -13.591198,
+   "E_rel_pct": -0.0535,
+   "staz_grosso": 5.528e-05,
+   "staz_fine": 0.0004206,
+   "staz_fuori": 5.236e-05,
+   "j": [],
+   "perdita_mediana_2a_meta": null,
+   "sfasamento_medio_2a_meta": null,
+   "finestre": [
+    [
+     8,
+     120,
+     -13.591198,
+     -0.0535
+    ],
+    [
+     40,
+     120,
+     -13.5912,
+     -0.0534
+    ],
+    [
+     60,
+     120,
+     -13.591199,
+     -0.0535
+    ],
+    [
+     80,
+     120,
+     -13.591198,
+     -0.0535
+    ]
+   ],
+   "partenza": [
+    [
+     "0",
+     "+5.0084e1",
+     "-13.591199",
+     "-0.0535",
+     "2.589e-7"
+    ],
+    [
+     "1",
+     "+5.0122e1",
+     "-13.591119",
+     "-0.0540",
+     "2.532e-11"
+    ]
+   ]
+  },
+  "M_masse_per_j": {
+   "0": 1.000373269648553,
+   "1": 1.0000932860732452,
+   "2": 1.0000233195598354,
+   "3": 1.000005829767185,
+   "4": 1.0000014574342857
+  },
+  "M3_2p": {
+   "E_000": -3.399035,
+   "E_111": -3.400186,
+   "rel_000_pct": -0.0166,
+   "rel_111_pct": 0.0173,
+   "media_eV": -3.3996105,
+   "media_rel_pct": 0.0003676905328209301
+  },
+  "G_livelli": {
+   "1s1/2": {
+    "E_senza_born_eV": -13.604665909120882,
+    "dE_born_eV": -0.001600684921932297,
+    "E_eV": -13.606266594042815,
+    "dirac_eV": -13.605874258116904,
+    "rel": 2.8835774788626978e-05,
+    "rel_senza_born": -8.88108307557367e-05,
+    "rel_mkin_dirac_senza_born": -9.027702261155124e-05,
+    "periodico_000_rel": 2.8830998101136984e-05
+   },
+   "2s1/2": {
+    "E_senza_born_eV": -3.4013955585732814,
+    "dE_born_eV": -0.00020001411209771486,
+    "E_eV": -3.401595572685379,
+    "dirac_eV": -3.401479885597528,
+    "rel": 3.401081051257471e-05,
+    "rel_senza_born": -2.4791275292757042e-05,
+    "rel_mkin_dirac_senza_born": -2.625756102181409e-05,
+    "periodico_000_rel": 0.0005640899626004892
+   },
+   "2p1/2": {
+    "E_senza_born_eV": -3.4014984668098003,
+    "dE_born_eV": 0.0,
+    "E_eV": -3.4014984668098003,
+    "dirac_eV": -3.401479885597528,
+    "rel": 5.462684742330026e-06,
+    "rel_senza_born": 5.462684742330026e-06,
+    "rel_mkin_dirac_senza_born": 3.996354651203404e-06,
+    "periodico_000_rel": -0.00016382768743961051
+   },
+   "2p3/2": {
+    "E_senza_born_eV": -3.4014532275668596,
+    "dE_born_eV": 0.0,
+    "E_eV": -3.4014532275668596,
+    "dirac_eV": -3.401434601437786,
+    "rel": 5.4759627206024675e-06,
+    "rel_senza_born": 5.4759627206024675e-06,
+    "rel_mkin_dirac_senza_born": 4.00963260993592e-06,
+    "periodico_000_rel": -0.00016381666326692468
+   }
+  }
+ }
+}

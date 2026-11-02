@@ -1,0 +1,103 @@
+{
+ "impronta_esportazione": "12322e1817",
+ "manifest_mtime_utc": "13/10/2026 01:46",
+ "fonte": "/mnt/project-files/ripresa/dati/atomo_accoppiato",
+ "commit_dati": "addffd7",
+ "elettrone": {
+  "sigma_celle": 2.0,
+  "sigma_lambdaC": 1.0,
+  "continuita_corrente_esportata (facce, smussata, media dell'intervallo)": [
+   {
+    "intervallo": 10,
+    "sum_abs_div_j": 0.298401614639195,
+    "sum_abs_drho_dt": 0.03303528866077454,
+    "corr(drho/dt, -div j)": -0.656778753618721
+   },
+   {
+    "intervallo": 25,
+    "sum_abs_div_j": 0.28998687823551217,
+    "sum_abs_drho_dt": 0.05750598160332565,
+    "corr(drho/dt, -div j)": -0.16906536165962976
+   },
+   {
+    "intervallo": 60,
+    "sum_abs_div_j": 0.28983982967946287,
+    "sum_abs_drho_dt": 0.055360702316893384,
+    "corr(drho/dt, -div j)": -0.13387581239105084
+   },
+   {
+    "intervallo": 150,
+    "sum_abs_div_j": 0.30495562175017565,
+    "sum_abs_drho_dt": 0.05810415432050675,
+    "corr(drho/dt, -div j)": 0.31211269627648225
+   }
+  ],
+  "correzione_rho_grad_chi_su_j_mediana": 0.8430220572787108,
+  "cg_iterazioni_max": 187,
+  "cg_residuo_max": 9.982264823918016e-08,
+  "fotogramma100": {
+   "quota_azimutale": 0.8127921970814582,
+   "quota_azimutale_con_segno": 0.8029726097052986,
+   "velocita_media_pesata_c": 0.05058336332334927,
+   "continuita_residuo_rel": 0.00039130816041593394
+  },
+  "scacchiera_periodo4_rel_grezza": 1.6533599455834085,
+  "scacchiera_periodo4_rel_smussata": 8.54861456123974e-05,
+  "attenuazione_scacchiera": 5.1704497765749705e-05
+ },
+ "pexc_stimatore_fase_dominante_sul_reticolo": {
+  "25": [
+   0.1772124110869593,
+   0.1197784
+  ],
+  "50": [
+   0.1548222404490921,
+   0.1009029
+  ],
+  "100": [
+   0.11932305419175027,
+   0.07909062
+  ],
+  "150": [
+   0.1122182247642648,
+   0.07366686
+  ],
+  "200": [
+   0.11881289506606718,
+   0.06395364
+  ]
+ },
+ "luce": {
+  "B_onda_piana_corr_By_-Ez_fotogrammi_5_10_20_30": [
+   0.999805418966153,
+   0.9997614454068274,
+   0.9995572777934396,
+   0.9987202529851767
+  ],
+  "B_vs_rxE_R>60_corr_media_60_200": 0.9628705390209656,
+  "B_vs_rxE_min": 0.8316925562241441,
+  "flusso_R0": {
+   "R0": 40.0,
+   "T_ON": 240.0,
+   "P_fotogrammi": {
+    "0": -0.014349678789576643,
+    "5": 2.0887188238716476e-05,
+    "10": 0.00875295133938752,
+    "20": 0.002708957087626983,
+    "25": 0.0005916317377884956,
+    "30": 9.108369646725749e-05,
+    "35": 6.907805061364369e-05,
+    "40": 7.260226387830357e-05,
+    "60": 3.789120324271532e-05,
+    "100": 1.7569286360109315e-05,
+    "150": 6.4457024868308935e-06,
+    "200": 9.063413710183217e-06
+   }
+  },
+  "energia_impulso_mc2": 2.0493478775024414,
+  "energia_uscita_da_R0_dopo_T_ON_mc2": 0.003694497167410088,
+  "energia_persa_dall_atomo_dp_exc_x_omega21_mc2": 0.004078435341112207,
+  "rapporto_uscita_su_persa": 0.9058614047814186,
+  "energia_riemessa_su_impulso": 0.0018027672158387306
+ }
+}

@@ -1,0 +1,35 @@
+{
+  "studio": "vz_ (VIDEO SUPERCRITICO): video lento a bagliori del tuffo dell'1s a Z = 200 e del positrone che esce",
+  "data": "2026-10-13",
+  "scritto_prima_di": "qualunque pallina mossa, qualunque esame calcolato, qualunque fotogramma disegnato",
+  "dati": {
+    "file": "lab/out/zstar_film.json al commit fc8a08c (ramo claude/problemi-aperti-56mnej, letto con git show, non fuso)",
+    "contenuto": "301 fotogrammi (dt = 0,8 lambda_C/c), 384 celle radiali (r <= 40 lambda_C): rho(r), j(r), Q(<r); continuita' 1,4e-13",
+    "segno": "i dati hanno un solo segno (probabilita' dello stato tuffato). Il colore 'positrone (+e)' contro 'vuoto carico (-e)' e' la lettura della teoria delle buche scritta in ZSTAR.md par. 10: peso fuori da r_w = 0,699 lambda_C (dal manifest) = positrone che esce; peso dentro = cio' che resta attorno al nucleo. Non e' un segno calcolato: si dice a schermo."
+  },
+  "configurazione": {
+    "N_palline": 300000,
+    "seme": 20261013,
+    "coordinata_di_massa": "ogni pallina riceve m_i uniforme in (0,1) (stratificato) e una direzione 3-D isotropa fissa. Posizione r_i(t) = Q^{-1}(m_i, t): Q lineare in r dentro la cella (Q dei dati ai bordi, ripulito con un massimo cumulativo se l'arrotondamento a 4 cifre lo rende non monotono) e lineare in t fra due fotogrammi (j costante sull'intervallo, come nei dati). E' l'integrale esatto di dr/dt = j/rho in 1-D (dQ/dt lungo la pallina = -j + rho v = 0). Se m_i > Q(40, t) la pallina e' uscita nella spugna e non si disegna.",
+    "direzioni": "isotrope per costruzione (i dati sono radiali): scritto a schermo 'simmetria sferica per costruzione dei dati, non calcolata'",
+    "scala_radiale_del_disegno": "R = ln(1 + r/0,02) / ln(1 + 40/0,02): compressa (logaritmica), dichiarata a schermo con etichette di testo a r = 0,1 / 0,7 / 4 / 40",
+    "colore": "miscela continua fra 'vuoto carico (-e)' (blu) e 'positrone (+e)' (arancio) con una logistica in ln r centrata su r_w, larghezza 0,25 in ln r (dichiarata); schiarito verso il bianco con |v|/c, v = velocita' radiale della pallina",
+    "grandezza": "dalla densita' locale 3-D delle palline nel disegno (piu' rade = bagliori piu' grandi e tenui), come lab/vl_render.py",
+    "tempi_video": "n(k) = 2,5 + 9 exp(-k/30) fotogrammi video per fotogramma di dati (lento all'inizio), 24 fps, 1080p e 720p",
+    "renderer": "stesso stile di lab/vl_render.py (bagliori gaussiani additivi, peso in profondita', alone largo), codice nuovo lab/vz_*.py"
+  },
+  "esami": {
+    "V1_istogramma": "sovrapposizione 1 - (1/2) sum |p_palline - p_dati| su 41 cesti radiali (cesto [0, 0,01] + 40 cesti logaritmici 0,01..40), normalizzati sul peso dentro r = 40, a tutti i 301 fotogrammi con >= 3000 palline dentro: PASS se minimo >= 0,95 e mediana >= 0,98",
+    "V2_ode": "controllo che le palline seguano davvero v = j/rho: 2000 palline integrate con Runge-Kutta 4 (passo 0,05 lambda_C/c, rho e j interpolati linearmente in r e tenuti come nei dati in t) da t = 0 contro la coordinata di massa, a t = 40, 80, 160: PASS se mediana |dr|/r <= 0,03 e frazione con |dr|/r > 0,10 <= 0,10 (fra le palline dentro r < 40 in entrambi)",
+    "V3_carica": "frazione di palline dentro r_w contro P_in_rw dei dati, frazione oltre r = 30 (o uscite) contro passato_r30, frazione dentro r = 40 contro Q_entro_40, a tutti i 301 fotogrammi: PASS se |differenza| <= 0,01 ovunque",
+    "V4_velocita_dati": "velocita' media del positrone dalle palline (dr/dt fra fotogrammi consecutivi, palline con 20 <= r <= 30, t fra 40 e 160) contro la stessa media dai dati, sum(j)/sum(rho) sulle stesse celle e tempi: PASS se scarto <= 3 %",
+    "V5_velocita_cinematica": "la stessa velocita' dalle palline contro la cinematica del positrone libero con l'energia della risonanza: beta = sqrt(1 - 1/eps^2), eps = |E_r| - Z alpha / r a r = 25 (E_r dal manifest; 0,898): PASS se scarto <= 5 %. Il documento ZSTAR/SUPERCRITICO dice '~0,8 c': lo riporto come confronto descrittivo, senza soglia"
+  },
+  "amplificazioni_previste": [
+    "scala radiale logaritmica (non lineare) nel disegno",
+    "direzioni isotrope per costruzione",
+    "esposizione fissa per tutto il video (il buio finale e' reale: il peso esce dalla scatola)"
+  ],
+  "manopole_estetiche": ["grandezza dei bagliori", "alone", "guadagni di esposizione", "camera", "palette", "larghezza della logistica del colore", "r0 = 0,02 della scala logaritmica", "tempi n(k)"],
+  "fallimenti": "dichiarati a schermo e nel documento, nessuna soglia cambiata dopo"
+}

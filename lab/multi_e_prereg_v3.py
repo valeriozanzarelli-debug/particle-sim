@@ -1,0 +1,57 @@
+"""multi_e_prereg_v3.py - EMENDAMENTO VERSIONATO v3 della pre-registrazione MOLTI ELETTRONI.
+Si adotta la regola del livello 1 di docs/AGGLOMERATO_COMPLETO.md par. 11 (fase 3 di aggfull_, commit 46bd3b3 e seguenti):
+apprendimento con i coefficienti di Taylor fissati alla regola fine (massa e k^4 in 13 direzioni) + parita' (livello T),
+e lo stesso + vincolo di Markov (tutti i salti con il segno giusto, livello M) per il nucleo dei camminatori.
+Scritto e committato PRIMA delle corse v3. Le v1 e v2 restano valide per tutto il resto; nessun verdetto vecchio si rigiudica.
+Scrive lab/out/multi_e_prereg_v3.json.  Run: python lab/multi_e_prereg_v3.py"""
+import json, os, subprocess, datetime
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+OUT = os.path.join(HERE, "out")
+head = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=HERE).decode().strip()
+
+P = {
+ "meta": {
+   "study": "MOLTI_ELETTRONI", "version": 3, "amends": "multi_e_prereg.json (v1) e multi_e_prereg_v2.json (v2)",
+   "written": datetime.datetime.now().isoformat(timespec="seconds"), "git_head_before": head,
+   "decided_by": "sessione principale (coordinatore), default dichiarato: adottare la regola del par. 11 di "
+                 "AGGLOMERATO_COMPLETO, rifare R3, il controllo Pauli a 3e-5 e la positivita' del nucleo (G0/R2) con essa, "
+                 "usarla per l'elio ECG se passano; tenere dichiarato il FAIL ad alto k; quantificare quanto DEBT-4/9 toglie.",
+   "data_already_seen": "i numeri di aggfull_l1 (lab/out/aggfull_l1.json, aggfull_l1_verdict.json) sono pubblici nel repo e "
+                        "li abbiamo letti: m0 = 1.000000001, k^4 99.9 %, parita' 5e-13, Markov positivo a ogni beta, "
+                        "controllo Z = 10 a 3e-5 passato da 1 seme su 3. Le corse v3 sono quindi in gran parte RIPRODUZIONI "
+                        "con il nostro codice di controllo (Band, mkin_of, K_beta): lo diciamo qui.",
+ },
+ "rule": {
+   "learner": "lab/aggfull_l1.py prod_one (importato, non modificato; i .pkl e il JSON scritti con i nostri nomi: "
+              "lab/out/multi_e_v3_*.pkl, lab/out/multi_e_v3.json; il JSON di aggfull non si tocca)",
+   "band_level_T": "catena A, osservabile Z = 10, w = 4, learner T, seme 1 (quello indicato dal par. 11)",
+   "walker_level_M": "catena A, osservabile Z = 2, w = 4, learner M, seme 1",
+   "R3_levels": "learner T, osservabile Z = 1, w = 2, catene A2, A, B, semi 1 e 2",
+ },
+ "exams": {
+   "R3v3": "m_kin(theta -> 0) dal nostro mkin_of (curvatura, 26 direzioni) sui livelli T delle catene A2/A/B (2 semi), fit "
+           "m0 + a th^2 + b th^4: |m0 - 1| <= 5e-5 (soglia v1); riportato anche contro 1e-9",
+   "L1c_v3": "livello Pauli T (b = 16, w = 4) sull'osservabile 1s di Z = 10, semi 1, 2, 3: controllo di energia di "
+             "auto_level <= 3e-5 su tutti e 3 i semi (atteso FAIL: aggfull vede 1 seme su 3; si dichiara)",
+   "G0v3": "parita' del livello T e M: parte dispari della banda grezza (sym = False) / parte pari a k h = 0.01 e 1: < 1e-10",
+   "R2v3": "livello M: peso negativo di K_beta < 1e-10 per ogni beta in {1e-6, 5e-6, 1e-5, 2e-5, 5e-5, 1e-4, 1e-3, 1e-2} "
+           "(griglie 64 e 128), |sum K - 1| < 1e-9; D curvatura = D spazio reale a 2e-5; |curtosi in eccesso a beta = 1e-2| "
+           "< 0.02. Riportato lo stesso per il livello T (atteso: non camminatore sotto 1e-3)",
+   "use_for_He_if": "R3v3, G0v3 e R2v3 PASS (L1c_v3 non blocca: e' il FAIL ad alto k gia' noto, dichiarato)",
+ },
+ "He_with_v3": {
+   "M1v3": "stessa base ECG di v2 (he1S_Z2, K = 200), massa del livello T: E(theta -> 0) = E_NR(m_A) x m0_v3 / m_A; "
+           "tolleranza M1 0.29 mEh; barra come v2 con sigma(m0) del nuovo fit",
+   "E1v3": "come E1 v2 con m0_v3",
+   "Q1v3": "Delta_band sull'elio (primo ordine sullo stato ECG NR, e variazionale se non collassa) con le bande T e M, "
+           "contro la correzione cinetica di Dirac esatta sullo stesso stato: |band/Dirac - 1| <= 0.01 (T) e <= 0.02 (M). "
+           "Quantificazione di DEBT-4/9: la parte 'sbagliata' (quella che non e' Dirac) prima e dopo, in mEh.",
+   "D_walkers": "i camminatori del continuo restano gaussiani (k^2/2m); con la regola M il pezzo di banda e' noto e pari a "
+                "Dirac cinetico: per il confronto NR si sottrae al primo ordine (come dice il par. 11). Nessuna nuova DMC in v3.",
+ },
+ "kept_declared": "il FAIL ad alto k (controllo Z = 10 a 3e-5) resta dichiarato finche' non e' curato",
+}
+with open(os.path.join(OUT, "multi_e_prereg_v3.json"), "w") as f:
+    json.dump(P, f, indent=1, ensure_ascii=False)
+print("scritto lab/out/multi_e_prereg_v3.json", P["meta"]["written"], head)

@@ -1,0 +1,13 @@
+{
+  "id": "2026-10-13_foto_atomo_surfisti",
+  "azione": "foto",
+  "ok": true,
+  "inizio": "2026-10-13T17:09:47Z",
+  "fine": "2026-10-13T17:12:16Z",
+  "durata_s": 149.1,
+  "git": "c473b2785f4045b6db49ae73689313a9d4705254",
+  "macchina": "LAPTOP-01UIII6L",
+  "exit": 0,
+  "secondi": 23.1,
+  "comando": "--scena atomo --frames 900 --distanza 60 --pitch 0.5 --surfisti --pannello --foto C:\\Users\\valer\\Desktop\\Programma di simulazione\\ponte_lab\\ponte\\risultati\\2026-10-13_foto_atomo_surfisti\\foto.png"
+}

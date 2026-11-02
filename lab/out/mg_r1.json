@@ -1,0 +1,18 @@
+{
+ "studio": "motore_grafico",
+ "esame": "R1_regola_gpu",
+ "n": 96,
+ "tick": 96,
+ "impulso": "Parametri::default() di fotscena (8 celle per lambda, w0 = 1 lambda, circolare +, direzione x)",
+ "max_F_cpu": 8.499206289351413e-3,
+ "diff_rel_max": 0e0,
+ "soglia": 1e-4,
+ "esito": "passa",
+ "ms_tick_cpu": 8.808,
+ "cpu_core": 4,
+ "ms_tick_gpu": 41.230,
+ "adattatore": "llvmpipe (LLVM 20.1.2, 256 bits) (Vulkan)",
+ "diff_rel_avanti_indietro_gpu": 7.506071811526948e-7,
+ "cambio_campo_96_tick": 1.2939,
+ "nota": "tempi del cloud: llvmpipe e' Vulkan su CPU, non dice niente di una GPU vera"
+}

@@ -3,18 +3,18 @@
 //! The look follows the photon laboratory (src/photon/render3d.rs): WAVE BALLS with their own phase colour
 //! (alpha blending, soft rim) streaming forward, plus a few bright SURFERS with trails.
 //!
-//! • TRACERS (the wave balls): tens of thousands of soft balls that ride the field. They are born where the photon has energy
-//!   (probability ∝ |F|² = E² + c²B²) and every tick they move with the energy velocity of the field at their
-//!   point, v = 2 E × cB / (E² + c²B²) (|v| ≤ c; = c in a plane wave), read from the lattice by trilinear
-//!   interpolation. Each one carries a short fading tail, so the packet visibly streams forward. Colour = the phase
-//!   of the wave at the ball, φ from E·n̂ now and one tick ago (E·n̂ = A cos φ): every colour once per λ, as in
-//!   the photon laboratory; opacity ∝ √(|F|²/max).
-//! • SURFERS: 6 bright white balls carried by the same energy flow, with long trails. Balls that fall where the photon has left, or reach the end of their life, are born again.
+//! • ENERGY BALLS (docs/FOTONE_PALLINE.md): tens of thousands of soft balls, each a small piece of the energy of the
+//!   field. They are born ONCE with probability ∝ u = E² + c²B² and then every tick move with the energy velocity
+//!   v = 2 E × cB / (E² + c²B²) (|v| ≤ c), read from the lattice by trilinear interpolation. Energy is conserved,
+//!   so the cloud stays ∝ u by itself (exam F1 of the study: correlation 0.998 after 4 λ): no re-birth, no ages.
+//!   Each ball is a ROUND GLOW (Valerio, 13/10: no stretching, no tails, no special surfers) coloured by the
+//!   direction of E around the flight axis (circular light: every colour once per λ; linear: two colours, crest and
+//!   trough); its size and light grow with u (`Bagliore`, docs/BAGLIORI.md). At the edge of a circular beam the
+//!   glows turn around the axis: that swirl is the spin of the photon (exam F2: ±0.999 ħ from the balls; BAGLIORI S1–S3).
+//!   (Stretching along E and the 4-sample tail are still in the code, off: `Vista::allunga`, `SCIA_QUAL`.)
 //! • WAVEFRONTS: thin glowing sheets where E along the polarization has a crest (gold) or a trough (cyan)
 //!   along the flight; the peak position inside the cell comes from a parabola through three cells, so the sheets
 //!   glide smoothly instead of jumping from cell to cell.
-//! • HELIX: the tip of E drawn along the beam axis as a continuous glowing tube (overlapping balls every 0.2
-//!   cells): circular light = a screw that turns as it flies, linear light = a flat wave.
 //! • E and B streaks (off by default): a few short smooth strokes from the axis along E (wheel colours) and B
 //!   (blue).
 //! • Poynting S = E × B, spin E(t−1) × E(t), cross-section (off by default).
@@ -25,8 +25,11 @@ use crate::fotone3d::{base_trasversa, punto, Cf, Fotone3D, Lancio, Polar};
 use crate::render::{phase_color, schermo, Ball};
 use crate::rng::{hash01, Rng};
 
+/// default number of energy balls (the quality presets choose their own: fotscena::PALLINE_QUAL)
 pub const N_TRACCIANTI: usize = 32_000;
 pub const N_SURF: usize = 6;
+/// past positions kept per energy ball (one every 2 ticks): the tail shows the real curved path (the swirl)
+pub const SCIA_MAX: usize = 4;
 pub const L_SCIA: usize = 48;
 
 /// Which layers are drawn.
@@ -34,7 +37,8 @@ pub const L_SCIA: usize = 48;
 pub struct Vista {
     pub traccianti: bool,
     pub fronti: bool,
-    pub elica: bool,
+    /// balls stretched along the local E (the direction of the field, read by eye)
+    pub allunga: bool,
     pub e_vettori: bool,
     pub b_vettori: bool,
     pub poynting: bool,
@@ -44,7 +48,35 @@ pub struct Vista {
 
 impl Default for Vista {
     fn default() -> Self {
-        Vista { traccianti: true, fronti: false, elica: true, e_vettori: false, b_vettori: false, poynting: false, spin: false, sezione: false }
+        Vista { traccianti: true, fronti: false, allunga: false, e_vettori: false, b_vettori: false, poynting: false, spin: false, sezione: false }
+    }
+}
+
+/// The glow of an energy ball (study "bagliori", docs/BAGLIORI.md): its SIZE and its LIGHT follow the local energy
+/// density u = (E² + c²B²)/max, so the core of the beam reads brighter and fuller than its edge, and the light of one
+/// ball stays low enough that the thousands seen through the beam head-on do not saturate into a white disc.
+/// size = s0 + s1 √u, light = min(a0 + a1 u^p, amax), colour = phase colour × c (c < 1 keeps the colour out of the
+/// tone mapper's white shoulder: at 1 the HDR tone mapping turns every hue pastel). Drawing knobs, not physics
+/// (counted in the document). `ATOMO_BAGLIORE="s0,s1,a0,a1,p,amax,c"` overrides them (only to try values without
+/// recompiling).
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct Bagliore { pub s0: f32, pub s1: f32, pub a0: f32, pub a1: f32, pub p: f32, pub amax: f32, pub c: f32 }
+
+pub const BAGLIORE: Bagliore = Bagliore { s0: 0.45, s1: 0.85, a0: 0.03, a1: 0.42, p: 1.0, amax: 0.5, c: 1.0 };
+
+impl Bagliore {
+    pub fn attuale() -> Bagliore {
+        static B: std::sync::OnceLock<Bagliore> = std::sync::OnceLock::new();
+        *B.get_or_init(|| {
+            let v: Vec<f32> = std::env::var("ATOMO_BAGLIORE").ok().map(|s| s.split(',').filter_map(|x| x.trim().parse().ok()).collect()).unwrap_or_default();
+            if v.len() == 7 { Bagliore { s0: v[0], s1: v[1], a0: v[2], a1: v[3], p: v[4], amax: v[5], c: v[6] } } else { BAGLIORE }
+        })
+    }
+    /// (size factor, light) of a ball at relative energy density u ∈ [0, 1]
+    #[inline]
+    pub fn di(&self, u: f32) -> (f32, f32) {
+        let u = u.clamp(0.0, 1.0);
+        (self.s0 + self.s1 * u.sqrt(), (self.a0 + self.a1 * u.powf(self.p)).min(self.amax))
     }
 }
 
@@ -85,6 +117,7 @@ pub fn campo_in(f: &Fotone3D, p: [f32; 3]) -> [Cf; 3] {
     out
 }
 
+#[allow(dead_code)]
 /// E (an array of [f32; 3] per cell) at a point, trilinear, periodic.
 pub fn e_in(ep: &[[f32; 3]], n: usize, p: [f32; 3]) -> [f32; 3] {
     let h = (n / 2) as f32;
@@ -124,6 +157,11 @@ fn vel_energia(f: &Fotone3D, p: [f32; 3]) -> ([f32; 3], f32) {
 pub struct Traccianti {
     pub pos: Vec<[f32; 3]>,
     pub vel: Vec<[f32; 3]>,
+    /// past positions, newest first, one every 2 ticks
+    pub scia: Vec<[[f32; 3]; SCIA_MAX]>,
+    /// how many of them are drawn (quality preset)
+    pub scia_n: usize,
+    passi: u64,
     pub eta: Vec<u16>,
     pub vita: Vec<u16>,
     /// the surfers: their trails (last = where they are)
@@ -132,33 +170,40 @@ pub struct Traccianti {
 }
 
 impl Traccianti {
-    pub fn new(f: &Fotone3D, seme: u64) -> Self {
-        let mut t = Traccianti { pos: vec![], vel: vec![], eta: vec![], vita: vec![], surf: vec![], rng: Rng::new(seme) };
-        let nuovi = semina(f, N_TRACCIANTI, &mut t.rng);
+    pub fn new(f: &Fotone3D, seme: u64, quante: usize) -> Self {
+        let mut t = Traccianti { pos: vec![], vel: vec![], scia: vec![], scia_n: 2, passi: 0, eta: vec![], vita: vec![], surf: vec![], rng: Rng::new(seme) };
+        let nuovi = semina(f, quante.max(N_SURF), &mut t.rng);
         for p in nuovi {
             t.pos.push(p);
             t.vel.push([0.0; 3]);
-            // random ages, so they do not all fade together
-            let v = 30 + (t.rng.next_u64() % 50) as u16;
-            t.eta.push((t.rng.next_u64() % v as u64) as u16);
-            t.vita.push(v);
+            t.scia.push([p; SCIA_MAX]);
+            t.eta.push(u16::MAX / 2);
+            t.vita.push(u16::MAX);
         }
         // the surfers start among the brightest balls
         for i in 0..N_SURF { t.surf.push(vec![t.pos[(i * 997) % t.pos.len()]]); }
         t
     }
 
-    /// One tick: every ball moves with the energy velocity of the field (backwards in time: against it);
-    /// balls that are dead (old, or where there is no more light) are born again where the light is.
+    /// One tick: every ball moves with the energy velocity of the field (backwards in time: against it).
+    /// Balls are never re-born while the photon flies (energy is conserved); only a ball that has lost the light
+    /// completely (u < 1e-4 of the peak: the integration error of the far tail) is put back where the light is.
     pub fn avanza(&mut self, f: &Fotone3D, verso: f32, centro: [f64; 3]) {
         let imax = f.f.par_iter().map(|p| p[0].norm2() + p[1].norm2() + p[2].norm2()).reduce(|| 0.0, f32::max).max(1e-30);
+        // the tail: every 2 ticks forward the history shifts; going back in time it is cleared
+        self.passi += 1;
+        if verso > 0.0 && self.passi % 2 == 0 {
+            self.scia.par_iter_mut().zip(self.pos.par_iter()).for_each(|(s, p)| { s.rotate_right(1); s[0] = *p; });
+        } else if verso < 0.0 {
+            self.scia.par_iter_mut().zip(self.pos.par_iter()).for_each(|(s, p)| { *s = [*p; SCIA_MAX]; });
+        }
         let morti: Vec<usize> = self.pos.par_iter_mut().zip(self.vel.par_iter_mut()).zip(self.eta.par_iter_mut()).zip(self.vita.par_iter())
-            .enumerate().filter_map(|(i, (((p, v), eta), vita))| {
+            .enumerate().filter_map(|(i, (((p, v), eta), _vita))| {
                 let (vv, u) = vel_energia(f, *p);
-                if u < 0.002 * imax || *eta >= *vita { return Some(i); }
+                if u < 1e-4 * imax { return Some(i); }
                 for c in 0..3 { p[c] += verso * vv[c]; }
                 *v = vv;
-                *eta += 1;
+                *eta = eta.saturating_add(1);
                 None
             }).collect();
         // the surfers: carried by the same flow; one that falls out of the light starts again near the centre
@@ -180,8 +225,9 @@ impl Traccianti {
         for (i, p) in morti.into_iter().zip(nuovi) {
             self.pos[i] = p;
             self.vel[i] = [0.0; 3];
+            self.scia[i] = [p; SCIA_MAX];
             self.eta[i] = 0;
-            self.vita[i] = 30 + (self.rng.next_u64() % 50) as u16;
+            self.vita[i] = u16::MAX;
         }
     }
 }
@@ -226,8 +272,8 @@ fn tratto(out: &mut Vec<Ball>, p: [f64; 3], u: [f64; 3], l: f64, col: [f32; 3], 
 }
 
 /// Everything drawn for the photon (scene units = cells, box centred on the origin).
-/// Returns (glowing balls, wave balls drawn with alpha blending).
-pub fn palline(f: &Fotone3D, l: &Lancio, centro: [f64; 3], tr: &Traccianti, e_prima: Option<&[[f32; 3]]>, vista: Vista, surfisti: bool) -> (Vec<Ball>, Vec<Ball>) {
+/// Returns (glowing balls, energy balls drawn with alpha blending, the stretch of each energy ball).
+pub fn palline(f: &Fotone3D, l: &Lancio, centro: [f64; 3], tr: &Traccianti, e_prima: Option<&[[f32; 3]]>, vista: Vista, surfisti: bool) -> (Vec<Ball>, Vec<Ball>, Vec<[f32; 3]>) {
     let n = f.n;
     let dir = l.dir;
     let (e1d, e2d) = base_trasversa(dir);
@@ -240,33 +286,47 @@ pub fn palline(f: &Fotone3D, l: &Lancio, centro: [f64; 3], tr: &Traccianti, e_pr
     let emax = emax2.sqrt().max(1e-30);
     let lam = l.lambda;
     let h = (n / 2) as f32;
-    let mut out: Vec<Ball> = Vec::with_capacity(4 * N_TRACCIANTI + 40_000);
-    let mut onde: Vec<Ball> = Vec::with_capacity(3 * N_TRACCIANTI);
+    let mut out: Vec<Ball> = Vec::with_capacity(40_000);
+    let mut onde: Vec<Ball> = Vec::with_capacity(3 * tr.pos.len());
+    let mut allunga: Vec<[f32; 3]> = Vec::with_capacity(3 * tr.pos.len());
     // ── tracers (wave balls) with their tails, and the surfers ──
     if vista.traccianti {
-        let w = std::f64::consts::TAU as f32 / lam as f32;
-        let (cw, sw) = (w.cos(), w.sin().max(1e-6));
-        let parti: Vec<[Ball; 3]> = tr.pos.par_iter().zip(tr.vel.par_iter()).zip(tr.eta.par_iter().zip(tr.vita.par_iter())).map(|((p, v), (eta, vita))| {
+        // stretch: up to 0.35 λ along E at the peak of the field (scene units = cells)
+        let l_max = (0.35 * lam) as f32;
+        let ns = tr.scia_n.min(SCIA_MAX);
+        let bg = Bagliore::attuale();
+        let parti: Vec<Vec<(Ball, [f32; 3])>> = tr.pos.par_iter().zip(tr.scia.par_iter()).zip(tr.eta.par_iter()).map(|((p, sc), eta)| {
             let q = campo_in(f, *p);
             let e = [q[0].re, q[1].re, q[2].re];
             let b = [q[0].im, q[1].im, q[2].im];
             let u = (d3(&e, &e) + d3(&b, &b)) / imax;
-            // the phase of the wave at the ball: E·n̂ = A cos φ now, A cos(φ + ω) one tick ago
-            let en = d3(&e, &nh);
-            let fase = match e_prima {
-                Some(ep) => { let ea = d3(&e_in(ep, n, *p), &nh); ((en * cw - ea) / sw).atan2(en) as f64 }
-                None => d3(&e, &e2).atan2(d3(&e, &e1)) as f64,
-            };
-            let fade = ((*eta as f32 / 6.0).min(1.0)) * (((*vita as f32 - *eta as f32) / 8.0).clamp(0.0, 1.0));
-            // two fronts per wavelength (φ = 0 and π, crest and trough): the packet is a stack of moving coloured crests
-            let fronte = ((1.0 + (2.0 * fase).cos()) / 2.0).powi(14) as f32;
-            let a = fade * (0.15 + 0.6 * u.sqrt()).min(0.75) * (0.02 + 0.98 * fronte);
-            let c = phase_color(fase, a);
-            let pp = |k: f32| schermo([(p[0] - k * v[0]) as f64, (p[1] - k * v[1]) as f64, (p[2] - k * v[2]) as f64]).to_array();
-            [(pp(1.6), 0.6, [c[0], c[1], c[2], 0.25 * a]), (pp(0.8), 0.8, [c[0], c[1], c[2], 0.5 * a]), (pp(0.0), 1.0, c)]
+            // colour = direction of E around the flight axis
+            let ang = d3(&e, &e2).atan2(d3(&e, &e1)) as f64;
+            // a re-born ball fades in over 6 ticks
+            let fade = (*eta as f32 / 6.0).min(1.0);
+            let (size, luce) = bg.di(u);
+            let a = fade * luce;
+            let c = phase_color(ang, a);
+            // the palette is written in sRGB; the Lab renders in linear HDR, so it is converted (≈ x^2.2), otherwise
+            // every hue comes out pastel and thousands of them average to a white disc
+            let c = [c[0].powf(2.2) * bg.c, c[1].powf(2.2) * bg.c, c[2].powf(2.2) * bg.c, c[3]];
+            let st = if vista.allunga {
+                let k = l_max / emax;
+                schermo([(e[0] * k) as f64, (e[1] * k) as f64, (e[2] * k) as f64]).to_array()
+            } else { [0.0; 3] };
+            let sp = |x: &[f32; 3]| schermo([x[0] as f64, x[1] as f64, x[2] as f64]).to_array();
+            let mut v = Vec::with_capacity(1 + ns);
+            // the tail first (drawn behind the head): the same ball where it was 2, 4, 6, 8 ticks ago
+            for j in (0..ns).rev() {
+                let w = 0.5 * (1.0 - j as f32 / ns as f32);
+                v.push(((sp(&sc[j]), 0.85 - 0.08 * j as f32, [c[0], c[1], c[2], w * a]), [0.0; 3]));
+            }
+            v.push(((sp(p), size, c), st));
+            v
         }).collect();
-        for t in parti { onde.extend_from_slice(&t); }
-        for s in tr.surf.iter().filter(|_| surfisti) {
+        for t in parti { for (ball, st) in t { onde.push(ball); allunga.push(st); } }
+        // no separate surfers with trails (Valerio, 13/10): the energy balls already ride the flow
+        for s in tr.surf.iter().filter(|_| surfisti && false) {
             let k = s.len();
             for (j, p) in s.iter().enumerate() {
                 let x = (j + 1) as f32 / k as f32;
@@ -321,8 +381,8 @@ pub fn palline(f: &Fotone3D, l: &Lancio, centro: [f64; 3], tr: &Traccianti, e_pr
         }).collect();
         for p in parti { out.extend(p); }
     }
-    // ── the helix: the tip of E along the axis, a continuous tube ──
-    if vista.elica || vista.e_vettori || vista.b_vettori {
+    // ── E and B streaks from the axis (off by default; diagnostics) ──
+    if vista.e_vettori || vista.b_vettori {
         let lung = 0.9 * l.w0;
         let passo = 0.12;
         // E and B sampled one cell apart along the axis, then a Catmull–Rom curve between the samples
@@ -346,12 +406,6 @@ pub fn palline(f: &Fotone3D, l: &Lancio, centro: [f64; 3], tr: &Traccianti, e_pr
             let m = punto(e, e).sqrt();
             let mb = punto(b, b).sqrt();
             let ang = punto(e, e2d).atan2(punto(e, e1d));
-            if vista.elica && m > 0.05 * emax as f64 {
-                let tip = [0, 1, 2].map(|c| a[c] + e[c] / emax as f64 * lung);
-                let mut col = phase_color(ang, 0.55 * (m / emax as f64).sqrt() as f32 + 0.1);
-                for x in col.iter_mut().take(3) { *x = 0.85 * *x + 0.15; }
-                out.push((schermo(tip).to_array(), 2.4, col));
-            }
             // streaks every λ/4
             if k % ((lam / 4.0 / passo).round().max(1.0) as usize) == 0 {
                 if vista.e_vettori && m > 0.08 * emax as f64 {
@@ -442,5 +496,5 @@ pub fn palline(f: &Fotone3D, l: &Lancio, centro: [f64; 3], tr: &Traccianti, e_pr
             out.push((schermo([p[0] as f64, p[1] as f64, p[2] as f64]).to_array(), 0.6, [0.45, 0.55, 0.75, 0.09]));
         }
     }
-    (out, onde)
+    (out, onde, allunga)
 }

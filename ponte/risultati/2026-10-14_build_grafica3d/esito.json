@@ -1,0 +1,11 @@
+{
+  "id": "2026-10-14_build_grafica3d",
+  "azione": "build",
+  "ok": true,
+  "inizio": "2026-10-14T00:27:00Z",
+  "fine": "2026-10-14T00:29:10Z",
+  "durata_s": 130.1,
+  "git": "9199f5849df9cf9b8abdac814af20b24e8517e04",
+  "macchina": "LAPTOP-01UIII6L",
+  "exit": 0
+}

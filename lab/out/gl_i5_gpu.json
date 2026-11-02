@@ -1,0 +1,16 @@
+sequenza 1/1: tick 30 v Some(0.9735932229936514) elicita Some(1.0169003420342895) w 12.49 theta Some(0.2803770782300268) 184 ms/tick
+{
+ "foto": "lab/out/gl_frames/fotone_davanti_gpu_0000.png",
+ "I1_frazione_saturi": 0.0,
+ "I1": true,
+ "I2_rapporto": 2.91011189401323,
+ "I2": true,
+ "R50_px": 72.6320037250781,
+ "centro_px": [
+  799.820895315506,
+  448.7584944916279
+ ],
+ "I3_saturazione": 0.35873229980513127,
+ "I3": true,
+ "pixel_accesi": 48048
+}

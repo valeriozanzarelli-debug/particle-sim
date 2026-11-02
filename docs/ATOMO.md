@@ -93,6 +93,11 @@ Tolto dal laboratorio in questa versione (resta nella storia di git, commit `a84
 * **Partenza**: l'1s della forma radiale della stessa regola messo sul reticolo cubico (solo ~60 % l'1s della
   regola 3-D: il resto si vede come tremolio in più). Legame 1s della regola radiale con a = 0,5: 0,141 mc²
   (Dirac esatto 0,101: +40 %, celle grosse).
+* **Debito (13/10/2026): l'atomo 3-D dal vivo resta con le celle cubiche da 0,5 ħ/mc.** La causa del +40 % è la
+  prima cella attorno al nucleo, che fa da specchio sbagliato (`NUCLEO_1S.md` §3); la cura (celle fini vicino al
+  nucleo) è applicata agli **orbitali** (§3.3), non qui: `zz.rs` e `accoppiato.rs` non sono stati toccati (un'esportazione
+  dati gira su di loro). Nel 3-D serve un pezzo fine annidato attorno al nucleo o una cipolla di gusci
+  (debito 12 di `NUCLEO_1S.md`, idee 7.3–7.4).
 * **Ogni pallina si muove a ogni tick**: 20 000 surfisti trasportati dalla corrente dell'onda (v = j/ρ ≤ c).
   Colore = fase dell'onda (tolta la rotazione della massa a riposo).
 * **Il fotone**: un impulso con l'energia scelta (keV), che entra nella fase come e E·r (dipolo: λ ≈ 55 ħ/mc è
@@ -102,6 +107,12 @@ Tolto dal laboratorio in questa versione (resta nella storia di git, commit `a84
 * **La luce che esce**: gusci di palline con la direzione sin²θ e la luminosità del dipolo dell'onda stessa al
   tempo ritardato.
 * **Indietro nel tempo esatto**: 60 tick avanti con l'impulso e 60 indietro: |Δψ|² = 1,5·10⁻²⁷.
+* **Un colore del cubo (13/10/2026, `docs/SOTTORETICOLO.md`).** Il cubo sono 4 reticoli che non si scambiano niente
+  ("colori"): `Atomo::new_in(Some(c))` / `Esperimento::nuovo(600, Some(c))` ne calcolano uno solo, esatto come algoritmo
+  (4·10⁻¹⁵ contro il cubo intero con lo stesso stato), regola **×4,09**, passo con la luce **×1,99**, preparazione ×4,35.
+  **Ma è spento di default**: lo stato del Lab sta su tutti e 4 i colori e un colore da solo è anisotropo (campo lungo z →
+  anche ⟨x⟩ 5 %, ⟨y⟩ 14 %; i 4 si cancellano), il Lab accoppiato cambierebbe dello 0,44 % nel dipolo (E2 FAIL). Si accende
+  con `--reticolo colore` (o `--stati colore`, `ATOMO_RETICOLO=colore`). Per livelli e spettri è identico (ω₁ₛ a 10⁻¹⁶).
 
 ### 3.2 Il nucleo: il protone come nodo che gira e respira
 
@@ -112,30 +123,45 @@ Tolto dal laboratorio in questa versione (resta nella storia di git, commit `a84
 ### 3.3 Gli orbitali: n = 1..4, s p d f, e sovrapposizioni (scena "orbitali", `orbitali.rs`)
 
 * **Da dove vengono.** Sono gli stati di UN elettrone che dà la regola zig-zag nella sua **forma radiale** (la
-  stessa regola scritta per un'onda parziale κ: stessa cella a = 0,5 ħ/mc, stessa fase di Coulomb,
-  `src/zigzag/walk.rs` `Radial`). La regola viene "ascoltata" a 48 frequenze; ogni stato trovato viene ripreso
-  alla sua frequenza; gli stati distinti, dal più legato, sono n = l+1, l+2, ... Poi in 3-D:
+  stessa regola scritta per un'onda parziale κ, stessa fase di Coulomb, `src/zigzag/walk.rs` `Radial::graded`).
+  **Dal 13/10/2026 le celle non sono più tutte uguali**: è la "cipolla" dello **zoom automatico** di
+  `NUCLEO_1S.md` §4.2 guidato da tutti e dieci i livelli (1 292 celle, da 2⁻⁹ ħ/mc al nucleo a 0,5 ħ/mc lontano,
+  fino a 359 ħ/mc; esportata in `orbitali.rs` `MESH_ZOOM` da `lab/out/nucleo1s_results.json`). La regola è la stessa:
+  ogni cella gira per dt = la sua larghezza, la pallina corre a c fra i centri. La regola viene "ascoltata con una
+  fase per collegamento" (`Radial::ascolta`: U(ω) = M·S·diag(e^{iωl}), Newton su arg μ) a 48 frequenze; gli stati
+  distinti, dal più legato, sono n = l+1, l+2, ... Poi in 3-D:
   ψ = (g/r Ω_{κm}, i f/r Ω_{−κm}) con le funzioni d'angolo di Dirac (armoniche sferiche). Una sovrapposizione
   evolve con le frequenze della regola, ψ(t) = Σ c_k ψ_k e^{−i(ω_k − 1)t}: la nuvola **batte** a ω₁ − ω₂.
 * **Perché non sul reticolo dal vivo.** La scatola dal vivo (48³ celle da 0,5 ħ/mc, 24 ħ/mc di lato) tiene l'1s;
-  il 3d di Nd⁵⁹⁺ arriva a ~52 ħ/mc e il 4f a ~82 (99,5 % della probabilità): servirebbero ~350³ celle. Per un
+  il 3d di Nd⁵⁹⁺ arriva a ~53 ħ/mc e il 4f a ~84 (99,5 % della probabilità): servirebbero ~350³ celle. Per un
   elettrone in un campo centrale la forma radiale è la stessa regola, senza approssimazioni in più.
-* **Livelli della regola contro Dirac esatto** (test `orbitali_livelli`; tutti trovati, nell'ordine giusto):
+* **Livelli della regola contro Dirac esatto** (test `orbitali_livelli`; tutti trovati, nell'ordine giusto).
+  Prima: celle uguali da 0,5 ħ/mc. Dopo: mesh dello zoom (13/10/2026).
 
-| stato | legame, regola (mc²) | Dirac esatto | scarto |
-|---|---|---|---|
-| 1s½ | 0,14124 | 0,10095 | +39,9 % |
-| 2s½ | 0,03298 | 0,02556 | +29,0 % |
-| 2p3/2 | 0,02510 | 0,02426 | +3,5 % |
-| 3s½ | 0,01374 | 0,01121 | +22,5 % |
-| 3p3/2 | 0,01142 | 0,01082 | +5,5 % |
-| 3d5/2 | 0,01090 | 0,01071 | +1,8 % |
-| 4s½ | 0,00744 | 0,00625 | +19,1 % |
-| 4p3/2 | 0,00648 | 0,00608 | +6,5 % |
-| 4d5/2 | 0,00625 | 0,00603 | +3,7 % |
-| 4f7/2 | 0,00609 | 0,00601 | +1,3 % |
+| stato | legame prima (mc²) | scarto prima | legame dopo (mc²) | Dirac esatto | scarto dopo |
+|---|---|---|---|---|---|
+| 1s½ | 0,14124 | +39,9 % | 0,101002 | 0,100948 | **+0,053 %** |
+| 2s½ | 0,03298 | +29,0 % | 0,025595 | 0,025564 | +0,122 % |
+| 2p3/2 | 0,02510 | +3,5 % | 0,024271 | 0,024257 | **+0,057 %** |
+| 3s½ | 0,01374 | +22,5 % | 0,011236 | 0,011213 | +0,200 % |
+| 3p3/2 | 0,01142 | +5,5 % | 0,010842 | 0,010825 | +0,157 % |
+| 3d5/2 | 0,01090 | +1,8 % | 0,010716 | 0,010708 | **+0,075 %** |
+| 4s½ | 0,00744 | +19,1 % | 0,006269 | 0,006246 | +0,361 % |
+| 4p3/2 | 0,00648 | +6,5 % | 0,006103 | 0,006083 | +0,334 % |
+| 4d5/2 | 0,00625 | +3,7 % | 0,006049 | 0,006033 | +0,269 % |
+| 4f7/2 | 0,00609 | +1,3 % | 0,006017 | 0,006009 | **+0,130 %** |
 
-  Le celle grosse legano troppo gli stati che vanno vicino al nucleo (s); quelli lontani (d, f) sono quasi giusti.
+  **Esame** (soglia scritta in `NUCLEO_1S.md` §8 prima di questa corsa): 1s, 2p3/2, 3d5/2 entro 1 % di Dirac esatto
+  → **PASS** tutti e tre (+0,053 %, +0,057 %, +0,075 %); ora sono `assert` nel test. Il 4f7/2 (non nella soglia) va
+  a +0,130 %. I numeri coincidono con quelli di Python per la stessa mesh (NUCLEO_1S §4.2, post hoc) a tutte le cifre
+  stampate; il test `walk::test_graded::graded_1s_come_python` ritrova l'1s di Python `GradedWalk` sulla mesh da 353
+  celle (budget 0,1 %) a 2·10⁻¹⁵ relativo, e `ascolta_uguale_eigen_su_celle_uguali` controlla che su celle uguali il
+  nuovo ascolto dia lo stesso ω del vecchio (10⁻¹¹).
+  Prima le celle grosse legavano troppo gli stati che vanno vicino al nucleo (s); la causa era la prima cella attorno
+  al nucleo, uno specchio con la fase sbagliata (NUCLEO_1S §3). Restano errori di reticolo positivi di 0,05–0,36 %,
+  più grandi per gli s alti (4s +0,36 %): la mesh è stata scelta dall'algoritmo con budget 0,5 % sulla somma
+  stimata; un budget più stretto li abbassa (NUCLEO_1S §4.2). La mesh è un'impostazione di risoluzione (come a),
+  non fisica: zero parametri fisici nuovi.
 * **Come si vede.** Da lontano: **gusci morbidi** a tre livelli di densità |ψ|² (50 %, 18 %, 5 % del massimo),
   colore = **fase dell'onda** (gira nel tempo; attorno all'asse z si avvolge come e^{imφ}). Da vicino: 5 000
   **palline-surfista** portate dalla corrente dell'onda, v = j/ρ (≤ c), con il colore della fase dove sono; sei con
@@ -188,9 +214,11 @@ prove usano formule con lo stesso K.
 reticolo cubico contiene tre livelli, a ω = 0,901 (60 %), 0,8405 (26 %) e 0,882 (13 %) mc²/ħ; il primo è l'1s
 (legame 0,099 mc², Dirac 0,101), gli altri due sono livelli del reticolo che il continuo non ha (debito). Il 2p½
 radiale è già un solo livello: ω = 0,9755. Differenza 1s → 2p della regola 3-D: ω₂₁ ≈ 0,0744–0,0758 mc²/ħ
-(Dirac 0,0754; la forma radiale dava 0,1146). L'1s ascoltato non è perfettamente fermo: anche senza luce la
-sua popolazione oscilla (si mescola con il livello vicino a 0,882): le popolazioni sul cruscotto sono proiezioni
-"sporche" (debito).
+(Dirac 0,0754; la forma radiale dava 0,1146). **Aggiornamento (14 ottobre 2026, `docs/BATTIMENTO_1S.md`)**: l'1s ascoltato non era un livello: anche senza
+luce p_exc arrivava a 0,89. Causa: il cammino 3-D a due tick ha **4 valli** equivalenti (k = 0 e (π/2, π/2, 0) con
+le permutazioni) e il nucleo sullo spigolo di 8 celle le mescola, così l'1s è un **multipletto di 4 livelli esatti**
+(0,8404, 0,8863, 0,8993, 0,8996, ognuno 25 % per valle). Ora `Esperimento::new` prende **un livello esatto**
+(diagonalizzazione del filtro, 0,89960; esame pre-registrato B1–B4 PASS): fermo a 10⁻¹⁶ senza luce.
 
 **Pre-registrazione** (scritta prima della corsa di produzione; test `accoppiato_e1_e2`, lungo, `--ignored`).
 Corse di sviluppo già viste (dichiarate): con ascolto corto (600 tick) e impulso e·E = 0,004 a ω₂₁, la luce
@@ -240,6 +268,303 @@ nel **2p3/2**, che pesa il doppio; il 2p3/2 della regola 3-D ascoltato sta a ω 
 0,0778 (la riga misurata è +3,5 % sopra). Il resto viene dall'1s della regola 3-D, che non è un livello pulito:
 ascoltato 600 o 1200 tick sta a 0,8990 o 0,9011 (si mescola con il livello del reticolo a 0,882). Il confronto
 giusto avrebbe dovuto usare la riga 1s → 2p3/2 e un 1s misurato meglio: non lo cambiamo dopo, resta FAIL.
+
+### 3.6 Esportazione per i video al rallentatore (`accoppiato_esporta`, `lab/atomo_export_leggi.py`)
+
+Per disegnare fuori linea (in Python, palline al rallentatore) l'arrivo dell'impulso, l'assorbimento,
+l'oscillazione 1s ↔ 2p e la luce rimandata, il test ignorato `accoppiato_esporta` (in `src/atomo/tests.rs`)
+**registra** l'esperimento del Laboratorio senza cambiare niente della fisica: `Esperimento::new(600)`, poi
+`spara(omega_21(), E0_ACC)`, poi 3 200 tick atomo (1 600 λ_C/c) con un fotogramma ogni 16 tick (8 λ_C/c, due tick
+di luce): **201 fotogrammi, 514 MB** in float16 (valore salvato = fisico × scala).
+
+| file | forma | che cosa |
+|---|---|---|
+| `rho.f16` | (201, 48, 48, 48) | ρ = \|ψ\|² per λ_C³ (scala 10³) |
+| `j.f16` | (201, 3, 48, 48, 48) | corrente j = R†σR − L†σL per λ_C³ (unità c, scala 10³), **mediata sui 16 tick** del fotogramma (toglie il battito di zitterbewegung a 2mc²); v delle palline = j/ρ |
+| `fase.f16` | (201, 48, 48, 48) | fase della componente dominante + t (come la colora la scena) |
+| `E.f16` | (201, 3, 64, 64, 64) | e·E della luce (E = Re F, già × e_eff, in mc²/λ_C, scala 10⁵), media 2×2×2 della scatola 128³ |
+| `fotogrammi.csv`, `serie.csv` | | p_exc, p(2p½), ⟨z⟩, e·E sull'atomo, energie, sonda: per fotogramma e per tick di luce |
+
+`manifest.json` dice forme, scale, unità (λ_C, λ_C/c), passi delle griglie (atomo 0,5 λ_C; luce 8 λ_C dopo la media),
+dove sta la griglia dell'atomo dentro la scatola di luce (centrata sull'origine; nella griglia 64³ il nucleo è a
+I = 31,75) e i debiti che valgono (accoppiamento ×10 a mano, semi-classico, emissione solo da sovrapposizione,
+media gaussiana, Z = 60). Dati in `/mnt/project-files/ripresa/dati/atomo_accoppiato/` (**mai nel repo**). Si
+rigenerano in ~2 minuti:
+`ESPORTA_DIR=<dir> TICKS=3200 OGNI=16 cargo test --bin atomo accoppiato_esporta -- --ignored --nocapture`.
+Lettore e figura di controllo: `python3 lab/atomo_export_leggi.py <dir> --figura [--npz]` →
+`lab/out/atomo_export_controllo.png`.
+
+Che cosa si vedeva (corsa del 13 ottobre 2026, vecchio 1s): il campo dell'impulso sta sull'atomo per t ≈ 0–150 λ_C/c, p_exc sale
+da 0 a **0,88 a t ≈ 256**, poi oscilla tra ~0,2 e ~0,88 con periodo ~470 λ_C/c. Attenzione: **non è uno scambio di energia con la luce**.
+**Risolto (`docs/BATTIMENTO_1S.md`)**: lo stesso "1s" senza nessuna luce fa la stessa curva (massimo 0,889;
+differenza con la corsa accoppiata ≤ 0,080). È il battimento fra i livelli esatti 0,8994 e 0,8862 del multipletto
+1s del reticolo cubico (0,0132 → periodo 476); l'eccitazione vera era solo ~5 % (2p3/2). Con l'1s esatto (ora il
+default di `Esperimento::new`) p_exc dopo l'impulso sta fra 0,097 e 0,064 e scende piano (luce rimandata). **Rigenerati il 14 ottobre**
+con l'1s esatto (ω₁ₛ = 0,89960, ω₂₁ = 0,07519; `manifest.json` lo dice in `stato_1s`): ora p_exc sale a
+**0,120 a t = 220** e poi scende piano (0,097 a t = 450, 0,079 a 800, 0,064 a 1590): l'atomo si svuota mandando
+luce, niente più battimento. Il prezzo: la densità dell'1s esatto ha la trama a scacchiera di periodo 4 celle
+(le 4 valli, BATTIMENTO_1S §2.4) ben visibile in `controllo.png`: per le palline va smussata su ~2 λ_C, dichiarandolo. Dopo t ≈ 450 l'impulso è uscito dalla scatola (energia nella
+scatola < 10⁻³ di quella iniziale) e resta solo la luce del dipolo dell'atomo: anelli a sin²θ intorno a z, ampiezza
+~10⁻⁵ mc²/λ_C. Due avvertenze per chi disegna: (1) p(2p½, m = ½) resta < 0,01: l'eccitazione va quasi tutta nel
+2p3/2 (vedi la diagnosi di E1v2 sopra), quindi "p_exc" è la popolazione da usare; (2) ρ di una singola fetta di
+tempo ha una trama del reticolo (celle quasi vuote ripetute ogni 4 celle = 2 λ_C, già nell'1s di partenza): è nei
+dati veri, non nella compressione; per le palline conviene nascere con jitter dentro la cella (come fa
+`Atomo::nascite`) o smussare su ~2 λ_C, dichiarandolo.
+
+### 3.7 L'accoppiamento giusto, il nucleo imparato e la partenza nella valle k = 0 (14 ottobre 2026)
+
+Studio `emissione_lab` (test in `src/atomo/test_emissione.rs`). Pre-registrazione `lab/out/emissione_lab_prereg.json`
+(commit d8b42de, prima delle corse), emendamenti `lab/out/emissione_lab_amend1.json` (71f4913) e `_amend2.json` (f3f8292),
+ognuno scritto prima delle sue corse; risultati `lab/out/emissione_lab_results.json`. Diagnosi e cura da
+`docs/EMISSIONE.md` §3.2 e §7 (l'altro thread, in Python); nucleo da `docs/NUCLEO_1S.md` §13–14; valle k = 0 da
+`docs/SURFISTI_ESATTI.md` §13.
+
+**Il difetto (come a un ventenne).** L'atomo leggeva il campo della luce *prima* del tick della luce e ci versava la sua
+corrente *dopo*, nella stessa nuvoletta gaussiana. Il campo che l'elettrone ha appena fatto (il suo campo vicino, grande e
+quasi tutto non luce) gli tornava addosso mezzo tick in ritardo: un ritardo su una molla è un attrito finto. **Cura**
+(`Accoppiamento::CENTRATO`): (1) l'atomo vede la media fra prima e dopo il tick (predittore della corrente + correzione di
+fase); (2) si versa solo la parte **trasversa** della corrente, cioè la luce vera: la regola della luce sa da sola qual è
+la parte longitudinale (Coulomb), è l'asse della sua rotazione a due tick n(k); il proiettore 1 − n nᵀ si applica una volta
+con una FFT 128³ (tabella intera: la coda longitudinale va come 1/r³, non si tronca).
+
+**Prima / dopo, stesso stato** ((1s + 2p3/2)/√2 con livelli esatti, K = 10, σ = 2 celle, T = 2000; formula
+A = (4/3) α ω³ |D|² K² W², D dal dipolo misurato):
+
+| accoppiamento | A misurato / A formula (3 finestre) | luce guadagnata / energia persa dall'atomo |
+|---|---|---|
+| ritardato (prima) | **1,223** (1,219 / 1,216 / 1,234) | **0,803** |
+| solo centrato (info) | 0,995 | 0,989 |
+| **centrato + trasverso (ora)** | **1,004** (1,003 / 1,004 / 1,006) | **0,968** |
+
+A σ = 2 il difetto vale +22 % (stima a priori +8…17 %; EMISSIONE, σ = 1: ×2,29): il campo proprio scala come σ⁻³.
+
+**Esiti v1** (nucleo nudo): P0 il difetto si vede (1,22 > 1,10) **PASS** · D1 ritmo 1,004 **PASS** · E1 bilancio 0,968 **PASS** ·
+F1 1s fermo con l'accoppiamento acceso (p_exc max 0) **PASS** · L1 riga forte 0,078895 contro 1s→2p3/2 0,079255 (−0,45 %,
+soglia 0,3 %) **FAIL** · L2 seconda riga 0,076414 contro 1s→2p½ 0,076442 (−0,04 %) **PASS** · K1 **carica vera K = 1**:
+ritmo 1,006 della formula, deriva senza luce 3·10⁻¹⁵ (misurabile), bilancio 0,975 **PASS**. Con l'accoppiamento vecchio
+(info) tutte e due le righe escono spostate di +0,27 % (spostamento reattivo del campo ritardato).
+**Regola del default cambiata dopo i risultati (dichiarato, emendamento 1)**: L1 misura i livelli 2p3/2 del reticolo nudo,
+non il tempo; il default dell'accoppiamento si decide con D1/E1/F1/K1 → `ACCOPPIAMENTO = CENTRATO`. L1 resta FAIL.
+
+**Nucleo imparato** (`zz::Nucleo::Imparato`, 2 numeri presi da NUCLEO_1S, debito) **con 1s liscio** (emendamento 1):
+scacchiera di periodo 4 /450 (**NC PASS**), ma l'1s liscio non è un livello (split residuo ~2·10⁻⁴): p_exc senza luce 0,020
+(**NF1 FAIL**), ritmo 0,72 e bilancio 1,32 (**ND1, NE1 FAIL**), righe con le forze scambiate (**NL1, NL2 FAIL**). Non adottato.
+
+**Nucleo imparato + partenza nella valle k = 0** (emendamento 2, `zz::proietta_valle_zero`): fedeltà minima 0,965 e peso in
+k = 0 ≥ 0,965 in 4000 tick (**VF1 PASS**; la soglia stretta 10⁻³ di F1 no: 0,035, previsto); flusso azimutale esatto dei
+link v_φ/(Zα sinθ) = **0,878 / 0,872 / 0,865 / 0,855 / 0,834** a t = 0…4000 (SURFISTI: 0,877 … 0,834) (**VJ PASS**: le palline
+girano); scacchiera C4 = 1,1·10⁻⁵ contro 0,90 del vecchio 1s (**VC PASS**). Ritmo, bilancio e righe **FAIL** come con l'1s
+liscio (VD1 0,72, VE1 1,32, VL1/VL2): con questo 1s **p_exc non è una misura pulita** dell'eccitazione (contiene la deriva
+dell'1s). Per la regola dell'emendamento 2 (gli esami di ciò che si vede) **nucleo imparato + valle k = 0 + CENTRATO sono
+il default** del Laboratorio, della scena dal vivo e dell'esportazione.
+
+**Esportazione rigenerata** (seconda volta il 14/10, `manifest.json` → `versioni`, `scacchiera_C4`): ω₂₁ = 0,07590;
+p_exc sale a **0,127 a t = 208**, poi 0,108 (448), 0,094 (800), 0,098 (1200), 0,100 (1590): la discesa vera (luce) si somma
+alla deriva lenta dell'1s, quindi da t ≈ 800 p_exc non scende più. La misura pulita dell'emissione è l'energia della luce:
+da t = 450 a 1600 la luce guadagna 2,06·10⁻³ mc² (vecchia: 2,22·10⁻³, gonfiata dall'attrito finto). Scacchiera: C4 =
+1,1·10⁻⁵ / 1,9·10⁻³ / 6,5·10⁻³ (fotogrammi 0, 100, 200) contro 0,90 / 0,79 / 0,84 prima: **sparita**.
+
+**Debiti**: predittore lineare della corrente; tabella trasversa 75 MB in RAM; nucleo imparato (2 numeri, Z = 60, a = 0,5);
+proiezione k = 0 fatta a mano una volta; il gruppo 1s largo ~2·10⁻⁴ (deriva 0,035 in 4000 tick); due test del fotone
+(`fotone_f2_elicita`, `fotone_divergenza_come_la_regola`) falliscono su master anche senza queste modifiche (non miei, segnalati).
+
+### 3.8 Vedere l'interazione: la luce diffusa esatta e l'impulso π/2 (13 ottobre 2026)
+
+**Il problema (Valerio: "il fotone va per la sua strada senza modificarsi").** La fisica era giusta ma invisibile:
+l'atomo prende ~10⁻³ dell'energia dell'impulso e la luce che rimanda è 1/30–1/50 dell'impulso in ampiezza
+(10⁻³ in energia). Disegnate insieme, le palline dell'impulso coprono tutto. E l'impulso del Laboratorio era debole:
+eccitava solo ~12 % dell'atomo, quindi la nuvola quasi non si muoveva.
+
+**Cura 1: due scatole di luce, esatte.** La regola della luce è lineare (le rotazioni, la spugna e il deposito della
+corrente sono tutte operazioni lineari). Allora si possono far evolvere **due scatole**: F_libera (l'impulso, che non
+sente niente) e F_diffusa (che nasce solo dalla corrente dell'elettrone). L'atomo sente la somma. F_diffusa **è** la
+luce che l'atomo diffonde e riemette: non è una sottrazione (che sarebbe rumorosa), è una scatola sua, calcolata con
+la sua scala. Codice: `LuceAtomo::con_diffusa`, `Esperimento::con_diffusa` (`src/atomo/accoppiato.rs`), test in
+`src/atomo/test_diffusa.rs`. Costo: ×1,25 per tick (17,6 → 22,0 ms per tick atomo nel cloud con 2 thread).
+
+**Cura 2: l'impulso π/2 calcolato dalla regola.** Per far oscillare la nuvola al massimo serve metà atomo nel 2p
+(p = ½: il dipolo 2√(p(1−p)) è massimo). La teoria a due livelli dice p = sin²(θ/2), con l'"area" θ/2 =
+√(d₃₂² S₃₂² + d₁₂² S₁₂²): S = |∫ e·E_z(t) e^{iωt} dt| è il campo dell'impulso **misurato all'atomo** (nella scatola
+libera, la media gaussiana che l'atomo sente) alle due righe della regola, e d sono i dipoli 1s → 2p3/2 e 1s → 2p½
+della regola stessa (0,979 e 0,603 ħ/mc, dallo studio emissione_lab). Niente a occhio. La durata resta σ = 1 λ:
+una scatola di 6,5 λ non tiene un impulso più lungo (debito).
+
+**Pre-registrazione** `lab/out/diffusa_prereg.json` (commit d0b70a4, prima di ogni corsa). Risultati
+`lab/out/diffusa_results.json` (corsa del 13 ottobre, 112 s in tutto):
+
+| esame | che cosa | misurato | soglia | esito |
+|---|---|---|---|---|
+| X1 | ‖F_unica − (F_libera + F_diffusa)‖ / ‖F_unica‖, massimo su t ≤ 600 | **1,6·10⁻⁵** | ≤ 10⁻⁶ | **FAIL** |
+| X2 | differenza di p_exc fra scatola unica e divisa | **3,0·10⁻⁹** | ≤ 10⁻⁶ | **PASS** |
+| X3 | costo per tick atomo | 17,6 → 22,0 ms (×1,25) | — | info |
+| C0 | e·E dell'impulso π/2 | **0,01337** (era 0,004) | — | calcolo |
+| C1 | p_exc massimo con l'impulso π/2 | **0,753** | 0,35–0,65 | **FAIL** |
+
+**Che cosa vogliono dire i due FAIL (diagnosi dopo, dichiarata).**
+- X1: la differenza è arrotondamento in float32, non fisica. Mentre l'impulso è sull'atomo (t ≤ 200) vale
+  4–6·10⁻⁷; cresce dopo (1,3·10⁻⁶ a t = 300, 1,6·10⁻⁵ a t = 600) perché l'impulso esce nella spugna e il
+  denominatore ‖F‖ crolla, mentre gli errori di arrotondamento della scatola unica restano. Misurato rispetto alla
+  luce diffusa lo stesso scarto vale fino a **0,5 %**: è l'ordine del rumore che avrebbe la luce diffusa ottenuta per
+  sottrazione dalla scatola unica (piccola differenza su un numero grande); nella scatola sua è calcolata sulla sua scala. Quello che sente
+  l'atomo coincide a 3·10⁻⁹ (X2). La soglia andava scritta solo sul passaggio dell'impulso sull'atomo: non la cambio.
+- C1: la formula a due livelli prevedeva p = 0,054 con l'impulso vecchio, la regola fa **0,127** (misurato): la regola
+  risponde ~1,5 volte di più in ampiezza di quanto dicono i due dipoli. Così l'impulso "π/2" è in realtà ~0,66π e
+  porta p a 0,75. Cause possibili (non verificate): altri livelli raggiunti dall'1s (p_exc conta tutto ciò che non è
+  1s), il d₁₂ preso dal nucleo imparato senza valle k = 0. Con la risposta misurata (calibrazione dopo, **non**
+  pre-registrata) sarebbe e·E ≈ 0,0086. **Nel Laboratorio resta 0,01337 (C0 come scritto)**: p_exc sale a 0,75 e il
+  dipolo oscilla con ampiezza **1,41 ħ/mc** (0,92 con l'impulso vecchio): la nuvola ora si vede andare su e giù.
+
+**La vista diffusa** (scena atomo, accoppiata; casella "vista diffusa" nel pannello, accesa di default):
+- l'impulso libero: le stesse palline oro/azzurro di prima ma **attenuate ×0,25**;
+- la luce diffusa: palline rosa (E_z > 0) e verdi (E_z < 0), luminose dove la luce diffusa è più forte, sulla **sua**
+  scala: è amplificata di **A = (E massimo dell'impulso alla partenza) / (E massimo della luce diffusa lontano
+  dall'atomo, r > 32 ħ/mc)**, ricalcolato a ogni tick di luce (scende piano: −3 % per tick al massimo) e **scritto in
+  alto**: "LUCE DIFFUSA ×A". Nelle corse: A ≈ 33 (impulso vecchio) e **≈ 51 (impulso π/2)** in ampiezza, cioè
+  ~1 100–2 600 in energia;
+- 6 000 palline bianche **portate dalla corrente d'energia** della luce diffusa: ognuna si muove con la velocità
+  dell'energia v = S/u = (E × B)/u (|v| ≤ c), nasce dove la densità d'energia u è più alta (lontano dall'atomo,
+  r > 24 ħ/mc: il campo vicino è grande ma non viaggia), brilla come √u, rinasce dove u è più alta quando finisce nella
+  spugna o dove u è quasi zero (e lo 0,5 % per tick a caso). Niente scie: il moto è delle palline stesse.
+  Controllo senza finestra (`diffusa_vista`, non pre-registrato): dopo 400 ħ/(mc²) dall'impulso π/2 le palline di flusso vanno via dall'atomo con velocità radiale media **0,977 c**, A = 199 in quel momento (la luce diffusa lontana è già più debole del suo picco). Le palline di luce diffusa sono al massimo 30 000 per scatola (sottoinsieme fisso a caso: il portatile).
+
+**Leggibilità (v2, dopo la prima foto dal ponte).** La foto `2026-10-13_foto_diffusa` (tick 632, p_exc 0,749, ×105) era
+un campo uniforme di puntini: le palline nascevano su tutta la scatola 3-D con soglia fissa su |E| e un sottoinsieme a caso,
+così i gusci proiettati si riempivano e i nodi scuri sparivano. Ora (default della vista diffusa, scelte di disegno dichiarate
+in alto sullo schermo):
+- **fetta**: si disegnano solo le celle con |y| ≤ 2 celle (10 ħ/mc) attorno all'atomo, il piano x–z che contiene l'asse
+  dell'impulso (x) e del dipolo (z); vale per luce diffusa, impulso libero e palline di flusso (che rinascono nella fetta
+  quando ne escono);
+- **legge di campionamento**: ogni cella si accende con probabilità min(1; 1,5 w/w_max) e luminosità ∝ √(w/w_max), con
+  w = u·r², u = |E|² + |B|² la densità d'energia della luce diffusa e r la distanza dall'atomo: il fattore r² **toglie la
+  caduta 1/r² dell'onda che si allarga** (dichiarato), così gli anelli lontani si vedono come i vicini e i nodi fra gli anelli
+  restano scuri; per l'impulso libero w = u;
+- **atomo ingrandito ×6**: 5 000 palline estratte da |ψ|² disegnate a 6 volte la distanza dal nucleo, luminosità ∝ √(ρ/ρ_max):
+  è la sorgente del dipolo, si vede oscillare su e giù;
+- inquadratura per le foto: camera sull'asse −y (yaw 0, pitch 0) a 460 ħ/mc, così si vede la fetta di fronte.
+Anteprima fatta nel cloud con i dati veri della scena (matplotlib, non il renderer): `lab/out/diffusa_anteprima.png`,
+t = 400 dopo l'impulso π/2: anelli rosa/verdi alternati, più forti lungo x e spenti lungo z (sin²θ del dipolo), palline di
+flusso a v_r = 0,97 c. Debiti in più: la fetta, il fattore r², la soglia della probabilità e l'ingrandimento dell'atomo sono
+scelte di disegno.
+
+**v3, dopo la seconda foto** (`2026-10-13_foto_diffusa2`, t = 500, A ≈ 115, p_exc 0,741): gli anelli si vedevano ma
+deboli, al centro c'era una **linea bianca verticale** e l'impulso libero faceva bande verticali in alto e in basso. Cause e
+cure (solo disegno, la fisica non cambia):
+- la linea: la nuvola ×6 era fatta con i **surfisti** (traiettorie di Bohm), che dopo l'impulso forte si ammucchiano sull'asse
+  dello spin; ora è fatta con **campioni nuovi di |ψ|² a ogni fotogramma** (4 000), bagliori grandi (raggio ~2 ħ/mc nella
+  scala ×6), luminosità ∝ √(ρ/ρ_max);
+- la debolezza: il renderer dà alle palline d'onda della scena atomo un raggio di 0,096 ħ/mc per unità quando la camera è
+  lontana (pensato per l'atomo, non per la luce a 500 ħ/mc); ora ogni pallina di luce diffusa ha raggio 2,4–4,8 ħ/mc,
+  **crescente con l'energia** (25 + 25 √(w/w_max) unità), alpha 0,12 + 0,55 √(w/w_max); palline di flusso raggio ~1,4 ħ/mc;
+  stesso disegno a bagliori del Laboratorio (`onde`, sfumate), nessuno stile parallelo;
+- le bande: l'impulso libero era disegnato sulla **sua** scala, quindi anche il resto che esce nella spugna si accendeva
+  tutto; ora è sulla scala **fissa della partenza** (u_ref = 2 e_ref²), alpha ×0,2: sparisce man mano che esce.
+- la scritta in alto (egui) **non compare in nessuna foto del ponte** (neanche nelle vecchie): lo screenshot prende la scena
+  senza il pannello; il fattore A e p_exc sono nel `log.txt` della foto (riga "foto al frame ...").
+Anteprima aggiornata `lab/out/diffusa_anteprima.png` (dati veri, matplotlib senza bagliore).
+
+Il fotone sparato aspetta l'atomo pronto (prima, se si premeva F durante la preparazione, andava all'atomo non
+accoppiato con la frequenza sbagliata). Per le foto dal ponte: `spara-al` ora aspetta la preparazione e la foto si fa
+(`frames` − `spara-al`) fotogrammi dopo lo sparo vero; flag nuovi (validati in `ponte/ponte.py`): `spara-pronto`,
+`foto-dopo T` (foto T ħ/(mc²) dopo lo sparo), `senza-diffusa`.
+
+**Debiti**: l'amplificazione A è grafica (dichiarata sullo schermo) e cambia nel tempo; l'impulso attenuato ×0,25 è una
+scelta di disegno; le palline di flusso nascono con probabilità ∝ u (campionamento, non fisica); la soglia r > 24 ħ/mc per
+il campo vicino è a mano; impulso lungo solo 1 λ (scatola piccola); C1 FAIL: la formula a due livelli sbaglia di ~1,5×
+l'ampiezza della risposta; X1 FAIL di arrotondamento; restano tutti i debiti di §3.5–3.7 (accoppiamento ×10, semiclassico,
+nucleo imparato, Z = 60).
+
+### 3.9 Grafica in 3-D, livello di dettaglio continuo, scie dei surfisti e impostazioni (13 ottobre 2026)
+
+**Che cosa aveva visto Valerio** (comando `atomo.exe --scena atomo --surfisti --distanza 60`): "sembra 2-D", "allontanandoti
+l'atomo diventa una palla bianca che offusca", "i bagliori dei surfisti non li vedo", "vorrei una mini scia".
+
+**Perché era così (diagnosi, nel codice).**
+- *2-D*: la camera era già prospettica e girabile (trascina), ma la vista diffusa disegnava solo una **fetta piatta**
+  |y| ≤ 2 celle (il piano x–z, §3.8), e la si guardava di fronte; i bagliori additivi non danno nessun indizio di profondità.
+- *Palla bianca*: nella vista diffusa la nuvola era **4 000 campioni di |ψ|² ingranditi ×6**, bagliori bianchi grandi
+  (fattore 22) e luminosi (alpha fino a 0,68): sommati fanno una palla bianca sopra tutto. Intanto i surfisti veri, a
+  grandezza vera, avevano bagliori di raggio fisso 0,12 ħ/mc oltre distanza 34: a 60 sono ~2 px, a 460 meno di un pixel.
+- *Surfisti deboli*: alpha 0,03–0,33, nessun nucleo luminoso, coperti dalla nuvola ×6.
+
+**Che cosa cambia (solo disegno: la regola, i surfisti e la luce sono gli stessi numeri di prima).**
+1. **3-D**: la luce diffusa, l'impulso libero e le palline di flusso si disegnano su **tutto il volume** della scatola di luce
+   (non più la fetta). Per non riempire tutto proiettando gusci uno sull'altro, la luce è **aperta verso la camera**: davanti
+   al piano che passa per l'atomo, perpendicolare allo sguardo, i bagliori svaniscono in 8 ħ/mc; dietro si spengono piano,
+   su uno spessore di 90 ħ/mc (al massimo 0,6 × la distanza della camera: da vicino resta uno strato sottile). Girando la
+   camera il taglio gira con lei: si vedono gli anelli nel piano del taglio e i gusci che si curvano all'indietro.
+   Profondità: i bagliori più vicini sono un po' più chiari e grandi, i lontani più scuri (dichiarato, regolabile).
+   **Rotazione lenta** attorno alla verticale dopo 2,5 s senza toccare il mouse (tasto R per spegnerla; mai nelle foto).
+   La vecchia fetta resta come opzione (`--fetta`, casella nelle impostazioni).
+2. **Dettaglio continuo, niente palla bianca**: l'atomo è disegnato **sempre a grandezza vera e sempre con i suoi surfisti**
+   (la nuvola ×6 è spenta di default, `--zoom-atomo` per riaverla). Ogni bagliore di surfista ha ~3,7 px di raggio a ogni
+   distanza; quando l'atomo rimpicciolisce sullo schermo e i bagliori si sovrapporrebbero troppo, se ne tengono **meno e un
+   po' più grandi**: un sottoinsieme fisso (chiave hash stabile del surfista, la stessa in Rust e nello shader, quindi zoomando
+   non lampeggia niente: chi esce svanisce in modo continuo), ingranditi di g = f^(−1/6) (al massimo 2,5), con f scelto in modo
+   che in media su un pixel dell'atomo cadano al più 16 bagliori (stima 1,5 n (s² + 0,15 s L)/R², R = 1,5 × raggio rms della
+   nuvola, L la scia). Mai meno di 150 bagliori: sotto, si attenuano (al più fino a 0,6: un atomo lontano resta un nodo luminoso). Così la luce per pixel resta quella di vicino e da
+   lontano si vede lo stesso atomo con meno dettagli.
+   **La luce ha due livelli anche lei.** Il livello grosso sono i bagliori della scatola (uno per cella di 4 ħ/mc, grandezza
+   fissa in ħ/mc, mai sotto 1,5 px). Quando ci si avvicina e un bagliore di cella sarebbe più grande di 14 px, si stringe a
+   14 px e fra 14 e 28 px **svanisce**; al suo posto compare il livello fine, generato dallo stato grosso quando serve:
+   **scintille** piccole (3 px) in punti fissi a caso in una palla grande come la vista (0,6 × la distanza della camera),
+   luminose come la densità d'energia in quel punto (interpolata fra le celle, stesse scale dei bagliori di cella), accese
+   con la stessa legge (probabilità min(1; 1,5 x): i nodi scuri restano scuri). Lontano dall'atomo una scintilla mostra la
+   luce diffusa (rosa/verde) o l'impulso libero (oro/blu, attenuato); dentro la sfera di 8 celle attorno all'atomo, dove i
+   bagliori di cella non si disegnano (lì la luce diffusa è il campo vicino, enorme e fermo), mostra sempre l'impulso libero:
+   **l'impulso si vede attraversare la nuvola a ogni zoom**. Il numero di scintille segue la grandezza della palla sullo
+   schermo (≈ un quarto coperto, 50–6 000).
+3. **Surfisti più chiari, con scia**: alpha 0,08–0,63 (era 0,03–0,33), nucleo luminoso (core 0,9, soft 4). Ogni surfista lascia
+   una **scia di ~0,3 s** (regolabile 0–1 s): sono le sue **posizioni vere** degli ultimi k tick (k = secondi × tick al secondo
+   davvero eseguiti, al massimo 15), disegnate come bagliori **allungati e sovrapposti** (ognuno lungo due passi, centrato sul
+   suo passo: i vicini si coprono a metà), senza nucleo, che si spengono come (1 − t)^1,5 e si stringono come 1 − 0,6 t.
+   Un surfista che rinasce da |ψ|² riparte senza scia. Al massimo 60 000 pezzi di scia (il portatile): oltre, si sfoltiscono
+   con la stessa chiave del dettaglio.
+4. **Impostazioni** (finestra "Impostazioni grafica", bottone ⚙ in alto a destra o tasto **G**): preset bassa (12 celle per λ,
+   128³), media (16, 160³), medio-alta (20, 176³), alta (24, 192³), ultra (32, 384³) — cambiano **solo la risoluzione** della
+   regola della luce (al prossimo fotone) e quanti bagliori di luce si disegnano al massimo (30 000 … 150 000), mai la dinamica;
+   il reticolo dell'atomo (48³) è fissato dalla fisica. Poi: scia, forza del dettaglio (0 = tutto sempre), luminosità dei
+   bagliori, profondità, rotazione lenta, taglio e il suo spessore, fetta vecchia, nuvola ×6 vecchia, e il **tempo per
+   fotogramma voluto** (sotto).
+
+**Il motore di base: un solo disegnatore, a bagliori** (`src/atomo/bagliori.rs`, regola di Valerio del 13/10: tutto il
+programma si disegna così, ogni modo nuovo è un passo in più sopra questo). Interfaccia per chi porta una scena:
+- `Livello::new(nome)` — un livello del mondo (un atomo, una molecola, un nucleo con quark e gluoni…);
+- `l.bagliore(pos, raggio, [r, g, b], intensita)` — un bagliore (posizione in coordinate di schermo, `render::schermo`;
+  raggio = fattore di grandezza; intensità 0–1); i bagliori vanno per primi e nello stesso ordine fra un fotogramma e
+  l'altro (la chiave del dettaglio è il loro indice);
+- `l.scia(&passati, [r, g, b], intensita, peso)` — la sua scia corta (posizioni passate, la più nuova per prima);
+  `peso = grafica::peso(i, f)` per sfoltirla con lo stesso dettaglio della testa;
+- `l.chiudi(raggio)` — il gruppo del livello (`grafica::Gruppo`: quanti bagliori, su che raggio, scia media) per il dettaglio;
+- il disegno: `teste` nello strato additivo con `n_lod = teste.len()` (lo shader `istanze.wgsl` sfoltisce, ingrandisce,
+  attenua, dà profondità), `scie`/`scie_allunga` nello strato delle scie, le luci a fusione alfa nello strato `onde` con il
+  taglio. Parametri per strato in `istanze::StratoIstanze` (`n_lod`, `lod`, `prof`, `taglio`).
+Oggi lo usa la scena atomo (le scie passano da `bagliori::scia_in`); orbitali, tavola periodica, molecole e quark/gluoni
+devono passare di qui.
+
+**Come si impilano i livelli (per la goccia d'acqua e per il "Nanite della fisica").** `grafica.rs`:
+- ogni livello è un **fornitore di bagliori** (`Gruppo`: n, raggio, scia) e un nodo di un **grafo di scena** (`Nodo`, con i
+  figli); `percorri` dà a ogni nodo il suo dettaglio (`Lod`: frazione tenuta, crescita, luminosità) e il suo **errore sullo
+  schermo** (`errore_px`, la spaziatura dei bagliori tenuti in pixel); i figli si visitano solo dove il padre chiede di
+  essere raffinato (`Lod::raffina`, errore sopra la soglia). Una goccia lontana basta a sé; zoomando si scende alle molecole,
+  agli atomi, agli elettroni-surfisti (test `grafo_e_budget`). Più avanti la richiesta di raffinare verrà anche da un evento
+  fisico (un fotone che colpisce, una superficie, un cambio di fase), e un nodo potrà essere un modo quark/gluoni del thread
+  Modello standard;
+- **lo stato grosso si tiene, il dettaglio fine si genera quando serve**: per l'atomo lo stato è ψ sul reticolo; i surfisti,
+  le loro scie e le scintille della luce si generano da lì, quanti ne chiede lo schermo. I livelli grossi impareranno dal
+  livello sotto con l'agglomeratore; le zone in equilibrio resteranno al livello più grosso valido, in memoria;
+- **budget per fotogramma** (`Budget`): se un fotogramma dura più del voluto (33 ms di default, regolabile) il dettaglio si
+  fa più forte (fino a ×8) **prima** che calino i fotogrammi; se avanza tempo torna indietro. Spento nelle foto (riproducibili).
+  Oggi il grafo ha un solo nodo, l'atomo.
+
+**Che cosa è vero e che cosa è disegno.** Veri (dalla regola): le posizioni dei surfisti e quindi le loro scie (traiettorie
+di Bohm, un'interpretazione, §3.4), ψ, la luce delle due scatole, il moto delle palline di flusso. **Scelte di disegno
+(debiti dichiarati)**: il taglio verso la camera e il suo spessore, la profondità, le soglie del dettaglio (16 per pixel,
+150 bagliori minimo attenuati al più fino a 0,6, crescita ≤ 2,5, raggio 1,5 × rms), la grandezza 3,7 px dei surfisti, la forma delle scie, le scintille
+della luce (numero, grandezza, palla di 0,6 × la distanza), il passaggio 14–28 px dal livello grosso al fine, il tempo per
+fotogramma. Restano tutti i debiti di §3.8 (amplificazione ×A, impulso attenuato ×0,25, fattore r²). **Non ancora fatto**:
+il dettaglio per livelli vale solo nella scena atomo (orbitali, tavola, elettrone libero e fotone libero disegnano come
+prima); il percorso a mesh (`--mesh`) non ha dettaglio, profondità né taglio; la scia stima i tick al secondo dal ritmo
+vero del lavoratore.
 
 ## 4. Il fotone libero: pre-registrazione (scritta prima delle corse) e risultati
 
@@ -334,14 +659,16 @@ Debiti:
    in (1,1,0), 0,88 c in diagonale con 8 celle per λ). F3 fallisce per questo; serve ≥ 24 celle per λ, o una
    regola corretta (non ancora trovata dentro la regola zig-zag).
 3. **Risoluzione**: ≥ 24 celle per λ a ≥ 30 tick/s non ci stanno su questo PC (qualità massima ~5 tick/s).
-4. Atomo: impulso forte (come un laser), niente emissione spontanea, celle grosse (legame 1s +40 %), Nd⁵⁹⁺
+4. Atomo: impulso forte (come un laser), niente emissione spontanea, celle cubiche grosse (legame 1s +40 % nell'atomo
+   3-D dal vivo; curato solo negli orbitali radiali, vedi §3.1 e debito 12 di `NUCLEO_1S.md`), Nd⁵⁹⁺
    invece dell'idrogeno; il nucleo di Nd ha 144 barioni, si vede un protone; i due numeri di Skyrme da
    Adkins–Nappi–Witten.
 5. La doppia fenditura è tolta (§5): tornerà con le fenditure fatte di atomi.
 6. **Scena futura: il geone** (luce tenuta insieme dalla sua gravità). Fuori portata ora: abbiamo già visto che
    senza gravità la luce non si intrappola da sola.
 7. **Orbitali** (§3.3): dalla forma radiale della regola, non dal reticolo 3-D dal vivo (troppo piccolo per
-   n ≥ 3); celle grosse (1s +40 %, 4f +1,3 %); niente fotone e niente Zitterbewegung in quella vista; atomi con
+   n ≥ 3); dal 13/10/2026 sulla mesh dello zoom automatico (tutti i livelli entro 0,36 %; prima, celle uguali da
+   0,5: 1s +40 %, 4f +1,3 %); niente fotone e niente Zitterbewegung in quella vista; atomi con
    più elettroni rimandati alla regola degli agglomerati.
 
 ## 7. Come si usa
@@ -358,6 +685,163 @@ Debiti:
   (t palline che corrono, f fronti d'onda, l elica di E, E e B tratti, s Poynting, o spin, x sezione).
 * Prove senza mani: `--foto file.png --frames N [--spara-al F] [--yaw a --pitch b] [--ritmo r]` salva
   un'immagine ed esce.
-* Test: `cargo test --bin atomo` (7 veloci: F1a, F2, F4, la regressione dell'apertura, i livelli degli orbitali, l'atomo, il nodo; F1b e F3 sono
+* Test: `cargo test --bin atomo` (9 veloci: F1a, F2, F4, la regressione dell'apertura, i livelli degli orbitali (ora con
+  soglia 1 % per 1s, 2p3/2, 3d5/2), l'atomo, il nodo, e i due della mesh graduata in `walk.rs`; F1b e F3 sono
   segnati "ignored" perché registrati come FAIL) e `cargo test --bin atomo -- --ignored` (lunghi e i FAIL registrati:
   risonanza dell'atomo, direzioni oblique del fotone, `bench_fotone`).
+
+## 10. Modalità tavola periodica (`tavola.rs`, `esportazioni.rs`, 13 ottobre 2026)
+
+Un solo programma: nella barra in alto c'è **"tavola periodica"**. Si apre la tavola intera (118 caselle). Si preme un
+elemento acceso, appare nella scena, e lo si usa. La regola è quella di sempre: **si accende solo ciò che ha dati veri
+dietro**. Tutto il resto è grigio con scritto "in arrivo": niente orbitali di tabella, niente nuvole finte.
+
+### 10.1 Che cosa è acceso oggi
+
+| casella | da dove vengono i dati | livello | esami (come dichiarati dallo studio) |
+|---|---|---|---|
+| **H** | scena calcolata dal programma: la forma radiale della regola zig-zag con Z = 1 (§10.4, cascata) | esatto | IDROGENO_BOHR 8/8 PASS; i suoi esami in §10.4 |
+| **He** | `assets/esportazioni/He/`: 16 000 coppie di posizioni dei due elettroni pescate da \|Ψ(r₁, r₂)\|² dell'ECG dell'elio (studio MOLTI_ELETTRONI, `ripresa/dati/elio/`) | esatto | M1v5, E1v5, Q1v5 PASS; D6' FAIL (cuspide del DMC, non tocca l'ECG) |
+| **H₂** (molecole) | `assets/esportazioni/H2/`: 16 000 coppie da \|Ψ\|² dell'ECG a due centri di Debiti (aggmol fase 2), ricostruito con `lab/h2v_wf.py` (energia identica, differenza 2·10⁻¹³ Eh) a R = 1,4 a₀ | esatto | H0–H5 PASS, V3 V4 PASS, G1 FAIL (cancello della macchina) |
+| **Nd⁵⁹⁺** (ioni) | la scena "atomo zig-zag" dal vivo (premendolo si passa a quella scena, dove c'è il fotone F) | esatto | orbitali entro 0,36 %, K PASS; L1 FAIL, 1s 3-D +40 % (debito 12) |
+| tutti gli altri | — | — | "in arrivo" (Li: catena di Debiti avviata) |
+
+Ogni casella accesa ha un **badge**: **E** su fondo verde = livello *esatto*, **A** su fondo ambra = *approssimato*
+(Hartree–Fock + correlazione imparata, il secondo livello di Debiti). Passandoci sopra si leggono validazione, fonte
+dei dati e la lista PASS/FAIL dichiarata.
+
+**Come si vede un'esportazione.** I bagliori sono "fotografie" di tutti gli elettroni insieme. Ogni fotografia resta
+8 passi, si accende e si spegne dolcemente, poi ne arriva una nuova; ogni volta è girata a caso con una rotazione che
+la simmetria dello stato permette (sferica per l'elio, attorno all'asse per H₂), così 16 000 fotografie ne valgono
+infinite. **Il moto è il campionatore, non una traiettoria** (scritto sullo schermo). **Buca di Coulomb** (casella nel
+pannello, `--buca`): un elettrone (oro) viene girato su +z tenendolo tra 0,35 e 0,75 a₀ dal nucleo (per H₂: nella
+metà destra, vicino all'asse); gli altri (blu) si vede che gli stanno lontano. È la correlazione, senza nessuna regola
+aggiunta: viene tutta dalle coppie.
+
+**Lancia.** Il fotone è attivo solo dove la luce è simulata (idrogeno, §10.4; Nd⁵⁹⁺ nella sua scena). Elettrone,
+protone e neutrone sono bottoni **spenti con scritto "non ancora simulato"**: nessuna regola calcolata per l'urto.
+
+**Costruisci molecole.** Clic destro su un elemento (o "+ simbolo") lo mette sul banco. "Unisci" si accende **solo se
+esiste un'esportazione di molecola con esattamente quei nuclei** (oggi: H + H → H₂). Ogni altra combinazione mostra
+"non ancora calcolata: nessun legame disegnato".
+
+Scelte di disegno (non fisica): colori, nucleo come bagliore caldo grande ~0,1 a₀ (quello vero è 10⁻⁵ volte più
+piccolo), dimensione dei bagliori ~1/30 della vista, durata di una fotografia.
+
+### 10.2 Il formato delle esportazioni (per Debiti e per ogni studio che vuole accendere una casella)
+
+Una cartella per oggetto: `assets/esportazioni/<nome>/` (nel repo, file piccoli) — il programma cerca anche nella
+cartella dell'ambiente `ATOMO_ESPORTAZIONI` (per esempio `/mnt/project-files/debiti/export`, da copiare poi nel repo
+per il portatile). Basta aggiungere la cartella: **non serve ricompilare**.
+
+`manifest.json`:
+
+| campo | cosa | esempio |
+|---|---|---|
+| `formato` | sempre `"particle-sim/esportazione-v1"` | |
+| `nome`, `simbolo` | nome e simbolo (per le molecole la formula) | `"litio"`, `"Li"` · `"H2O"`, `"H2O"` |
+| `tipo` | `"atomo"` o `"molecola"` | |
+| `Z`, `carica` | numero atomico (atomi; 0 per le molecole) e carica totale | `3`, `0` |
+| `livello` | `"esatto"` o `"approssimato"` | |
+| `metodo`, `fonte` | come è calcolato; file, script, commit da cui viene | |
+| `nuclei` | lista di `{"Z": …, "pos": [x, y, z]}` in **bohr** (per gli atomi il nucleo nell'origine) | |
+| `n_elettroni` | quanti elettroni ha ogni fotografia | `10` per H₂O |
+| `campioni` | `{"file": "campioni.f32", "n": …, "unita": "bohr", "ordine": "n x n_elettroni x 3, float32 little endian"}` | |
+| `simmetria` | quali rotazioni lasciano lo stato uguale: `"sferica"`, `"assiale_z"` (molecola lineare lungo z), `"nessuna"` | |
+| `energia_Eh`, `riferimento_Eh` | facoltativi, mostrati sullo schermo | |
+| `esami` | lista di `{"id", "cosa", "PASS": true/false}`: tutti, anche i FAIL | |
+| `note` | lista di frasi (debiti, cosa manca) | |
+
+`campioni.f32`: n fotografie × n_elettroni × 3 numeri float32 little endian, in bohr: ogni riga sono **tutti** gli
+elettroni insieme pescati da \|Ψ(r₁…r_N)\|² (Metropolis o simile), non densità a un elettrone. Così la correlazione
+(buca di Coulomb, elettroni che si evitano) arriva gratis. 16 000 righe bastano (He e H₂ sono 384 kB). Uno stato con
+spin diverso per elettrone: per ora l'ordine è libero (nessun colore di spin), si potrà aggiungere un file `spin.u8`.
+
+In Python:
+
+```python
+c = np.ascontiguousarray(X.astype("<f4"))      # X: (n, n_el, 3) in bohr
+c.tofile(cartella + "/campioni.f32")
+json.dump(manifest, open(cartella + "/manifest.json", "w"), indent=1, ensure_ascii=False)
+```
+
+Esempi completi: `assets/esportazioni/He/` e `assets/esportazioni/H2/`. Una cartella che non si legge non sparisce in
+silenzio: l'errore compare in rosso in fondo alla tavola.
+
+`assets/tavola_stato.json` tiene le caselle che non sono esportazioni (H con la sua scena, gli ioni, le note "in
+arrivo" delle molecole attese: LiH, N₂, O₂, H₂O, NH₃, CH₄, CO₂). Un elemento con un'esportazione si accende da solo:
+non serve toccarlo.
+
+### 10.3 Debiti della tavola
+
+- He e H₂ sono **stati fermi** (stazionari, nuclei fermi): niente luce che li colpisce, niente vibrazione di H₂ (c'è
+  nello studio h2v ma non in questa esportazione).
+- L'urto con elettroni e protoni non è simulato: bottoni spenti.
+- I bagliori mostrano fotografie, non traiettorie.
+
+### 10.4 Idrogeno con più orbitali: assorbe e riemette, a cascata (`cascata.rs`)
+
+Premendo **H** nella tavola appare l'idrogeno (Z = 1). Si sceglie una riga e si lancia il fotone (F o il bottone): l'atomo
+assorbe, aspetta, e torna giù riemettendo luce, anche a più salti.
+
+**Che cosa è CALCOLATO (all'avvio, ~5 s, solo dalla regola zig-zag; ingressi α e la massa dell'elettrone).** La forma
+radiale della stessa regola (`Radial` di `src/zigzag/walk.rs`, fase di Coulomb −α/r) in una scatola di 36 a₀. Gli stati
+si trovano "ascoltando con una fase per collegamento" su celle di 0,5 ħ/mc, poi si seguono dimezzando le celle fino a
+1/32 ħ/mc. *Perché così fini*: su celle di 0,5 il passo di flip è θ = 0,5 e la massa cinetica del cammino è tan θ/θ =
+1,093, quindi **ogni legame veniva +9,1 %** (primo tentativo, dichiarato: 1s 14,84 eV). A 1/32 la massa è 1,0003.
+
+| livello | legame dalla regola | Dirac (nucleo fermo) | scarto |
+|---|---|---|---|
+| 1s | 13,60934 eV | 13,60587 | +0,025 % |
+| 2s | 3,40247 | 3,40148 | +0,029 % |
+| 2p (j = 3/2) | 3,40180 | 3,40144 | +0,011 % |
+| 3s | 1,51198 | 1,51176 | +0,014 % |
+| 3p | 1,51187 | 1,51175 | +0,008 % |
+| 3d | 1,51180 | 1,51175 | +0,004 % |
+
+Le righe sono le differenze; i **ritmi** A = (4/3) α ω³ |⟨f|r|i⟩|² · l_max/(2l+1) con l'integrale radiale sulle funzioni della
+regola (solo la componente grande g; la piccola f è ~α/2 di g: lasciata fuori, dichiarato):
+
+| riga | λ (regola) | A (1/s) | esame |
+|---|---|---|---|
+| Lyman-α 2p→1s | 121,46 nm | 6,269·10⁸ (vita 2p **1,595 ns**) | C2: contro 6,2649·10⁸ entro 1 %: **+0,07 % PASS** |
+| Lyman-β 3p→1s | 102,49 nm | 1,676·10⁸ | |
+| Balmer-α 3p→2s | 655,80 nm | 2,249·10⁷ (ramo **11,83 %**) | C3: ramo contro 0,118 entro 2 %: **PASS** |
+| Balmer-α 3s→2p | 656,06 nm | 6,339·10⁶ | |
+| Balmer-α 3d→2p | 656,00 nm | 6,471·10⁷ | |
+
+C1 (tutti i livelli entro 0,1 % di Dirac): **PASS** (peggiore 2s +0,029 %). Test: `cargo test --release --bin atomo cascata`.
+Le λ sono a **nucleo fermo** (massa infinita): col rinculo del protone (la sua massa è un ingresso ammesso, non ancora
+messo) crescerebbero dello 0,054 % (Lyman-α misurata 121,567 nm, la regola qui 121,46: −0,09 %, di cui −0,03 % è lo scarto
+dei livelli). Le righe con lo stesso n (2p→2s, ~10⁻³ s⁻¹, microonde) sono escluse: la loro energia qui è soprattutto lo
+spostamento degli stati s della regola (2s sotto il 2p3/2 di 0,66 meV, in Dirac 0,045 meV dall'altra parte): **debito**.
+
+**Che cosa è DISEGNATO, non simulato nel tempo (scritto anche sullo schermo).**
+- L'elettrone: bagliori = **surfisti della corrente dell'onda** (v = j/ρ della funzione di Dirac della regola), con passi
+  adattivi e due passi Metropolis per bagliore e fotogramma (passo fisso, quindi proposta simmetrica: un primo tentativo
+  con passo proporzionale al raggio stringeva la nuvola a ⟨r⟩ = 1,19 invece di 1,5 a₀; trovato e corretto) perché lo stato
+  disegnato cambia più in fretta di quello vero. Colore = fase dell'onda.
+- **Assorbimento**: il fotone è puntato e sulla riga, ed è assorbito **con certezza** (regia: in natura un singolo fotone
+  lo è con la probabilità data dalla sezione d'urto). Arriva come pacchetto lungo +x, polarizzato lungo z, con fronti ogni
+  λ disegnata; mentre passa lo stato va da 1s a 2p con la formula di Rabi di un impulso π (2,5 s di schermo) e il
+  pacchetto si spegne. La nuvola **batte** (si sposta su e giù lungo z) alla frequenza della riga, rallentata.
+- **Emissione**: il **quando** è pescato a caso con la vita calcolata (esponenziale), il **dove va** con i rami calcolati.
+  Il salto dura 2 s di schermo. La luce che esce è un **guscio di bagliori** che si allarga, con la figura sin²θ del dipolo
+  (vera) e anelli alla λ della riga **rimpicciolita** a 2,2 a₀ (la vera è 2 300 a₀ per Lyman-α: non entrerebbe). Colore =
+  colore vero della λ dove l'occhio la vede (Balmer-α rosso 656 nm), viola-bianco per l'ultravioletto (colore falso).
+- **Due orologi**: il battito dell'onda (~2,5·10¹⁵ Hz) è mostrato con periodo 1,2 s; le attese sul **rallentatore** del
+  pannello (default 1 s di schermo = 1 ns: il 2p vive ~1,6 s di schermo, il 3p ~5 s).
+- Il **2s resta lì**: non ha righe a un fotone verso il basso. La via a due fotoni (8,2 s⁻¹ in natura) **non è calcolata**
+  (servirebbe una somma su tutti gli stati p, continuo compreso): debito C4, scritto sullo schermo. Da 2s si può lanciare
+  Balmer-α (2s→3p) e ripartire, o "ricomincia".
+
+Elettroni e protoni lanciati: **non ancora simulati** (bottoni spenti). Debiti: doppietti di struttura fine non separati
+(j = l + ½), rinculo del nucleo, due fotoni del 2s, componente piccola nei ritmi, assorbimento certo, durata dei salti.
+
+Il disegno passa per la stessa strada dell'atomo zig-zag (strati "palline" additivo e "onde" di `render_zz.rs`, istanze
+GPU): nessuno stile a parte.
+
+**Foto dal ponte**: `--scena tavola --elemento H --spara-pronto --foto-dopo 3.6` (assorbe: il fotone parte appena i livelli
+sono calcolati, foto 3,6 s di schermo dopo), `--foto-dopo 9` (riemette, se il salto pescato è già avvenuto), `--riga 3p`
+(Lyman-β: poi 3p→1s o, con l'11,8 %, 3p→2s), `--scena tavola --elemento He --pannello` (la tavola), `--elemento He --buca`,
+`--elemento H2`.

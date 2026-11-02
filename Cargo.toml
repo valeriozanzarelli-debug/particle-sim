@@ -37,6 +37,11 @@ path = "src/zigzag/main.rs"
 name = "atomo"
 path = "src/atomo/main.rs"
 
+# Idrogeno vero a scala di Bohr (headless): regola agglomerata lontano + zig-zag vicino al protone (docs/IDROGENO_BOHR.md)
+[[bin]]
+name = "idrogeno"
+path = "src/atomo/idrogeno_main.rs"
+
 [dependencies]
 bevy      = { version = "0.15" }
 bevy_egui = "0.31"
@@ -45,6 +50,7 @@ rayon     = "1"
 wgpu      = { version = "23", features = ["wgsl"] }
 bytemuck  = { version = "1", features = ["derive"] }
 pollster  = "0.3"
+serde_json = "1"
 
 [profile.dev]
 opt-level = 3

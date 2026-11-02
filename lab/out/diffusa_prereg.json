@@ -1,0 +1,19 @@
+{
+ "studio": "diffusa (docs/ATOMO.md §3.8: vedere l'interazione luce-atomo)",
+ "data": "2026-10-13",
+ "scritto": "prima di ogni misura; nessuna corsa di sviluppo del test fatta prima",
+ "configurazione": {
+  "atomo": "Esperimento::nuovo(600, None) di default (nucleo imparato, valle k=0, ACCOPPIAMENTO CENTRATO+trasverso, K=10), stati riusati con da_stati per tutte le corse",
+  "corsa_A": "scatola unica (come il Laboratorio fino a oggi), spara(omega_21, E0_ACC=0.004), 1200 tick atomo (t = 600 lambda_C/c)",
+  "corsa_B": "stessa cosa con la luce divisa: F_libera (impulso, nessuna sorgente) + F_diffusa (solo la corrente dell'atomo); l'atomo sente la somma",
+  "corsa_C": "luce divisa, impulso con e0 = e0_pi2 calcolato da C0, 1200 tick"
+ },
+ "esami": {
+  "X1": {"che_cosa": "max sui tick di luce t in (0, 600] di ||F_A - (F_libera_B + F_diffusa_B)||_2 / ||F_A||_2 (tutta la scatola 128^3, componenti complesse)", "soglia": "<= 1e-6"},
+  "X2": {"che_cosa": "max sui tick di luce di |p_exc_A - p_exc_B|", "soglia": "<= 1e-6"},
+  "X3": {"che_cosa": "costo: ms per tick atomo di A e di B (2 thread), rapporto B/A", "soglia": "nessuna (si riporta)"},
+  "C0": {"che_cosa": "area dell'impulso dalla regola stessa: S_k = |sum_t eE_z,libera(t) e^{i w_k t} dt| alla posizione dell'atomo (media gaussiana che l'atomo sente), w_32 = 0.079365, w_12 = 0.076614; dipoli della regola d32 = 0.97868 (k0, emissione_lab_results grezzi/k0_d_centrato+trasverso), d12 = 0.6029 (grezzi/imparato_scacchiera, nucleo imparato senza k0: dichiarato); theta/2 = sqrt(d32^2 S32^2 + d12^2 S12^2); e0_pi2 = 0.004 * (pi/4) / (theta/2) (impulso pi/2: p = sin^2(theta/2) = 0.5, il dipolo che oscilla piu' forte). Stessa durata dell'impulso (sigma = 1 lambda: la scatola di 6.5 lambda non ne tiene uno piu' lungo)", "soglia": "nessuna (calcolo)"},
+  "C1": {"che_cosa": "corsa C: massimo di p_exc per t <= 600", "soglia": "fra 0.35 e 0.65"},
+  "info": ["p_exc previsto sin^2(theta/2) per e0 = 0.004 contro misurato (corsa B)", "||F_A - (F_libera+F_diffusa)|| / ||F_diffusa|| (quanto rumore avrebbe la sottrazione)", "fattore di amplificazione A = max|E_libera| dell'impulso / max|E_diffusa| lontano (r > 32 lambda_C) per B e C", "ampiezza del dipolo dopo l'impulso in B e C"]
+ }
+}

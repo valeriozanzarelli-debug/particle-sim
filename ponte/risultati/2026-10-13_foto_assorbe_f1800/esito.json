@@ -1,0 +1,13 @@
+{
+  "id": "2026-10-13_foto_assorbe_f1800",
+  "azione": "foto",
+  "ok": true,
+  "inizio": "2026-10-13T00:46:39Z",
+  "fine": "2026-10-13T00:47:22Z",
+  "durata_s": 43.4,
+  "git": "5204f881d070816ba7d648e51f5981efcb5677e1",
+  "macchina": "LAPTOP-01UIII6L",
+  "exit": 0,
+  "secondi": 42.2,
+  "comando": "--scena atomo --frames 1800 --spara-al 600 --distanza 150 --pitch 0.5 --pannello --foto C:\\Users\\valer\\Desktop\\Programma di simulazione\\ponte_lab\\ponte\\risultati\\2026-10-13_foto_assorbe_f1800\\foto.png"
+}

@@ -1,0 +1,11 @@
+{
+ "studio": "bagliori",
+ "esami": "S1 S2 S3",
+  "circ+": {"omega_rad_tick": 2.41391886901652e-2, "spostamenti": 65014, "omega_atteso": 2.6525823848649224e-2},
+  "circ-": {"omega_rad_tick": -2.4139046601379027e-2, "spostamenti": 65123, "omega_atteso": -2.6525823848649224e-2},
+  "lineare": {"omega_rad_tick": 6.3406318245262575e-6, "spostamenti": 66859, "omega_atteso": 0e0},
+ "S1": true,
+ "S2": true,
+ "S3": true,
+ "rapporti_S3": [0.9100259742316898, 0.9100206176106481]
+}

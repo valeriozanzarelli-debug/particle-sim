@@ -1,5 +1,5 @@
 // Round soft balls of the carbon atom viewer (render.rs): one camera-facing quad per ball, additive glow.
-// Vertex data: position, colour (rgb, alpha = brightness), size factor, corner of the quad.
+// Vertex data: position, colour (rgb, alpha = brightness), size factor + stretch vector, corner of the quad.
 
 #import bevy_pbr::mesh_functions::get_world_from_local
 #import bevy_pbr::view_transformations::position_world_to_clip
@@ -37,7 +37,16 @@ fn vertex(v: VertexIn) -> VertexOut {
     let right = view.world_from_view[0].xyz;
     let up = view.world_from_view[1].xyz;
     let s = params.size * v.extra.x;
-    let q = world + (right * v.corner.x + up * v.corner.y) * s;
+    // stretch (extra.yzw, scene units): the quad is elongated along its projection on the screen
+    let a = vec2<f32>(dot(v.extra.yzw, right), dot(v.extra.yzw, up));
+    let la = length(a);
+    var d = vec2<f32>(1.0, 0.0);
+    if (la > 1e-4) {
+        d = a / la;
+    }
+    let nrm = vec2<f32>(-d.y, d.x);
+    let off = d * (v.corner.x * (s + la)) + nrm * (v.corner.y * s);
+    let q = world + right * off.x + up * off.y;
     out.clip = position_world_to_clip(q);
     out.corner = v.corner;
     out.color = v.color;

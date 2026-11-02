@@ -1,0 +1,12 @@
+{
+ "emendamento": 1,
+ "a": "lab/out/mg_gpu_prereg.json",
+ "data": "2026-10-13",
+ "scritto_prima_di_ogni_misura": true,
+ "motivo": "Il coordinatore ha cambiato la tabella QUALITA (fotscena.rs) prima delle corse: pavimento della luce a 12 celle per lambda (docs/MOTORE_OTTIMIZZATO.md, esame EL: a 8 celle la diffrazione cambia del -21 %). Nuovi preset: bassa 12/96, media 16/128, medio-alta 20/160, alta 24/192, ultra 32/384. Parametri::default() diventa 12 celle per lambda a 96^3: il test R1 di gpu_regola gira su questa configurazione (prima 8/96).",
+ "cambi": {
+  "G1_G2_G3": "invariati (preset alta 24/192)",
+  "G5_bassa": "bassa = 12 celle per lambda, 96^3 (scatola 8 lambda), 20 000 palline, cammino CPU",
+  "G5e_diffrazione_nuovo": "apertura del fascio theta (fotscena::theta_da, fit di <delta_perp^2>(t) sui tick del volo) contro lambda/(pi w0) di Maxwell nel continuo: entro 10 % a bassa (CPU) e ad alta (GPU), sulla polarizzazione circolare +; corsa allungata a 96 tick per avere il fit (theta_da chiede >= 20 tick; piu' tick = fit migliore). Soglia del 10 % = quella pre-registrata nei Debiti di MOTORE_OTTIMIZZATO."
+ }
+}

@@ -1,0 +1,24 @@
+{
+ "studio": "VIDEO IDROGENO (vl_idro_), emendamento 1: passaggio ai dati della fase 2",
+ "data": "2026-10-13",
+ "perche": "il coordinatore chiede di rifare lo zoom con i dati nuovi /mnt/project-files/ripresa/dati/idrogeno_bohr/fase2/ (manifest -> fase2, commit 056007a, docs/IDROGENO_BOHR.md §11): regola T con parita' esatta (mescolamento s-p 2.2e-9), colla con reflux, Lyman-alfa 122.21 nm. Il taglio sui dati della fase 1 non e' mai stato montato: e' superato.",
+ "scritto_prima_di": "qualunque pallina e qualunque fotogramma sui dati della fase 2",
+ "gia_misurato_prima (dichiarato)": {
+  "fine": "blocco 112^3 a a0/256 (lato 0.4375 a0 = 7 celle grosse), 16 tick; densita' 0.150..0.318 a0^-3, al nucleo 0.3135 (media 4^3 celle centrali); massa nel blocco 0.0176",
+  "chiralita": "chir/rho mediana 2.1e-3, 99% a 3.8e-3; ancora un dipolo fermo lungo z (corr con z -0.97), celle che cambiano segno fra tick 0-0.7%",
+  "grosso": "massa +-2 a0 0.855; j_grosso max 1.7e-3 (transitorio dell'ibrido, non la regola)"
+ },
+ "cambi": {
+  "dati": "fase2/ per tutti i file; geometria del blocco fine da manifest.fase2.zoom; periodo e dt dal file dipolo_lontano.txt della fase 2 (dt 0.701804, T 16.8433 u.a.)",
+  "B_zoom": "le palline grosse si tolgono dalle 7^3 celle grosse coperte dal blocco (29..35); camera da mezzo campo 6 a0 a 0.22 a0; le palline grosse svaniscono fra mezzo campo 1.2 e 0.35 a0",
+  "C_tick": "16 tick, 12 fotogrammi video per tick; colore chir/rho pieno a 4e-3 (amplificazione ~250, dichiarata); sfera disegnata r < 0.21 a0",
+  "palline_ferme": "le palline dello 1s restano ferme: la corrente residua 1.7e-3 e' un transitorio (lo stato iniziale e' l'autostato grosso, non quello dell'ibrido), non fisica, e non si usa; detto a schermo",
+  "didascalie": "a schermo: 1s ibrido non converge con la grandezza del blocco (-0.043 +- 0.004 %, §11.2); corrente spuria 1.7e-3 dal transitorio; parita' esatta (s-p 2e-9); 122.21 nm"
+ },
+ "esami": {
+  "H1-H4, H6, H7": "invariati (H7 con i nuovi passi a0/8, a0/16, a0/256 e la nuova amplificazione)",
+  "H5_blocco_fine": "SOSTITUITO (il vecchio era mal posto: Pearson cella per cella su densita' quasi piatta misura il rumore di conteggio). Nuovo: profilo radiale delle palline fine in 9 gusci fino a r = 0.21 a0 contro il profilo di rho_fine (tick 0); soglia scarto massimo <= 5 %. Il vecchio Pearson resta riportato.",
+  "H6_previsione": "FAIL (0-0.7% gia' misurato)"
+ },
+ "manopole_fisiche": 0
+}

@@ -1,0 +1,13 @@
+{
+  "id": "2026-10-13_foto_atomo_lungo",
+  "azione": "foto",
+  "ok": true,
+  "inizio": "2026-10-13T00:35:49Z",
+  "fine": "2026-10-13T00:44:28Z",
+  "durata_s": 519.0,
+  "git": "19cb7aab403060b0b318dc5e7b868872b43b7e38",
+  "macchina": "LAPTOP-01UIII6L",
+  "exit": 0,
+  "secondi": 504.6,
+  "comando": "--scena atomo --frames 20000 --spara-al 3600 --distanza 150 --pitch 0.5 --foto C:\\Users\\valer\\Desktop\\Programma di simulazione\\ponte_lab\\ponte\\risultati\\2026-10-13_foto_atomo_lungo\\foto.png"
+}

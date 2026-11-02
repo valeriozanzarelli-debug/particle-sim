@@ -1,0 +1,2 @@
+{"azione":"foto","args":{"scena":"atomo","frames":20000,"spara-al":3600,"distanza":150,"pitch":0.5},
+ "nota":"seguito della foto accoppiata: la prima ha fatto solo 689 tick (42 ms/tick sulla Intel UHD); qui ~3000 tick e camera piu vicina per vedere la risposta dell'atomo dopo il passaggio dell'impulso"}

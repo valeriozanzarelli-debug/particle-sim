@@ -1,0 +1,629 @@
+{
+ "G0": {
+  "verdict": "PASS",
+  "max_eigphase_diff": 5.551115123125783e-16,
+  "band_diff": 1.1102230246251565e-15,
+  "learned_odd": {
+   "0.01": 0.0006626112357721699,
+   "0.1": 0.0066884124598257585,
+   "1.0": 0.057677860371663024
+  }
+ },
+ "G1": {
+  "verdict": "FAIL",
+  "parts": {
+   "H": {
+    "PASS": true,
+    "err": 5.5366605744566755e-09
+   },
+   "Hooke": {
+    "PASS": false,
+    "err": 2.7169546612526574e-08
+   },
+   "Li_nonint": {
+    "PASS": true,
+    "diff": 3.071320975323033e-11
+   },
+   "Be_nonint": {
+    "PASS": true,
+    "diff": -7.958078640513122e-13
+   },
+   "MC": {
+    "PASS": false,
+    "worst_rel": 0.00013417263403658897
+   }
+  },
+  "diagnosis_posthoc": {
+   "Hooke": {
+    "rows": [
+     {
+      "K": 100,
+      "E_minus_2": 7.260343783954681e-07,
+      "cond_S": 99546873319.04024,
+      "sec": 8.384568691253662
+     },
+     {
+      "K": 200,
+      "E_minus_2": 1.6098900879057965e-08,
+      "cond_S": 1587594995650.5786,
+      "sec": 28.22836208343506
+     },
+     {
+      "K": 300,
+      "E_minus_2": 6.333420010662394e-09,
+      "cond_S": 3380561647105.004,
+      "sec": 69.92821979522705
+     },
+     {
+      "K": 400,
+      "E_minus_2": 5.751843445978011e-09,
+      "cond_S": 5754004953193.323,
+      "sec": 197.33890414237976
+     }
+    ],
+    "note": "stesso seme di G1; ogni K: crescita + 3 giri; post hoc"
+   },
+   "MC": {}
+  }
+ },
+ "G2": {
+  "verdict": "RINVIATO (DV6)"
+ },
+ "G3": {
+  "verdict": "PASS",
+  "rel_err": {
+   "He": -5.6384037439016765e-09,
+   "H-": 6.611336234030318e-08,
+   "Li": 2.349547223445825e-10,
+   "Be": -5.924987167560403e-09,
+   "Ne": -2.9353491859396286e-09
+  },
+  "random_starts": {
+   "He": 3.82804898890754e-13,
+   "He3S": 3.2107649872159527e-13,
+   "Li": 7.425171588693047e-13,
+   "H-": 1.1707301794672276e-12
+  }
+ },
+ "G5": {
+  "verdict": "FAIL (al livello dell'arrotondamento, vedi diagnosi)",
+  "worst_step": 1.4432899320127035e-15,
+  "diagnosis": "passi non monotoni solo per r < 4.2e-7 a0, ampiezza <= 1.4e-15: il rapporto e' c0 + c2 r^2 vicino al nucleo (le due cuspidi uguali cancellano il termine lineare), piatto sotto l'arrotondamento"
+ },
+ "G4": {
+  "verdict": "PASS per l'elio (Z = 2)",
+  "frac": {
+   "existing_A:one_Z10": -0.0004878067708820425,
+   "existing_A:he1S_Z2": 3.147597454019776e-10,
+   "existing_A:he1S_Z6": 3.059064694205438e-07,
+   "existing_A:he1S_Z7": 4.972462544230162e-07,
+   "existing_A:he1S_Z8": 7.445362556847827e-07,
+   "existing_A:he1S_Z9": 1.0438151493347166e-06,
+   "existing_A:he1S_Z10": 1.4386779947442625e-06,
+   "relearn_A:one_Z10": -3.3931018180089013e-12,
+   "relearn_A:he1S_Z2": 0.0,
+   "relearn_A:he1S_Z6": 4.668268884700506e-32,
+   "relearn_A:he1S_Z7": 2.984681771326549e-25,
+   "relearn_A:he1S_Z8": 1.240947999087376e-21,
+   "relearn_A:he1S_Z9": 3.340495421809225e-18,
+   "relearn_A:he1S_Z10": 1.0246878716094935e-15
+  },
+  "all_states_PASS": false,
+  "note": "esistente: Z = 9, 10 oltre 1e-6 (1.0e-6, 1.4e-6) e 1e Z = 10 -4.9e-4 (segno negativo = cancellazioni numeriche)"
+ },
+ "R1": {
+  "verdict": "PASS",
+  "fine_E50": -30.424139590840618,
+  "pauli_rel": 4.747521485066409e-09
+ },
+ "R2": {
+  "verdict": "PASS",
+  "beta_min": 5e-05,
+  "D": 0.4998084422482244,
+  "D_real": 0.4998084421733292,
+  "kurtosis": 0.003782740709898101,
+  "chosen": "B16"
+ },
+ "R3": {
+  "verdict": "PASS",
+  "m0": 1.0000138225248774,
+  "sigma": 2.6216112856401276e-06
+ },
+ "R4a": {
+  "verdict": "FAIL",
+  "imag_rel": 0.00018558607210655633,
+  "real_rel": 0.00019697257017314788,
+  "diagnosis_posthoc": {
+   "imag_rel": 5.488654492997539e-08,
+   "real_rel": 1.2518653144186813e-09,
+   "c2_imag": -29152867.56693203,
+   "c2_real": 29229886.884147324
+  }
+ },
+ "R4b": {
+  "verdict": "PASS",
+  "beta0.0002": {
+   "E": -129.01808781087115,
+   "sigma": 0.0037415789584138845,
+   "det": -129.02108119203072,
+   "z": 0.8000315355735939
+  },
+  "beta0.0001": {
+   "E": -128.8524686108778,
+   "sigma": 0.005806403650073748,
+   "det": -128.85448527091032,
+   "z": 0.3473165411947158
+  }
+ },
+ "relearned_level": {
+  "verdict": "IL RISCHIO 4 SI E' AVVERATO: nessun livello Pauli passa il controllo a 3e-5; la macchina sceglie dirac4 B=2",
+  "chosen": {
+   "B": 2,
+   "b": 2,
+   "w": 1,
+   "desc": "dirac4",
+   "check": {
+    "packet": 8.094246879491915e-20,
+    "H": 500,
+    "energy_rel": 5.11197581376781e-09,
+    "rest_rel": 4.170890192895736e-12,
+    "kmax_cells": 0.0048828125,
+    "energy_mode": "state",
+    "bz_rel90": 6.680270635078907e-10,
+    "neg_gen": 0.0
+   },
+   "cell_a0": 0.00048828125
+  },
+  "best_pauli_check": {
+   "packet": 9.14936580682003e-12,
+   "H": 63,
+   "energy_rel": 0.00023773936347249206,
+   "rest_rel": 1.2515338267358852e-07,
+   "kmax_cells": 0.0390625,
+   "energy_mode": "state",
+   "bz_rel90": 0.06284558450438026,
+   "neg_gen": 0.0
+  }
+ },
+ "R5": {
+  "verdict": "FAIL",
+  "NR_rel": {
+   "Z1": -1.3301717172176097e-08,
+   "Z2": -1.3072058546725884e-08,
+   "Z10": -1.1899586649377625e-08
+  },
+  "NR_PASS": true,
+  "full_ratio_first_order": 0.8606887160573639,
+  "full_note": "variazionale con la banda piena: COLLASSA (banda limitata + Coulomb puntiforme); si usa il primo ordine sullo stato NR (dichiarato)",
+  "posthoc_band_over_exact_dirac_kinetic": 1.0014020045873866
+ },
+ "R6": {
+  "verdict": "FAIL",
+  "relearn_ratio": {
+   "Z6": 0.9152515597475419,
+   "Z7": 0.9015849019518586,
+   "Z8": 0.8883304779284505,
+   "Z9": 0.8752062183033773,
+   "Z10": 0.8623712661774325
+  },
+  "existing_ratio": {
+   "Z6": 0.38762920794115685,
+   "Z7": 0.3850640614782305,
+   "Z8": 0.3825759241263307,
+   "Z9": 0.38004357277757517,
+   "Z10": 0.3775354201789065
+  },
+  "posthoc_band_over_exact_dirac_kinetic": {
+   "existing_A:one_Z10": 0.4389038292847579,
+   "existing_A:he1S_Z2": 0.40931947449336936,
+   "existing_A:he1S_Z6": 0.42405126829944034,
+   "existing_A:he1S_Z7": 0.42766448766274306,
+   "existing_A:he1S_Z8": 0.4312629554605261,
+   "existing_A:he1S_Z9": 0.4348477534519309,
+   "existing_A:he1S_Z10": 0.43841803189545625,
+   "relearn_A:one_Z10": 1.0014020045873866,
+   "relearn_A:he1S_Z2": 0.9989670976692961,
+   "relearn_A:he1S_Z6": 1.0012504923702936,
+   "relearn_A:he1S_Z7": 1.0013301168822981,
+   "relearn_A:he1S_Z8": 1.0013815418755592,
+   "relearn_A:he1S_Z9": 1.0014166035885588,
+   "relearn_A:he1S_Z10": 1.0014415150259524
+  },
+  "cause": "il bersaglio 1 +- 0.10 suppone che conti solo k^4; <p^4> prende peso da p ~ c (coda della cuspide), dove anche Dirac esatto e' sotto k^4: Dirac esatto sugli stessi stati da' 0.86-0.97. La banda ri-imparata = Dirac cinetico a 0.1 %; il livello esistente ne porta il 41-44 %"
+ },
+ "M1 He 1^1S": {
+  "verdict": "PASS",
+  "E_theta0": -2.9037614065234543,
+  "error_bar": 7.980722927485778e-05,
+  "target": -2.903724377,
+  "diff_mEh": -0.03702952345419064,
+  "tol_mEh": 0.29,
+  "E_at_mA": -2.904834156764668,
+  "exact_at_mA": -2.9048372651915884,
+  "basis_err_at_mA": 3.1084269203063286e-06
+ },
+ "M2 He 2^3S": {
+  "verdict": "PASS",
+  "E_theta0": -2.1752592804800517,
+  "error_bar": 3.779554871526752e-05,
+  "target": -2.175229378,
+  "diff_mEh": -0.02990248005163565,
+  "tol_mEh": 0.22,
+  "E_at_mA": -2.176062896752585,
+  "exact_at_mA": -2.1760630614955643,
+  "basis_err_at_mA": 1.647429792583921e-07
+ },
+ "M3 H-": {
+  "verdict": "PASS",
+  "E_theta0": -0.5277562811953458,
+  "error_bar": 0.00019698110025092303,
+  "target": -0.527751017,
+  "diff_mEh": -0.005264195345744405,
+  "tol_mEh": 0.05,
+  "E_at_mA": -0.5279512526818744,
+  "exact_at_mA": -0.527953284088285,
+  "basis_err_at_mA": 2.0314064106408125e-06
+ },
+ "E1": {
+  "verdict": "PASS",
+  "IE_eV": 24.588478241439685,
+  "error_bar_eV": 0.0021760583606774395,
+  "target": 24.587389,
+  "diff_meV": 1.0892414396828087,
+  "note": "massa ridotta applicata, polarizzazione di massa / relativita' / QED assenti"
+ },
+ "E2": {
+  "verdict": "PASS",
+  "EA_eV": 0.7546879883843368,
+  "target": 0.754195,
+  "diff_meV": 0.49298838433686765,
+  "error_bar_eV": 0.005357329878171564
+ },
+ "D1": {
+  "verdict": "PASS",
+  "diff_mEh": 0.003931530053957744,
+  "sigma_mEh": 0.07098148727463327,
+  "sigma_controlled_mEh": 0.08206925873645234
+ },
+ "D2": {
+  "verdict": "FERMO (G5 FAIL non emendato); confronto riportato",
+  "diff_DMC_minus_ECG_mEh": -0.06903119121171031,
+  "sigma_mEh": 0.0714987469546345
+ },
+ "D7": {
+  "verdict": "PASS",
+  "E": -2.903757476445308,
+  "sigma": 7.136276505906631e-05,
+  "bound": -2.903724377
+ },
+ "He_DMC_report_only": {
+  "verdict": "RIPORTATO (non pre-registrato come esame: D1 e E1 vanno con l'ECG)",
+  "points": [
+   [
+    0.005,
+    -2.9048335252570383,
+    5.844849622372236e-05
+   ],
+   [
+    0.01,
+    -2.90478790294877,
+    5.724678473310251e-05
+   ],
+   [
+    0.02,
+    -2.9047932249615513,
+    5.674071384387896e-05
+   ]
+  ],
+  "chi2_p_linear": 0.6538645364084344,
+  "slope_Eh_per_au": 0.0021851825767568965,
+  "sigma_slope": 0.005314251824925282,
+  "fit": "lineare (pre-registrato)",
+  "E_tau0_thetaA": -2.904830225234614,
+  "sigma_tau0": 7.098148727463327e-05,
+  "chi2_linear": 0.2010625666883946,
+  "E_theta0": -2.903757476445308,
+  "sigma_theta0": 7.136276505906631e-05,
+  "target": -2.903724377,
+  "diff_mEh": -0.033099445307716024,
+  "IE_eV": 24.58837060189444,
+  "sigma_IE_eV": 0.0019416135812830488,
+  "IE_target": 24.587389,
+  "population_bias_posthoc": {
+   "He_dmc_tau0.02_NW250": {
+    "E": -2.9048522547672344,
+    "sigma": 9.965276454184013e-05,
+    "diff_vs_4000": -5.902980568306404e-05,
+    "sigma_diff": 0.00011467424335195932
+   }
+  },
+  "posthoc_sigma_autocorr": {
+   "E_theta0": -2.903762452086299,
+   "sigma_theta0": 8.206925873645234e-05,
+   "z": -0.46393846959442686,
+   "IE_eV": 24.58850597742419,
+   "sigma_IE_eV": 0.0022329121809761504
+  }
+ },
+ "He3S_DMC_report_only": {
+  "verdict": "RIPORTATO (D2/M2 fermi per G1 e G5)",
+  "points": [
+   [
+    0.005,
+    -2.1761083007118587,
+    5.791034195781692e-05
+   ],
+   [
+    0.01,
+    -2.1761038932846897,
+    5.924294404006781e-05
+   ],
+   [
+    0.02,
+    -2.1760561190547953,
+    5.943706456848003e-05
+   ]
+  ],
+  "fit": "lineare (pre-registrato)",
+  "chi2_p_linear": 0.8596324190289775,
+  "E_tau0_thetaA": -2.1761319279437967,
+  "sigma_tau0": 7.14987469546345e-05,
+  "E_theta0": -2.1753282861781633,
+  "sigma_theta0": 7.169966848721562e-05,
+  "target": -2.175229378,
+  "diff_mEh": -0.09890817816327058,
+  "D7": "PASS",
+  "posthoc_sigma_autocorr": {
+   "E_theta0": -2.1753296902216213,
+   "sigma_theta0": 7.152918562182397e-05,
+   "z": -1.4023956899434744
+  }
+ },
+ "D6": {
+  "verdict": "FAIL",
+  "c": 86.75714323235401,
+  "sigma_c": 62.07084904596706,
+  "target": 1.0003832623372946,
+  "c_mixed": 5.956976079331646,
+  "c_vmc": -0.24332908738428619
+ },
+ "G1'": {
+  "verdict": "PASS",
+  "Hooke_err": 6.334067492730355e-09,
+  "MC_quad_rel": 2.220446049250313e-16,
+  "MC_max_z": 1.7843643752930676,
+  "note": "riproduce la ricetta della diagnosi post hoc (esito gia' noto, dichiarato)"
+ },
+ "Q1": {
+  "verdict": "PASS",
+  "delta_band_first_order_mEh": -0.2851605094065235,
+  "delta_band_variational_mEh": -0.2892647657444236,
+  "prediction_mEh": -0.28,
+  "fraction_of_mass_velocity": 0.3982961074716497,
+  "fraction_of_exact_dirac_kinetic": 0.40931947449336936,
+  "relearn_band_delta_mEh": -0.695969181422118
+ },
+ "R3v3": {
+  "verdict": "PASS",
+  "m0": 1.0000000010921748,
+  "sigma": 4.799909720010111e-10,
+  "within_1e9": false
+ },
+ "L1c_v3": {
+  "verdict": "FAIL (alto k, dichiarato; 1 seme su 3)",
+  "energy_rel": {
+   "1": 4.131680089716639e-05,
+   "2": 1.8357081786895128e-05,
+   "3": 7.897152344793987e-05
+  }
+ },
+ "G0v3": {
+  "verdict": "PASS",
+  "odd_rel": {
+   "T_kh0.01": 0.0,
+   "T_kh1": 0.0,
+   "T_imag_over_real": 0.0,
+   "M_kh0.01": 0.0,
+   "M_kh1": 0.0,
+   "M_imag_over_real": 0.0
+  }
+ },
+ "R2v3": {
+  "verdict": "PASS",
+  "max_neg_M": 4.4535466052472996e-14,
+  "D_curv": 0.4998134347921243,
+  "D_real": 0.4998134347595359,
+  "kurtosis": 0.0159750628761968,
+  "wrong_taps_M": 0,
+  "T_level_max_neg": 0.15649310760021132,
+  "T_wrong_taps": 304
+ },
+ "M1v3": {
+  "verdict": "PASS",
+  "E_theta0": -2.9037212729353374,
+  "error_bar": 7.944306358421953e-05,
+  "diff_mEh": 0.003104064662640127
+ },
+ "E1v3": {
+  "verdict": "PASS",
+  "IE_eV": 24.588138398139918,
+  "diff_meV": 0.7493981399164795,
+  "error_bar_eV": 0.0021614656248258126
+ },
+ "Q1v3": {
+  "verdict": "PASS",
+  "T": {
+   "m_band": 1.000373269957433,
+   "delta_band_first_order_mEh": -0.6997289588919209,
+   "delta_dirac_first_order_mEh": -0.696690150215229,
+   "band_over_dirac": 1.0043617793013913,
+   "delta_band_variational_same_basis_mEh": -0.7089784718092851,
+   "non_dirac_part_mEh": -0.0030388086766919287
+  },
+  "M": {
+   "m_band": 1.0003732696940275,
+   "delta_band_first_order_mEh": -0.7079842460386843,
+   "delta_dirac_first_order_mEh": -0.6966901449731999,
+   "band_over_dirac": 1.0162110819953092,
+   "delta_band_variational_same_basis_mEh": -0.7335479858805449,
+   "non_dirac_part_mEh": -0.011294101065484341
+  },
+  "old_level": {
+   "delta_band_mEh": -0.2851605094065235,
+   "delta_dirac_mEh": -0.6966697828376667,
+   "non_dirac_part_mEh": 0.4115092734311432
+  }
+ },
+ "R3v5": {
+  "verdict": "PASS",
+  "m0": 1.0000000045603115,
+  "within_1e9": false,
+  "m_kin": {
+   "A2_s1": 1.0000932885910567,
+   "A_s1": 1.0003732698192709,
+   "B_s1": 1.0245832161533177
+  }
+ },
+ "L1c_v5": {
+  "verdict": "PASS",
+  "ours": {
+   "w": {
+    "1": 5,
+    "3": 6,
+    "4": 7
+   },
+   "energy_rel": {
+    "1": 5.51165981827244e-06,
+    "3": 7.31197374059777e-06,
+    "4": 4.205834237169125e-06
+   },
+   "rest_rel": {
+    "1": 9.52500513619232e-10,
+    "3": 4.735432999258442e-10,
+    "4": 4.18424618444638e-08
+   },
+   "ok": {
+    "1": true,
+    "3": true,
+    "4": true
+   }
+  },
+  "theirs": {
+   "w": {
+    "1": 5,
+    "2": 5,
+    "3": 6,
+    "4": 7,
+    "5": 5,
+    "6": 5
+   },
+   "energy_rel": {
+    "1": 5.51165981827244e-06,
+    "2": 9.753084640777834e-06,
+    "3": 7.31197374059777e-06,
+    "4": 4.205834237169125e-06,
+    "5": 2.9309544532310227e-05,
+    "6": 1.2316618158584753e-05
+   },
+   "n_pass": 6
+  },
+  "reproduces": true,
+  "note": "seme 5 (loro) a 2,93e-5: margine sotto il rumore del controllo (~1e-5)"
+ },
+ "G0v5": {
+  "verdict": "PASS",
+  "odd_rel": {
+   "T6_kh0.01": 0.0,
+   "T6_kh1": 0.0,
+   "T6_imag_over_real": 0.0,
+   "M6_kh0.01": 0.0,
+   "M6_kh1": 0.0,
+   "M6_imag_over_real": 0.0
+  }
+ },
+ "R2v5": {
+  "verdict": "PASS",
+  "max_neg_M6": 4.302151216495679e-14,
+  "D_curv": 0.4998134347573024,
+  "D_real": 0.4998134345902827,
+  "kurtosis": 0.015974021686144233,
+  "wrong_taps_M6": 0,
+  "T6_max_neg": 0.3842288211224422,
+  "T6_wrong_taps": 628
+ },
+ "M1v5": {
+  "verdict": "PASS",
+  "E_theta0": -2.9037212830058396,
+  "error_bar": 7.944306357199517e-05,
+  "diff_mEh": 0.0030939941604302135
+ },
+ "E1v5": {
+  "verdict": "PASS",
+  "IE_eV": 24.588138483414944,
+  "diff_meV": 0.749483414942631,
+  "error_bar_eV": 0.002161465624493217
+ },
+ "Q1v5": {
+  "verdict": "PASS",
+  "T6": {
+   "m_band": 1.0003732690576126,
+   "delta_band_first_order_mEh": -0.6965063926367421,
+   "delta_dirac_first_order_mEh": -0.6966901502241107,
+   "band_over_dirac": 0.9997362420190532,
+   "delta_band_variational_same_basis_mEh": -0.7047791721319641,
+   "non_dirac_part_mEh": 0.00018375758736866032
+  },
+  "M6": {
+   "m_band": 1.0003732697637233,
+   "delta_band_first_order_mEh": -0.6969596086094931,
+   "delta_dirac_first_order_mEh": -0.6966901459768415,
+   "band_over_dirac": 1.0003867754326765,
+   "delta_band_variational_same_basis_mEh": -0.7057968369048595,
+   "non_dirac_part_mEh": -0.00026946263265159587
+  },
+  "old_level": {
+   "delta_band_mEh": -0.2851605094065235,
+   "delta_dirac_mEh": -0.6966697828376667,
+   "non_dirac_part_mEh": 0.4115092734311432
+  },
+  "v3_levels": {
+   "T": {
+    "non_dirac_part_mEh": -0.0030388086766919287,
+    "band_over_dirac": 1.0043617793013913
+   },
+   "M": {
+    "non_dirac_part_mEh": -0.011294101065484341,
+    "band_over_dirac": 1.0162110819953092
+   }
+  }
+ },
+ "D6'": {
+  "verdict": "FAIL",
+  "c0": 0.44724035299203213,
+  "sigma_c0": 0.0294605312609434,
+  "target": 0.5001916311686473,
+  "points": {
+   "tau0.0025": {
+    "c": 0.5787665814659948,
+    "s": 0.02027547241123875,
+    "prod_au": 8000.0
+   },
+   "tau0.00125": {
+    "c": 0.5069919374741215,
+    "s": 0.022944974113048078,
+    "prod_au": 6000.0
+   },
+   "tau0.000625": {
+    "c": 0.4841185296142877,
+    "s": 0.025391562712240436,
+    "prod_au": 4000.0
+   }
+  },
+  "secondary_cubic": {
+   "c0": 0.3647498532380134,
+   "sigma_c0": 0.053379882085018815,
+   "p_linear": 0.21810329817414978,
+   "fit": "lineare"
+  }
+ }
+}

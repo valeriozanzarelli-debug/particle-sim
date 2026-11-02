@@ -1,0 +1,13 @@
+{
+  "id": "2026-10-13_foto_diffusa2",
+  "azione": "foto",
+  "ok": true,
+  "inizio": "2026-10-13T19:51:45Z",
+  "fine": "2026-10-13T20:10:37Z",
+  "durata_s": 1131.8,
+  "git": "fff221da3806a8130c64a1ae9d22baeae7fb8463",
+  "macchina": "LAPTOP-01UIII6L",
+  "exit": 0,
+  "secondi": 635.3,
+  "comando": "--scena atomo --surfisti --spara-al 2 --frames 2202 --distanza 460 --yaw 0 --pitch 0 --foto C:\\Users\\valer\\Desktop\\Programma di simulazione\\ponte_lab\\ponte\\risultati\\2026-10-13_foto_diffusa2\\foto.png"
+}

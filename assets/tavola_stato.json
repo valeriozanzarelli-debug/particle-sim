@@ -1,0 +1,104 @@
+{
+ "formato": "particle-sim/tavola-v1",
+ "nota": "Stato della tavola periodica del Laboratorio Atomo (docs/ATOMO.md §10). Un elemento si accende solo se dietro ci sono dati veri: una scena calcolata dal programma ('scena') oppure una cartella in assets/esportazioni/ (formato esportazione-v1). Tutto il resto resta grigio, 'in arrivo'.",
+ "elementi": {
+  "H": {
+   "disponibile": true,
+   "livello": "esatto",
+   "scena": "idrogeno",
+   "validazione": "livelli 1s…3d dalla forma radiale della regola zig-zag (celle 1/32 ħ/mc, Z = 1) entro 0,03 % di Dirac; ritmi A dalle funzioni della regola (2p: 1,595 ns); idrogeno vero a scala di Bohr 3-D (IDROGENO_BOHR fase 4: 1s/2s/2p entro 0,004 % di Dirac)",
+   "fonte": "src/atomo/cascata.rs (calcolato all'avvio) · docs/ATOMO.md §10.4 · docs/IDROGENO_BOHR.md",
+   "esami": [
+    {
+     "id": "IB",
+     "cosa": "idrogeno vero a scala di Bohr: fasi 1-4 PASS (G1 G2 M1 M2 della fase 4)",
+     "PASS": true
+    },
+    {
+     "id": "C1",
+     "cosa": "livelli n ≤ 3 della regola radiale entro 0,1 % di Dirac (peggiore 2s +0,029 %)",
+     "PASS": true
+    },
+    {
+     "id": "C2",
+     "cosa": "A(2p→1s) 6,269·10⁸ s⁻¹ contro 6,2649·10⁸ (+0,07 %)",
+     "PASS": true
+    },
+    {
+     "id": "C3",
+     "cosa": "ramo 3p→2s 11,83 % contro 11,8 %",
+     "PASS": true
+    },
+    {
+     "id": "C4",
+     "cosa": "2s→1s a due fotoni: non calcolato (debito)",
+     "PASS": false
+    }
+   ]
+  },
+  "Li": {
+   "disponibile": false,
+   "nota": "Debiti: catena del litio avviata"
+  }
+ },
+ "ioni": [
+  {
+   "nome": "Nd⁵⁹⁺",
+   "simbolo": "Nd",
+   "Z": 60,
+   "elettroni": 1,
+   "scena": "atomo",
+   "livello": "esatto",
+   "validazione": "ione a un elettrone dal vivo con la regola zig-zag; orbitali n ≤ 4 entro 0,36 % di Dirac (mesh a cipolla); luce accoppiata nei due versi",
+   "fonte": "docs/ATOMO.md §3.7, docs/NUCLEO_1S.md, docs/EMISSIONE.md",
+   "esami": [
+    {
+     "id": "orbitali",
+     "cosa": "10 livelli n ≤ 4 entro 0,36 % di Dirac",
+     "PASS": true
+    },
+    {
+     "id": "K",
+     "cosa": "accoppiamento luce-atomo, ritmo 1,004 della formula",
+     "PASS": true
+    },
+    {
+     "id": "L1",
+     "cosa": "livello dell'atomo accoppiato -0,45 %",
+     "PASS": false
+    },
+    {
+     "id": "3-D",
+     "cosa": "atomo dal vivo su celle cubiche da 0,5: 1s +40 % (debito 12)",
+     "PASS": false
+    }
+   ]
+  }
+ ],
+ "molecole": {
+  "H2": {
+   "nota": "si accende quando c'è assets/esportazioni/H2 (thread Debiti: aggmol fase 2)"
+  },
+  "LiH": {
+   "nota": "in arrivo (Debiti)"
+  },
+  "N2": {
+   "nota": "in arrivo (Debiti)"
+  },
+  "O2": {
+   "nota": "in arrivo (Debiti)"
+  },
+  "H2O": {
+   "nota": "in arrivo (Debiti)"
+  },
+  "NH3": {
+   "nota": "in arrivo (Debiti)"
+  },
+  "CH4": {
+   "nota": "in arrivo (Debiti)"
+  },
+  "CO2": {
+   "nota": "in arrivo (Debiti)"
+  }
+ }
+}
