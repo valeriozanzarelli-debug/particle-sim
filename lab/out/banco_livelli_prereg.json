@@ -1,0 +1,24 @@
+{
+ "studio": "BANCO_LUCE_ATOMO, fase 2: dove va la luce assorbita, livello per livello (test banco_livelli in src/atomo/test_banco.rs)",
+ "data": "2026-11-02",
+ "perche": "La fase 1 (lab/out/banco_verdetto.json) da' p_exc per fotone 5,43e-5 contro 1,98e-5 della calibrazione a due livelli: 2,7 volte. p_exc conta tutto cio' che non e' 1s.",
+ "ipotesi_scritta_prima": "L'eccesso viene da livelli che i due dipoli 0,979 e 0,603 non contano: sul reticolo 48^3 la somma dei dipoli verso il 2p e' +48,8 % da Dirac (EMISSIONE D5) e 0,979^2 + 0,603^2 = 1,32 e' solo una parte di 3,69. Se e' cosi', la somma su tutti i livelli trovati spiega il misurato (L2), e la regola resta sopra Dirac (L3 FAIL).",
+ "metodo": {
+  "atomo": "Esperimento::nuovo(600, None).con_diffusa(), k_acc = 1, 200 tick poi lo sparo, 1600 tick dopo, come la fase 1",
+  "livelli": "Atomo::livelli_di_dipolo(phi1s, asse z, omega1s + 0,05 .. omega1s + 0,095, dw 0,0015, 6000 tick, residuo 1e-3): i livelli esatti della regola che l'1s raggiunge con la luce lungo z, con i loro dipoli d_j",
+  "misura": "per ogni livello P_j = |<phi_j|psi_N> - <phi_j|psi_0>|^2 alla fine, con psi_0 la corsa di controllo N = 0 (deterministica); P_tot = ||psi_N - psi_0||^2",
+  "previsione": "primo ordine: P_j = e^2 |Etilde(omega_j)|^2 |d_j|^2, Etilde = somma di E_z(t) e^{i omega t} dt, E_z misurato all'atomo nella scatola libera (la media gaussiana che l'atomo sente)",
+  "dirac": "d_3/2 = (sqrt2/3) R, d_1/2 = (1/3) R, R = integrale di (g1 g2 + f1 f2) r dr dagli stati radiali della regola sulla mesh a cipolla (entro 0,36 % di Dirac, NUCLEO_1S), omega da dirac_esatto. Stessa e, stesso impulso."
+ },
+ "esami": {
+  "L1_linearita": {"cosa": "somma P_j a N = 100 / somma P_j a N = 1", "voto": "PASS se 100 +- 5"},
+  "L2_regola_con_se_stessa": {"cosa": "somma P_j misurata / somma della previsione con i d_j della regola, N = 1", "voto": "PASS se 1 +- 0,10"},
+  "L3_contro_Dirac": {"cosa": "somma P_j misurata / previsione con i dipoli di Dirac, N = 1", "voto": "PASS se 1 +- 0,10; atteso FAIL per il dipolo del 48^3"},
+  "L4_chiusura": {"cosa": "P_tot / (e^2 |Etilde(omega_21)|^2 (<z^2> - <z>^2) dell'1s della regola), N = 1", "voto": "solo riportato, con il valore di <z^2> contro Dirac"},
+  "L5_coerenza": {"cosa": "(dp - controllo) / P_tot, N = 1", "voto": "PASS se 1 +- 0,10"},
+  "L6_resto": {"cosa": "quota di P_tot fuori dai livelli trovati, N = 1", "voto": "solo riportato"}
+ },
+ "riportati": "ogni livello: omega, residuo, |d_z|^2, P_j, previsione; rapporto fra campo puntiforme al centro e media gaussiana sentita dall'atomo",
+ "manopole": "fisica: zero.",
+ "uscite": "lab/out/banco_livelli_risultati.json"
+}
