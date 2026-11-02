@@ -551,3 +551,7 @@ python aggmol_h2h2.py mono            # monomero e pseudo-stati, ~20 s
 python aggmol_h2h2.py geom H          # ripetere finché scrive "ORIENT H DONE" (~110 s per geometria); poi X, T, L
 python aggmol_h2h2.py analyze; python aggmol_h2h2_figure.py
 ```
+
+## 16. Goccia di H₂ (test frattale) — PARZIALE
+
+Vedi `docs/GOCCIA_H2.md` (studio `aggmol_frat_`: stato, risultati di sviluppo, comandi per riprendere).
