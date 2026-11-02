@@ -150,10 +150,10 @@ class Machine:
                 for m in range(-l, l + 1):
                     with np.errstate(invalid="ignore", divide="ignore"):
                         kk = np.where(k > 0, k, 1.0)
-                        Y = ylm_real(l, m, KX + 0 * k, KY + 0 * k, KZ + 0 * k, kk)
+                        Ylm = ylm_real(l, m, KX + 0 * k, KY + 0 * k, KZ + 0 * k, kk)   # NB: not Y (grid)
                         if l > 0:
-                            Y = np.where(k > 0, Y, 0.0)
-                    beta = self._kspace_to_grid(((-1j) ** l) * Fl * Y * ph, real_part=True)
+                            Ylm = np.where(k > 0, Ylm, 0.0)
+                    beta = self._kspace_to_grid(((-1j) ** l) * Fl * Ylm * ph, real_part=True)
                     self.proj.append((beta, 1.0 / kb["E"], Z))
         self.Vloc = Vloc
         # block-block repulsion (point charges Zv)

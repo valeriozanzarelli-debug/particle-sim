@@ -49,7 +49,17 @@ def training_set():
     return T
 
 
+_SD = {}
+
+
 def spin_densities(a):
+    if id(a) in _SD:
+        return _SD[id(a)]
+    _SD[id(a)] = _spin_densities(a)
+    return _SD[id(a)]
+
+
+def _spin_densities(a):
     """rho_up, rho_dn (spherical) and their r-derivatives from the Hund determinant of a radial ROHF atom"""
     r = a.g.r
     det = tr.hund_determinant(a.config)
