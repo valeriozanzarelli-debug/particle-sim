@@ -62,6 +62,8 @@ impl Accoppiamento {
 /// (lab/out/emissione_lab_results.json: D1 1.004, E1 0.968, F1, K1 1.006 PASS; L1 FAIL; rule of
 /// lab/out/emissione_lab_amend1.json, changed after the results and declared).
 pub const ACCOPPIAMENTO: Accoppiamento = Accoppiamento::CENTRATO;
+/// Amendment A6-1 (docs/EMISSIONE.md §13): the transverse deposit uses the projector of the light tick's own parity.
+pub const TRASVERSO_PER_PARITA: bool = true;
 
 /// The 1s of `Esperimento::new` / `nuovo` kept in the electron's valley k = 0 (whole cube only; docs/ATOMO.md §3.7).
 pub const VALLE_ZERO: bool = true;
@@ -130,7 +132,8 @@ impl LuceAtomo {
     pub fn campo_proprio(&self, corrente: [f64; 3]) -> [f64; 3] {
         let b2 = B_LUCE * B_LUCE;
         match &self.trasv {
-            Some(t) => [0, 1, 2].map(|c| -(0..3).map(|q| t.m[c][q] * corrente[q]).sum::<f64>() / b2),
+            Some(t) => { let m = if TRASVERSO_PER_PARITA && self.f.ticks % 2 == 1 { &t.m_dispari } else { &t.m };
+                [0, 1, 2].map(|c| -(0..3).map(|q| m[c][q] * corrente[q]).sum::<f64>() / b2) }
             None => {
                 let w2: f64 = self.pesi.iter().map(|p| p.1 * p.1).sum();
                 [0, 1, 2].map(|c| -w2 * corrente[c] / b2)
@@ -167,7 +170,8 @@ impl LuceAtomo {
             }
             Some(t) => {
                 let k = [0, 1, 2].map(|c| (corrente[c] / b2) as f32);
-                campo.par_iter_mut().zip(t.t.par_iter()).for_each(|(p, tt)| {
+                let tab = if TRASVERSO_PER_PARITA && self.f.ticks % 2 == 1 { &t.t_dispari } else { &t.t };
+                campo.par_iter_mut().zip(tab.par_iter()).for_each(|(p, tt)| {
                     for q in 0..3 { p[q].re -= k[0] * tt[0][q] + k[1] * tt[1][q] + k[2] * tt[2][q]; }
                 });
             }
@@ -535,16 +539,33 @@ pub fn potenza_larmor(omega: f64, d: f64) -> f64 {
 /// part of a source is P_⊥(k) = 1 − n nᵀ applied to it. The Gaussian deposit w e_c is projected once by FFT:
 /// pattern T_c = IFFT[P_⊥(k) e_c W(k)] (real and even, it fills the box: the longitudinal tail goes as 1/r³).
 /// M_ab = Σ_s w_s T_b(s)_a is the instantaneous self field at the atom per unit source.
+///
+/// PARITY (amendment A6-1, docs/EMISSIONE.md §13, lab/out/emiss6_prereg.json): the walk alternates the axis order, so
+/// the static mode of a field that next takes an ODD tick is the even one carried by one tick, n_odd = S₀ n_even
+/// (S₀ = one even tick). Before, every deposit used n_even: half of them (the light ticks alternate) left a
+/// permanent, anisotropic piece of field at the atom (|K(700)|/|K(1)| = 0.40 in the Python twin). `t_dispari`, `m_dispari`
+/// are the patterns for deposits made when the light's tick count is odd.
 pub struct Trasverso {
     /// per light cell: t[s][c][q] = component q of the pattern of the source along c
     pub t: Vec<[[f32; 3]; 3]>,
     pub m: [[f64; 3]; 3],
+    pub t_dispari: Vec<[[f32; 3]; 3]>,
+    pub m_dispari: [[f64; 3]; 3],
     /// largest |imaginary part| / largest |real part| of the patterns (should be round-off)
     pub immaginaria: f64,
 }
 
+/// One tick of the light rule at wave vector k (cells⁻¹): the tick with count `t` (axis order of `walk::order(t)`).
+pub fn rotazione_un_tick(k: [f64; 3], t: u64) -> [[f64; 3]; 3] {
+    let r2 = rotazione_luce_da(k, t, 1);
+    r2
+}
+
 /// Two-tick rotation of the light rule at wave vector k (cells⁻¹), starting from an even tick.
-pub fn rotazione_luce(k: [f64; 3]) -> [[f64; 3]; 3] {
+pub fn rotazione_luce(k: [f64; 3]) -> [[f64; 3]; 3] { rotazione_luce_da(k, 0, 2) }
+
+/// `ticks` ticks of the light rule at wave vector k starting from the tick with count `t0`.
+pub fn rotazione_luce_da(k: [f64; 3], t0: u64, ticks: u64) -> [[f64; 3]; 3] {
     fn rot(j: usize, a: f64) -> [[f64; 3]; 3] {
         // exp(−a G_j) = 1 − sin a G_j + (1 − cos a) G_j²
         let mut g = [[0.0; 3]; 3];
@@ -564,7 +585,7 @@ pub fn rotazione_luce(k: [f64; 3]) -> [[f64; 3]; 3] {
         r
     }
     let mut r = [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]];
-    for t in 0..2u64 { for j in crate::walk::order(t) { r = mul(rot(j, k[j]), r); } }
+    for t in t0..t0 + ticks { for j in crate::walk::order(t) { r = mul(rot(j, k[j]), r); } }
     r
 }
 
@@ -640,23 +661,37 @@ impl Trasverso {
         for &(s, p) in pesi { w[s] = C::real(p); }
         fft3(&mut w, n, -1.0);
         let kk = |i: usize| std::f64::consts::TAU * (if i < n / 2 { i as f64 } else { i as f64 - n as f64 });
-        let p: Vec<[[f64; 3]; 3]> = (0..nn).into_par_iter().map(|s| proiettore_trasverso([kk(s / (n * n)) / n as f64 * 1.0, kk((s / n) % n) / n as f64, kk(s % n) / n as f64])).collect();
-        let mut t = vec![[[0.0f32; 3]; 3]; nn];
+        let kv = |s: usize| [kk(s / (n * n)) / n as f64, kk((s / n) % n) / n as f64, kk(s % n) / n as f64];
+        let p: Vec<[[f64; 3]; 3]> = (0..nn).into_par_iter().map(|s| proiettore_trasverso(kv(s))).collect();
         let mut imm: f64 = 0.0;
         let mut re_max: f64 = 0.0;
-        for c in 0..3 { for q in 0..3 {
-            let mut a: Vec<C> = w.par_iter().zip(p.par_iter()).map(|(wk, pk)| wk.scale(pk[q][c])).collect();
-            fft3(&mut a, n, 1.0);
-            let k = 1.0 / nn as f64;
-            for s in 0..nn {
-                t[s][c][q] = (a[s].re * k) as f32;
-                imm = imm.max((a[s].im * k).abs());
-                re_max = re_max.max((a[s].re * k).abs());
-            }
-        }}
-        let mut m = [[0.0; 3]; 3];
-        for a in 0..3 { for b in 0..3 { m[a][b] = pesi.iter().map(|&(s, ww)| ww * t[s][b][a] as f64).sum(); } }
-        Trasverso { t, m, immaginaria: imm / re_max.max(1e-300) }
+        let mut modelli = |p: &Vec<[[f64; 3]; 3]>| {
+            let mut t = vec![[[0.0f32; 3]; 3]; nn];
+            for c in 0..3 { for q in 0..3 {
+                let mut a: Vec<C> = w.par_iter().zip(p.par_iter()).map(|(wk, pk)| wk.scale(pk[q][c])).collect();
+                fft3(&mut a, n, 1.0);
+                let k = 1.0 / nn as f64;
+                for s in 0..nn {
+                    t[s][c][q] = (a[s].re * k) as f32;
+                    imm = imm.max((a[s].im * k).abs());
+                    re_max = re_max.max((a[s].re * k).abs());
+                }
+            }}
+            let mut m = [[0.0; 3]; 3];
+            for a in 0..3 { for b in 0..3 { m[a][b] = pesi.iter().map(|&(s, ww)| ww * t[s][b][a] as f64).sum(); } }
+            (t, m)
+        };
+        let (t, m) = modelli(&p);
+        // odd counts: P_odd = S₀ P S₀ᵀ (k = 0 keeps 2/3·1)
+        let p_odd: Vec<[[f64; 3]; 3]> = p.par_iter().enumerate().map(|(s, pk)| {
+            if s == 0 { return *pk; }
+            let r = rotazione_un_tick(kv(s), 0);
+            let mut o = [[0.0; 3]; 3];
+            for i in 0..3 { for l in 0..3 { for a in 0..3 { for b in 0..3 { o[i][l] += r[i][a] * pk[a][b] * r[l][b]; } } } }
+            o
+        }).collect();
+        let (t_dispari, m_dispari) = modelli(&p_odd);
+        Trasverso { t, m, t_dispari, m_dispari, immaginaria: imm / re_max.max(1e-300) }
     }
 
     /// Computed once per process (the Gaussian weights depend only on the constants of this file).

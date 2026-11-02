@@ -57,7 +57,30 @@ pub struct Riga { pub da: usize, pub a: usize, pub ev: f64, pub nm: f64, pub a_s
 
 /// All the hydrogen numbers of the scene.
 #[derive(Clone)]
-pub struct Spettro { pub liv: Vec<Livello>, pub righe: Vec<Riga> }
+pub struct Spettro { pub liv: Vec<Livello>, pub righe: Vec<Riga>, pub dinamica: Option<Dinamica> }
+
+/// Lyman-α MEASURED FROM THE TIME EVOLUTION of the rule (docs/EMISSIONE.md §13, phase 4, true charge K = 1): the
+/// 2p → 1s rate of the one-excitation light run (the electron's walk coupled to the light walk), the emitted line
+/// and the oscillator strength of the 1s meeting a light-walk packet, extrapolated in the cell size. Written by
+/// `lab/emiss6_export.py` into `assets/dinamica/lyman_alpha.json`. When present, the cascade draws the 2p lifetime
+/// from THIS rate instead of the formula (the click time stays a draw: one photon is a quantum event).
+#[derive(Clone, Debug)]
+pub struct Dinamica { pub a_s: f64, pub nm: f64, pub f: f64, pub fonte: String }
+
+pub const DINAMICA_FILE: &str = "assets/dinamica/lyman_alpha.json";
+
+/// Parse the export (keys `A_s`, `lambda_nm`, `f`, `fonte`); `None` if anything is missing or not positive.
+pub fn dinamica_da_json(testo: &str) -> Option<Dinamica> {
+    let v: serde_json::Value = serde_json::from_str(testo).ok()?;
+    let num = |k: &str| v.get(k).and_then(|x| x.as_f64()).filter(|x| *x > 0.0 && x.is_finite());
+    Some(Dinamica { a_s: num("A_s")?, nm: num("lambda_nm")?, f: num("f")?, fonte: v.get("fonte").and_then(|x| x.as_str()).unwrap_or("dinamica").to_string() })
+}
+
+/// The dynamic Lyman-α, from `CASCATA_DINAMICA` (a path) or `DINAMICA_FILE`, if it is there.
+pub fn carica_dinamica() -> Option<Dinamica> {
+    let p = std::env::var("CASCATA_DINAMICA").unwrap_or_else(|_| DINAMICA_FILE.to_string());
+    dinamica_da_json(&std::fs::read_to_string(p).ok()?)
+}
 
 /// Exact Dirac energy (mc²) of level n, κ for a given Zα (comparison only, never used by the scene).
 pub fn dirac_esatto_za(n: u32, kappa: i32, za: f64) -> f64 {
@@ -118,8 +141,17 @@ impl Spettro {
                 righe.push(Riga { da: i, a: f, ev, nm: HC_EV_NM / ev, a_s: a_unit / T_UNIT_S, nome: nome_riga(a.n, b.n) });
             }
         }
-        Spettro { liv, righe }
+        let mut sp = Spettro { liv, righe, dinamica: None };
+        if let Some(d) = carica_dinamica() { sp.usa_dinamica(d); }
+        sp
     }
+    /// Use the dynamic Lyman-α: the 2p → 1s rate (and so the 2p lifetime and its branching) becomes the measured one.
+    pub fn usa_dinamica(&mut self, d: Dinamica) {
+        if let Some(r) = self.righe.iter_mut().find(|r| r.da == 2 && r.a == 0) { r.a_s = d.a_s; }
+        self.dinamica = Some(d);
+    }
+    /// "dinamica" when the 2p rate comes from the time evolution, "formula" otherwise.
+    pub fn fonte_vita(&self, liv: usize) -> &'static str { if liv == 2 && self.dinamica.is_some() { "dalla dinamica" } else { "calcolata" } }
     /// Total one-photon decay rate of level i (1/s); 0 for 1s and 2s.
     pub fn gamma(&self, i: usize) -> f64 { self.righe.iter().filter(|r| r.da == i).map(|r| r.a_s).sum() }
     pub fn riga(&self, da: usize, a: usize) -> Option<&Riga> { self.righe.iter().find(|r| r.da == da && r.a == a) }
@@ -403,7 +435,7 @@ impl Mondo {
         let a = match self.fase {
             Fase::Fermo { liv: l, salto: None, .. } if l == 0 => "IDROGENO nello stato 1s · premi F (o un bottone del pannello) per lanciare un fotone".to_string(),
             Fase::Fermo { liv: l, salto: None, .. } => format!("IDROGENO nel {}: METASTABILE — nessuna riga a un fotone verso il basso; la via a due fotoni (~0,12 s in natura) non è calcolata (debito)", liv(l)),
-            Fase::Fermo { liv: l, salto: Some(ts), verso } => format!("IDROGENO nel {} · vita media {:.2} ns (calcolata) · salto tra {:.1} s di schermo verso il {}", liv(l), 1e9 / sp.gamma(l), (ts - self.t).max(0.0), verso.map(liv).unwrap_or("?")),
+            Fase::Fermo { liv: l, salto: Some(ts), verso } => format!("IDROGENO nel {} · vita media {:.2} ns ({}) · salto tra {:.1} s di schermo verso il {}", liv(l), 1e9 / sp.gamma(l), sp.fonte_vita(l), (ts - self.t).max(0.0), verso.map(liv).unwrap_or("?")),
             Fase::Assorbe { da, a, t0 } => if self.t < t0 { format!("Il fotone arriva: {} → {} ({:.1} nm)", liv(da), liv(a), sp.riga(a, da).map(|r| r.nm).unwrap_or(0.0)) }
                 else { format!("ASSORBE {} → {} · {} · l'onda batte alla frequenza della riga (mostrata rallentata)", liv(da), liv(a), sp.riga(a, da).map(|r| format!("{} {:.2} nm, {:.3} eV", r.nome, r.nm, r.ev)).unwrap_or_default()) },
             Fase::Emette { da, a, .. } => format!("RIEMETTE {} → {} · {} (guscio di luce, figura sin²θ attorno al dipolo)", liv(da), liv(a), sp.riga(da, a).map(|r| format!("{} {:.2} nm, {:.3} eV", r.nome, r.nm, r.ev)).unwrap_or_default()),
@@ -472,6 +504,19 @@ mod test {
         assert!((b / 0.118 - 1.0).abs() < 0.02);
         assert_eq!(sp.gamma(1), 0.0);
         assert!((sp.riga(2, 0).unwrap().nm - 121.50).abs() < 0.2);
+    }
+
+    /// C5 (lab/out/emiss6_prereg.json): with the dynamic export the 2p lifetime is the measured one, without it the formula.
+    #[test]
+    fn cascata_dinamica() {
+        let mut sp = Spettro::calcola();
+        let formula = sp.riga(2, 0).unwrap().a_s;
+        let d = dinamica_da_json(r#"{"A_s": 6.3e8, "lambda_nm": 121.5, "f": 0.416, "fonte": "prova"}"#).unwrap();
+        sp.usa_dinamica(d);
+        assert_eq!(sp.gamma(2), 6.3e8);
+        assert_eq!(sp.fonte_vita(2), "dalla dinamica");
+        assert!(dinamica_da_json(r#"{"A_s": -1, "lambda_nm": 121.5, "f": 0.4}"#).is_none());
+        if let Some(x) = carica_dinamica() { println!("export dinamico: A = {:e} s⁻¹ (formula {:e}), λ {} nm, f {}, {}", x.a_s, formula, x.nm, x.f, x.fonte); }
     }
 
     /// The scene: absorb Lyman-α, wait, come back down with a Lyman-α shell.

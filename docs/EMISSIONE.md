@@ -685,3 +685,124 @@ di dipolo = F_ret(regola) = 0,9168 entro 1 %.
 - **Righe deboli**: chiuso (scatola).
 - **Ritardo dinamico**: aperto (M5).
 - Parametri nuovi della fase 3: **0**. Scelte nuove: finestre del filtro per il 96³.
+
+---
+
+## 13. Fase 4: assorbimento ed emissione che escono dalla dinamica, carica vera (K = 1) — PARZIALE
+
+Pre-registrazione v6: `lab/emiss6_prereg.py` → `lab/out/emiss6_prereg.json` (**commit b0a0b16, prima delle corse di
+produzione**). File: `lab/emiss6_kernel.py` (risposta della luce), `lab/emiss6_core.py` (corse), `lab/emiss6_run.py` +
+`lab/emiss6_drive.sh` (lavori a pezzi), `lab/emiss6_g0.py` (esame G0), `lab/emiss6_judge.py` → `lab/out/emiss6_results.json`,
+`lab/emiss6_figure.py` → `lab/out/emiss6_figure.png`. Test Rust: `emissione6_parita_trasversa`, `emissione6_rabi_vivo`,
+`emissione6_deriva_1s` (in `src/atomo/test_emissione.rs`), `cascata_dinamica` (in `src/atomo/cascata.rs`).
+
+![figura fase 4](../lab/out/emiss6_figure.png)
+
+*(a) il 2p puro di Nd⁵⁹⁺ con la carica vera si svuota da solo: esponenziale per 10 tempi di vita (norma fino a 4,5·10⁻⁵);
+(b) lo spettro della luce che esce: una Lorentziana larga esattamente A; (c) l'1s sotto un fascio debole: oscillazione di Rabi
+1s ↔ 2p3/2.*
+
+### 13.0 In breve (per Valerio)
+
+**Che cosa è "meccanico" qui.** L'elettrone è la regola zig-zag (forma radiale: una onda parziale di Dirac per cammino,
+niente valli). La luce è la **regola zig-zag della luce** (spin 1, scatola 128³, spugna): niente formule. Il fotone che
+l'atomo emette nasce dalla corrente dell'elettrone e se ne va nella scatola; il fotone che l'atomo assorbe è un **pacchetto
+fatto dalla regola della luce** (onda circolare, λ = 30 celle, larghezza 15 celle, partito 35 celle prima dell'atomo) che
+arriva sull'atomo. Carica vera, K = 1, **zero parametri liberi**. I numeri sotto non sono pescati né disegnati: sono misurati
+guardando l'atomo nel tempo.
+
+**Il trucco che rende fattibile K = 1.** Con la carica vera a Z = 60 il 2p vive ~10⁵ ħ/mc²: con la scatola di luce intera
+servivano ore per tick di vita. Ma la luce è lineare: il campo che l'atomo sente è la somma delle risposte della regola della
+luce a tutte le correnti passate. Ho calcolato **una volta** quella risposta facendo girare la regola della luce stessa
+(700 tick, due parità), poi l'atomo la usa. È la stessa regola riordinata: esame **G0**, scatola intera contro risposta,
+differenza **1,2·10⁻¹³** (PASS).
+
+**Scoperta di un difetto (vero, nostro): il proiettore trasverso ignorava la parità del tick.** La regola della luce alterna
+l'ordine degli assi (x,y,z / z,y,x), quindi si ripete ogni **due** tick, e il suo modo fermo (longitudinale, Coulomb) dopo
+un tick dispari è quello pari **trasportato di un tick**. Il codice di produzione (Python e `accoppiato.rs`) usava il modo del
+tick pari per **ogni** deposito: metà dei depositi lasciava sull'atomo un **campo fermo per sempre**, pari al 40 % della
+prima risposta e **anisotropo** (x/y/z = 9,1/7,2/4,6·10⁻³ invece di 7,0 uguale). Emendamento **A6-1**: per i depositi
+dopo un tick dispari si usa P_dispari = S₀ P_pari S₀ᵀ (S₀ = un tick). Dopo: la risposta muore (1,2·10⁻³ a 700 tick, **GK
+PASS**), isotropa. In Rust controllato: campo lasciato dopo 300 tick **1,8·10⁻⁵** per tutte e due le parità e i tre assi.
+Zero parametri nuovi. Questo campo fermo è un candidato serio per i "residui del campo vicino ~3 %" e per gli angoli storti
+delle fasi 1–3 (non ancora provato: da rifare R4/E4 con A6-1).
+
+### 13.1 Risultati (pre-registrazione v6)
+
+| esame | che cosa | misurato | soglia | esito |
+|---|---|---|---|---|
+| G0 | risposta della luce = scatola intera | 1,2·10⁻¹³ | < 10⁻³ | **PASS** |
+| GK | la risposta corretta (A6-1) muore | 1,18·10⁻³ (produzione cieca: 0,40) | < 2·10⁻³ | **PASS** |
+| X1 | Z = 60, a = 0,025: decadimento esponenziale (10 vite) | scarto max 3,4·10⁻⁴ | ≤ 0,005 | **PASS** |
+| X2 | ritmo / ritmo della regola (ω, dipolo, W² dei suoi stati) | **1,0137** / 1,0086 / 1,0052 (a = 0,1/0,05/0,025) | 1 % a ogni a | **FAIL** (a = 0,1) |
+| X3 | ritmo contro Dirac A_LW(2p3/2) | **1,0980·10⁻⁵ contro 1,0887·10⁻⁵ (+0,86 %)** = 8,53·10¹⁵ s⁻¹, vita 0,117 fs | 1,5 % | **PASS** |
+| X3x | estrapolato a → 0 (info) | +0,53 % | — | info |
+| X4 | il 2p si svuota solo emettendo: \|p_2p − norma\| | 1,7·10⁻⁶ | ≤ 2·10⁻³ | **PASS** |
+| X5 | frequenza della luce emessa / riga della regola | −1,9·10⁻⁴ | 2·10⁻⁴ | **PASS** (al limite) |
+| X6 | riga naturale: FWHM / A, residuo Lorentz | **1,0043**, 1,0 % | 5 %, 5 % | **PASS** |
+| B1 | Rabi (fascio debole) / dipolo della regola, Z = 60 | 0,99947 / 0,99949 / 0,99950 | 2·10⁻³ | **PASS** |
+| B3 | **f(1s→2p3/2) dal pacchetto di luce**, Z = 60, a = 0,025 | **0,25349 contro Dirac 0,25365 (−0,06 %)** | 1,5 % | **PASS** |
+| B4 | forma della riga con allargamento di potenza P(Δ) = Ω²/(Ω²+Δ²) | scarto max 0,014 | 0,02 | **PASS** |
+| B7 | pacchetto contro regola (R_dyn/R) | 0,99990 (Z = 60 tre a; Z = 1 a = 0,5) | 10⁻³ | **PASS** (parziale: mancano Z = 1, a = 0,25 e 0,125) |
+| H1 | idrogeno: ritmo / regola | 1,0054 (a = 0,5), 1,0062 (a = 0,25); a = 0,125 **non finito** | 1 % | in corso |
+| H2, H3, B2, B6, H4 | idrogeno estrapolato: A, λ_Lyα, f = 0,4162, sezione d'urto | **non giudicati** (manca a = 0,125) | | — |
+| V1, V2 | Rabi sull'atomo 3-D vivo (48³) | **non eseguiti** (fermato) | | — |
+| C5 | la cascata usa il ritmo dinamico se c'è l'export | test `cascata_dinamica` passa | esatto | **PASS** (l'export non è ancora scritto) |
+
+Idrogeno, valori grezzi già misurati (dalla dinamica, K = 1): A/W² = **6,577·10⁸ s⁻¹** (a = 0,5) e **6,386·10⁸ s⁻¹**
+(a = 0,25) contro Dirac 6,268·10⁸: l'errore è quello della cella (+4,9 %, +1,9 %), serve a = 0,125 per estrapolare. La
+frequenza della luce emessa coincide con la riga della regola a **5·10⁻⁸**. Pacchetto a a = 0,5: R_dyn/R = 0,99990.
+
+**Validazione o scoperta?** Tutti i PASS sono **validazioni**: la regola, guardata nel tempo con la carica vera, ritrova
+Dirac (ritmo +0,86 %, f −0,06 %), l'esponenziale, la riga Lorentziana larga A, Rabi. La cosa nuova è il **difetto di parità
+del proiettore trasverso** (A6-1) e il metodo della risposta della luce (che rende K = 1 fattibile).
+
+**X2 FAIL, onesto.** Il ritmo misurato sta sopra la formula costruita con gli stati della regola di 1,4 / 0,9 / 0,5 % e cala con
+a (circa come a^0,7): costante finestra per finestra, quindi è un difetto sistematico del modo in cui confronto, non rumore.
+Sospetto: il dipolo R = Σ r χ̄χ calcolato sulle componenti al bordo del tick invece che sullo stato "palindromico" (errore
+O(a)). Non verificato.
+
+### 13.2 Spostamento della riga (X5)
+
+A Z = 60 la luce esce 1,9·10⁻⁴ sotto la riga della regola = 1,4 A: è lo spostamento reattivo (tipo Lamb) della luce del reticolo
+sulla coppia di dipolo, con il taglio della media gaussiana. All'idrogeno, dove A/ω ~ 4·10⁻⁸, sparisce (5·10⁻⁸). Non è il Lamb
+vero (manca la rinormalizzazione della massa): debito.
+
+### 13.3 La deriva dell'1s del Laboratorio (la parte "mia" divisa col banco del portatile)
+
+Il banco del portatile ha misurato senza luce p_exc = 5,75·10⁻³ in 1600 tick, 106 volte il segnale di un fotone. Causa
+(da SURFISTI_ESATTI §13 e BATTIMENTO_1S, non ancora misurata qui): l'1s del Laboratorio (nucleo imparato + proiezione sulla
+valle k = 0) **non è un livello**: è un pacchetto dei 4 livelli di valle dell'1s, separati di ~10⁻⁴ dal nucleo imparato, e
+batte lentamente. Ho scritto il test `emissione6_deriva_1s` che prevede la deriva **senza parametri** dai pesi e dalle
+frequenze dei livelli esatti e la confronta con la corsa libera a t = 800 e 2000: **compilato, non eseguito** (fermato). La
+cura vera è sulla regola (valli che non si mescolano: FW1, solo su ramo, serve l'ok di Valerio) oppure, per le misure,
+partire da un livello esatto.
+
+### 13.4 Debiti e parametri
+
+Parametri liberi nuovi: **0**. Scelte dichiarate: 30 celle di luce per λ, σ = 1 cella (W² calcolato ≈ 0,957), spugna 12 celle,
+risposta tagliata a 700 tick, Ω_R = ω/200 per Rabi (sviluppo dichiarato: errore ∝ Ω²), pacchetto (λ 30 celle, larghezza 15,
+partenza −35, elicità +1, ampiezza per P_e = 10⁻⁴). Debiti: forma radiale (canale σ+ 1s m=+½ → 2p3/2 m=3/2; canali d
+tagliati), assorbimento semiclassico al primo ordine (pacchetto coerente, senza reazione), emissione a un fotone (debiti di
+§4.2), accoppiamento di dipolo con media gaussiana, spostamento reattivo X5, X2.
+
+### 13.5 Che cosa è cambiato nel codice
+
+- `src/atomo/accoppiato.rs`: **A6-1**, tabelle trasverse per tick pari e dispari (`t_dispari`, `m_dispari`,
+  `TRASVERSO_PER_PARITA = true`); `rotazione_luce_da`, `rotazione_un_tick`. Memoria della tabella 75 → 150 MB.
+- `src/atomo/cascata.rs`: aggancio `Dinamica` (`assets/dinamica/lyman_alpha.json`, o `CASCATA_DINAMICA=<file>`): se c'è,
+  la vita del 2p usata per il "click" è quella misurata dalla dinamica e lo schermo scrive "dalla dinamica". Il quando del
+  click resta pescato (un fotone è un evento quantistico), ma con il ritmo **misurato**. L'export non esiste ancora.
+
+### 13.6 Dove siamo / come riprendere
+
+Fermato il 2/11 su richiesta di Valerio. Finito: Z = 60 tutto (G0, GK, X1–X6, B1, B3, B4), idrogeno a = 0,5 e 0,25 (QE),
+pacchetto idrogeno a = 0,5, A6-1 in Python e Rust. Mancano, in quest'ordine (i checkpoint stanno in `lab/out/emiss_ck/`,
+non in git: se persi si riparte, i kernel si rigenerano in ~12 min con `python lab/emiss6_kernel.py` e
+`PARITA=1 python lab/emiss6_kernel.py`):
+1. `cd lab && ./emiss6_drive.sh pk1_0.25 q1_0.125 pk1_0.125` (~2,5 h di CPU, a pezzi da 9 min; `pk1_*` non ha checkpoint).
+2. `python lab/emiss6_judge.py` → H1, H2, H3, B2, B6, H4; poi scrivere l'export `assets/dinamica/lyman_alpha.json`
+   (`A_s`, `lambda_nm`, `f`, `fonte`) con i valori estrapolati e accendere la cascata.
+3. Rust: `EMLAB_DIR=<dir> cargo test --bin atomo emissione6_deriva_1s -- --ignored --nocapture` (causa della deriva) e
+   `emissione6_rabi_vivo` (V1/V2, ~20–40 min con 2 thread).
+4. Rifare R4/E4 (fasi 2–3) con A6-1 per vedere se il residuo del 3 % e gli angoli storti erano il campo fermo.
