@@ -17,6 +17,7 @@ use bevy_egui::{EguiContexts, EguiPlugin};
 
 mod accoppiato;
 mod bagliori;
+mod calcolate;
 mod camera;
 mod cascata;
 mod elscena;
@@ -69,7 +70,7 @@ pub enum Modo { Avanti, Pausa, Indietro }
 
 /// The two scenes, both the zig-zag rule live: the free photon (light alone) and the atom (electron + light).
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum Scena { Fotone, Atomo, Orbitali, Elettrone, Tavola }
+pub enum Scena { Fotone, Atomo, Orbitali, Elettrone, Tavola, Calcolate }
 
 /// The nucleus is shown on its own slowed clock: spin angular velocity on screen (rad per screen second).
 pub const OMEGA_ROT_SCHERMO: f64 = 1.1;
@@ -133,6 +134,11 @@ pub struct Lab {
     pub versione_disegnata: u64,
     /// the periodic-table mode (tavola.rs): the table, its scene worker, what was pressed
     pub tav: tavola::Pannello,
+    /// the computed scenes (calcolate.rs): their worker and what is shown
+    pub cal: Option<std::sync::Arc<std::sync::Mutex<calcolate::Condiviso>>>,
+    pub cal_scelta: (calcolate::Mostra, calcolate::Parte),
+    /// frames per second really measured (`fps` is fixed by construction in unattended runs)
+    pub fps_vero: f64,
 }
 
 impl Lab {
@@ -149,6 +155,7 @@ impl Lab {
             modo: Modo::Avanti, spara: false, panel_open: false, mostra_protone: true, bagliore: true, grandezza: 1.0, luce: 1.0,
             nodo_palline, nodo_info: info, frame_count: 0, palline_disegnate: 0, fps: 0.0,
             el: None, el_part: elscena::Particella::Elettrone, ritmo_el: 12.0, versione_disegnata: 0, tav: tavola::Pannello::default(),
+            cal: None, cal_scelta: (calcolate::Mostra::H2, calcolate::Parte::A), fps_vero: 0.0,
         }
     }
 
@@ -158,7 +165,7 @@ impl Lab {
             Scena::Atomo | Scena::Orbitali => zz::LAMBDA_C_M,
             Scena::Fotone => self.cella_m(),
             Scena::Elettrone => zz::LAMBDA_C_M / self.el_part.massa(),
-            Scena::Tavola => tavola::A0_M,
+            Scena::Tavola | Scena::Calcolate => tavola::A0_M,
         }
     }
     /// Seconds per tick of the scene's rule.
@@ -168,7 +175,7 @@ impl Lab {
             Scena::Orbitali => zz::T_UNIT_S,
             Scena::Fotone => self.cella_m() / 299_792_458.0,
             Scena::Elettrone => elscena::THETA * zz::T_UNIT_S / self.el_part.massa(),
-            Scena::Tavola => tavola::T_AU_S,
+            Scena::Tavola | Scena::Calcolate => tavola::T_AU_S,
         }
     }
     /// Size of one cell of the photon box (m): λ / (cells per λ) of the photon now flying.
@@ -187,6 +194,16 @@ impl Lab {
             Scena::Orbitali => { if self.orb.is_none() { self.orb = Some(orbitali::avvia()); } }
             Scena::Elettrone => { if self.el.is_none() { self.el = Some(elscena::avvia(self.el_part)); } }
             Scena::Tavola => self.tav.avvia(),
+            Scena::Calcolate => {
+                if self.cal.is_none() {
+                    let c = calcolate::avvia();
+                    c.lock().unwrap().scegli = Some(self.cal_scelta);
+                    self.cal = Some(c);
+                }
+            }
+        }
+        if let Some(c) = &self.cal {
+            c.lock().unwrap().comando = if s == Scena::Calcolate && self.modo == Modo::Avanti { calcolate::Comando::Avanti } else { calcolate::Comando::Pausa };
         }
         self.tav.comanda(s == Scena::Tavola && self.modo == Modo::Avanti, 30.0);
         if let Some(e) = &self.el {
@@ -216,7 +233,7 @@ impl Lab {
                 Bersaglio::Elettrone => self.zz.as_ref().map(|z| z.lock().unwrap().out.punto).unwrap_or([0.0; 3]),
                 _ => [0.0; 3],
             },
-            Scena::Orbitali | Scena::Elettrone | Scena::Tavola => [0.0; 3],
+            Scena::Orbitali | Scena::Elettrone | Scena::Tavola | Scena::Calcolate => [0.0; 3],
         }
     }
     pub fn distanza_tipica(&self, b: Bersaglio) -> f64 {
@@ -229,6 +246,7 @@ impl Lab {
             (Scena::Orbitali, _) => 2.4 * self.orb.as_ref().map(|o| o.lock().unwrap().out.r).unwrap_or(25.0),
             (Scena::Elettrone, _) => 16.0,
             (Scena::Tavola, _) => 2.6 * self.tav.out().map(|o| o.raggio).unwrap_or(3.0),
+            (Scena::Calcolate, _) => 7.5,
             (Scena::Fotone, _) => 1.0 * self.fot.as_ref().map(|f| f.lock().unwrap().out.par.n()).unwrap_or(self.fot_par.n()) as f64,
         }
     }
@@ -307,6 +325,12 @@ impl Lab {
                 if self.spara && self.tav.idrogeno() { let r = self.tav.riga_lancio(); self.tav.richiedi(|q| q.lancia = Some(r)); }
                 self.spara = false;
             }
+            Scena::Calcolate => {
+                self.spara = false;
+                if let Some(c) = &self.cal {
+                    c.lock().unwrap().comando = if self.modo == Modo::Avanti { calcolate::Comando::Avanti } else { calcolate::Comando::Pausa };
+                }
+            }
         }
         let _ = (misura, azzera);
         self.misura = false;
@@ -348,8 +372,12 @@ fn main() {
         ("orbitali", _) => Scena::Orbitali,
         ("elettrone", _) | ("muone", _) => Scena::Elettrone,
         ("tavola", _) => Scena::Tavola,
+        ("calcolate", _) => Scena::Calcolate,
         _ => Scena::Fotone,
     };
+    // the computed scenes: `--mostra elio|h2`, `--parte A|B|C`
+    if let Some("elio") = arg("--mostra").as_deref() { lab.cal_scelta.0 = calcolate::Mostra::Elio; }
+    match arg("--parte").as_deref() { Some("B") => lab.cal_scelta.1 = calcolate::Parte::B, Some("C") => lab.cal_scelta.1 = calcolate::Parte::C, _ => {} }
     if scena_arg == "muone" || arg("--particella").as_deref() == Some("muone") { lab.el_part = elscena::Particella::Muone; }
     lab.cambia_scena(scena);
     if scena == Scena::Orbitali { if let Some(o) = &lab.orb { o.lock().unwrap().scegli = Some(lab.orb_scelta.clone()); } }
@@ -473,6 +501,8 @@ fn hud_pointer(mut ctx: EguiContexts, mut over: ResMut<PointerOverHud>) {
 fn run_lab(time: Res<Time>, mut lab: ResMut<Lab>, auto: Res<Auto>) {
     // automatic runs use a fixed frame time, so the pictures are reproducible
     let dt = if auto.attivo { 1.0 / 60.0 } else { time.delta_secs_f64() };
+    let vero = time.delta_secs_f64();
+    if vero > 0.0 { lab.fps_vero += (1.0 / vero - lab.fps_vero) * 0.05; }
     lab.avanza(dt);
 }
 
@@ -512,7 +542,7 @@ fn tick_versione(lab: &Lab) -> Option<(u64, u64)> {
         // the orbitals have no tick to stop at: no sequences there
         Scena::Orbitali => None,
         Scena::Elettrone => lab.el.as_ref().map(|z| { let o = &z.lock().unwrap().out; (o.ticks, o.versione) }),
-        Scena::Tavola => None,
+        Scena::Tavola | Scena::Calcolate => None,
     }
 }
 
@@ -576,7 +606,7 @@ fn auto_sys(mut commands: Commands, mut auto: ResMut<Auto>, mut lab: ResMut<Lab>
         commands.spawn(bevy::render::view::screenshot::Screenshot::primary_window())
             .observe(bevy::render::view::screenshot::save_to_disk(path));
         let info = info_scena(&lab).unwrap_or_default();
-        eprintln!("foto al frame {f}: scena {:?}, {} palline, {:.0} fps {info}", lab.scena, lab.palline_disegnate, lab.fps);
+        eprintln!("foto al frame {f}: scena {:?}, {} palline, {:.0} fps veri {info}", lab.scena, lab.palline_disegnate, lab.fps_vero);
     }
     if auto.fatto && f >= auto.frame_foto + 20 { exit.send(AppExit::Success); }
 }
@@ -593,6 +623,7 @@ fn info_scena(lab: &Lab) -> Option<String> {
                 format!("{} tick {} t {:.3} centro bagliori ({:+.4}, {:+.4}, {:+.4}) centro onda ({:+.4}, {:+.4}, {:+.4}) {:.0} ms/tick", o.particella.nome(), o.ticks, o.t,
                         o.centro_palline[0], o.centro_palline[1], o.centro_palline[2], o.centro_onda[0], o.centro_onda[1], o.centro_onda[2], o.ms_tick) }).unwrap_or_default(),
             Scena::Tavola => lab.tav.out().map(|o| format!("{} · {} · {} palline {:.0} ms", o.righe.0, o.righe.1, o.palline.len() + o.onde.len(), o.ms)).unwrap_or_default(),
+            Scena::Calcolate => lab.cal.as_ref().map(|c| { let o = c.lock().unwrap().out.clone(); format!("{} · {} · {} teste {} scie {:.0} ms", o.righe.0, o.righe.1, o.palline.len(), o.scie.len(), o.ms) }).unwrap_or_default(),
         };
         Some(info)
 }

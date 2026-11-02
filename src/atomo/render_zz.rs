@@ -104,7 +104,27 @@ pub fn aggiorna(
             }
             None => (None, None, 0),
         }
+    } else if lab.scena == Scena::Calcolate {
+        // the computed scenes go through the same level of detail, their glows and tails come from their worker
+        let o = lab.cal.as_ref().map(|c| c.lock().unwrap().out.clone());
+        match o {
+            Some(o) => {
+                let nodo = crate::grafica::Nodo { nome: "calcolata", centro: [0.0; 3], figli: vec![],
+                    gruppo: crate::grafica::Gruppo { n: o.n_testa.max(1), raggio: o.raggio, scia: o.scia } };
+                let mut dec = Vec::with_capacity(1);
+                crate::grafica::percorri(&nodo, bpp, 3.7 * lab.grandezza as f64, graf.lod as f64 * budget.fattore, 1.0, &mut dec);
+                let l = dec[0].lod;
+                (Some(l), Some((o.scie.clone(), o.scie_allunga.clone(), o.versione)), o.n_testa)
+            }
+            None => (None, None, 0),
+        }
     } else { (None, None, 0) };
+    if lab.scena == Scena::Calcolate {
+        if let Some(c) = &lab.cal {
+            c.lock().unwrap().vista = crate::grafica::VistaWorker { occhio: occhio_dir, r_cam, bpp, lod_f: lod_atomo.map(|l| l.f).unwrap_or(1.0), scia_s: graf.scia_s as f64,
+                taglio: graf.taglio, taglio_prof: taglio_prof as f64, fetta: graf.fetta, zoom_atomo: graf.zoom_atomo, budget: graf.budget_luce() };
+        }
+    }
     if lab.scena == Scena::Atomo {
         if let Some(c) = &lab.zz {
             c.lock().unwrap().vista = crate::grafica::VistaWorker {
@@ -153,6 +173,14 @@ pub fn aggiorna(
             let out = lab.tav.out();
             match out {
                 Some(o) if vis.versione != o.versione || vis.scena != Some(scena) => (Some(((*o.palline).clone(), (*o.onde).clone(), vec![])), o.versione),
+                Some(o) => (None, o.versione),
+                None => (None, 0),
+            }
+        }
+        Scena::Calcolate => {
+            let out = lab.cal.as_ref().map(|c| c.lock().unwrap().out.clone());
+            match out {
+                Some(o) if vis.versione != o.versione || vis.scena != Some(scena) => (Some(((*o.palline).clone(), vec![], vec![])), o.versione),
                 Some(o) => (None, o.versione),
                 None => (None, 0),
             }
@@ -227,7 +255,7 @@ pub fn aggiorna(
     vis.scena = Some(scena);
     // sizes: screen-constant, capped
     let fm = 1e-15 / lab.metri_per_unita();
-    let g_nodo = if lab.mostra_protone && scena != Scena::Fotone && scena != Scena::Elettrone && scena != Scena::Tavola {
+    let g_nodo = if lab.mostra_protone && scena != Scena::Fotone && scena != Scena::Elettrone && scena != Scena::Tavola && scena != Scena::Calcolate {
         let x = (r_cam / (300.0 * fm)).ln();
         (1.0 - x / 2.0).clamp(0.0, 1.0) as f32
     } else { 0.0 };
@@ -235,6 +263,7 @@ pub fn aggiorna(
         Scena::Fotone => ((0.0032 * r_cam).min(0.9), lab.luce),
         // the atom: the surfer glows keep ~3.7 px at every distance (grafica::lod thins and grows them when far)
         Scena::Atomo => (3.7 * bpp, lab.luce * (1.0 - 0.8 * g_nodo)),
+        Scena::Calcolate => (3.7 * bpp, lab.luce),
         Scena::Elettrone => ((0.0035 * r_cam).min(0.12), lab.luce),
         // the periodic-table scene is in bohr: glows ~1/30 of the view, at most 0.08 a0 (drawing choice)
         Scena::Tavola => ((0.004 * r_cam).min(0.08 * lab.tav.raggio_cam.max(1.0)), lab.luce),
@@ -242,7 +271,7 @@ pub fn aggiorna(
         Scena::Orbitali => ((0.0045 * r_cam).min(0.018 * lab.orb_r), lab.luce * (1.0 - 0.8 * g_nodo)),
     };
     // the atom's surfers: crisper (tighter glow, hotter core)
-    let (soft, core) = if scena == Scena::Atomo { (4.0, 0.9) } else { (3.0, 0.3) };
+    let (soft, core) = if scena == Scena::Atomo || scena == Scena::Calcolate { (4.0, 0.9) } else { (3.0, 0.3) };
     if let Some(m) = mats.get_mut(&vis.mats[0]) { m.params = BallParams { size: (s_main * lab.grandezza as f64) as f32, gain: g_main, soft, core, blend: 0.0 }; }
     if let Some(m) = mats.get_mut(&vis.mats[1]) { m.params = BallParams { size: ((0.004 * r_cam).min(0.06 * fm)) as f32, gain: 1.3 * g_nodo, soft: 3.0, core: 0.4, blend: 0.0 }; }
     // wave balls: a little smaller than the glowing layers, as in the photon laboratory
@@ -260,7 +289,8 @@ pub fn aggiorna(
             let px_mondo = (2.0 * (cam.fov as f64 * 0.5).tan() / cam.altezza_px as f64) as f32;
             si.n_lod = 0; si.lod = [1.0, 1.0, 1.0, 0.0]; si.prof = [0.0; 4]; si.taglio = [0.0; 4];
             if let Some(l) = lod_atomo {
-                let prof = [r_cam as f32, 2.0 * zz_r_nuvola(lab) as f32, graf.profondita, px_mondo];
+                let r_prof = if scena == Scena::Calcolate { 2.0 } else { zz_r_nuvola(lab) };
+                let prof = [r_cam as f32, 2.0 * r_prof as f32, graf.profondita, px_mondo];
                 match s {
                     ZzStratoI::Palline => {
                         si.n_lod = n_testa as u32;

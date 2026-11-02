@@ -1,0 +1,26 @@
+{
+ "formato": "particle-sim/scena-stato-v1",
+ "nome": "elio",
+ "R": [
+  0.0
+ ],
+ "i_rho": 0,
+ "n_termini": [
+  800
+ ],
+ "n_foto": 4000,
+ "rho": {
+  "rmax": 6.0,
+  "nr": 121,
+  "nz": 241,
+  "massimo": 1.7979780005461963
+ },
+ "Z": [
+  2
+ ],
+ "rif": {
+  "r_medio": 0.929472,
+  "r12_medio": 1.42207
+ },
+ "energia_Eh": -2.903721282989665
+}

@@ -89,7 +89,7 @@ pub fn draw_hud(mut ctx: EguiContexts, mut lab: ResMut<Lab>, mut cam: ResMut<Cam
             if ui.add(b).on_hover_text("pannello (Tab) · pausa (Spazio) · lancia un fotone (F) · 1 vista intera · 2 nucleo · 3 elettrone").clicked() {
                 lab.panel_open = !lab.panel_open;
             }
-            for (s, n) in [(Scena::Fotone, "fotone libero"), (Scena::Atomo, "atomo zig-zag"), (Scena::Orbitali, "orbitali"), (Scena::Elettrone, "elettrone libero"), (Scena::Tavola, "tavola periodica")] {
+            for (s, n) in [(Scena::Fotone, "fotone libero"), (Scena::Atomo, "atomo zig-zag"), (Scena::Orbitali, "orbitali"), (Scena::Elettrone, "elettrone libero"), (Scena::Tavola, "tavola periodica"), (Scena::Calcolate, "scene calcolate")] {
                 if ui.add(egui::Button::new(n).fill(Color32::from_black_alpha(90)).selected(lab.scena == s)).clicked() && lab.scena != s {
                     lab.cambia_scena(s);
                     if s == Scena::Fotone { cam.yaw = 0.42; cam.pitch = 0.28; }
@@ -157,7 +157,7 @@ pub fn draw_hud(mut ctx: EguiContexts, mut lab: ResMut<Lab>, mut cam: ResMut<Cam
             Scena::Atomo => pannello_atomo(ctx, lab, &mut cam),
             Scena::Orbitali => pannello_orbitali(ctx, lab),
             Scena::Elettrone => pannello_elettrone(ctx, lab),
-            Scena::Tavola => {}
+            Scena::Tavola | Scena::Calcolate => {}
         }
     }
     // the periodic table: always called in its scene (the camera follows what is shown), the window only with the panel
@@ -191,7 +191,7 @@ fn clic_scena(lab: &Lab) -> Option<(usize, Option<[f64; 3]>)> {
         Scena::Fotone => lab.fot.as_ref().map(|z| { let o = &z.lock().unwrap().out; (o.n_clic, o.ultimo_clic) }),
         Scena::Atomo => lab.zz.as_ref().map(|z| { let o = &z.lock().unwrap().out; (o.n_clic, o.ultimo_clic) }),
         Scena::Orbitali => lab.orb.as_ref().map(|z| { let o = &z.lock().unwrap().out; (o.n_clic, o.ultimo_clic) }),
-        Scena::Elettrone | Scena::Tavola => None,
+        Scena::Elettrone | Scena::Tavola | Scena::Calcolate => None,
     }
 }
 
@@ -207,7 +207,7 @@ fn pannello_misura(ui: &mut egui::Ui, lab: &mut Lab) {
     let etichetta = match lab.scena {
         Scena::Fotone => "dopo la misura: il fotone è assorbito (ne parte un altro)",
         Scena::Atomo => "dopo la misura: collassa (un pacchetto stretto nel punto del clic)",
-        Scena::Orbitali | Scena::Elettrone | Scena::Tavola => "dopo la misura: collassa (non disponibile qui: usa la scena atomo)",
+        Scena::Orbitali | Scena::Elettrone | Scena::Tavola | Scena::Calcolate => "dopo la misura: collassa (non disponibile qui: usa la scena atomo)",
     };
     ui.add_enabled(lab.scena != Scena::Orbitali, egui::Checkbox::new(&mut lab.opz.collassa, etichetta));
     if !lab.opz.collassa || lab.scena == Scena::Orbitali {
@@ -285,6 +285,7 @@ fn stato_scena(lab: &Lab) -> (String, String) {
             }
         }
         Scena::Tavola => crate::tavola::stato(lab),
+        Scena::Calcolate => lab.cal.as_ref().map(|c| c.lock().unwrap().out.righe.clone()).unwrap_or_default(),
     }
 }
 
@@ -327,6 +328,22 @@ fn barra_tempo(ctx: &egui::Context, lab: &mut Lab) {
                         ui.label(RichText::new(format!("t = {}", fmt_t(ticks as f64 * spt))).monospace().color(CYAN));
                     }
                     Scena::Tavola => crate::tavola::barra(ui, lab),
+                    Scena::Calcolate => {
+                        use crate::calcolate::{Mostra, Parte};
+                        let mut scelta = lab.cal_scelta;
+                        for (m, n) in [(Mostra::Elio, "elio"), (Mostra::H2, "H₂")] {
+                            if ui.add(egui::Button::new(n).selected(scelta.0 == m)).clicked() && scelta.0 != m { scelta = (m, Parte::A); }
+                        }
+                        ui.separator();
+                        for (p, n) in scelta.0.parti() {
+                            if ui.add(egui::Button::new(*n).selected(scelta.1 == *p)).clicked() { scelta.1 = *p; }
+                        }
+                        if scelta != lab.cal_scelta {
+                            lab.cal_scelta = scelta;
+                            if let Some(c) = &lab.cal { c.lock().unwrap().scegli = Some(scelta); }
+                        }
+                        ui.label(RichText::new("quark e gluoni: in arrivo").monospace().color(GREY));
+                    }
                 }
                 ui.separator();
                 if ui.add(egui::Button::new(RichText::new(" MISURA (M) ").strong()).fill(Color32::from_rgb(40, 100, 60))).on_hover_text("un clic del rivelatore, con probabilità |ψ|²").clicked() { lab.misura = true; }
