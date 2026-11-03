@@ -144,6 +144,14 @@ Nessun agente attivo. Tutto su master (commit con firma, file grandi .npy/.npz n
 ## 4quater. Pausa del 2/11/2026 sera: scene calcolate e banco luce-atomo (ramo claude/project-thread-sxhn28, non ancora su master)
 Si lavora sul portatile, i calcoli lunghi nel cloud. Fatti: scena elio (`--scena calcolate --mostra elio --parte B`), orbitali e cascata sui bagliori (cascata ferma, scritto PILOTATO: niente scene pilotate nuove, regola di Valerio), banco a carica vera (`test_banco.rs`, `lab/out/banco_verdetto.json`, `banco_livelli_risultati.json`: la regola torna con se stessa 0,980, contro Dirac 1,42, 8 livelli invece di 2). Basi H2 rifatte in `lab/out` (S1 PASS, 6e-12 Eh), non in git.
 Alla ripresa: `python lab/sc_esporta_stati.py h2`, `cargo test --bin atomo calcolate -- --ignored --nocapture` (S0, S3-S6); caricare quark e gluoni da `assets/scene/quark_gluoni/` (LEGGIMI.md) in `calcolate.rs`, ora li cerca in `assets/scene_calcolate/`; `lab/sc_esporta_quark.py` e `sc_esporta_gluoni.py` diventano inutili; S9 fps veri a macchina ferma; `docs/SCENE_CALCOLATE.md`.
+## 4quater. Emissione e assorbimento dalla dinamica, K = 1 (2/11/2026, PARZIALE)
+
+`docs/EMISSIONE.md` §13 (studio `emiss6_`): con la carica vera la regola (atomo radiale + luce zig-zag, risposta esatta della
+luce) ritrova a Z = 60 il ritmo di Dirac (+0,86 %), l'esponenziale, la riga Lorentziana larga A (1,004), Rabi, e
+**f(1s→2p3/2) da un pacchetto di luce della regola = 0,25349 contro 0,25365**. Trovato e corretto (A6-1, anche in
+`accoppiato.rs`) un difetto: il proiettore trasverso ignorava la parità del tick e lasciava un campo fermo anisotropo
+sull'atomo. Fallito X2 (ritmo/regola 1,4 % a a = 0,1). Mancano idrogeno a = 0,125 (A, λ, f estrapolati), export per la
+cascata, deriva dell'1s e Rabi sull'atomo vivo: come riprendere in §13.6.
 
 ## 5. Prossimi passi, in ordine
 

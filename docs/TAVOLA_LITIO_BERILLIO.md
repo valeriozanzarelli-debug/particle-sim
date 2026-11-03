@@ -25,12 +25,11 @@ sessione).**
   (−0,05 meV). **Forza d'oscillatore 0,74700 / 0,74698** (lunghezza/velocità) contro 0,746957. **Vita del 2p 27,107 ns**
   contro 27,102 misurati. ⟨Σr²⟩ +0,005 %, densità al nucleo −0,36 % (gaussiane senza cuspide). Il litio è esportato
   per la tavola (§4).
-- **Berillio, PARZIALE**: Be⁺ chiuso: −14,3247584 contro −14,3247632 (+0,005 mEh, **BE2 PASS**). Be 1S fermato a K = 700,
-  dentro il primo giro di raffinamento: −14,672405 alla massa m_T → **−14,66693 a θ → 0, ~0,43 mEh sopra** −14,667356
-  (soglia BE1 1,5 mEh: in linea per passare, **non ancora giudicato**). Be 2s2p ¹P fermato in crescita a K = 228 di 450
-  (−14,47627 a m_T → −14,47086 a θ → 0, ancora ~2,6 mEh sopra il valore noto ~−14,47345): ionizzazione, riga a 235 nm e f
-  **non ancora misurate**. Si riprende con `lab/tav_drive.sh be1S` e `lab/tav_drive.sh be1P` (checkpoint in
-  `lab/out/tav_be1S.npz`, `tav_be1P.npz`, non tracciati: se mancano si riparte da capo, ~2 h).
+- **Berillio, PARZIALE (2 nov):** Be⁺ chiuso −14,3247584 (+0,005 mEh, **BE2 PASS**). **Be 1S chiuso** (K = 700,
+  3 giri): **−14,6671829** contro −14,6673565 (**+0,17 mEh**, barra 0,20 mEh; soglia BE1 1,5 mEh) — da giudicare
+  formalmente con `tav_analyze.py be` quando c'è il ¹P. Be 2s2p ¹P fermato al 2° giro (k = 379 di 450): −14,473238
+  (~+0,21 mEh dal valore noto a memoria). Provvisori (non contano): ionizzazione 9,3173 eV contro 9,3227 (−5 meV),
+  riga 5,2772 eV contro 5,27745 (−0,3 meV). f, vita, viriale: non ancora misurati. Basi in `lab/out/tav_basi/*.json`.
 
 **Validazione o scoperta?** Tutto quello che c'è qui è **validazione**: si ritrovano numeri noti (energie, ionizzazioni,
 righe, forze d'oscillatore, vita dello stato eccitato) con l'operatore della regola. Non c'è una scoperta. Quello che è
@@ -103,11 +102,21 @@ singoletto × singoletto, 24 permutazioni: la più cara).
 | Esame | Stato | Numero ora |
 |---|---|---|
 | BE2 E(Be⁺ 2S) | **PASS** | −14,3247584 contro −14,3247632 (+0,005 mEh; soglia 0,10) |
-| BE1 E(Be 1S) | non giudicato (corsa a metà del 1° giro) | −14,66693 a θ → 0 (+0,43 mEh; soglia 1,5) |
-| BE3 ionizzazione | non giudicato | con i numeri di ora: (−14,32476 + 14,66693)·μ = 9,3104 eV contro 9,3227 (−12 meV, −0,13 %) — **provvisorio** |
-| BE4 riga ¹P (234,9 nm) | non misurato | ¹P a K = 228, non convergiuto |
+| BE1 E(Be 1S) | corsa finita, giudizio formale con il ¹P | −14,6671829 (+0,17 mEh; soglia 1,5) |
+| BE3 ionizzazione | provvisorio | 9,3173 eV contro 9,3227 (−5 meV, −0,06 %) |
+| BE4 riga ¹P (234,9 nm) | provvisorio (¹P al 2° giro, k = 379/450) | 5,2772 eV contro 5,27745 (−0,3 meV) |
 | BE5 forza d'oscillatore | non misurato | — |
 | BE7 viriale, X1 | non misurato | — |
+
+**Come riprendere** (i checkpoint `.npz` sono locali; se mancano: ricostruirli da `lab/out/tav_basi/*.json`, istruzioni
+in `lab/out/tav_basi/LEGGIMI.txt`):
+```bash
+lab/tav_drive.sh be1P                  # finisce il 2° giro del 1P (~15 min) e scrive tav_runs.json
+python lab/tav_analyze.py be           # giudizio contro la pre-registrazione
+python lab/tav_basi.py be1S be1P beP2S # basi finali in JSON
+python lab/tav_export.py be            # export in lab/out/tav_dati_berillio/ (+ copia su /mnt/project-files)
+python lab/tav_figure.py
+```
 
 Nota onesta: la ionizzazione provvisoria passerebbe la soglia larga (1 %) e quella stretta (30 meV), ma **non conta**
 finché la corsa non è finita e giudicata da `tav_analyze.py be`. Il berillio **non** è ancora esportato e nella tavola

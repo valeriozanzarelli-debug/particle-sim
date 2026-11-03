@@ -1,0 +1,159 @@
+{
+ "studio": "EMISSIONE §13.7: banco luce-atomo (branch claude/project-thread-sxhn28, src/atomo/test_banco.rs, pre-registrazione lab/out/banco_prereg.json) rifatto con l'emendamento A6-1 (TRASVERSO_PER_PARITA = true, commit d46cd55). Stesse soglie, stessi ID; N = 1e5 saltato.",
+ "codice": "worktree locale = origin/claude/project-thread-sxhn28 (47014d6) + merge locale di origin/master (96a00b9); test banco_a61 = copia di banco_corsa con lista N da variabile d'ambiente; RAYON_NUM_THREADS=3, release",
+ "omega_21": 0.07589609151619903,
+ "e_vero": 0.30282212087208876,
+ "N_pi2": 31163.388395849608,
+ "corse_A61": [
+  {
+   "D": 4.5710263851955476e-05,
+   "N": 0.0,
+   "dp": 0.0057534546174765125,
+   "e_E_picco": 0.0,
+   "e_diffusa": 3.805622943698789e-13,
+   "energia_su_N_omega": 0.0,
+   "p0": 0.00394910825103445,
+   "sec": 28.73061895,
+   "t_spara": 100.0
+  },
+  {
+   "D": 0.021071237751651567,
+   "N": 1.0,
+   "dp": 0.005807792544768478,
+   "e_E_picco": 7.573150491387785e-05,
+   "e_diffusa": 7.130880255758027e-09,
+   "energia_su_N_omega": 0.9999997720889325,
+   "p0": 0.0039491082510372255,
+   "sec": 27.971585725,
+   "t_spara": 100.0
+  },
+  {
+   "D": 0.20966283693160984,
+   "N": 100.0,
+   "dp": 0.011154744307940967,
+   "e_E_picco": 0.000757315074066509,
+   "e_diffusa": 7.071176537000565e-07,
+   "energia_su_N_omega": 0.999999954905314,
+   "p0": 0.003949108251034672,
+   "sec": 26.976849149,
+   "t_spara": 100.0
+  },
+  {
+   "D": 1.5064899488053178,
+   "N": 10000.0,
+   "dp": 0.41859732177094716,
+   "e_E_picco": 0.007573150640954167,
+   "e_diffusa": 4.232352518885951e-05,
+   "energia_su_N_omega": 1.000000048693147,
+   "p0": 0.003949108251051325,
+   "sec": 28.289321262,
+   "t_spara": 100.0
+  },
+  {
+   "D": 1.4144970658022888,
+   "N": 31163.388395849608,
+   "dp": 0.7724224461352301,
+   "e_E_picco": 0.013368999560127114,
+   "e_diffusa": 5.5325578383184963e-05,
+   "energia_su_N_omega": 0.9999999542833701,
+   "p0": 0.003949108251051658,
+   "sec": 28.479139909,
+   "t_spara": 100.0
+  }
+ ],
+ "confronto": [
+  {
+   "N": 0.0,
+   "dp_vecchio": 0.005753454617494866,
+   "dp_A61": 0.0057534546174765125,
+   "dp_meno_controllo_vecchio": 0.0,
+   "dp_meno_controllo_A61": 0.0,
+   "D_vecchio": 4.571191167528326e-05,
+   "D_A61": 4.5710263851955476e-05,
+   "diffusa_su_Nw_vecchio": 3.799144708681847e-13,
+   "diffusa_su_Nw_A61": 3.805622943698789e-13,
+   "energia_su_N_omega_A61": 0.0
+  },
+  {
+   "N": 1.0,
+   "dp_vecchio": 0.005807794386978489,
+   "dp_A61": 0.005807792544768478,
+   "dp_meno_controllo_vecchio": 5.4339769483623124e-05,
+   "dp_meno_controllo_A61": 5.4337927291965224e-05,
+   "D_vecchio": 0.02107165878487631,
+   "D_A61": 0.021071237751651567,
+   "diffusa_su_Nw_vecchio": 9.293412632887233e-08,
+   "diffusa_su_Nw_A61": 9.395582978388332e-08,
+   "energia_su_N_omega_A61": 0.9999997720889325
+  },
+  {
+   "N": 100.0,
+   "dp_vecchio": 0.011154927547667351,
+   "dp_A61": 0.011154744307940967,
+   "dp_meno_controllo_vecchio": 0.005401472930172485,
+   "dp_meno_controllo_A61": 0.005401289690464455,
+   "D_vecchio": 0.20966700228155086,
+   "D_A61": 0.20966283693160984,
+   "diffusa_su_Nw_vecchio": 9.215546235751022e-08,
+   "diffusa_su_Nw_A61": 9.316917901485499e-08,
+   "energia_su_N_omega_A61": 0.999999954905314
+  },
+  {
+   "N": 10000.0,
+   "dp_vecchio": 0.41860610780889007,
+   "dp_A61": 0.41859732177094716,
+   "dp_meno_controllo_vecchio": 0.4128526531913952,
+   "dp_meno_controllo_A61": 0.41284386715347066,
+   "D_vecchio": 1.5065030298001911,
+   "D_A61": 1.5064899488053178,
+   "diffusa_su_Nw_vecchio": 5.512607631896945e-08,
+   "diffusa_su_Nw_A61": 5.576509190835751e-08,
+   "energia_su_N_omega_A61": 1.000000048693147
+  },
+  {
+   "N": 31163.388395849608,
+   "dp_vecchio": 0.7724283836958975,
+   "dp_A61": 0.7724224461352301,
+   "dp_meno_controllo_vecchio": 0.7666749290784026,
+   "dp_meno_controllo_A61": 0.7666689915177536,
+   "D_vecchio": 1.414488578506783,
+   "D_A61": 1.4144970658022888,
+   "diffusa_su_Nw_vecchio": 2.3084975551747054e-08,
+   "diffusa_su_Nw_A61": 2.3391705046169914e-08,
+   "energia_su_N_omega_A61": 0.9999999542833701
+  }
+ ],
+ "voti": {
+  "B1_energia": {
+   "valore": "1,0000000 (N = 1: 0,99999977)",
+   "voto": "PASS (come prima)"
+  },
+  "B2_carica": {
+   "voto": "PASS (come prima)"
+  },
+  "B3_scala_p": {
+   "voto": "non giudicato (serve N = 1e5, saltato); prima FAIL per errore di progetto"
+  },
+  "B4_rabi": {
+   "valore": "dp(N_pi2) = 0.7724 contro 0,5 (prima 0,7724)",
+   "voto": "FAIL (resta)"
+  },
+  "B5_un_fotone": {
+   "valore": "dp - controllo = 5.4338e-05, atteso a due livelli 1.979e-05, rapporto 2.745 (prima 2,74)",
+   "voto": "riportato, invariato"
+  },
+  "B6_scala_D": {
+   "voto": "non giudicato (serve N = 1e5)"
+  },
+  "controllo_N0": {
+   "dp": 0.0057534546174765125,
+   "D": 4.5710263851955476e-05,
+   "nota": "identico al vecchio fino a 1e-14: la deriva della 1s non viene dal campo (a N = 0 il campo della luce e' praticamente vuoto); resta, compatibile con il battimento delle 4 valli"
+  },
+  "pendenze_1_100": {
+   "dp": 0.9986972011691433,
+   "D": 0.4989157052652597
+  }
+ },
+ "lettura": "A6-1 cambia l'energia diffusa dell'1% e dp di parti su 1e5: nessuno dei tre difetti viene dal vecchio campo anisotropo permanente. Sul banco il campo diffuso e' ~1e-7 dell'energia mandata, troppo piccolo per pesare; A6-1 contava nell'emissione spontanea (campo proprio su migliaia di tick), non qui."
+}

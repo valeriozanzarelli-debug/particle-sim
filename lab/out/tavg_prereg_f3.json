@@ -1,0 +1,110 @@
+{
+ "studio": "tavg_ FASE 3: correlazione per coppia imparata nel campo vero del blocco, applicata alla cieca a O (e N)",
+ "data": "2026-11-03",
+ "emendamento_di": "lab/out/tavg_prereg2.json (commit ec4a4ba): stesse soglie, NON abbassate",
+ "macchine": {
+  "ECG_2e_blocco": "lab/tavg_pecg2.py: termine separabile stabile in long double (errore 2e-11 Eh normalizzato) + SafeSVM (norma residua >= 1e-7, ortogonalizzazione canonica 1e-12)",
+  "ECG_3e_blocco": "lab/tavg_pecg.py BlockSystem (float64) + SafeSVM con NN_MIN = 1e-5 (rumore del separabile ~1e-8 a 3 e-)",
+  "ECG_3e_nudo": "lab/tav_ecg.py System (Coulomb, nucleo nudo) + SafeSVM",
+  "CI_2e_blocco": "lab/tavg_ci2.py: onde parziali l <= 8, 24 funzioni di Laguerre per l (lam = sqrt(-2 eps_s) del blocco), coda in l (l+1/2)^-p, p dagli ultimi due incrementi in [3, 8]; HF della stessa configurazione/termine nella stessa base; E_c(coppia) = E_CI(inf) - E_HF; barra = |E_c(n_rad 24) - E_c(n_rad 18)| + 0.5 |coda|"
+ },
+ "corse": {
+  "M": "controllo di macchina: 2 e- senza repulsione nel blocco O (esatto 2 eps_s) e He nudo (-2.903724377), SafeSVM fino a K = 240",
+  "V": "ECG nel blocco O, stati 2s2 1S, 2s2p 3P, 2s2p 1P, K fino a 300 (stop: |dE| sugli ultimi 40 < 1e-6)",
+  "P": "CI di coppia nei blocchi B, C, N, O (Z = 5..8): 2s2 1S, 2s2p 3P, 2s2p 1P, 2p2 3P, 2p2 1D (2p2 1S solo riportato: radice 2 della simmetria 1S, non e' uno stato legato pulito)",
+  "Li": "ioni tipo Li nudi Z = 7, 8: 1s2 2s 2S e 1s2 2p 2P, ECG 3 e-, K fino a 250 (stop: |dE| sugli ultimi 40 < 2e-5)",
+  "A3": "verifica a 3 elettroni: 2s2 2p 2P (L=1, dispari) nei blocchi C e O, ECG 3 e-, K fino a 250 (stesso stop)",
+  "spezzoni": "<= 590 s per processo, checkpoint della base (JSON non tracciati in lab/out/tavg_f3_base/), driver lab/tavg_f3_drive.py"
+ },
+ "legge": {
+  "variabile": "x = 1/sqrt(<r>_a <r>_b), <r> degli orbitali HF della coppia (ioni di allenamento: HF a 2 e- del termine nel blocco; bersagli: ROHF del livello fine)",
+  "forme": {
+   "lin": "eps(x) = a + b x",
+   "inv": "eps(x) = a + b / x"
+  },
+  "scelta": "per ogni tipo di coppia, la forma con errore lascia-uno-fuori minore sui 4 blocchi (B, C, N, O); scelta automatica prima di guardare i bersagli",
+  "manopole": "2 per tipo x 5 tipi = 10 (tutte fit: non sono previsioni)",
+  "tipi": [
+   "s2_1S",
+   "sp_3P",
+   "sp_1P",
+   "pp_3P",
+   "pp_1D"
+  ],
+  "debito_1S": "eps(2p2 1S) := eps(2p2 1D) (stato non accessibile come radice piu' bassa)"
+ },
+ "composizione": {
+  "regola": "E_c(X) = E_c(1s2) + E_cv + E_val",
+  "E_c(1s2)": "ione tipo He esatto stesso Z (multi_e_ecg he1S_Z7, he1S_Z8) meno HF 1s2 del livello fine",
+  "E_cv": "per ogni elettrone di valenza nl: [E_c(1s2 nl, ione tipo Li esatto stesso Z) - E_c(1s2)], E_c = E_ECG - HF livello fine; trasferito senza scala (debito)",
+  "E_val": "somma sulle coppie di spin-orbitali della valenza, pesi di configurazione media: coppia di gusci diversi a,b: N_stesso_spin eps(3) + N_spin_opposto (eps(1)+eps(3))/2; dentro 2p: stesso spin eps(pp 3P), spin opposto (5 eps(1D) + eps(1S) + 3 eps(3P))/9; 2s2: eps(s2 1S). Determinante di Hund (M_S massimo).",
+  "conteggi": {
+   "O 2s2 2p4": "s2:1, sp stesso 4, sp opposto 4, pp stesso 3, pp opposto 3",
+   "O+ 2s2 2p3": "s2:1, sp stesso 3, opposto 3, pp stesso 3, opposto 0",
+   "N 2s2 2p3": "come O+",
+   "N+ 2s2 2p2": "s2:1, sp stesso 2, opposto 2, pp stesso 1, opposto 0"
+  }
+ },
+ "previsione": "alla cieca: E_c(O), E_c(O+), E_c(N), E_c(N+); IP = IP_HF(livello fine) + E_c(X+) - E_c(X). Nessun ritocco dopo aver visto i risultati.",
+ "esami": {
+  "M1": {
+   "cosa": "controllo di macchina: entrambi i casi oltre K = 200, energia monotona, mai sotto l'esatto di piu' di 1e-9, |E - esatto| <= 1e-5",
+   "contato": true
+  },
+  "V1": {
+   "cosa": "ECG contro CI nel blocco O (3 stati): |E_ECG - E_CI(inf)| <= 1 mEh",
+   "soglia_Eh": 0.001,
+   "contato": true
+  },
+  "A1": {
+   "cosa": "additivita' a 3 elettroni: E_c(2s2 2p) dalla legge (x dal ROHF nel blocco) contro E_ECG - E_ROHF, blocchi C e O",
+   "soglia_rel": 0.1,
+   "contato": true
+  },
+  "C1": {
+   "cosa": "E_c(O) contro -0.257902 Eh",
+   "chiave_Eh": -0.257902,
+   "soglia_rel": 0.05,
+   "contato": true
+  },
+  "C2": {
+   "cosa": "IP(O) contro 13.618 eV",
+   "chiave_eV": 13.618,
+   "soglia_rel": 0.03,
+   "contato": true
+  },
+  "C3": {
+   "cosa": "IP(N) > IP(O)",
+   "contato": true
+  },
+  "C4": {
+   "cosa": "IP(N) - IP(O) contro 0.916 eV",
+   "chiave_eV": 0.916,
+   "soglia_eV": 0.3,
+   "contato": true
+  },
+  "C5": {
+   "cosa": "IP(N) contro 14.534 eV",
+   "chiave_eV": 14.534,
+   "soglia_rel": 0.03,
+   "contato": true
+  },
+  "R1": {
+   "cosa": "E_c(N) contro -0.1888 Eh, riportato",
+   "contato": false
+  },
+  "R2": {
+   "cosa": "Delta E_c ionizzazione O contro 63.7 mEh, riportato",
+   "contato": false
+  }
+ },
+ "decisione": "export di O 'approssimato' con correlazione solo se C1 e C2 passano (e M1, V1 passano: se la macchina non e' validata il risultato non conta). Se falliscono: si dice perche' e ci si ferma; soglie mai abbassate.",
+ "debiti": [
+  "blocco HF congelato (1s2 non rilassa)",
+  "trasferimento delle coppie dallo ione a 2 e- all'atomo neutro via x (legge a 2 manopole)",
+  "pesi di configurazione media per i gusci aperti",
+  "eps(1S) := eps(1D)",
+  "core-valenza dallo ione tipo Li, senza scala",
+  "additivita' delle coppie (provata solo da A1)"
+ ]
+}

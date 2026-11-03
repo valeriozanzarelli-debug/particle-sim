@@ -117,21 +117,56 @@
    "noise_note": "step 3 of the loop asks for a fluctuation-dissipation noise term: for ONE wave (no temperature) the discarded detail is a deterministic memory, measured here as the leak 1 - captured weight; FD noise needs a thermal many-body state (phase 4, the droplet): not tested in phase 2 (declared)."
   },
   "fase3": {
-   "status": "BOZZA (PARZIALE): solo sviluppo; soglie TBD; nessuna corsa di produzione",
+   "status": "PRE-REGISTRATA (2026-11-02), committata PRIMA delle corse di produzione",
    "title": "Fase 3: controllo al volo e raffinamento locale",
-   "date": "2026-10-14",
+   "date": "2026-11-02",
    "development_seen": {
     "block_glue": "variabili a blocchi netti incollate con Galerkin alla base: B = 9 diagonale 2.4e-3 contro 3.9e-4 della regola imparata (6x troppo rigida); 10 celle raffinate -> stati spuri a -6.7e-4 (20x il legame dell'atomo, -3.25e-5): FALLISCE",
-    "smoothed": "prolungatore ad aggregazione liscia (blocchi lisciati s volte con la regola del livello, Loewdin): s = 3, B = 9: regola di Galerkin / regola imparata = 1.003-1.013 nella finestra lenta, stati legati entro 0.73 % della base; s = 1: 37 % e 25 % (non va)"
+    "smoothed": "aggregazione liscia s = 3: regola di Galerkin / regola imparata = 1.003-1.013, stati legati entro 0.73 % della base",
+    "loss_fix": "prima versione: le funzioni lisce delle celle raffinate perdevano la coda fuori -> norma persa 7e-3 al raffinamento; corretto (tutte le funzioni mascherate + ortogonalizzazione canonica, spazio vecchio dentro il nuovo): perdita 1e-9",
+    "scenario_P_seen": "lo scenario P (impulso al centro, A = 2e-3) e la quiete Q sono stati GIRATI in sviluppo: Q a EPS 0.02: 0 raffinamenti, fondo del controllo 0.0064; P a EPS 0.02: fedelta' min 0.986, P_out 0.2225 vs 0.2273; P a EPS 0.01: fedelta' 0.9954, P_out 0.2252, 71/243 celle, costo 1.28e6 vs 2.62e6; solo-grosso: P_out 1.2e-4 (fedelta' 0.75); B = 3 uniforme: P_out 0.2223 ma fedelta' 0.715. P2 e F NON sono stati girati (prova cieca)"
    },
-   "config": "base 2187 celle (1.6 lambda_C), atomo Coulomb morbido di fase 2; livello grosso B = 9 (243 celle); base mista = funzioni lisce mascherate (celle grosse) + celle base (raffinate), ortonormale; Crank-Nicolson; disturbo = campo locale oscillante V_d = A exp(-(x-x_d)^2/2 sigma^2) sin(Omega t) inviluppo sin^2, sigma = 2 celle base (sotto la cella grossa), Omega = energia per k = 0.5 + legame; controllo ogni DT ticks su toppe di 3 celle grosse + tampone 27 celle base; rifinire + ripetere l'intervallo (rollback); solo raffinamento",
-   "exams_planned": {
-    "B1": "quiete (A = 0): zero raffinamenti; fedelta' finale vs base >= 0.99",
-    "B2": "impulso sull'atomo: celle raffinate tutte dentro il cono |x - x_d| <= 3 sigma + v_max t; frazione raffinata finale <= 0.5",
-    "B3": "impulso: probabilita' di ionizzazione entro 5 % della verita' (base intera), fedelta' >= 0.99; il livello grosso da solo sbaglia di > 30 % (previsione)",
-    "B4": "conservazione: |1 - norma| <= 1e-9 a parte le proiezioni di raffinamento (perdita totale <= 1e-4); energia dopo l'impulso costante fra due raffinamenti entro 1e-6 relativo",
-    "B5": "impulso lontano dall'atomo (niente ampiezza): raffinamenti ~ 0 (rifinisce dove c'e' errore, non dove c'e' campo)",
-    "thresholds": "EPS_REF, DT_CHECK, A: TBD dallo sviluppo, dichiarati prima della produzione"
+   "config": {
+    "base": "2187 celle (1.6 lambda_C), stencil della fase 2, atomo Coulomb morbido (g 0.015, s 10 lambda_C)",
+    "coarse": "B = 9 (243 celle): variabili automatiche della catena b = 3 lisciate s = 3; regola = P^dag H P",
+    "mixed": "celle grosse: funzioni lisce mascherate fuori dai siti raffinati (tutte, comprese le code delle raffinate), ortogonalizzazione canonica (taglio 1e-8); celle raffinate: i 9 siti base; Crank-Nicolson dt = 25 tick; partenza = stato fondamentale del livello grosso, prolungato",
+    "check": "ogni 16 passi (400 tick); toppe di 3 celle grosse; finestra base = toppa +- 27 siti; e = ||psi_base - psi_mix||_toppa; si salta la toppa se 2 sqrt(peso finestra) < EPS_REF; e > EPS_REF = 0.01 (1.5 x il fondo di quiete 0.0064) -> raffina toppa + 1 cella per lato, rollback",
+    "drive": "V_d = A exp(-(x - x_d)^2 / 2 sigma^2) sin^2(pi t / Tp) sin(Omega t), sigma = 2 siti, Tp = 15700, T = 30000",
+    "scenarios": {
+     "Q": "A = 0",
+     "P": "A = 2e-3, x_d = centro, Omega = 2.4e-3 (k ~ 0.5)",
+     "P2": "A = 3e-3, x_d = centro + 12, Omega = G_base(0.7) - E0 (cieco)",
+     "F": "A = 2e-3, x_d = centro + 600 (dove l'elettrone non c'e'), Omega = 2.4e-3 (cieco)"
+    },
+    "kinds": "truth = base ovunque; mix = adattivo; coarse = livello grosso senza controllo; b3 = livello B = 3 uniforme (729 celle, liscio s = 3)",
+    "P_out": "peso a |x - centro| > 120 siti (7 raggi rms del fondamentale)",
+    "cost": "gradi di liberta' x passi (propagazione) + gradi di liberta' x passi delle finestre di controllo"
+   },
+   "exams": {
+    "B1": {
+     "what": "Q: zero raffinamenti; fedelta' minima vs base >= 0.999",
+     "prediction": "PASS"
+    },
+    "B2": {
+     "what": "P e P2: ogni cella raffinata ha il centro entro |x - x_d| <= 36 + 0.029 t (toppa + margine + velocita' massima della banda base, t = istante del raffinamento); frazione raffinata finale <= 0.5",
+     "prediction": "PASS"
+    },
+    "B3": {
+     "what": "P e P2: |P_out - verita'| / verita' <= 5 % a T e fedelta' minima >= 0.99; il livello grosso da solo: errore relativo su P_out > 30 %",
+     "prediction": "PASS (P2 cieco: incerto)"
+    },
+    "B4": {
+     "what": "conservazione (tutti gli adattivi): deriva della norma <= 1e-8 compresi i raffinamenti; dopo l'impulso energia propria (max - min) / |E| <= 1e-6 compresi i salti ai raffinamenti",
+     "prediction": "PASS"
+    },
+    "B5": {
+     "what": "F: zero raffinamenti e fedelta' minima >= 0.999 (si raffina dove c'e' errore, non dove c'e' campo)",
+     "prediction": "PASS"
+    },
+    "B6": {
+     "what": "COSTO a pari errore (P e P2): risparmio = costo del livello uniforme piu' economico (B = 9, B = 3, base) con fedelta' minima >= quella dell'adattivo, diviso il costo dell'adattivo (controlli compresi); PASS se >= 1.5",
+     "prediction": "PASS, ~2 (in 1-D l'atomo occupa una frazione grande della scatola: in 3-D il risparmio cresce col volume vuoto)"
+    }
    }
   },
   "fase4": {

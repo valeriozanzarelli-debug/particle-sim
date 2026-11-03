@@ -800,3 +800,83 @@ IDRO_DIAG=48 IDRO_PARTENZA=veff:32:3 target/release/idrogeno esame_ibrido 4096 1
 IDRO_PARTENZA=veff:32:2 IDRO_CKPT=<file> IDRO_TEMPO=540 target/release/idrogeno esame_ibrido 4096 128 <blocco> 144
 python3 lab/idrogeno_bohr_fase4_esame.py <cartella dei log>; python3 lab/idrogeno_bohr_fase4_figura.py
 ```
+
+## 14. Fase 5: il campo di Galerkin nel Rust e la cucitura in fase (2/11) — FERMATA, solo sviluppo
+
+**Stato:** fermata a metà su richiesta di Valerio. **Nessuna corsa di produzione, nessuna pre-registrazione ancora**:
+tutti i numeri qui sotto sono di **sviluppo**, scritti in `lab/out/idrogeno_bohr_fase5_sviluppo.json`.
+Esami PASS/FAIL della fase 5: **non ancora dati**.
+
+### 14.1 Che cosa è fatto (codice, compila, comportamento di default invariato)
+
+- **Campo di Galerkin nel motore Rust** (`IDRO_CAMPO=galerkin`). È il campo senza alias di AGGLOMERATO_COMPLETO,
+  copiato dal Python (`aggfull_core.GalerkinField`), con i bordi ritorti già presenti (`IDRO_TORSIONE`).
+  - Nell'hamiltoniano (per gli autostati) entra come operatore vero: 8 sottoreticoli a mezza cella.
+  - Nel **passo nel tempo** entra come prodotto di 8 calci, uno per sottoreticolo. Ogni calcio è esattamente unitario,
+    e l'ordine si rovescia nella seconda metà del passo, così il passo resta simmetrico nel tempo.
+- **Coda di Born** come potenziale sulla sola cella del nucleo (`IDRO_BORN=1`): V_B = −2 m (4πZα)² J_coef.
+  Non dipende da h, e ha **0 parametri**. Nell'ibrido non si usa, perché lì il nucleo lo risolve il blocco fine.
+- **Cucitura "FW"** (`IDRO_RESTR=fw`). È una coppia prolungamento/restrizione nella base della regola grossa:
+  - si toglie la parte a energia negativa;
+  - l'ampiezza si normalizza alla carica intera (componente grande + piccola);
+  - si usa la relazione del cammino stesso, con 0 parametri.
+- **Opzioni di corsa:**
+  - `IDRO_PARTENZA_MEDIA=1`: la partenza veff si prepara con il potenziale "media di cella", che costa poco; poi la
+    dinamica è Galerkin.
+  - `IDRO_SENZA_CO=1`: salta il "solo grosso" in parallelo.
+- **Comandi nuovi:**
+  - `galtest B N`: controlli;
+  - `grosso5 B N 1s|2s|2p [dir]`: autostato del solo grosso.
+
+### 14.2 Numeri di sviluppo
+
+| controllo | risultato |
+|---|---|
+| campo Rust contro Python (N = 32, a0/8) | uguale entro **1·10⁻¹⁵** |
+| costanti di Born J, I | J = 3,2627042·10⁻⁴ (Python 3,2627040·10⁻⁴) |
+| calcio di Galerkin | unitario a 10⁻¹⁴; ⟨V⟩ dal calcio = dal generatore entro 2·10⁻⁷ |
+| **1s a a0/8, N = 256, bordo 000: Rust contro Python** | −13,6053109 contro −13,6053053 eV: **4·10⁻⁷**. Il Python si era fermato a un residuo più largo, quindi il Rust è il più convergente |
+| solo grosso Galerkin a a0/16, ±8 a0 (1s, senza Born, senza dV) | 000: +0,0052 %, 111: +0,0030 %, media **+0,0041 %** (con la media di cella era −0,1116 %) |
+| ibrido N = 128, blocco 7, cucitura FW, 96 passi | corrente fuori **1,24·10⁻⁴**, come la fase 4: **la FW non toglie la corrente** |
+
+Che cosa vuol dire:
+1. **Il porting funziona.** Il grosso del Rust con Galerkin porta l'1s da −0,11 % a +0,004 % da Dirac×μ. Il debito
+   "Galerkin e Born nel Rust" della §13.3 è chiuso nel codice; manca solo l'esame pre-registrato.
+2. **La cucitura FW non è la cura.** La corrente ferma resta 1,2·10⁻⁴. Una lettura (da verificare): in uno stato fermo,
+   una corrente radiale verso il blocco vuol dire che il grosso "spinge" carica nelle celle coperte a ogni passo, e la
+   sovrascrittura la cancella. È lo stesso segno della perdita misurata (~10⁻⁸ per passo). Qualunque differenza di
+   ampiezza fra la media del fine e quello che il grosso "si aspetta" fa nascere questo flusso. Una restrizione più
+   precisa non basta: serve una cucitura **unitaria**, cioè che non sovrascriva.
+3. **Costo.** A N = 256 il passo Galerkin costa ~34 FFT, cioè ~25 s su 2 thread. Il calcolo grosso dell'ibrido R
+   (blocco 9, 120 passi) sono ~1 h a pezzi con `IDRO_CKPT`.
+
+### 14.3 Come riprendere (passi esatti)
+
+1. **Pre-registrare** `lab/out/idrogeno_bohr_fase5_prereg.json` **prima** di qualunque corsa di produzione:
+   - **G5**: il Rust riproduce il Python per i 6 lavori (1s, 2s, 2p × bordi 000, 111; a0/8, N = 256) entro
+     **1·10⁻⁶**, con Born dal Rust entro l'1 % del dE_born del Python. Previsione: PASS.
+   - **H**: l'ibrido Galerkin a N = 256, blocco 9, 120 passi, entro una soglia da fissare **prima**. Proposta:
+     |rel| ≤ 0,010 % da Dirac×μ. Previsione: PASS a rischio, dato che il grosso da solo sta a +0,004 %.
+   - **S**: C3 e V1 con la cucitura nuova. Previsione onesta per la FW: **FAIL**.
+2. **G5:**
+   ```
+   export IDRO_ASSET=lab/out/idrogeno_bohr_fase4_regola.json RAYON_NUM_THREADS=2 IDRO_CAMPO=galerkin IDRO_TOL=5e-9
+   for t in 000 111; do IDRO_TORSIONE=$t target/release/idrogeno grosso5 8192 256 1s <dir>; \
+     IDRO_TORSIONE=$t target/release/idrogeno grosso5 8192 256 2p; IDRO_TORSIONE=$t target/release/idrogeno grosso5 8192 256 2s <dir>; done
+   IDRO_BORN=1 IDRO_TORSIONE=000 target/release/idrogeno grosso5 8192 256 1s
+   ```
+   Ogni lavoro ~5 min; `IDRO_TOL=5e-9`, perché a 2·10⁻⁹ il LOBPCG resta fermo sul pavimento e spreca 4 minuti.
+3. **H:**
+   ```
+   IDRO_ORD=9 IDRO_B=16 IDRO_REFLUX=1 IDRO_PARTENZA=veff:32:2 IDRO_PARTENZA_MEDIA=1 IDRO_SENZA_CO=1 \
+     IDRO_CKPT=<file> IDRO_TEMPO=480 target/release/idrogeno esame_ibrido 4096 256 9 120
+   ```
+   Da ripetere fino alla fine. Attenzione: la preparazione veff (64 passi a N = 256, media di cella) deve stare nel
+   primo pezzo; se non ci sta, va resa riprendibile.
+4. **Cucitura:** fare prima il confronto alla pari "vecchia" contro "fw" (stessa corsa di 14.2, interrotta dallo stop).
+   Poi provare una cucitura **unitaria**: le celle coperte evolvono con la regola grossa più un potenziale locale
+   misurato dal fine a ogni passo (come la partenza veff, ma ad ogni passo), invece di essere sovrascritte. Una
+   dinamica unitaria e simmetrica nel tempo non può tenere una corrente ferma.
+
+**Manopole:** nessuna nuova. σ = 3 mezze celle del campo è quella del Python, e il campo è a f32 per N > 192 come nel
+Python: sono scelte dichiarate, non fit.

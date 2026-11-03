@@ -66,6 +66,8 @@ fn main() {
                       for st in ["1s", "2pz", "2px", "2py", "2s"] { let v = carica_stato(&format!("{}/{st}_B{b}_N{n}.c32", args[4]));
                           println!("RISULTATO parita {st}: 1 - |P| = {:.3e}", 1.0 - parita(&lv, &v).abs()); } }
         "impara" => impara_cucitura(args[2].parse().unwrap(), args[3].parse().unwrap(), args[4].parse().unwrap(), args[5].parse().unwrap(), &args[6]),
+        "galtest" => dev_galtest(args[2].parse().unwrap(), args[3].parse().unwrap()),
+        "grosso5" => grosso_fase5(args[2].parse().unwrap(), args[3].parse().unwrap(), &args[4], args.get(5).cloned()),
         "spettro" => esame_spettro(args[2].parse().unwrap(), args[3].parse().unwrap(), args[4].parse().unwrap(), args.get(5).cloned()),
         _ => eprintln!("commands: fft | livello B N 1s|2s|2p"),
     }
@@ -403,12 +405,20 @@ fn esame_ibrido(bl: usize, n: usize, ni: usize, passi: usize, esporta: Option<St
     let t0 = Instant::now();
     let reg = carica_regola(&asset(), "chain_A_3d", bl);
     let off = if ni % 2 == 1 || ni == 0 { 0.0 } else { 0.5 };
+    // phase 5: IDRO_PARTENZA_MEDIA=1 with IDRO_CAMPO=galerkin — the START (coarse 1s, veff preparation) is built with the
+    // cell-average coarse field (cheap); the production dynamics is the Galerkin hybrid. Only the initial state changes.
+    let gal_prod = galerkin_env();
+    let prep_media = gal_prod && std::env::var("IDRO_PARTENZA_MEDIA").is_ok();
+    if prep_media { std::env::set_var("IDRO_CAMPO", "media"); }
+    let senza_co = std::env::var("IDRO_SENZA_CO").is_ok();
     let lv = Livello::con_nucleo(&reg, n, 1.0, off);
     let s1 = lobpcg(&lv, lv.guess("1s"), &[], 0.5 * ALPHA * ALPHA, 3e-9, 300, false);
     let (e1, _, _) = riferimenti_ev();
     println!("coarse 1s (B={bl} N={n} box ±{:.1} a0 off={off}): E_rule {:.6} eV ({:+.4} %) resid_rule {:.1e} [{:.0} s]", n as f64 / 2.0 * lv.h / a0(),
              s1.e_regola * ev(), 100.0 * (s1.e_regola * ev() / e1 - 1.0), s1.resid_regola, t0.elapsed().as_secs_f64());
     let v0 = s1.v.clone();
+    let riprende = std::env::var("IDRO_CKPT").map(|p| std::path::Path::new(&p).exists()).unwrap_or(false);
+    if prep_media && (std::env::var("IDRO_PARTENZA").is_err() || riprende) { std::env::set_var("IDRO_CAMPO", "galerkin"); }
     let lv2 = Livello::con_nucleo(&reg, n, 1.0, off);
     let bf: usize = std::env::var("IDRO_B").ok().and_then(|v| v.parse().ok()).unwrap_or(32);
     let nh: usize = std::env::var("IDRO_NH").ok().and_then(|v| v.parse().ok()).unwrap_or(1);
@@ -488,6 +498,7 @@ fn esame_ibrido(bl: usize, n: usize, ni: usize, passi: usize, esporta: Option<St
         }
         let sc = (norm2(&v0) / norm2(&start)).sqrt();
         start.iter_mut().for_each(|a| *a = a.scale(sc));
+        if prep_media { std::env::set_var("IDRO_CAMPO", "galerkin"); }
         let lvx = Livello::con_nucleo(&reg, n, 1.0, off);
         let fx = Fine::new(&lvx, ni, nh, bf, 1.0);
         at = Atomo::new(lvx, start, Some(fx), cal);
@@ -550,9 +561,9 @@ fn esame_ibrido(bl: usize, n: usize, ni: usize, passi: usize, esporta: Option<St
             at.passo_osserva(&mut oss);
         } else { at.passo(); }
         tempi.push(t.elapsed().as_secs_f64());
-        lv.passo(&mut co);
+        if !senza_co { lv.passo(&mut co); }
         cs.push(dot(&v0, &at.psi));
-        cc.push(dot(&v0, &co));
+        cc.push(if senza_co { C::ONE } else { dot(&v0, &co) });
         if k == meta {
             rho_meta = dens(&at.psi); q_meta = norm2(&at.psi); h_meta = h_media(&lv, &at.psi);
             if let Some(f) = at.fine.as_ref() { fine_meta = interno(f); }
@@ -619,7 +630,8 @@ fn esame_ibrido(bl: usize, n: usize, ni: usize, passi: usize, esporta: Option<St
              eh * ev(), 100.0 * (eh * ev() / e1 - 1.0), ec * ev(), 100.0 * (ec * ev() / e1 - 1.0), eh / ec - 1.0);
     println!("RISULTATO conservazione: charge drift per step {:+.3e} (whole run), {:+.3e} (2nd half); <H_coarse> drift {:+.3e} (whole), {:+.3e} (2nd half)",
              (q1 - q0) / passi as f64, (q1 - q_meta) / (passi - meta) as f64, (h1 - h0) / h0.abs(), (h1 - h_meta) / h0.abs());
-    println!("reflux: {} (last factor-1 {:+.3e}), asset {}", at.reflux, at.ultimo_reflux, asset());
+    println!("reflux: {} (last factor-1 {:+.3e}), asset {}, coarse field galerkin {} (born_cella {:.3e}), restriction {}", at.reflux, at.ultimo_reflux, asset(),
+             at.lv.gal.is_some(), at.lv.born_cella, std::env::var("IDRO_RESTR").unwrap_or_else(|_| "vecchia".into()));
     println!("RISULTATO stazionarieta: coarse density max|drho|/max rho {:.3e}, fine block {:.3e} (step {meta} -> {passi})", staz_g, staz_f);
     println!("RISULTATO stazionarieta fuori dal blocco: max|drho|/max rho sulle celle grosse non coperte {:.3e} (step {meta} -> {passi})", staz_fuori);
     println!("RISULTATO costo: {:.3} s per coarse step ({} fine ticks inside), 2 threads; coarse-only step {:.3} s",
@@ -963,4 +975,70 @@ fn carica_ckpt(path: &str) -> (Vec<f64>, Vec<Vec<f64>>) {
     let mut vv = vec![];
     for _ in 0..nv { let l = u(&mut i) as usize; vv.push((0..l).map(|_| f64::from_bits(u(&mut i))).collect()); }
     (sc, vv)
+}
+
+/// phase 5: checks of the Galerkin port (values against the Python, kick product against the generator, unitarity)
+fn dev_galtest(b: usize, n: usize) {
+    let reg = carica_regola(&asset(), "chain_A_3d", b);
+    let mut lv = Livello::con_nucleo(&reg, n, 1.0, 0.0);
+    lv.metti_galerkin(false);
+    let g = lv.gal.clone().unwrap();
+    let c = n / 2;
+    for (si, sub) in SUBS.iter().enumerate() {
+        println!("V{}{}{} [c,c,c] {:.15e} [c+1,c,c-2] {:.15e} [0,1,2] {:.15e}", sub[0], sub[1], sub[2], g.vs[si][lv.idx(c, c, c)],
+                 g.vs[si][lv.idx(c + 1, c, c - 2)], g.vs[si][lv.idx(0, 1, 2)]);
+    }
+    let (m1, m3, ic, jc) = costanti_born();
+    println!("born: mean_max {m1:.10} mean_max3 {m3:.10} I_coef {ic:.12e} J_coef {jc:.12e}; m_kin {:.12}", massa_cinetica(&lv.offs, &lv.g, lv.h));
+    // a smooth random-ish state: kick product vs exp of the generator (first order), unitarity
+    let f: Vec<C> = (0..n * n * n).map(|s| { let (i, j, l) = (s / (n * n), (s / n) % n, s % n);
+        let x = [lv.x(i), lv.x(j), lv.x(l)]; let r = (x[0] * x[0] + x[1] * x[1] + x[2] * x[2]).sqrt() / a0();
+        C::new((-r).exp() * (1.0 + 0.3 * (x[0] / a0()).sin()), 0.2 * (-r).exp() * x[2] / a0()) }).collect();
+    let nf = norm2(&f);
+    let mut kf = f.to_vec();
+    lv.calcio_galerkin(&g, &mut kf, false);
+    let mut ff = f.to_vec();
+    lv.fft.tre(&mut ff, false);
+    let mut acc = vec![C::ZERO; ff.len()];
+    lv.galerkin_k(&g, &ff, &mut acc);
+    lv.fft.tre(&mut acc, true);
+    let ev_kick = dot(&f, &kf);
+    let ev_gen = dot(&f, &acc).re / nf;
+    println!("norm after kick - 1 {:.3e}; <V_c> from kick {:.12e}, from generator {:.12e} (rel {:.2e})", norm2(&kf) / nf - 1.0,
+             -ev_kick.scale(1.0 / nf).arg() / (0.5 * lv.tau), ev_gen, (-ev_kick.scale(1.0 / nf).arg() / (0.5 * lv.tau)) / ev_gen - 1.0);
+    let mut k2 = kf.clone();
+    lv.calcio_galerkin(&g, &mut k2, true);
+    println!("fwd then rev = e^(-iV tau): <V> {:.12e}", -dot(&f, &k2).scale(1.0 / nf).arg() / lv.tau);
+}
+
+/// phase 5, exam G5 (Rust coarse = Python coarse): eigen-solve one state on one level with the current env
+/// (IDRO_CAMPO, IDRO_BORN, IDRO_TORSIONE); grosso5 B N 1s|2s|2p [dir: save/load the 1s for the 2s deflation]
+fn grosso_fase5(b: usize, n: usize, kind: &str, dir: Option<String>) {
+    let t = Instant::now();
+    let reg = carica_regola(&asset(), "chain_A_3d", b);
+    let lv = Livello::con_nucleo(&reg, n, 1.0, 0.0);
+    let tw = lv.torsione;
+    let tws = format!("{}{}{}", tw[0], tw[1], tw[2]);
+    let m = massa_cinetica(&lv.offs, &lv.g, lv.h);
+    let h_a0 = lv.h / a0();
+    let tol: f64 = std::env::var("IDRO_TOL").ok().and_then(|v| v.parse().ok()).unwrap_or(2e-9);
+    eprintln!("level B={b} h = a0/{:.3} N={n} twist {tws} galerkin {} born_cella {:.6e} m_kin {:.12} ({:.0} s)", 1.0 / h_a0, lv.gal.is_some(),
+              lv.born_cella, m, t.elapsed().as_secs_f64());
+    let mut defl: Vec<Vec<C>> = vec![];
+    if kind == "2s" {
+        let d = dir.clone().expect("2s needs the 1s dir");
+        defl.push(carica_stato(&format!("{d}/g5_1s_{tws}_B{b}_N{n}.c32")));
+    }
+    let x0 = match kind { "2p" => lv.guess("2p"), "2s" => lv.guess("2s"), _ => lv.guess("1s") };
+    let dr: Vec<&Vec<C>> = defl.iter().collect();
+    let sigma = if kind == "1s" { 0.5 * ALPHA * ALPHA } else { ALPHA * ALPHA / 8.0 };
+    let s = lobpcg(&lv, x0, &dr, sigma, tol, 400, true);
+    let c = lv.idx(lv.c0, lv.c0, lv.c0);
+    let rho = s.v[c].norm2() / norm2(&s.v) / h_a0.powi(3);
+    let (e1, e2s, e2p) = riferimenti_ev();
+    let rif = match kind { "1s" => e1, "2s" => e2s, _ => e2p };
+    println!("RISULTATO grosso5 {kind} twist {tws} B={b} N={n}: E_gen {:.9} eV E_rule {:.9} eV (m_e units {:.9} eV) vs Dirac*mu {:.6}: gen {:+.5} % rule {:+.5} % | rho_c {:.8} a0^-3 | resid {:.1e} it {} | born_cella {:.4e} ({:.0} s)",
+             s.e_gen * ev(), s.e_regola * ev(), s.e_gen * ev() / mu(), rif, 100.0 * (s.e_gen * ev() / rif - 1.0), 100.0 * (s.e_regola * ev() / rif - 1.0),
+             rho, s.resid, s.iter, lv.born_cella, t.elapsed().as_secs_f64());
+    if let Some(d) = dir { if kind == "1s" { salva_stato(&format!("{d}/g5_1s_{tws}_B{b}_N{n}.c32"), &s.v); } }
 }

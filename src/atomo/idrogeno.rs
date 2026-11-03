@@ -388,6 +388,9 @@ pub struct Livello {
     /// phase 4: twist of the box boundary per axis (0: periodic, 1: anti-periodic ψ(x + L) = −ψ(x)); the field stored
     /// is u = ψ e^{−iθx/L} (G evaluated at k + θ/L)
     pub torsione: [u8; 3],
+    /// phase 5: the Galerkin field (shared) and the Born on-site potential of the nucleus cell (μc²; 0 = off)
+    pub gal: Option<std::sync::Arc<Galerkin>>,
+    pub born_cella: f64,
 }
 
 impl Livello {
@@ -413,8 +416,10 @@ impl Livello {
         let im_g = reg.g.iter().map(|c| c.im.abs()).fold(0.0, f64::max);
         let mut lv = Livello { n, h: reg.h, tau: reg.h, phi0: reg.phi0, c0: n / 2, fft, gk, molt, v: vec![0.0; n * n * n],
                                calcio: vec![C::ONE; n * n * n], z, off, im_g, spin: reg.spin,
-                               offs: reg.offs.clone(), g: reg.g.clone(), corr: None, torsione };
+                               offs: reg.offs.clone(), g: reg.g.clone(), corr: None, torsione,
+                               gal: None, born_cella: 0.0 };
         lv.metti_potenziale(z);
+        if galerkin_env() && z != 0.0 { lv.metti_galerkin(born_env()); }
         lv
     }
 
@@ -456,12 +461,20 @@ impl Livello {
     /// one step of the learned rule with the Coulomb half kicks
     pub fn passo(&self, f: &mut [C]) {
         if let Some(c) = self.corr.as_ref() { c.applica(f); }
-        f.par_iter_mut().zip(self.calcio.par_iter()).for_each(|(a, k)| *a = *a * *k);
+        self.mezzo_calcio(f, false);
         self.fft.tre(f, false);
         f.par_iter_mut().zip(self.molt.par_iter()).for_each(|(a, m)| *a = *a * *m);
         self.fft.tre(f, true);
-        f.par_iter_mut().zip(self.calcio.par_iter()).for_each(|(a, k)| *a = *a * *k);
+        self.mezzo_calcio(f, true);
         if let Some(c) = self.corr.as_ref() { c.applica(f); }
+    }
+
+    /// the half kick e^{−iVτ/2}: diagonal (cell average) or the Galerkin product (phase 5); `rev` = second half
+    pub fn mezzo_calcio(&self, f: &mut [C], rev: bool) {
+        match self.gal.as_ref() {
+            Some(g) => { let g = g.clone(); self.calcio_galerkin(&g, f, rev); }
+            None => f.par_iter_mut().zip(self.calcio.par_iter()).for_each(|(a, k)| *a = *a * *k),
+        }
     }
 
     /// the rule's own velocity operator v_a(k) = ∂G/∂k_a (units c; k in 1/cell, G in rad per step, h = τ)
@@ -502,9 +515,17 @@ impl Livello {
         out.copy_from_slice(f);
         self.fft.tre(out, false);
         let tau = self.tau;
+        if let Some(g) = self.gal.as_ref() {
+            let ff = out.to_vec();
+            out.par_iter_mut().zip(self.gk.par_iter()).for_each(|(a, g)| *a = a.scale(*g / tau));
+            self.galerkin_k(g, &ff, out);
+            self.fft.tre(out, true);
+            if self.born_cella != 0.0 { let c = self.idx(self.c0, self.c0, self.c0); out[c] += f[c].scale(self.born_cella); }
+        } else {
         out.par_iter_mut().zip(self.gk.par_iter()).for_each(|(a, g)| *a = a.scale(*g / tau));
         self.fft.tre(out, true);
         out.par_iter_mut().zip(f.par_iter()).zip(self.v.par_iter()).for_each(|((o, x), v)| *o += x.scale(*v));
+        }
         if let Some(c) = self.corr.as_ref() { c.aggiungi_ham(f, out); }
     }
 
@@ -1014,6 +1035,7 @@ impl Fine {
                 pl[s] = v;
             }
         });
+        if restr_fw() { self.scrivi_fw(phi, tutto); return; }
         // small component χ = Σ_j G_j (−i ∂_j φ), φ = (f, 0); then (L, R) = ((φ − χ), (φ + χ))/√2
         let gj = self.gj;
         let r2 = 0.5f64.sqrt();
@@ -1073,6 +1095,7 @@ impl Fine {
         let mut out = vec![];
         let mut su = 0.0;
         let mut giu = 0.0;
+        let fw = if restr_fw() { Some(self.campo_fw()) } else { None };
         for qa in 0..self.ni { for qb in 0..self.ni { for qc in 0..self.ni {
             let (sa, sb, sc) = ((self.nh + qa) * b, (self.nh + qb) * b, (self.nh + qc) * b);
             let (s, d): (C, C) = (sa..sa + b).into_par_iter().map(|i| {
@@ -1080,7 +1103,7 @@ impl Fine {
                 let mut d = C::ZERO;
                 for j in sb..sb + b { for k in sc..sc + b {
                     let q = (i * p + j) * p + k;
-                    let mut u = (self.psi[0][q] + self.psi[2][q]).scale(r2);
+                    let mut u = match fw.as_ref() { Some(v) => v[q], None => (self.psi[0][q] + self.psi[2][q]).scale(r2) };
                     let mut w = (self.psi[1][q] + self.psi[3][q]).scale(r2);
                     if calcio { u = u * self.mezzo[q]; w = w * self.mezzo[q]; }
                     s += u;
@@ -1328,7 +1351,7 @@ impl Atomo {
         let mut g = self.psi.clone();
         let schiavo = matches!(self.cucitura, Cucitura::UnaVia | Cucitura::Imparata);
         if let Some(c) = self.lv.corr.as_ref() { c.applica(&mut g); }
-        g.par_iter_mut().zip(self.lv.calcio.par_iter()).for_each(|(a, k)| *a = *a * *k);
+        self.lv.mezzo_calcio(&mut g, false);
         let coperte: Vec<usize> = match self.fine.as_ref() { Some(f) => f.celle_coperte(), None => vec![] };
         if self.covarianza { calcio_covarianza(&self.lv, &mut g, &coperte); }
         if let Some(f) = self.fine.as_mut() {
@@ -1338,7 +1361,7 @@ impl Atomo {
         self.lv.fft.tre(&mut g, false);
         g.par_iter_mut().zip(self.lv.molt.par_iter()).for_each(|(a, m)| *a = *a * *m);
         self.lv.fft.tre(&mut g, true);
-        g.par_iter_mut().zip(self.lv.calcio.par_iter()).for_each(|(a, k)| *a = *a * *k);
+        self.lv.mezzo_calcio(&mut g, true);
         if let Some(c) = self.lv.corr.as_ref() { c.applica(&mut g); }
         if self.covarianza { calcio_covarianza(&self.lv, &mut g, &coperte); }
         if schiavo {
@@ -1421,4 +1444,299 @@ pub fn scrivi_f16(w: &mut impl std::io::Write, data: &[f64], scala: f64) {
     let mut buf = Vec::with_capacity(data.len() * 2);
     for &x in data { buf.extend_from_slice(&f16_bits((x * scala) as f32).to_le_bytes()); }
     w.write_all(&buf).unwrap();
+}
+
+// =====================================================================================================
+//  phase 5 (docs/IDROGENO_BOHR.md §14): the Galerkin field and the Born tail in the Rust coarse engine
+// =====================================================================================================
+/// erf(x) for x ≥ 0: x ≥ 6 → 1 (erfc(6) = 2e-17); else the positive series
+/// erf(x) = 2x/√π e^{−x²} Σ_n (2x²)^n / (1·3·…·(2n+1)) (no cancellation; ≤ ~120 terms)
+pub fn erf_pos(x: f64) -> f64 {
+    if x >= 6.0 { return 1.0; }
+    let y = 2.0 * x * x;
+    let (mut t, mut s, mut k) = (1.0f64, 1.0f64, 1.0f64);
+    loop {
+        k += 2.0;
+        t *= y / k;
+        s += t;
+        if t < 1e-17 * s { break; }
+    }
+    2.0 * x / std::f64::consts::PI.sqrt() * (-x * x).exp() * s
+}
+
+/// The alias-free (Galerkin) Coulomb operator of AGGLOMERATORE COMPLETO (lab/aggfull_core.py GalerkinField, read-only
+/// port): V_c φ = (1/8) Σ_s I_s† (V_s · I_s φ), s ∈ {0,1}³ the half-cell sub-lattices, I_s the band-limited interpolation
+/// (a phase e^{i(k+θ/L)h/2} per shifted axis in k space), V_s = −Zα [erf(r/σ)/r sampled + the exact Fourier transform
+/// of erfc(r/σ)/r restricted to the modes of the 2N grid], σ = 3 half cells. Same numbers as the Python (N > 192: the
+/// field rounded to f32 exactly as the Python stores it). `m` = e^{−iV_s τ/16}: the half kick of one sub-lattice.
+pub struct Galerkin {
+    pub n: usize,
+    pub h: f64,
+    pub off: f64,
+    pub vs: Vec<Vec<f64>>,
+    pub m: std::sync::OnceLock<Vec<Vec<C>>>,
+    pub tau: f64,
+}
+
+pub const SUBS: [[usize; 3]; 8] = [[0, 0, 0], [0, 0, 1], [0, 1, 0], [0, 1, 1], [1, 0, 0], [1, 0, 1], [1, 1, 0], [1, 1, 1]];
+
+impl Galerkin {
+    pub fn new(n: usize, h: f64, off: f64, z: f64, fft: &Fft) -> Self {
+        let t0 = std::time::Instant::now();
+        let hh = h / 2.0;
+        let s = 3.0 * hh;
+        let c0 = n / 2;
+        let x0 = (-(c0 as f64) + off) * h;
+        let pi = std::f64::consts::PI;
+        let kf = |j: usize| -> f64 { let q = if j < n / 2 { j as f64 } else { j as f64 - n as f64 }; 2.0 * pi * q / (n as f64 * h) };
+        let k1: Vec<f64> = (0..n).map(kf).collect();
+        let k1o: Vec<f64> = k1.iter().map(|k| if *k < 0.0 { k + 2.0 * pi / h } else { k - 2.0 * pi / h }).collect();
+        let vol = (n as f64 * h).powi(3);
+        let nn = (n * n * n) as f64;
+        let f32ok = n > 192;
+        let mut vs = vec![];
+        for sub in SUBS.iter() {
+            let offs = [sub[0] as f64 * hh, sub[1] as f64 * hh, sub[2] as f64 * hh];
+            let mut v: Vec<f64> = (0..n * n * n).into_par_iter().map(|q| {
+                let (i, j, l) = (q / (n * n), (q / n) % n, q % n);
+                let x = [x0 + i as f64 * h + offs[0], x0 + j as f64 * h + offs[1], x0 + l as f64 * h + offs[2]];
+                let r = (x[0] * x[0] + x[1] * x[1] + x[2] * x[2]).sqrt();
+                if r > 0.0 { erf_pos(r / s) / r } else { 2.0 / (pi.sqrt() * s) }
+            }).collect();
+            for m in SUBS.iter() {
+                let ks: [&Vec<f64>; 3] = [if m[0] == 1 { &k1o } else { &k1 }, if m[1] == 1 { &k1o } else { &k1 }, if m[2] == 1 { &k1o } else { &k1 }];
+                let mut a: Vec<C> = (0..n * n * n).into_par_iter().map(|q| {
+                    let (i, j, l) = (q / (n * n), (q / n) % n, q % n);
+                    let (kx, ky, kz) = (ks[0][i], ks[1][j], ks[2][l]);
+                    let q2 = kx * kx + ky * ky + kz * kz;
+                    let f = if q2 > 0.0 { 4.0 * pi * (1.0 - (-q2 * s * s / 4.0).exp()) / q2 } else { pi * s * s };
+                    C::expi(kx * (x0 + offs[0]) + ky * (x0 + offs[1]) + kz * (x0 + offs[2])).scale(f)
+                }).collect();
+                fft.tre(&mut a, true);
+                v.par_iter_mut().zip(a.par_iter()).for_each(|(x, c)| *x += c.re * nn / vol);
+            }
+            v.par_iter_mut().for_each(|x| { let y = -z * ALPHA * *x; *x = if f32ok { y as f32 as f64 } else { y }; });
+            vs.push(v);
+        }
+        eprintln!("  Galerkin field N={n} h={h:.6} built in {:.0} s (f32 storage: {f32ok})", t0.elapsed().as_secs_f64());
+        Galerkin { n, h, off, vs, m: std::sync::OnceLock::new(), tau: h }
+    }
+
+    fn molt(&self) -> &Vec<Vec<C>> {
+        self.m.get_or_init(|| {
+            let t = self.tau / 16.0;
+            self.vs.iter().map(|v| v.par_iter().map(|x| C::expi(-x * t)).collect()).collect()
+        })
+    }
+}
+
+/// global cache: one field per (n, h, off) for the whole run (the hybrid builds many `Livello`s)
+static CAMPI: std::sync::Mutex<Vec<std::sync::Arc<Galerkin>>> = std::sync::Mutex::new(Vec::new());
+
+pub fn campo_galerkin(n: usize, h: f64, off: f64, z: f64, fft: &Fft) -> std::sync::Arc<Galerkin> {
+    let mut c = CAMPI.lock().unwrap();
+    for g in c.iter() { if g.n == n && g.h == h && g.off == off { return g.clone(); } }
+    let g = std::sync::Arc::new(Galerkin::new(n, h, off, z, fft));
+    c.push(g.clone());
+    g
+}
+
+/// IDRO_CAMPO=galerkin switches the coarse potential from the cell average to the Galerkin operator
+pub fn galerkin_env() -> bool { std::env::var("IDRO_CAMPO").map(|v| v == "galerkin").unwrap_or(false) }
+/// IDRO_BORN=1: the zero-parameter Born tail as an on-site potential on the nucleus cell (only where no fine block)
+pub fn born_env() -> bool { std::env::var("IDRO_BORN").map(|v| v != "0").unwrap_or(false) }
+
+/// the Brillouin-cube constants of the Born tail (agg2s_core.born_constants): I_coef, J_coef with
+/// I = I_coef h, J = J_coef h³; mean of max|n_i| and max|n_i|³ over the unit sphere by a midpoint rule in (cos θ, φ)
+pub fn costanti_born() -> (f64, f64, f64, f64) {
+    let m = 4000usize;
+    let pi = std::f64::consts::PI;
+    let (s1, s3): (f64, f64) = (0..m).into_par_iter().map(|a| {
+        let u = -1.0 + (a as f64 + 0.5) * 2.0 / m as f64;
+        let st = (1.0 - u * u).sqrt();
+        let (mut p1, mut p3) = (0.0, 0.0);
+        for b in 0..m {
+            let ph = (b as f64 + 0.5) * 2.0 * pi / m as f64;
+            let mx = (st * ph.cos()).abs().max((st * ph.sin()).abs()).max(u.abs());
+            p1 += mx;
+            p3 += mx * mx * mx;
+        }
+        (p1, p3)
+    }).reduce(|| (0.0, 0.0), |x, y| (x.0 + y.0, x.1 + y.1));
+    let (m1, m3) = (s1 / (m * m) as f64, s3 / (m * m) as f64);
+    let ic = m1 * 4.0 * pi / (pi * (2.0 * pi).powi(3));
+    let jc = m3 * 4.0 * pi / (3.0 * pi.powi(3) * (2.0 * pi).powi(3));
+    (m1, m3, ic, jc)
+}
+
+/// isotropic kinetic mass of the learned stencil (agg2s/idrogeno_bohr_fase4_grosso.taylor_iso)
+pub fn massa_cinetica(offs: &[[i32; 3]], g: &[C], h: f64) -> f64 {
+    let s: f64 = offs.iter().zip(g.iter()).map(|(o, c)| c.re * ((o[0] * o[0] + o[1] * o[1] + o[2] * o[2]) as f64)).sum();
+    1.0 / (2.0 * (-(h / 6.0) * s))
+}
+
+impl Livello {
+    /// interpolation phase per axis for the twisted grid: e^{i(k + θ/L)h/2}
+    fn fasi_gal(&self) -> [Vec<C>; 3] {
+        let n = self.n;
+        let pi = std::f64::consts::PI;
+        let mk = |a: usize| -> Vec<C> { (0..n).map(|j| {
+            let q = if j < n / 2 { j as f64 } else { j as f64 - n as f64 };
+            let k = 2.0 * pi * q / (n as f64 * self.h) + pi * self.torsione[a] as f64 / (n as f64 * self.h);
+            C::expi(k * self.h / 2.0) }).collect() };
+        [mk(0), mk(1), mk(2)]
+    }
+
+    /// multiply a k-space array by Π_a ph_a^{e_a}, e_a ∈ {−1, 0, 1}
+    fn molt_fasi(&self, f: &mut [C], ph: &[Vec<C>; 3], e: [i32; 3]) {
+        if e == [0, 0, 0] { return; }
+        let n = self.n;
+        let pw = |a: usize, j: usize| -> C { match e[a] { 1 => ph[a][j], -1 => ph[a][j].conj(), _ => C::ONE } };
+        f.par_chunks_mut(n * n).enumerate().for_each(|(i, pl)| {
+            let ci = pw(0, i);
+            for j in 0..n { let cij = ci * pw(1, j); for l in 0..n { pl[j * n + l] = pl[j * n + l] * (cij * pw(2, l)); } }
+        });
+    }
+
+    /// add the Galerkin field to a k-space accumulator: acc += FFT(V_c u) given F = FFT(u)
+    pub fn galerkin_k(&self, gal: &Galerkin, ff: &[C], acc: &mut [C]) {
+        let ph = self.fasi_gal();
+        for (si, sub) in SUBS.iter().enumerate() {
+            let e = [sub[0] as i32, sub[1] as i32, sub[2] as i32];
+            let mut t = ff.to_vec();
+            self.molt_fasi(&mut t, &ph, e);
+            self.fft.tre(&mut t, true);
+            t.par_iter_mut().zip(gal.vs[si].par_iter()).for_each(|(a, v)| *a = a.scale(*v));
+            self.fft.tre(&mut t, false);
+            self.molt_fasi(&mut t, &ph, [-e[0], -e[1], -e[2]]);
+            acc.par_iter_mut().zip(t.par_iter()).for_each(|(a, x)| *a += x.scale(0.125));
+        }
+    }
+
+    /// the half kick e^{−i(V_c + V_B)τ/2} as the symmetric-in-time product over the 8 sub-lattices (each factor
+    /// I_s† e^{−iV_s τ/16} I_s is exactly unitary); `rev` reverses the order (second half of the Strang step, so the
+    /// whole step is palindromic). Real space in and out; 16 FFTs.
+    pub fn calcio_galerkin(&self, gal: &Galerkin, f: &mut [C], rev: bool) {
+        let m = gal.molt();
+        let ph = self.fasi_gal();
+        let born = self.born_cella;
+        let c0 = self.idx(self.c0, self.c0, self.c0);
+        let ord: Vec<usize> = if rev { (0..8).rev().collect() } else { (0..8).collect() };
+        // walk through the sub-lattices: real space at s = 0, k space between, the phase of the previous sub undone lazily
+        let mut prev = [0i32; 3];
+        let mut in_k = false;
+        for &si in ord.iter() {
+            let e = [SUBS[si][0] as i32, SUBS[si][1] as i32, SUBS[si][2] as i32];
+            if e == [0, 0, 0] && !in_k {
+                f.par_iter_mut().zip(m[si].par_iter()).for_each(|(a, k)| *a = *a * *k);
+                if born != 0.0 { f[c0] = f[c0] * C::expi(-0.5 * born * self.tau); }
+                continue;
+            }
+            if !in_k { self.fft.tre(f, false); in_k = true; }
+            self.molt_fasi(f, &ph, [e[0] - prev[0], e[1] - prev[1], e[2] - prev[2]]);
+            self.fft.tre(f, true);
+            f.par_iter_mut().zip(m[si].par_iter()).for_each(|(a, k)| *a = *a * *k);
+            if e == [0, 0, 0] {
+                if born != 0.0 { f[c0] = f[c0] * C::expi(-0.5 * born * self.tau); }
+                in_k = false;
+                prev = [0, 0, 0];
+                continue;
+            }
+            self.fft.tre(f, false);
+            prev = e;
+        }
+        if in_k {
+            self.molt_fasi(f, &ph, [-prev[0], -prev[1], -prev[2]]);
+            self.fft.tre(f, true);
+        }
+    }
+
+    /// phase 5: switch this level to the Galerkin field (IDRO_CAMPO=galerkin) and the Born tail (IDRO_BORN=1, nucleus at
+    /// a cell centre only). Called from the constructor; the cell-average `v` is kept for the diagnostics.
+    pub fn metti_galerkin(&mut self, born: bool) {
+        let g = campo_galerkin(self.n, self.h, self.off, self.z, &self.fft);
+        self.gal = Some(g);
+        if born && self.off == 0.0 && self.z != 0.0 {
+            let (_, _, _, jc) = costanti_born();
+            let m = massa_cinetica(&self.offs, &self.g, self.h);
+            self.born_cella = -2.0 * m * (4.0 * std::f64::consts::PI * self.z * ALPHA).powi(2) * jc;
+        }
+    }
+}
+
+/// phase 5: IDRO_RESTR=fw — the seam in the basis of the coarse rule (first-order Foldy–Wouthuysen pair, 0 parameters).
+/// The coarse scalar is the positive-energy amplitude normalised to the WHOLE charge (large + small component):
+///   prolongation  φ' = (1 − ½A†A) φ_interp,  χ = A φ'      (so |φ'|² + |χ|² = |φ_interp|² to second order)
+///   restriction   φ_c = block mean of [ φ + A†(χ − ½Aφ) ]   (= (1 + ½A†A) φ₊: drops the negative-energy part χ − Aφ)
+/// with A = Σ_j G_j (−i∂_j) the walk's own positive-energy relation (G from `g_positiva`), R∘P = I to second order.
+pub fn restr_fw() -> bool { std::env::var("IDRO_RESTR").map(|v| v == "fw").unwrap_or(false) }
+
+/// out_r = Σ_ax Σ_c M_ax[r][c] (−i ∂_ax) f_c on the cube [lo, hi)³ of a p³ patch (zero elsewhere); M = G (adj = false)
+/// or G† (adj = true); central differences, one-sided second order at the faces of the cube
+pub fn op_a(f: &[Vec<C>; 2], gj: &[[[C; 2]; 2]; 3], p: usize, lo: usize, hi: usize, adj: bool) -> [Vec<C>; 2] {
+    let n3 = p * p * p;
+    let mut o0 = vec![C::ZERO; n3];
+    let mut o1 = vec![C::ZERO; n3];
+    let ptrs = [SendPtr(o0.as_mut_ptr()), SendPtr(o1.as_mut_ptr())];
+    (lo..hi).into_par_iter().for_each(|i| {
+        let ptrs = ptrs;
+        for j in lo..hi { for k in lo..hi {
+            let s = (i * p + j) * p + k;
+            let mut acc = [C::ZERO; 2];
+            for ax in 0..3 {
+                let (q, st) = match ax { 0 => (i, p * p), 1 => (j, p), _ => (k, 1) };
+                let d = |c: usize| -> C {
+                    let v = &f[c];
+                    if q == lo { (v[s].scale(-3.0) + v[s + st].scale(4.0) - v[s + 2 * st]).scale(0.5) }
+                    else if q == hi - 1 { (v[s].scale(3.0) - v[s - st].scale(4.0) + v[s - 2 * st]).scale(0.5) }
+                    else { (v[s + st] - v[s - st]).scale(0.5) }
+                };
+                let dd = [d(0) * C::new(0.0, -1.0), d(1) * C::new(0.0, -1.0)];
+                for r in 0..2 { for c in 0..2 {
+                    let m = if adj { gj[ax][c][r].conj() } else { gj[ax][r][c] };
+                    acc[r] += m * dd[c];
+                }}
+            }
+            unsafe { *ptrs[0].0.add(s) = acc[0]; *ptrs[1].0.add(s) = acc[1]; }
+        }}
+    });
+    [o0, o1]
+}
+
+impl Fine {
+    /// FW prolongation of the spin-up interpolated field φ (whole patch): writes L, R (all sites, or only the halo)
+    pub fn scrivi_fw(&mut self, phi: Vec<C>, tutto: bool) {
+        let p = self.p;
+        let n3 = p * p * p;
+        let f0 = [phi, vec![C::ZERO; n3]];
+        let chi = op_a(&f0, &self.gj, p, 0, p, false);
+        let ach = op_a(&chi, &self.gj, p, 0, p, true);
+        let r2 = 0.5f64.sqrt();
+        let (lo, hi) = (self.nh * self.b, (self.nh + self.ni) * self.b);
+        for s in 0..n3 {
+            let (i, j, k) = (s / (p * p), (s / p) % p, s % p);
+            let inside = i >= lo && i < hi && j >= lo && j < hi && k >= lo && k < hi;
+            if inside && !tutto { continue; }
+            let ph = [f0[0][s] - ach[0][s].scale(0.5), C::ZERO - ach[1][s].scale(0.5)];
+            self.psi[0][s] = (ph[0] - chi[0][s]).scale(r2);
+            self.psi[1][s] = (ph[1] - chi[1][s]).scale(r2);
+            self.psi[2][s] = (ph[0] + chi[0][s]).scale(r2);
+            self.psi[3][s] = (ph[1] + chi[1][s]).scale(r2);
+        }
+    }
+
+    /// the positive-energy, charge-normalised large component φ₊↑ on the interior (FW restriction field)
+    pub fn campo_fw(&self) -> Vec<C> {
+        let p = self.p;
+        let n3 = p * p * p;
+        let r2 = 0.5f64.sqrt();
+        let (lo, hi) = (self.nh * self.b, (self.nh + self.ni) * self.b);
+        let phi = [(0..n3).into_par_iter().map(|s| (self.psi[0][s] + self.psi[2][s]).scale(r2)).collect::<Vec<C>>(),
+                   (0..n3).into_par_iter().map(|s| (self.psi[1][s] + self.psi[3][s]).scale(r2)).collect::<Vec<C>>()];
+        let aphi = op_a(&phi, &self.gj, p, lo, hi, false);
+        let w = [(0..n3).into_par_iter().map(|s| (self.psi[2][s] - self.psi[0][s]).scale(r2) - aphi[0][s].scale(0.5)).collect::<Vec<C>>(),
+                 (0..n3).into_par_iter().map(|s| (self.psi[3][s] - self.psi[1][s]).scale(r2) - aphi[1][s].scale(0.5)).collect::<Vec<C>>()];
+        let aw = op_a(&w, &self.gj, p, lo, hi, true);
+        (0..n3).into_par_iter().map(|s| phi[0][s] + aw[0][s]).collect()
+    }
 }

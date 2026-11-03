@@ -391,3 +391,65 @@ fn emissione6_rabi_vivo() {
     std::fs::write(format!("{}/emiss6_rabi_vivo.json", dir()), &testo).unwrap();
     eprintln!("{testo}");
 }
+
+/// Amendment A6-1 in Rust (check written after the pre-registration, declared): a unit transverse deposit made after an
+/// even or an odd light tick, then 300 light ticks with the sponge: the field left at the atom over the first one.
+/// Before A6-1 the odd deposit left ~0.4 forever (Python twin); now both must die like the even one.
+#[test]
+#[ignore]
+fn emissione6_parita_trasversa() {
+    let mut out = vec![];
+    for parita in 0..2u64 {
+        for c in 0..3 {
+            let mut l = LuceAtomo::new_trasversa();
+            for _ in 0..parita { l.propaga(); }
+            let mut j = [0.0; 3];
+            j[c] = 1.0;
+            l.deposita(j);
+            l.chiudi_tick();
+            let mut primo = 0.0;
+            let mut ultimo = 0.0;
+            for k in 1..=300 {
+                l.propaga();
+                let e = l.campo_atomo();
+                let m = e.iter().map(|x| x.abs()).fold(0.0, f64::max);
+                if k == 1 { primo = m; }
+                ultimo = m;
+                l.chiudi_tick();
+            }
+            eprintln!("parità {parita} colonna {c}: |E(1)| {primo:.4e} |E(300)| {ultimo:.4e} rapporto {:.3e}", ultimo / primo);
+            out.push(ultimo / primo);
+        }
+    }
+    let peggiore = out.iter().cloned().fold(0.0, f64::max);
+    assert!(peggiore < 1e-2, "campo fermo lasciato: {peggiore}");
+}
+
+/// THE 1s DRIFT OF THE LABORATORIO, ROOT CAUSE (docs/EMISSIONE.md §13.6; check written after the pre-registration,
+/// declared). The default 1s (`Esperimento::new`: learned nucleus, smooth 1s, valley k = 0) is not one level: it is
+/// spread on the exact levels of the 1s group (the 4 valleys of the cubic walk, split by ~10⁻⁴ by the learned nucleus).
+/// If that is the whole story, the drift without light is predicted with NO parameter from the weights c_k and
+/// frequencies ω_k of those levels: p(t) = 1 − |Σ |c_k|² e^{−iω_k t}|² (+ the weight outside the group). Here: the
+/// prediction against the free run at t = 800 and 2000 (1600 and 4000 ticks); and the same for ONE exact level (drift 0).
+#[test]
+#[ignore]
+fn emissione6_deriva_1s() {
+    let x = Esperimento::new(600);
+    let phi = x.phi1s.clone();
+    let mut at = crate::zz::Atomo::new_in(None);
+    at.con_nucleo(crate::zz::NUCLEO);
+    at.imposta(phi.clone());
+    let ascolto = env_usize("ASCOLTO", 2400);
+    let lv = at.livelli_esatti(0.82, 0.94, 0.0025, ascolto);
+    let pesi: Vec<(f64, f64, f64)> = lv.iter().map(|l| (l.omega, sovrapp(&l.v, &phi).norm2(), l.resid)).filter(|p| p.1 > 1e-6).collect();
+    let somma: f64 = pesi.iter().map(|p| p.1).sum();
+    let prev = |t: f64| { let (mut re, mut im) = (0.0, 0.0); for p in &pesi { re += p.1 * (p.0 * t).cos(); im -= p.1 * (p.0 * t).sin(); } 1.0 - (re * re + im * im) };
+    let mut libera = vec![];
+    while at.t() < 2000.0 - 1e-9 { at.avanti(); if at.ticks == 1600 || at.ticks == 4000 { libera.push((at.t(), 1.0 - at.proiezione(&phi))); } }
+    let righe: Vec<String> = pesi.iter().map(|p| format!("[{:.7}, {:.5}, {:.1e}]", p.0, p.1, p.2)).collect();
+    let testo = format!("{{\"livelli_omega_peso_residuo\": [{}], \"peso_nel_gruppo\": {somma:.6}, \"t\": [{}, {}], \"misurato\": [{:.5e}, {:.5e}], \"previsto\": [{:.5e}, {:.5e}]}}",
+        righe.join(", "), libera[0].0, libera[1].0, libera[0].1, libera[1].1, prev(libera[0].0), prev(libera[1].0));
+    std::fs::create_dir_all(dir()).unwrap();
+    std::fs::write(format!("{}/emiss6_deriva_1s.json", dir()), &testo).unwrap();
+    eprintln!("{testo}");
+}
