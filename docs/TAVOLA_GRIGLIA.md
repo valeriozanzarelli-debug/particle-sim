@@ -284,3 +284,25 @@ infinita, niente relatività (come la chiave). Per chiudere: core a X = 5 con in
 K5 e, se passa, l'export.
 
 Per rifare: `cd lab; nohup ./tavg_f5_loop.sh &` poi `python tavg_f5_judge.py` (ampiezze in `out/tavg_cc_amp/f5_*`, non tracciate).
+
+### Fase 5, emendamento 1 — core fino a X = 5 (3/11 sera): **tutto PASS, O esportato "approssimato"**
+
+Emendamento `lab/out/tavg_prereg_f5_em1.json` (commit 0bfde7a, prima delle corse; stesse soglie; resta **non primo
+cieco**). Integrali a pezzi (`LazyG`: una fetta (p|··) alla volta, ovvv in singola precisione; controllo 3·10⁻¹³ Eh e
+2·10⁻¹¹ Eh sulle triple in singola), memoria massima 2,47 GB, 2 processi in parallelo, ~4 ore. Verdetti
+`lab/out/tavg_f5_verdetti_em1.json` (`python lab/tavg_f5_judge.py --em1`).
+
+| esame | risultato | esito |
+|---|---|---|
+| K5 (1s² di O⁶⁺, ≤ 0,5 mEh) | −45,07 contro −45,44 mEh (+0,37) | PASS |
+| C1 E_c(O), 5 % | −256,7 contro −257,9 mEh (−0,46 %) | PASS (non primo cieco) |
+| C2 IP(O), 3 % | 13,605 contro 13,618 eV (−0,10 %) | PASS |
+| C3, C4 | 14,552 > 13,605; caduta 0,947 contro 0,916 eV | PASS |
+| C5 IP(N), 3 % | 14,552 contro 14,534 eV (+0,12 %) | PASS |
+| R1 E_c(N) | −187,5 contro −188,8 mEh (−0,7 %) | — |
+
+Core-valenza di O calcolato: −17,0 mEh (la stima della fase 4 era −42,3). **Export fatto**:
+`lab/out/tavg_dati_ossigeno/` (manifest + livelli tracciati; densità e campioni HF non tracciati, rigenerare con
+`python lab/tavg_f5_export.py`). Fonti: HF del livello fine + CCSD(T) a tutti gli elettroni; il blocco **non** è usato.
+È validazione (numeri noti ritrovati, zero manopole), non scoperta. Debiti: densità/campioni da HF, triple
+perturbative, base finita, massa infinita, niente relatività.

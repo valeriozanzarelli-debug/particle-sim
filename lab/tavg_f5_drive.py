@@ -18,13 +18,14 @@ KIND = {"FCv": dict(core=False, frozen_core=True), "AEc": dict(core=True, frozen
 
 if __name__ == "__main__":
     res = json.load(open(FN)) if os.path.exists(FN) else {}
-    for sp, kind, X in TASKS:
+    order = TASKS[::-1] if "--rev" in sys.argv else TASKS
+    for sp, kind, X in order:
         key = f"{sp}_{kind}_X{X}"
         if res.get(key, {}).get("convergiuto"):
             continue
         Z, cfg = PRE["specie"][sp]
         t0 = time.time()
-        r = C.run(int(Z), cfg, X, name="f5_" + key.replace("+", "p"), t_budget=500, log=lambda s: None, ae=True, **KIND[kind])
+        r = C.run(int(Z), cfg, X, name="f5_" + key.replace("+", "p"), t_budget=420, log=lambda s: None, ae=True, **KIND[kind])
         r["secondi"] = time.time() - t0
         import resource; r["RSS_MB"] = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss // 1024
         res = json.load(open(FN)) if os.path.exists(FN) else {}
