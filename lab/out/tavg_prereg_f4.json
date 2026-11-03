@@ -1,0 +1,101 @@
+{
+ "studio": "tavg_ FASE 4: correlazione del guscio di valenza calcolata direttamente (tutti gli elettroni di valenza insieme nel blocco congelato), alla cieca su O e N",
+ "data": "2026-11-03",
+ "emendamento_di": "lab/out/tavg_prereg2.json (ec4a4ba) e tavg_prereg_f3.json: STESSE soglie (E_c 5 %, IP 3 %, C3-C5)",
+ "risolutore": "lab/tavg_cc.py: ROHF-CCSD(T) a spin-orbitali (Stanton-Gauss 1991; triple di Watts-Gauss-Bartlett 1993 con termine f_ia, orbitali semicanonici), riferimento = determinante di Hund ROHF del blocco (tr.Atom). Nessuna manopola fittata.",
+ "controlli_codice_gia_fatti_in_sviluppo": {
+  "E_ref contro ROHF del blocco": "<= 2e-13 Eh (C 2s2, C 2s2 2p, O 2s2 2p4)",
+  "2 e-: CCSD = full CI": "7e-11 Eh",
+  "3 e- (C 2s2 2p, X=2): CCSD(T) - full CI": "+0.33 mEh"
+ },
+ "base": {
+  "regola": "per l = 0..X: orbitali ROHF + (X+1-l) funzioni di Laguerre, lam_l = (2l+3)/(2 <r>_v), <r>_v = <r> dell'orbitale di valenza piu' esterno; virtuali ruotati (solo per i denominatori)",
+  "X": [
+   3,
+   4,
+   5
+  ],
+  "estrapolazione": "E_c(inf) = (125 E_c(5) - 64 E_c(4)) / 61 (forma X^-3; nessun parametro libero)",
+  "manopole": 0
+ },
+ "specie": {
+  "O": [
+   "8",
+   "2s2 2p4"
+  ],
+  "O+": [
+   "8",
+   "2s2 2p3"
+  ],
+  "N": [
+   "7",
+   "2s2 2p3"
+  ],
+  "N+": [
+   "7",
+   "2s2 2p2"
+  ],
+  "controllo_C": [
+   "6",
+   "2s2 2p1"
+  ],
+  "controllo_O": [
+   "8",
+   "2s2 2p1"
+  ]
+ },
+ "composizione": {
+  "regola": "E_c(X) = E_c(1s2) + E_cv + E_c,val; E_c,val = E_CCSD(T)(inf) - E_ROHF(blocco)",
+  "E_c(1s2)": "ione tipo He esatto stesso Z meno HF 1s2 del livello fine (come fase 3): N -45.27, O -45.44 mEh",
+  "E_cv": "DEBITO dichiarato: dagli ioni tipo Li esatti della fase 3, per elettrone di valenza: Z=7 2s -4.70, 2p -7.57; Z=8 2s -4.98, 2p -8.08 mEh; trasferito senza scala (probabilmente troppo grande in modulo: 2s dello ione piu' compatto)",
+  "IP": "IP_HF(livello fine) + E_c(X+) - E_c(X)"
+ },
+ "esami": {
+  "K1": {
+   "cosa": "controllo di macchina: 3 e- di valenza (2s2 2p 2P) nei blocchi C e O, E_c,val(inf) contro esatto ECG della fase 3 (A1: C -88.67, O -114.94 mEh, barre 0.25/0.17 mEh)",
+   "soglia_Eh": 0.001,
+   "contato": true,
+   "nota": "il coordinatore chiedeva il blocco B: gli esatti a 3 e- esistono per C e O (fase 3), si usano quelli"
+  },
+  "C1": {
+   "cosa": "E_c(O) contro -0.257902 Eh",
+   "soglia_rel": 0.05,
+   "contato": true
+  },
+  "C2": {
+   "cosa": "IP(O) contro 13.618 eV",
+   "soglia_rel": 0.03,
+   "contato": true
+  },
+  "C3": {
+   "cosa": "IP(N) > IP(O)",
+   "contato": true
+  },
+  "C4": {
+   "cosa": "IP(N)-IP(O) contro 0.916 eV, entro 0.3 eV",
+   "contato": true
+  },
+  "C5": {
+   "cosa": "IP(N) contro 14.534 eV",
+   "soglia_rel": 0.03,
+   "contato": true
+  },
+  "R1": {
+   "cosa": "E_c(N) contro -0.1888 Eh, riportato",
+   "contato": false
+  },
+  "R2": {
+   "cosa": "E_c,val e E_cv separati; quanto conta il debito E_cv sul verdetto, riportato",
+   "contato": false
+  }
+ },
+ "decisione": "export di O 'approssimato' solo se K1, C1 e C2 passano. Se K1 fallisce il risultato su O non conta. Soglie mai abbassate.",
+ "debiti": [
+  "blocco HF congelato (1s2 non rilassa, stesso blocco per X e X+)",
+  "core-valenza dagli ioni tipo Li senza scala",
+  "triple solo perturbative (T); quadruple e oltre mancano",
+  "base finita + estrapolazione X^-3",
+  "contaminazione di spin del CCSD su ROHF a spin-orbitali (non adattato)"
+ ],
+ "corse": "lab/tavg_f4_drive.py, spezzoni <= 590 s, un processo per specie; ampiezze in lab/out/tavg_cc_amp/ (npz, non tracciate)"
+}
