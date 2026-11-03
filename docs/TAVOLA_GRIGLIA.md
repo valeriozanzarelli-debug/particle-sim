@@ -1,4 +1,4 @@
-# Tavola periodica, parte 2: dal boro in su sulla griglia agglomerata — PARZIALE (ossigeno: HF sì, correlazione no; fase 3 di coppia: FAIL)
+# Tavola periodica, parte 2: dal boro in su sulla griglia agglomerata — PARZIALE (ossigeno: HF sì, correlazione no; fase 3 di coppia: FAIL; fase 4: IP PASS, E_c FAIL)
 
 Studio `tavg_`. Stato al 2/11/2026: **PARZIALE**. Pre-registrazione della fase 1: `lab/out/tavg_prereg.json` (commit
 69414b4). Emendamento fase 2 (correlazione, bersaglio ossigeno): `lab/out/tavg_prereg2.json` (commit ec4a4ba, prima
@@ -203,3 +203,45 @@ cd lab; export OMP_NUM_THREADS=1 NUMBA_NUM_THREADS=1 MKL_NUM_THREADS=1
 for g in g1 g2 g3 g4 g5 g6; do nohup ./tavg_f3_loop.sh $g >/dev/null 2>&1 & done   # basi in out/tavg_f3_base/ (non tracciate)
 timeout 590 python tavg_f3_judge.py
 ```
+
+## Fase 4 — valenza calcolata tutta insieme nel blocco (3/11: IP PASS, E_c(O) **FAIL** per il core-valenza; niente export)
+
+Pre-registrazione `lab/out/tavg_prereg_f4.json` (commit 11d1e76, prima delle corse; stesse soglie). Verdetti
+`lab/out/tavg_f4_verdetti.json` (`python lab/tavg_f4_judge.py`), figura `lab/out/tavg_f4_figura.png`.
+
+**Cosa cambia rispetto alla fase 3**: niente più somma di coppie. Tutti gli elettroni di valenza (6 per O, 5 per N,
+O⁺, …) sono risolti insieme nel blocco congelato con un coupled cluster nostro (`lab/tavg_cc.py`, ROHF-CCSD(T) a
+spin-orbitali). Così il "blocco di Pauli" fra coppie è dentro le equazioni da solo. **Zero manopole**: è un risolutore,
+non un fit. Base: orbitali ROHF del blocco + funzioni di Laguerre con la stessa estensione della valenza, l fino a
+X = 3, 4, 5 (fino a 95 orbitali spaziali), estrapolazione fissa X⁻³ da X = 4, 5. Controlli del codice: energia di
+riferimento = ROHF del blocco entro 2·10⁻¹³ Eh; con 2 elettroni CCSD = full CI entro 7·10⁻¹¹; con 3 elettroni (X = 2)
+CCSD(T) − full CI = +0,33 mEh. Tutte le corse in ~50 min (un processo da ≤ 590 s per specie e base, ≤ 2,4 GB).
+
+| esame | cosa | risultato | esito |
+|---|---|---|---|
+| K1 | macchina: 3 e- (2s²2p) contro gli esatti ECG della fase 3, entro 1 mEh | C −89,26 contro −88,67 (−0,59 mEh); O −115,14 contro −114,91 (−0,23 mEh) | PASS |
+| C1 | E_c(O) entro 5 % di −257,9 mEh | −285,9 mEh (+10,9 %) | **FAIL** |
+| C2 | IP(O) entro 3 % di 13,618 eV | 13,756 eV (+1,0 %) | PASS |
+| C3 | IP(N) > IP(O) | 14,680 > 13,756 | PASS |
+| C4 | caduta N→O, 0,916 ± 0,3 eV | 0,923 eV | PASS |
+| C5 | IP(N) entro 3 % di 14,534 | 14,680 eV (+1,0 %) | PASS |
+| R1 | E_c(N) (riportato) | −209,3 contro −188,8 mEh (+10,8 %) | — |
+
+Pezzi di O (mEh): 1s² −45,4 (esatto tipo He); **core-valenza −42,3 (debito: dagli ioni tipo Li, senza scala)**;
+valenza CCSD(T) −198,2 (X = 3, 4, 5: −177,2, −187,8, −192,9).
+
+**Lettura onesta**: la valenza ora è giusta dove la possiamo controllare (K1 entro 0,6 mEh) e la riga torna: IP di O
+e N entro l'1 %, caduta N→O 0,923 contro 0,916 eV. Questa è una **validazione** (numeri noti ritrovati senza manopole),
+non una scoperta. E_c totale invece sbaglia del +11 % su O e N allo stesso modo: il pezzo che eccede è il
+core-valenza preso dagli ioni tipo Li (−42 mEh su O), dove la 2s è molto più stretta che nell'atomo neutro. Senza quel
+pezzo E_c(O) = −243,6 (−5,5 %): sarebbe comunque fuori di poco, quindi il core-valenza vero sta in mezzo e va calcolato,
+non stimato. Riportato (R2, non contato). Negli IP il debito si cancella quasi tutto (13,756 contro 13,536 eV senza).
+
+Debiti: blocco HF congelato; core-valenza stimato (il pezzo che fa fallire C1); triple solo perturbative; base finita +
+X⁻³; CCSD su ROHF non adattato di spin.
+
+**Export di O: NON fatto** (C1 FAIL; soglie non toccate). Prossimo passo naturale: lo stesso CCSD(T) con anche il 1s²
+attivo (blocco "aperto" o tutti gli elettroni) per calcolare il core-valenza invece di stimarlo, con funzioni strette
+per il guscio 1s; costo atteso simile (8 elettroni invece di 6).
+
+Per rifare: `cd lab; nohup ./tavg_f4_loop.sh & ` poi `python tavg_f4_judge.py` (ampiezze in `out/tavg_cc_amp/`, non tracciate).
