@@ -9,6 +9,6 @@
   "O3": {"cosa": "idrogenoide 1s a Z: v_phi = Z sin(theta), la corrente che la scena H trova da Dirac nel limite piccolo", "voto": "PASS se entro 1 %"},
   "O4": {"cosa": "quadrupolo: <z^2>/<x^2> delle palline dell'ossigeno contro il valore dal determinante", "voto": "PASS se entro 5 %"}
  },
- "debiti": "stato a particelle indipendenti (la correlazione e' solo nelle energie), simmetria assiale scelta dal determinante, corrente non relativistica, tempo rallentato (1 unita' atomica = 4 s di schermo), colore = fase m phi dell'orbitale, moto delle palline = interpretazione di Bohm/Pauli come nei surfisti.",
+ "debiti": "stato a particelle indipendenti (la correlazione e' solo nelle energie), simmetria assiale scelta dal determinante, corrente non relativistica, tempo rallentato (1 unita' atomica = 4 s di schermo), un colore per orbitale (scelta di disegno, Valerio 3/11), moto delle palline = interpretazione di Bohm/Pauli come nei surfisti.",
  "manopole": "fisica: zero."
 }

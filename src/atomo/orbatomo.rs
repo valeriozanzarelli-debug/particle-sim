@@ -14,7 +14,8 @@ use crate::rng::Rng;
 /// Screen seconds per atomic unit of time (slowed, declared on screen). A glow never goes faster than c.
 pub const S_PER_AU: f64 = 4.0;
 const C_AU: f64 = 137.036;
-const STOPS: [[f32; 3]; 5] = [[0.20, 0.95, 1.00], [0.25, 0.45, 1.00], [0.70, 0.30, 1.00], [1.00, 0.35, 0.70], [1.00, 0.85, 0.30]];
+/// One colour per orbital, spin up and down alike (a drawing choice), in the order the determinant first names them.
+const COLORI: [([f32; 3], &str); 6] = [([0.20, 0.95, 1.00], "ciano"), ([1.00, 0.80, 0.25], "oro"), ([1.00, 0.30, 0.65], "rosa"), ([0.30, 1.00, 0.45], "verde"), ([0.35, 0.45, 1.00], "blu"), ([1.00, 0.45, 0.20], "arancio")];
 
 #[derive(Clone, Debug)]
 pub struct Orb { pub nome: String, pub l: u32, pub p: Vec<f64> }
@@ -68,7 +69,7 @@ impl Dati {
 
 /// One glow: where it is on its circle, how fast it turns, what it looks like.
 #[derive(Clone, Copy, Debug)]
-pub struct Bagl { pub rho: f64, pub z: f64, pub phi0: f64, pub om: f64, pub m: i32, pub cl: u32, pub alfa: f32 }
+pub struct Bagl { pub rho: f64, pub z: f64, pub phi0: f64, pub om: f64, pub col: [f32; 3], pub alfa: f32 }
 
 pub struct Atomo { pub dati: Dati, pub g: Vec<Bagl>, pub t: f64, pub raggio: f64, storie: Storie, z_nucleo: u32 }
 
@@ -77,14 +78,17 @@ impl Atomo {
         let mut rng = Rng::new(808);
         let k = n_tot / dati.so.len().max(1);
         let mut g = Vec::with_capacity(n_tot);
-        for (j, q) in dati.so.iter().enumerate() {
+        let mut visti: Vec<(usize, i32)> = vec![];
+        for q in &dati.so {
+            let c = visti.iter().position(|x| *x == (q.orb, q.m)).unwrap_or_else(|| { visti.push((q.orb, q.m)); visti.len() - 1 });
+            let col = COLORI[c % COLORI.len()].0;
             let p = &dati.orb[q.orb].p;
             let mut cdf = vec![0.0; dati.r.len()];
             for i in 1..cdf.len() { cdf[i] = cdf[i - 1] + 0.5 * (p[i] * p[i] + p[i - 1] * p[i - 1]) * (dati.r[i] - dati.r[i - 1]); }
             for _ in 0..k {
                 let (rho, z) = dati.pesca(*q, &cdf, &mut rng);
                 let om = dati.v_phi(*q, rho, z) / rho.max(1e-6);
-                g.push(Bagl { rho, z, phi0: std::f64::consts::TAU * rng.uni(), om, m: q.m, cl: q.orb as u32 + j as u32 * 0, alfa: 0.25 });
+                g.push(Bagl { rho, z, phi0: std::f64::consts::TAU * rng.uni(), om, col, alfa: 0.25 });
             }
         }
         // the order of the glows is random, so the level of detail thins all the orbitals alike
@@ -108,12 +112,7 @@ impl Atomo {
     pub fn disegna(&self, v: &crate::grafica::VistaWorker, ritmo: f64) -> (Vec<Ball>, Vec<Ball>, Vec<[f32; 3]>) {
         let mut p: Vec<Ball> = self.g.iter().map(|b| {
             let f = b.phi0 + b.om * self.t;
-            // colour = the orbital's phase m φ, one starting hue per shell
-            let t = ((b.m as f64 * f) as f32 + 1.3 * b.cl as f32).rem_euclid(std::f32::consts::TAU) / std::f32::consts::TAU * 5.0;
-            let i = (t.floor() as usize) % 5;
-            let s = t - t.floor();
-            let (a, c) = (STOPS[i], STOPS[(i + 1) % 5]);
-            (schermo([b.rho * f.cos(), b.rho * f.sin(), b.z]).to_array(), 1.0, [a[0] + (c[0] - a[0]) * s, a[1] + (c[1] - a[1]) * s, a[2] + (c[2] - a[2]) * s, b.alfa])
+            (schermo([b.rho * f.cos(), b.rho * f.sin(), b.z]).to_array(), 1.0, [b.col[0], b.col[1], b.col[2], b.alfa])
         }).collect();
         let (sc, sa) = self.storie.scie(&p, v.lod_f, v.scia_s, ritmo);
         p.push((schermo([0.0; 3]).to_array(), 1.5 + 0.3 * (self.z_nucleo as f32).sqrt(), [1.0, 0.6, 0.25, 0.9]));
@@ -121,8 +120,13 @@ impl Atomo {
     }
 
     pub fn righe(&self, nome: &str, simbolo: &str, energia: Option<f64>, livello: &str, np: usize, nf: usize) -> (String, String) {
-        let conf: Vec<String> = self.dati.so.iter().map(|q| format!("{}{}{:+}", self.dati.orb[q.orb].nome, if q.s > 0.0 { "↑" } else { "↓" }, q.m)).collect();
-        (format!("{nome} ({simbolo}) · livello {} · orbitali calcolati: {} · esami {np} PASS / {nf} FAIL", livello.to_uppercase(), conf.join(" ")),
+        // the legend: each orbital, its colour, its electrons
+        let mut visti: Vec<(usize, i32, u32)> = vec![];
+        for q in &self.dati.so {
+            match visti.iter_mut().find(|x| (x.0, x.1) == (q.orb, q.m)) { Some(x) => x.2 += 1, None => visti.push((q.orb, q.m, 1)) }
+        }
+        let conf: Vec<String> = visti.iter().enumerate().map(|(i, x)| format!("{} {}{}{}", COLORI[i % COLORI.len()].1, self.dati.orb[x.0].nome, if self.dati.orb[x.0].l > 0 { format!(" m={:+}", x.1) } else { String::new() }, if x.2 == 2 { " (2 e⁻)" } else { "" })).collect();
+        (format!("{nome} ({simbolo}) · livello {} · orbitali calcolati: {} · esami {np} PASS / {nf} FAIL", livello.to_uppercase(), conf.join(" · ")),
          format!("{}palline su |ψ|² di ogni orbitale, portate dalla corrente di Pauli (orbitale + spin) · elettroni indipendenti: la correlazione è solo nelle energie · 1 u.a. di tempo = {S_PER_AU} s", energia.map(|e| format!("E = {e:.6} Eh · ")).unwrap_or_default()))
     }
 }
