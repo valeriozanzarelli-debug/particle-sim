@@ -1,0 +1,22 @@
+{
+ "cosa": "Acqua (H2O), tier 'approssimato'",
+ "tier": "approssimato",
+ "sorgente": {
+  "elettronica": "RHF + CCSD(T) a tutti gli elettroni, motore molecolare lab/acqua_*.py, basi even-tempered nostre X=2,3 aug, CBS X^-3",
+  "verdetti": "lab/out/acqua_verdetti.json (pre-registrazione lab/out/acqua_prereg.json)",
+  "documento": "docs/ACQUA.md"
+ },
+ "unita": "bohr, Hartree; nuclei fermi (Born-Oppenheimer), niente relativita', niente ZPE",
+ "file": {
+  "acqua_geometria.json": "geometria di equilibrio CBS",
+  "acqua_livelli.json": "energie, dipolo, frequenze, esiti",
+  "acqua_campioni.npy": "float32 (n, 10, 3): posizioni dei 10 elettroni estratte INDIPENDENTI dalla densita' RHF X=3 (solo per disegnare; NON tracciato)"
+ },
+ "rigenera": "python lab/acqua_figure.py export",
+ "debiti": [
+  "densita' e campioni da RHF (correlazione solo nelle energie)",
+  "triple perturbative",
+  "base finita X=2,3 + X^-3",
+  "nuclei fermi: niente moto di punto zero"
+ ]
+}
