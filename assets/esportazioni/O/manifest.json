@@ -23,27 +23,17 @@
  "energia_Eh": -75.06610228540346,
  "esami": [
   {
-   "id": "E_c",
-   "cosa": "correlazione -0.2567 contro -0.2579 Eh (-0.46 %)",
+   "id": "C1",
+   "cosa": "(non primo cieco) correlazione -0.2567 contro -0.2579 Eh (-0.46 %)",
    "PASS": true
   },
   {
-   "id": "IP",
+   "id": "C2",
    "cosa": "ionizzazione 13.605 contro 13.618 eV (-0.10 %)",
    "PASS": true
   },
   {
    "id": "K5",
-   "cosa": "esame di docs/TAVOLA_GRIGLIA.md, fase 5 (lab/out/tavg_f5_verdetti_em1.json)",
-   "PASS": true
-  },
-  {
-   "id": "C1",
-   "cosa": "esame di docs/TAVOLA_GRIGLIA.md, fase 5 (lab/out/tavg_f5_verdetti_em1.json)",
-   "PASS": true
-  },
-  {
-   "id": "C2",
    "cosa": "esame di docs/TAVOLA_GRIGLIA.md, fase 5 (lab/out/tavg_f5_verdetti_em1.json)",
    "PASS": true
   },

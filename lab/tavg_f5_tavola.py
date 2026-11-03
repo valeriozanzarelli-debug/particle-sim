@@ -20,9 +20,9 @@ liv = json.load(open(os.path.join(SRC, "ossigeno_livelli.json"), encoding="utf8"
 print(liv)
 os.makedirs(DST, exist_ok=True)
 S.astype("<f4").tofile(os.path.join(DST, "campioni.f32"))
-esami = [{"id": k, "cosa": "esame di docs/TAVOLA_GRIGLIA.md, fase 5 (lab/out/tavg_f5_verdetti_em1.json)", "PASS": v == "PASS"} for k, v in liv["esami"].items()]
-esami.insert(0, {"id": "E_c", "cosa": f"correlazione {liv['E_c']:.4f} contro {liv['chiavi']['E_c']:.4f} Eh ({100 * (liv['E_c'] / liv['chiavi']['E_c'] - 1):+.2f} %)", "PASS": liv["esami"]["C1"] == "PASS"})
-esami.insert(1, {"id": "IP", "cosa": f"ionizzazione {liv['IP_eV']:.3f} contro {liv['chiavi']['IP_eV']:.3f} eV ({100 * (liv['IP_eV'] / liv['chiavi']['IP_eV'] - 1):+.2f} %)", "PASS": liv["esami"]["C2"] == "PASS"})
+esami = [{"id": k, "cosa": "esame di docs/TAVOLA_GRIGLIA.md, fase 5 (lab/out/tavg_f5_verdetti_em1.json)", "PASS": v == "PASS"} for k, v in liv["esami"].items() if k not in ("C1", "C2")]
+esami.insert(0, {"id": "C1", "cosa": f"(non primo cieco) correlazione {liv['E_c']:.4f} contro {liv['chiavi']['E_c']:.4f} Eh ({100 * (liv['E_c'] / liv['chiavi']['E_c'] - 1):+.2f} %)", "PASS": liv["esami"]["C1"] == "PASS"})
+esami.insert(1, {"id": "C2", "cosa": f"ionizzazione {liv['IP_eV']:.3f} contro {liv['chiavi']['IP_eV']:.3f} eV ({100 * (liv['IP_eV'] / liv['chiavi']['IP_eV'] - 1):+.2f} %)", "PASS": liv["esami"]["C2"] == "PASS"})
 man = {
     "formato": "particle-sim/esportazione-v1", "nome": "ossigeno", "simbolo": "O", "tipo": "atomo", "Z": 8, "carica": 0, "livello": "approssimato",
     "metodo": "O 3P: ROHF del livello fine a tutti gli elettroni + CCSD(T) a tutti gli elettroni, X=4,5, estrapolazione X^-3, zero manopole; blocco-nucleo non usato",

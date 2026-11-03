@@ -338,9 +338,10 @@ fn mul(a: &[[f64; 3]; 3], b: &[[f64; 3]; 3]) -> [[f64; 3]; 3] {
 
 fn righe_esportazione(e: &Esportazione, buca: bool) -> (String, String) {
     let (p, f) = e.n_pass();
-    (format!("{} ({}) · livello {} · {} elettroni · {} fotografie di |Ψ|² · esami {} PASS / {} FAIL", e.nome, e.simbolo, e.livello.to_uppercase(), e.n_el, e.n, p, f),
+    let esatto = e.livello == "esatto";
+    (format!("{} ({}) · livello {} · {} elettroni · {} {} · esami {} PASS / {} FAIL", e.nome, e.simbolo, e.livello.to_uppercase(), e.n_el, e.n, if esatto { "fotografie di |Ψ|²" } else { "estrazioni dalla densità" }, p, f),
      format!("{}{}", e.energia.map(|x| format!("E = {:.6} Eh{} · ", x, e.riferimento.map(|r| format!(" (rif. {:.6})", r)).unwrap_or_default())).unwrap_or_default(),
-             if buca { "BUCA DI COULOMB: un elettrone (oro) tenuto fermo, gli altri (blu) lo evitano" } else { "bagliori = fotografie fresche dello stato (il moto è il campionatore, non una traiettoria)" }))
+             if !esatto { e.note.first().map(String::as_str).unwrap_or("") } else if buca { "BUCA DI COULOMB: un elettrone (oro) tenuto fermo, gli altri (blu) lo evitano" } else { "bagliori = fotografie fresche dello stato (il moto è il campionatore, non una traiettoria)" }))
 }
 
 enum Mondo { Vuoto, Nuvola(Nuvola), Idrogeno(Box<crate::cascata::Mondo>) }
