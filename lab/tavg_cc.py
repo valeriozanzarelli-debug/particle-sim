@@ -61,19 +61,28 @@ def gaunt(l1, m1, k, l2, m2):
 
 # ------------------------------------------------------------------ basis and integrals
 class Basis:
-    def __init__(self, Z, config, X, log=print):
-        """config: valence configuration in the block, e.g. '2s2 2p4' (block numbering: first s = 2s, first p = 2p)"""
+    def __init__(self, Z, config, X, log=print, ae=False, core=False):
+        """config: valence configuration in the block, e.g. '2s2 2p4' (block numbering: first s = 2s, first p = 2p).
+        ae=True (fase 5): all electrons, bare nucleus Z, config like '1s2 2s2 2p4' (fine-level ROHF, tavg_blocks.get_ae);
+        core=True adds tight Laguerre sets with the extent of the 1s: n = X-1 (l = 0), X-l (1 <= l <= X-1)"""
         t0 = time.time()
-        self.f = f = P.BlockField(Z)
-        cfg = []
-        for tok in config.split():
-            l = LBL.index(tok[1]); cfg.append((l + 1, l, int(tok[2:])))
+        if ae:
+            import tavg_blocks as tb
+            cfg = tr.config_from_string(config)
+            a = tb.get_ae(Z, config)
+            self.f = None
+        else:
+            self.f = f = P.BlockField(Z)
+            cfg = []
+            for tok in config.split():
+                l = LBL.index(tok[1]); cfg.append((l + 1, l, int(tok[2:])))
+            a = f.radial_atom(cfg); a.scf()
         self.cfg = cfg
-        a = f.radial_atom(cfg); a.scf()
         self.atom, self.E_rohf = a, float(a.E)
-        g = f.g; r = g.r; self.g = g; w = r * g.h; self.w = w
+        g = a.g; r = g.r; self.g = g; w = r * g.h; self.w = w
         rv = max(float(g.integ(a.P[i] ** 2 * r)) for i in range(len(cfg)))
         self.r_v = rv
+        self.r_c = min(float(g.integ(a.P[i] ** 2 * r)) for i in range(len(cfg)))
         Nel = sum(c[2] for c in cfg)
         rho = sum(c[2] * a.P[i] ** 2 for i, c in enumerate(cfg))
         self.VH = (Nel - 1) / Nel * (g.Lk(0) @ rho)
@@ -86,6 +95,10 @@ class Basis:
             lam = (2 * l + 3) / (2 * rv)
             x = 2 * lam * r
             Lg = [x ** (l + 1) * np.exp(-x / 2) * eval_genlaguerre(k, 2 * l + 2, x) for k in range(X + 1 - l)]
+            if core:
+                nc = (X - 1) if l == 0 else (X - l)
+                xc = 2 * (2 * l + 3) / (2 * self.r_c) * r
+                Lg += [xc ** (l + 1) * np.exp(-xc / 2) * eval_genlaguerre(k, 2 * l + 2, xc) for k in range(max(nc, 0))]
             V = np.array(Pl + Lg)             # (n, M)
             # Gram-Schmidt for occupied first, then canonical orthonormalization of the rest
             Q = []
@@ -177,10 +190,21 @@ class Basis:
             occ.append((p, 0 if sp > 0 else 1))
         return occ
 
+    def core_spinorbs(self):
+        """spin-orbitals of the 1s shell (shell 0 with n = 1) in the all-electron reference"""
+        out = []
+        for (si, ms, sp) in tr.hund_determinant(self.cfg):
+            if self.cfg[si][0] == 1 and self.cfg[si][1] == 0:
+                ir = self.occ_rad[si]
+                p = [i for i, o in enumerate(self.orbs) if o[0] == ir and o[2] == ms][0]
+                out.append((p, 0 if sp > 0 else 1))
+        return out
+
 
 # ------------------------------------------------------------------ spin-orbital machinery
 class SpinOrb:
-    def __init__(self, B, occ):
+    def __init__(self, B, occ, frozen=()):
+        """occ: all occupied (spatial, spin); frozen: subset kept out of the correlation (still in the Fock/reference)"""
         M = B.M
         so = [(p, s) for s in (0, 1) for p in range(M)]
         occset = set(occ)
@@ -195,6 +219,11 @@ class SpinOrb:
         J = np.einsum("pmqm->pq", self._phys(np.arange(n), o, np.arange(n), o, diag_mm=True))
         self.f = hs + J
         self.E_ref = float(np.trace(hs[:self.no, :self.no]) + 0.5 * np.einsum("ijij->", self.anti(o, o, o, o)))
+        if frozen:
+            fz = set(frozen)
+            keep = [i for i, x in enumerate(self.so) if x not in fz]
+            self.so = [self.so[i] for i in keep]; self.no -= len(fz)
+            self.sp = self.sp[keep]; self.ss = self.ss[keep]; self.f = self.f[np.ix_(keep, keep)]
 
     def _phys(self, P1, P2, P3, P4, diag_mm=False):
         """<pq||rs> for index sets (p in P1, q in P2, r in P3, s in P4); if diag_mm returns (P1, P2, P3, P2) with q=s"""
@@ -313,7 +342,8 @@ def ccsd(S, maxit=200, tol=1e-9, t_end=None, state=None, log=print):
     return E, (t1, t2), False
 
 
-def triples(S, t1, t2, log=print):
+def triples(S, t1, t2, log=print, t_end=None, start=None):
+    """returns E(T), or (partial E, next triple index) if t_end is reached (resumable with start=(E, idx))"""
     """ROHF-CCSD(T) in semicanonical orbitals (Watts, Gauss, Bartlett 1993): E[T] + E[ST] with the f_ia term"""
     no, nv = S.no, S.nv
     o = np.arange(no); v = np.arange(no, no + nv)
@@ -326,10 +356,15 @@ def triples(S, t1, t2, log=print):
     oovv = np.einsum("ijab,iI,jJ,aA,bB->IJAB", S.anti(o, o, v, v), Uo, Uo, Uv, Uv, optimize=True)
     ovvv = np.einsum("iabc,iI,aA,bB,cC->IABC", S.anti(o, v, v, v), Uo, Uv, Uv, Uv, optimize=True)
     ooov = np.einsum("ijka,iI,jJ,kK,aA->IJKA", S.anti(o, o, o, v), Uo, Uo, Uo, Uv, optimize=True)
-    E = 0.0
-    for i in range(no):
-        for j in range(i + 1, no):
-            for k in range(j + 1, no):
+    E, i0 = (0.0, 0) if start is None else (float(start[0]), int(start[1]))
+    trip = [(i, j, k) for i in range(no) for j in range(i + 1, no) for k in range(j + 1, no)]
+    for it_, (i, j, k) in enumerate(trip):
+        if it_ < i0:
+            continue
+        if t_end and time.time() > t_end:
+            return (E, it_)
+        if True:
+            if True:
                 def conn(i, j, k):
                     # sum_e t_jk^ae <ei||bc> - sum_m t_im^bc <ma||jk>;  <ei||bc> = -<ie||bc>; <ma||jk> = <jk||ma>
                     return -np.einsum("ae,ebc->abc", t2[j, k], ovvv[i]) - np.einsum("mbc,ma->abc", t2[i], ooov[j, k])
@@ -388,22 +423,37 @@ def fci(S, nexc=None):
     return float(np.linalg.eigvalsh(Hm)[0]), N
 
 
-def run(Z, config, X, name=None, t_budget=540, log=print):
+def run(Z, config, X, name=None, t_budget=540, log=print, ae=False, core=False, frozen_core=False):
     """one species, one basis size: E_ROHF(block), E_ref, CCSD, (T); checkpoint of amplitudes (npz, untracked)"""
     t_end = time.time() + t_budget
-    B = Basis(Z, config, X, log=log)
-    S = SpinOrb(B, B.reference())
+    B = Basis(Z, config, X, log=log, ae=ae, core=core)
+    S = SpinOrb(B, B.reference(), frozen=B.core_spinorbs() if frozen_core else ())
     ck = os.path.join(OUT, "tavg_cc_amp", f"{name or ('Z%d_' % Z + config.replace(' ', '_'))}_X{X}.npz")
     os.makedirs(os.path.dirname(ck), exist_ok=True)
-    st = None
+    st = None; done = False
     if os.path.exists(ck):
-        z = np.load(ck); st = (z["t1"], z["t2"])
-    Ec, (t1, t2), conv = ccsd(S, t_end=t_end, state=st, log=lambda s: None)
-    np.savez(ck, t1=t1, t2=t2)
+        z = np.load(ck); st = (z["t1"], z["t2"]); done = bool(z["conv"]) if "conv" in z else False
+    if done:
+        t1, t2 = st; conv = True
+        o = np.arange(S.no); v = np.arange(S.no, S.no + S.nv)
+        oovv = S.anti(o, o, v, v); fov = S.f[np.ix_(o, v)]
+        Ec = float(np.einsum("ia,ia->", fov, t1) + 0.25 * np.einsum("ijab,ijab->", oovv, t2)
+                   + 0.5 * np.einsum("ijab,ia,jb->", oovv, t1, t1))
+    else:
+        Ec, (t1, t2), conv = ccsd(S, t_end=t_end, state=st, log=lambda s: None)
+        np.savez(ck, t1=t1, t2=t2, conv=conv)
+    ckT = ck.replace(".npz", "_T.npz")
     out = dict(Z=Z, config=config, X=X, M=B.M, no=S.no, nv=S.nv, E_rohf_blocco=B.E_rohf, E_ref=S.E_ref,
                dE_ref=S.E_ref - B.E_rohf, Ec_ccsd=Ec, convergiuto=conv)
     if conv:
-        out["Ec_T"] = triples(S, t1, t2)
+        stT = None
+        if os.path.exists(ckT):
+            z = np.load(ckT); stT = (float(z["E"]), int(z["i"]))
+        rT = triples(S, t1, t2, t_end=t_end, start=stT)
+        if isinstance(rT, tuple):
+            np.savez(ckT, E=rT[0], i=rT[1]); out["convergiuto"] = False; out["T_parziale"] = list(rT)
+            return out
+        out["Ec_T"] = rT
         out["E_tot"] = S.E_ref + Ec + out["Ec_T"]
         out["Ec_val"] = out["E_tot"] - B.E_rohf
     return out
