@@ -1,0 +1,77 @@
+{
+ "formato": "particle-sim/esportazione-v1",
+ "nome": "ossigeno",
+ "simbolo": "O",
+ "tipo": "atomo",
+ "Z": 8,
+ "carica": 0,
+ "livello": "approssimato",
+ "metodo": "O 3P: ROHF del livello fine a tutti gli elettroni + CCSD(T) a tutti gli elettroni, X=4,5, estrapolazione X^-3, zero manopole; blocco-nucleo non usato",
+ "fonte": "lab/tavg_f5_export.py, lab/out/tavg_dati_ossigeno/, docs/TAVOLA_GRIGLIA.md fasi 4-5 (seconda prova dopo il C1 della fase 4: non primo cieco)",
+ "nuclei": [
+  {
+   "Z": 8,
+   "pos": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "n_elettroni": 8,
+ "simmetria": "sferica",
+ "energia_Eh": -75.06610228540346,
+ "esami": [
+  {
+   "id": "E_c",
+   "cosa": "correlazione -0.2567 contro -0.2579 Eh (-0.46 %)",
+   "PASS": true
+  },
+  {
+   "id": "IP",
+   "cosa": "ionizzazione 13.605 contro 13.618 eV (-0.10 %)",
+   "PASS": true
+  },
+  {
+   "id": "K5",
+   "cosa": "esame di docs/TAVOLA_GRIGLIA.md, fase 5 (lab/out/tavg_f5_verdetti_em1.json)",
+   "PASS": true
+  },
+  {
+   "id": "C1",
+   "cosa": "esame di docs/TAVOLA_GRIGLIA.md, fase 5 (lab/out/tavg_f5_verdetti_em1.json)",
+   "PASS": true
+  },
+  {
+   "id": "C2",
+   "cosa": "esame di docs/TAVOLA_GRIGLIA.md, fase 5 (lab/out/tavg_f5_verdetti_em1.json)",
+   "PASS": true
+  },
+  {
+   "id": "C3",
+   "cosa": "esame di docs/TAVOLA_GRIGLIA.md, fase 5 (lab/out/tavg_f5_verdetti_em1.json)",
+   "PASS": true
+  },
+  {
+   "id": "C4",
+   "cosa": "esame di docs/TAVOLA_GRIGLIA.md, fase 5 (lab/out/tavg_f5_verdetti_em1.json)",
+   "PASS": true
+  },
+  {
+   "id": "C5",
+   "cosa": "esame di docs/TAVOLA_GRIGLIA.md, fase 5 (lab/out/tavg_f5_verdetti_em1.json)",
+   "PASS": true
+  }
+ ],
+ "note": [
+  "i bagliori sono elettroni pescati INDIPENDENTI dalla densita' HF radiale: niente correlazione e niente forma p nel disegno; la correlazione e' solo nelle energie",
+  "la buca di Coulomb qui non puo' uscire: i campioni sono indipendenti",
+  "debiti: triple perturbative, base finita + X^-3, nucleo fermo, niente relativita'"
+ ],
+ "campioni": {
+  "file": "campioni.f32",
+  "n": 4000,
+  "unita": "bohr",
+  "ordine": "n x n_elettroni x 3, float32 little endian"
+ }
+}
