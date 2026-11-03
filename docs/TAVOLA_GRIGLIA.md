@@ -245,3 +245,42 @@ attivo (blocco "aperto" o tutti gli elettroni) per calcolare il core-valenza inv
 per il guscio 1s; costo atteso simile (8 elettroni invece di 6).
 
 Per rifare: `cd lab; nohup ./tavg_f4_loop.sh & ` poi `python tavg_f4_judge.py` (ampiezze in `out/tavg_cc_amp/`, non tracciate).
+
+## Fase 5 — core-valenza calcolato, tutti gli elettroni attivi (3/11: O e N entro l'1 %, ma K5 FAIL per 0,03 mEh → niente export)
+
+**Attenzione: è una seconda prova, fatta DOPO aver visto il C1 della fase 4** (fallito per il core-valenza stimato). Le
+soglie sono le stesse e non ci sono manopole, quindi il verdetto C1 è onesto, ma **non è il primo alla cieca**.
+Pre-registrazione `lab/out/tavg_prereg_f5.json` (commit c6cf69b, prima delle corse). Verdetti
+`lab/out/tavg_f5_verdetti.json` (`python lab/tavg_f5_judge.py`).
+
+Come: lo stesso CCSD(T) della fase 4 (`lab/tavg_cc.py`, `ae=True`), con tutti gli elettroni nel campo −Z/r del nucleo
+nudo, orbitali ROHF del livello fine (gli stessi dell'HF della chiave) e in più funzioni strette con l'estensione del
+1s. Il blocco qui non entra: il debito "blocco congelato" sparisce, ma questo non è più l'agglomeratore (dichiarato).
+Con il core a X = 5 servirebbero 150 orbitali (4 GB di integrali): non entra in 2,5 GB. Allora si compone, senza
+manopole: E_c = [valenza, 1s congelato, X = 4, 5 → X⁻³] + [(tutti − 1s congelato) con base di core, X = 3, 4 → X⁻³].
+26 corse, ~2 ore, ≤ 590 s per processo, (T) a pezzi con checkpoint.
+
+| esame | cosa | risultato | esito |
+|---|---|---|---|
+| K5 | macchina: O⁶⁺ (1s²) contro l'esatto della regola, entro 0,5 mEh | −44,91 contro −45,44 mEh (+0,53 mEh) | **FAIL** (di 0,03 mEh) |
+| C1 | E_c(O) entro 5 % di −257,9 mEh (non primo cieco) | −256,2 mEh (−0,65 %) | PASS |
+| C2 | IP(O) entro 3 % di 13,618 eV | 13,601 eV (−0,12 %) | PASS |
+| C3, C4 | IP(N) > IP(O); caduta 0,916 ± 0,3 eV | 14,547 > 13,601; 0,946 eV | PASS |
+| C5 | IP(N) entro 3 % di 14,534 | 14,547 eV (+0,09 %) | PASS |
+| R1 | E_c(N) (riportato) | −187,0 contro −188,8 mEh (−1,0 %) | — |
+| R2 | core-valenza di O calcolato contro la stima della fase 4 | −16,5 contro −42,3 mEh | — |
+
+Pezzi di O (mEh): valenza −194,3; 1s² + core-valenza −61,9 (di cui core-valenza −16,5).
+
+**Lettura onesta**: con il core-valenza calcolato invece che stimato, O e N tornano entro l'1 % su E_c e lo 0,1 % sugli
+IP, senza manopole: è una **validazione** forte del risolutore (numeri noti ritrovati), non una scoperta. Ma l'esame di
+macchina pre-registrato (il 1s² da solo, dove si conosce l'esatto) manca la soglia di 0,03 mEh: la base di core a
+X = 3, 4 è un po' corta e l'estrapolazione X⁻³ da lì sottostima di 0,53 mEh. La regola era "export solo se passano
+tutti", quindi **export di O NON fatto**. Soglie non toccate. Lo stesso errore di base (~0,5 mEh) pesa lo 0,2 % su
+E_c(O): non cambia i verdetti C1–C5, ma la macchina non è certificata al livello chiesto.
+
+Debiti: triple solo perturbative; base finita (core solo fino a X = 4); CCSD su ROHF non adattato di spin; massa
+infinita, niente relatività (come la chiave). Per chiudere: core a X = 5 con integrali a pezzi (memoria), poi rifare
+K5 e, se passa, l'export.
+
+Per rifare: `cd lab; nohup ./tavg_f5_loop.sh &` poi `python tavg_f5_judge.py` (ampiezze in `out/tavg_cc_amp/f5_*`, non tracciate).
