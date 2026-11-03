@@ -99,7 +99,8 @@ if __name__ == "__main__":
     B = I.Basis(cen, [8, 1, 1], shells)
     o = I.integrals(B)
     worst = {}
-    for A, Bq in [(0, 0), (1, 2), (2, 3), (3, 4), (4, 4), (5, 6), (6, 1), (3, 3), (4, 0), (2, 6)]:
+    only = [int(x) for x in sys.argv[1:]]          # optional: only these ERI quartets (one-electron part skipped)
+    for A, Bq in ([] if only else [(0, 0), (1, 2), (2, 3), (3, 4), (4, 4), (5, 6), (6, 1), (3, 3), (4, 0), (2, 6)]):
         if True:
             ref = one_e_ref(shells[A][1:], shells[Bq][1:], cen[shells[A][0]], cen[shells[Bq][0]], B.Z, cen)
             sa = slice(B.off[A], B.off[A + 1]); sb = slice(B.off[Bq], B.off[Bq + 1])
@@ -108,7 +109,7 @@ if __name__ == "__main__":
             worst["D"] = max(worst.get("D", 0), np.abs(o["D"][:, sa, sb] - ref[3]).max())
             print("pair", A, Bq, {k: float(v) for k, v in worst.items()}, flush=True)
     quartets = [(0, 0, 0, 0), (1, 2, 5, 3), (3, 2, 1, 0), (4, 5, 2, 1), (6, 3, 6, 2), (3, 3, 3, 3)]
-    for q in quartets:
+    for q in ([quartets[i] for i in only] if only else quartets):
         ref = eri_ref([shells[k][1:] for k in q], [cen[shells[k][0]] for k in q])
         sl = tuple(slice(B.off[k], B.off[k + 1]) for k in q)
         err = np.abs(o["G"][sl] - ref).max()

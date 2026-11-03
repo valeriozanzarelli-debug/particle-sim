@@ -1,0 +1,54 @@
+{
+ "studio": "ACQUA (H2O, tier approssimato)",
+ "data": "2026-11-03",
+ "modello": "Born-Oppenheimer, nuclei fermi (massa infinita per l'elettronica), niente relativita', niente ZPE; H2O: RHF + CCSD(T) a tutti gli elettroni; O 3P: ROHF sferico + ROHF-CCSD(T) a tutti gli elettroni; H: HF esatto nella base",
+ "ingressi": "Z = 8, 1; costanti fisiche (a0 = 0.529177210903 A, Eh = 27.211386245988 eV, 1 au dipolo = 2.541746473 D, m_p = 1836.15267343 m_e, u = 1822.888486209 m_e, massa del nucleo 16O = 15.99491461957 u - 8 m_e)",
+ "base": "even-tempered nostre (lab/acqua_basis.py, parametri in lab/out/acqua_basi.json, ottimizzati su energie dei nostri atomi O, H e di H2), X = 2 e 3 con diffuse (aug); nessuna tabella pubblicata",
+ "CBS": "E = E_HF(X=3) + [27 E_c(3) - 8 E_c(2)] / 19, punto per punto (E_c = CCSD + (T))",
+ "geometria": "superficie CBS su griglia 3x3 simmetrica (passi 0.01 A, 1.5 gradi), interpolante biquadratica, ricentrata se il minimo dista > 0.004 A o 0.6 gradi; centro di partenza = minimo HF X=2 (lab/acqua_plan.py)",
+ "frequenze": "armoniche: costanti di forza interne dalla superficie CBS al minimo + punti asimmetrici r +- delta (0.01, 0.02 A, Richardson); Hessiana cartesiana = B^T F B, masse nucleari",
+ "dipolo": "campo finito F = +-0.002, +-0.004 au, derivata a 4 punti; PRIMARIO: X=3 aug CCSD(T) al minimo CBS; secondario: CBS(2,3)",
+ "D_e": "E(O) + 2 E(H) - E(H2O) al minimo CBS, energie CBS(2,3) per molecola e atomi",
+ "esami": {
+  "A1_r_OH": {
+   "rif_A": 0.9572,
+   "soglia_rel": 0.005
+  },
+  "A2_angolo": {
+   "rif_gradi": 104.52,
+   "soglia_gradi": 1.0
+  },
+  "A3_D_e": {
+   "rif_Eh": 0.3705,
+   "soglia_rel": 0.03
+  },
+  "A4_dipolo": {
+   "rif_D": 1.855,
+   "soglia_rel": 0.05
+  },
+  "A5_frequenze_opzionale": {
+   "rif_cm-1": [
+    3832,
+    1649,
+    3943
+   ],
+   "soglia_rel": 0.03,
+   "nota": "riferimenti armonici"
+  }
+ },
+ "controlli_di_macchina": {
+  "C-INT": "integrali vs quadratura a forza bruta < 1e-8",
+  "C-CC": "CCSD(T) guscio chiuso vs spin-orbitali tavg_cc < 1e-9",
+  "C-H": "H X=4 aug, |E_HF + 0.5| < 0.2 mEh",
+  "C-H2": "CBS(3,4): |R_e - 1.4009| <= 0.003 bohr, |D_e - 4.7477 eV| <= 0.02 eV",
+  "C-O": "CBS(3,4) aug: E_c = E_tot - E_HF(livello fine) entro 2 % di -0.256225 Eh"
+ },
+ "manopole_fittate_su_esperimenti": 0,
+ "scelte_dichiarate": [
+  "numero di funzioni per X (NFUN)",
+  "regola delle diffuse (a_min / beta_s)",
+  "esponenti ottimizzati sulle energie dei nostri atomi (HF per s,p; CCSD per la polarizzazione)",
+  "estrapolazione a due punti X^-3",
+  "passi della griglia e del campo"
+ ]
+}
