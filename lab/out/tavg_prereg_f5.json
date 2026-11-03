@@ -1,0 +1,78 @@
+{
+ "studio": "tavg_ FASE 5: core-valenza CALCOLATO (1s2 attivo, tutti gli elettroni, nucleo nudo), O e N",
+ "data": "2026-11-03",
+ "NON_PRIMO_CIECO": "seconda prova fatta DOPO aver visto C1 della fase 4 (E_c(O) +10.9 %, colpa del core-valenza stimato). Il verdetto C1 qui e' onesto (stesse soglie, niente manopole) ma non e' 'il primo alla cieca'.",
+ "soglie": "identiche: E_c 5 %, IP 3 %, C3-C5 come in tavg_prereg2.json (ec4a4ba)",
+ "risolutore": "lab/tavg_cc.py ROHF-CCSD(T) (fase 4), ora ae=True: tutti gli elettroni nel campo -Z/r, orbitali ROHF del livello fine (tavg_blocks.get_ae, gli stessi dell'HF della chiave C1). Il blocco NON entra: debito 'blocco congelato' tolto, ma questo non e' piu' l'agglomeratore (dichiarato).",
+ "base": {
+  "valenza": "come fase 4: per l = 0..X, X+1-l Laguerre con <r> della valenza",
+  "core": "in piu' (core=True): Laguerre stretti con <r> del 1s, n = X-1 (l = 0), X-l (1 <= l <= X-1)",
+  "nota_memoria": "tutti gli elettroni con base di core a X = 5 = 150 orbitali, integrali 4 GB: non entra in 2.5 GB. Per questo la composizione sotto."
+ },
+ "composizione": "E_c = CBS45[E_c FC, base valenza] + CBS34[E_c AE - E_c FC, base con core]; FC = 1s congelato nel CC (ma nel riferimento); CBS_ab(E) = (b^3 E_b - a^3 E_a)/(b^3 - a^3). Zero manopole.",
+ "specie": {
+  "O": [
+   8,
+   "1s2 2s2 2p4"
+  ],
+  "O+": [
+   8,
+   "1s2 2s2 2p3"
+  ],
+  "N": [
+   7,
+   "1s2 2s2 2p3"
+  ],
+  "N+": [
+   7,
+   "1s2 2s2 2p2"
+  ],
+  "He_Z8": [
+   8,
+   "1s2"
+  ]
+ },
+ "esami": {
+  "K5": {
+   "cosa": "macchina: ione tipo He O6+ (1s2, 2 e-: CCSD = full CI), CBS34 base con core, contro l'esatto della regola multi_e_ecg he1S_Z8",
+   "soglia_Eh": 0.0005,
+   "contato": true
+  },
+  "C1": {
+   "cosa": "E_c(O) contro -0.257902 Eh, entro 5 % (NON primo cieco)",
+   "contato": true
+  },
+  "C2": {
+   "cosa": "IP(O) contro 13.618 eV entro 3 %",
+   "contato": true
+  },
+  "C3": {
+   "cosa": "IP(N) > IP(O)",
+   "contato": true
+  },
+  "C4": {
+   "cosa": "IP(N)-IP(O) contro 0.916 entro 0.3 eV",
+   "contato": true
+  },
+  "C5": {
+   "cosa": "IP(N) contro 14.534 entro 3 %",
+   "contato": true
+  },
+  "R1": {
+   "cosa": "E_c(N) contro -0.1888, riportato",
+   "contato": false
+  },
+  "R2": {
+   "cosa": "core-valenza calcolato (AE - FC - E_c(1s2) tipo He) contro la stima della fase 4 (-42.3 mEh per O), riportato",
+   "contato": false
+  }
+ },
+ "decisione": "export di O 'approssimato' solo se K5, C1, C2, C3, C4, C5 passano tutti; manifest in lab/out/tavg_dati_ossigeno/, campioni non tracciati + comando per rigenerarli.",
+ "debiti": [
+  "triple solo perturbative",
+  "base finita + X^-3 (core da X = 3, 4)",
+  "CCSD su ROHF non adattato di spin",
+  "massa del nucleo infinita, niente relativita' (come la chiave)"
+ ],
+ "corse": "lab/tavg_f5_drive.py, una corsa per processo <= 590 s, (T) a pezzi con checkpoint"
+}
