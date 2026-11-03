@@ -1,9 +1,10 @@
 """tavg_f3_drive.py - FASE 3: tutte le corse pre-registrate (lab/out/tavg_prereg_f3.json), a spezzoni <= 590 s.
 Uso: python tavg_f3_drive.py <g1|g2|g3>   (uno spezzone; stampa TUTTO_FATTO quando il gruppo e' finito)
   g1: controllo di macchina (tavg_pecg2.macchina), poi ECG nel blocco O: 2s2 1S, 2s2p 3P, 2s2p 1P (V1)
+  g6: ECG nel blocco O 2s2p 3P (in parallelo a g1)
   g2: CI di coppia nei blocchi Z = 5..8 (P), poi ioni tipo Li nudi Z = 7, 8 (2S, 2P) per il core-valenza
   g4: ioni tipo Li Z = 8 (emendamento 1: separati da g2 per girare in parallelo)
-  g3: verifica a 3 elettroni 2s2 2p 2P nei blocchi C e O (A1)
+  g3: verifica a 3 elettroni 2s2 2p 2P nel blocco C (A1); g5: lo stesso nel blocco O (in parallelo)
 Risultati: lab/out/tavg_f3_<gruppo>.json (tracciati); basi: lab/out/tavg_f3_base/*.json (non tracciate).
 Ciclo non sorvegliato: bash lab/tavg_f3_loop.sh <gruppo>  (log non tracciato in lab/out/tavg_f3_<gruppo>.log)"""
 import os, sys, json, time
@@ -88,10 +89,14 @@ def g1():
     if not all(m.get(k, {}).get("K", 0) >= 240 for k in ("O_noee_2s2", "He_nudo")):
         Q.macchina(Kmax=240, t_budget=left())
         return False
-    for st, spin, L in (("s2_1S", "s2", 0), ("sp_3P", "t2", 1), ("sp_1P", "s2", 1)):
+    return vruns("g1", (("s2_1S", "s2", 0), ("sp_1P", "s2", 1)))
+
+
+def vruns(g, sts):
+    for st, spin, L in sts:
         if left() <= 0:
             return False
-        ok = ecg_task("g1", f"V_O_{st}", lambda: Q.QBlockSystem(field(8), spin, L=L), 6.0, 300, 1e-6, Q.NN_MIN)
+        ok = ecg_task(g, f"V_O_{st}", lambda: Q.QBlockSystem(field(8), spin, L=L), 6.0, 300, 1e-6, Q.NN_MIN)
         if not ok:
             return False
     return True
@@ -137,17 +142,18 @@ def g4():
     return li_runs("g4", 8)
 
 
-def g3():
-    for Z in (6, 8):
+def g3(Zs=(6,), g="g3"):
+    for Z in Zs:
         if left() <= 0:
             return False
         f = field(Z)
-        ok = ecg_task("g3", f"A3_Z{Z}_2s2_2p", lambda: P.BlockSystem(f, "p3", L=1), f.Zv, K3, 2e-5, 1e-5)
+        ok = ecg_task(g, f"A3_Z{Z}_2s2_2p", lambda: P.BlockSystem(f, "p3", L=1), f.Zv, K3, 2e-5, 1e-5)
         if not ok:
             return False
     return True
 
 
 if __name__ == "__main__":
-    done = {"g1": g1, "g2": g2, "g3": g3, "g4": g4}[sys.argv[1]]()
+    done = {"g1": g1, "g2": g2, "g3": g3, "g4": g4, "g5": lambda: g3((8,), "g5"),
+            "g6": lambda: vruns("g6", (("sp_3P", "t2", 1),))}[sys.argv[1]]()
     print("TUTTO_FATTO" if done else "SPEZZONE_FINITO", flush=True)
