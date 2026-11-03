@@ -1,0 +1,10 @@
+{
+ "emendamento": 1,
+ "data": "2026-11-03",
+ "di": "lab/out/tavg_prereg_f3.json (commit 94ecce4)",
+ "cosa": "corse ECG a 3 elettroni (Li Z=7,8 2S/2P e A3 nei blocchi C, O): K massimo da 250 a 600; stop invariato (|E(K)-E(K-40)| < 2e-5 Eh).",
+ "perche": "a K = 250 nessuna era convergiuta: cambi di 0.3-1.7 mEh ogni 20 funzioni (es. Li Z=8 2P: -63.78269 -> -63.78415), errore di mEh contro contributi di core-valenza di mEh: il numero sarebbe rumore.",
+ "visto_prima": "solo le energie di allenamento (Li-like, A3 e coppie CI). NESSUNA previsione di O/N calcolata; nessuna soglia toccata.",
+ "M1": "il controllo di macchina e' finito a K = 240: He nudo dE = 1.4e-7, monotono; 2 e- senza repulsione nel blocco O: dE = +4.8e-6 (mai sotto l'esatto), ma NON monotono (salite fino a +1.7e-6 ai riavvii, quando l'autovalore minimo della sovrapposizione 1e-12 tocca il taglio canonico). Esito come pre-registrato: M1 FAIL (criterio 'monotona'). Nessun collasso.",
+ "separazione": "Li Z=8 spostati nel gruppo g4 per girare in parallelo (stessi parametri)"
+}
