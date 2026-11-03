@@ -306,3 +306,15 @@ Core-valenza di O calcolato: −17,0 mEh (la stima della fase 4 era −42,3). **
 `python lab/tavg_f5_export.py`). Fonti: HF del livello fine + CCSD(T) a tutti gli elettroni; il blocco **non** è usato.
 È validazione (numeri noti ritrovati, zero manopole), non scoperta. Debiti: densità/campioni da HF, triple
 perturbative, base finita, massa infinita, niente relatività.
+
+### Acqua (H₂O): NON iniziata — cosa servirebbe (3/11)
+
+Tutto il codice di queste fasi è a un solo centro (griglia radiale + armoniche sferiche attorno a un nucleo). Per H₂O
+con le soglie chieste (r(OH) 0,5 %, angolo 1°, D_e 3 %, dipolo 5 %) serve un motore molecolare che qui non esiste:
+integrali gaussiani a più centri (fino a f, compilati con numba), SCF molecolare, trasformazione AO→MO, lo stesso
+CCSD(T) a spin-orbitali (riusabile), minimizzazione della geometria (~10–15 punti per base), dipolo a campo finito.
+Uno sviluppo a un solo centro attorno a O non basta: le cuspidi degli H convergono troppo piano in l per il 3 % su D_e.
+Stima: ~800 righe nuove; con ~95–120 funzioni per base, ~30–60 min di CCSD(T) per punto, quindi ~20–40 ore di
+calcolo per la geometria a due basi più gli atomi. Il dimero (≈ 190–240 funzioni) non entra in 2,5 GB con questo
+codice: servirebbero integrali fattorizzati (density fitting) e un CCSD a blocchi di spin, ~4–8× il costo del monomero
+per punto.
