@@ -1,4 +1,4 @@
-# Tavola periodica, parte 2: dal boro in su sulla griglia agglomerata — PARZIALE (ossigeno: HF sì, correlazione no)
+# Tavola periodica, parte 2: dal boro in su sulla griglia agglomerata — PARZIALE (ossigeno: HF sì, correlazione no; fase 3 di coppia: FAIL)
 
 Studio `tavg_`. Stato al 2/11/2026: **PARZIALE**. Pre-registrazione della fase 1: `lab/out/tavg_prereg.json` (commit
 69414b4). Emendamento fase 2 (correlazione, bersaglio ossigeno): `lab/out/tavg_prereg2.json` (commit ec4a4ba, prima
@@ -140,37 +140,66 @@ Poi: verdetti G1–G7, export in `/mnt/project-files/debiti/dati/<nome>/` (tier 
 Figura: `lab/out/tavg_figure.png` (a: correlazione imparata, allenamento e cieco; b: IP di N e O; c: la prova della
 rottura di simmetria).
 
-## Fase 3 — correlazione per coppia nel campo vero (PARZIALE, fermata il 2/11 su richiesta)
+## Fase 3 — correlazione per coppia nel campo vero (CHIUSA il 3/11: **FAIL**, niente export di O)
 
-Soglie per O alla cieca: quelle dell'emendamento ec4a4ba (E_c entro 5 %, IP entro 3 %). Emendamento della fase 3
-**non ancora scritto** (va committato prima dei fit).
+Pre-registrazione: `lab/out/tavg_prereg_f3.json` (commit 94ecce4, prima di ogni corsa e di ogni fit), emendamento 1
+`lab/out/tavg_prereg_f3_em1.json` (commit 2c90f3c: corse a 3 e- da K 250 a 600 perché non erano convergiute; fatto
+prima di calcolare qualunque previsione; soglie intatte: E_c entro 5 %, IP entro 3 %). Verdetti:
+`lab/out/tavg_f3_verdetti.json` (`python lab/tavg_f3_judge.py`), figura `lab/out/tavg_f3_figura.png`.
 
-- **Fatto, passo 1: il blocco dentro l'ECG** (`lab/tavg_pecg.py`). La parte locale si calcola esatta per quadratura
-  radiale, quella separabile (s) come somma di 40 gaussiane (regola automatica: livelli s del blocco entro 2·10⁻⁷).
-  Controllo di macchina con un solo elettrone nel blocco (`python tavg_pecg.py check 8 7 6` →
-  `lab/out/tavg_pecg_check.json`), tutto **PASS**:
-  - energia s: O +4,8·10⁻⁷, N +7,6·10⁻⁷, C +2,0·10⁻⁷ Eh;
-  - energia p: ≤ 8·10⁻⁸ Eh;
-  - forma dell'orbitale: 1 − |sovrapposizione| ≤ 1,2·10⁻⁸.
-- **Problema aperto (sviluppo, dichiarato)**: con 2 elettroni la crescita stocastica (SVM) collassa a K ≈ 80. Gli
-  elementi di matrice separabili sono esatti solo a ~10⁻⁹ relativo, perché le gaussiane cancellano coefficienti
-  fino a 10⁵. Lisciare il proiettore non è la soluzione: sposta i livelli di 10⁻³ Eh già con un raggio di 0,01 a₀.
-- **Strade per sbloccare**, da provare in quest'ordine:
-  1. una soglia di dipendenza lineare più severa nell'SVM, con ortogonalizzazione canonica (`canon_eig`);
-  2. calcolo dei termini separabili in precisione estesa;
-  3. integrale separabile per quadratura diretta, solo nella 2D a 2 elettroni.
-- **Piano che resta, invariato**:
-  1. stati a coppia nei blocchi C, N, O: 2s² ¹S, 2s2p ³P°/¹P° con l'ECG (L = 0, 1); 2p² ³P/¹D con un'interazione
-     di configurazioni a onde parziali, validata contro l'ECG sugli stati in comune;
-  2. una legge per tipo di coppia, con le manopole contate;
-  3. verifica a 3 elettroni (2s²2p ²P° nel blocco, ECG L = 1);
-  4. Be dall'agente berillio;
-  5. emendamento committato, poi O alla cieca.
+**Il collasso dell'SVM è risolto** (`lab/tavg_pecg2.py`). La causa: il proiettore del blocco scritto come 40 gaussiane
+con coefficienti fino a 1,3·10⁵ che si cancellano (fattore 3,5·10⁵), più la sottrazione A_jj − A_ij²/A_ii. Rimedio:
+formula riscritta senza quella sottrazione e calcolata in long double (80 bit): errore contro un riferimento a 45 cifre
+2·10⁻¹¹ Eh invece di 8·10⁻⁸; in più l'SVM accetta un candidato solo se è nuovo per almeno 10⁻⁷ (norma residua) e usa
+l'ortogonalizzazione canonica. Prima collassava a K ≈ 50 (energie di −10⁹ Eh); ora arriva a K = 240 senza mai
+scendere sotto l'esatto. (Provata e scartata la quadratura diretta: errori 10⁻⁷, la griglia non risolve le funzioni
+molto correlate.)
 
-Per riprendere:
+Corse (4 processi in parallelo, spezzoni da 590 s, `lab/tavg_f3_drive.py` + `lab/tavg_f3_loop.sh`, ~3 ore):
+- coppie a 2 elettroni nei blocchi B, C, N, O con una CI nuova a onde parziali (`lab/tavg_ci2.py`, l ≤ 8, 24 funzioni
+  di Laguerre per l, coda in l). Provata su He nudo: HF −2,8616800 (esatto), 1s² a l ≤ 4 entro 0,05 mEh dal limite.
+  E_c delle coppie (mEh, B⁺→O⁴⁺): 2s² −65 → −115; 2s2p ³P −7,7 → −8,7; ¹P −51 → −63; 2p² ³P ≈ −9,6; ¹D ≈ −53;
+  barre ≤ 0,09 mEh;
+- ECG esatti nel blocco O per controllare la CI; ioni tipo Li nudi Z = 7, 8 (core-valenza); 2s²2p a 3 elettroni nei
+  blocchi C e O (verifica di additività).
+
+| esame | cosa | risultato | esito |
+|---|---|---|---|
+| M1 | macchina: oltre K = 200, senza collasso, monotona | He nudo dE 1,4·10⁻⁷ ok; 2 e- senza repulsione nel blocco O dE +4,8·10⁻⁶, mai sotto l'esatto, ma risale di 1,7·10⁻⁶ ai riavvii (taglio canonico a 10⁻¹²) | **FAIL** (solo "monotona") |
+| V1 | ECG contro CI nel blocco O, entro 1 mEh | 2s² −0,08, 2s2p ³P −0,05, ¹P −0,10 mEh | PASS |
+| A1 | additività a 3 e- (2s²2p), entro 10 % | C: coppie −116,3 contro esatto −88,7 mEh (+31 %); O: −154,1 contro −114,9 (+34 %) | **FAIL** |
+| C1 | E_c(O) entro 5 % di −257,9 mEh | −492,2 mEh (+91 %) | **FAIL** |
+| C2 | IP(O) entro 3 % di 13,618 eV | 16,17 eV (+18,7 %) | **FAIL** |
+| C3, C4 | IP(N) > IP(O), caduta 0,916 ± 0,3 eV | IP(N) 15,59 < IP(O): caduta −0,58 eV | **FAIL** |
+| C5 | IP(N) entro 3 % di 14,534 | 15,59 eV (+7,3 %) | **FAIL** |
+| R1 | E_c(N) (riportato) | −309,3 contro −188,8 mEh | — |
+
+Leggi scelte da sole (lascia-uno-fuori): lineare in x = 1/√(⟨r⟩ₐ⟨r⟩_b) per 2s², ¹P, ¹D, ³P(sp); 1/x per 2p² ³P;
+10 manopole, tutte fit. O neutro sta dentro l'intervallo di allenamento (x 0,8–0,9 contro 0,52–1,13): non è
+un'estrapolazione. Pezzi di O (mEh): 1s² −45,4; core-valenza −42,3; valenza −404,4 (2s² −96,6, 2s2p −163,6,
+2p² −144,3).
+
+**Perché fallisce (detto semplice)**: in uno ione con 2 soli elettroni di valenza, la coppia ha tutti gli orbitali del
+guscio 2 liberi per "schivarsi" (2s² ↔ 2p², 2s2p ¹P ↔ 2p3d, …): da lì vengono i −50/−110 mEh delle coppie singoletto.
+Nell'atomo vero quegli orbitali sono già occupati dagli altri elettroni, e ogni coppia non può più usarli. Sommare
+coppie prese da ioni a 2 elettroni conta la stessa "via di fuga" più volte. Lo dice già A1, con 3 elettroni esatti:
++31/34 %. Con 6 elettroni di valenza l'errore cresce fino a quasi raddoppiare E_c. Anche il core-valenza preso dallo
+ione tipo Li (5–8 mEh per elettrone) è troppo, per la stessa ragione (2s compatto). È la fisica nota delle teorie di
+coppia "non chiuse" (Sinanoğlu): la correlazione non è additiva per coppie fra gusci aperti. Il metodo nuovo funziona
+(V1: ECG e CI d'accordo entro 0,1 mEh), è la regola di somma che non regge.
+
+Debiti: blocco HF congelato; trasferimento ione→atomo via x; pesi di configurazione media; ε(2p² ¹S) := ε(¹D)
+(il ¹S di 2p² non è la radice più bassa: E_c da +37 a −20 mEh, solo riportato); core-valenza senza scala; additività.
+
+**Export di O: NON fatto** (C1, C2 falliscono; anche M1 per la monotonia). Soglie non toccate.
+
+Cosa resta aperto (proposta, non provata): la correlazione deve venire da sistemi con il guscio 2 già pieno quanto
+nell'atomo, non da coppie isolate: ECG/CI a 3–4 elettroni nel blocco (A1 ora gira a K = 600 in ~2 ore), o una
+correzione di esclusione per coppia imparata da A1 (dichiarata come nuova manopola, da pre-registrare).
+
+Per rifare:
 ```
-cd lab
-export OMP_NUM_THREADS=1 NUMBA_NUM_THREADS=1 MKL_NUM_THREADS=1
-timeout 590 python tavg_pecg.py check 8 7 6     # rifà il controllo a 1 elettrone (~10 s ciascuno)
-# poi: risolvere la precisione del termine separabile a 2 elettroni (vedi sopra), corse a coppia, emendamento
+cd lab; export OMP_NUM_THREADS=1 NUMBA_NUM_THREADS=1 MKL_NUM_THREADS=1
+for g in g1 g2 g3 g4 g5 g6; do nohup ./tavg_f3_loop.sh $g >/dev/null 2>&1 & done   # basi in out/tavg_f3_base/ (non tracciate)
+timeout 590 python tavg_f3_judge.py
 ```

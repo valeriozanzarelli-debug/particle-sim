@@ -77,7 +77,7 @@ def main():
     V["M1"] = dict(valore={k: dict(K=m[k]["K"], dE=m[k]["dE"], monotona=m[k]["monotona"]) for k in ("O_noee_2s2", "He_nudo")},
                    esito="PASS" if ok else "FAIL")
     # ---------------- pair laws
-    g2 = J("g2")
+    g2 = {**J("g2"), **J("g4")}
     L = {}
     for t in TYPES:
         rows = [g2[f"P_Z{Z}_{t}"] for Z in (5, 6, 7, 8)]
@@ -88,11 +88,11 @@ def main():
     V["leggi"] = L
     V["pp_1S_riportato"] = {Z: g2[f"P_Z{Z}_pp_1S"]["Ec"] for Z in (5, 6, 7, 8)}
     # ---------------- V1
-    g1 = J("g1")
+    g1 = {**J("g1"), **J("g6")}
     d = {st: g1[f"V_O_{st}"]["E"] - g2[f"P_Z8_{st}"]["E_inf"] for st in ("s2_1S", "sp_3P", "sp_1P")}
     V["V1"] = dict(valore=d, esito="PASS" if max(abs(v) for v in d.values()) <= EX["V1"]["soglia_Eh"] else "FAIL")
     # ---------------- A1
-    g3 = J("g3"); a1 = {}
+    g3 = {**J("g3"), **J("g5")}; a1 = {}
     for Z in (6, 8):
         f = P.BlockField(Z)
         a = f.radial_atom([(1, 0, 2), (2, 1, 1)]); a.scf()
