@@ -344,7 +344,7 @@ fn righe_esportazione(e: &Esportazione, buca: bool) -> (String, String) {
              if !esatto { e.note.first().map(String::as_str).unwrap_or("") } else if buca { "BUCA DI COULOMB: un elettrone (oro) tenuto fermo, gli altri (blu) lo evitano" } else { "bagliori = fotografie fresche dello stato (il moto è il campionatore, non una traiettoria)" }))
 }
 
-enum Mondo { Vuoto, Nuvola(Nuvola), Idrogeno(Box<crate::cascata::Mondo>) }
+enum Mondo { Vuoto, Nuvola(Nuvola), Orbitali(Box<crate::orbatomo::Atomo>, Arc<Esportazione>), Idrogeno(Box<crate::cascata::Mondo>) }
 
 pub fn avvia() -> Arc<Mutex<Condiviso>> {
     let c = Arc::new(Mutex::new(Condiviso {
@@ -370,7 +370,14 @@ pub fn avvia() -> Arc<Mutex<Condiviso>> {
             let mut nome = None;
             if let Some(o) = metti {
                 mondo = match o {
-                    Oggetto::Esportazione(e) => { nome = Some(e.nome.clone()); Mondo::Nuvola(Nuvola::new(e)) }
+                    Oggetto::Esportazione(e) => {
+                        nome = Some(e.nome.clone());
+                        // the atom's computed orbitals when the export has them, else its photographs
+                        match crate::orbatomo::Dati::leggi(&e.cartella) {
+                            Some(d) => Mondo::Orbitali(Box::new(crate::orbatomo::Atomo::new(d, e.z, N_BAGLIORI)), e),
+                            None => Mondo::Nuvola(Nuvola::new(e)),
+                        }
+                    }
                     Oggetto::Idrogeno => {
                         nome = Some("idrogeno".into());
                         cc.lock().unwrap().out.righe = ("IDROGENO: la regola zig-zag radiale sta ascoltando i livelli 1s…3d (qualche secondo)".into(), String::new());
@@ -384,6 +391,13 @@ pub fn avvia() -> Arc<Mutex<Condiviso>> {
                 Mondo::Nuvola(n) => {
                     if avanti { n.passo(buca); }
                     Some((n.disegna(buca), vec![], n.raggio(), righe_esportazione(&n.e, buca), None, 0, None, (vec![], vec![]), 0))
+                }
+                Mondo::Orbitali(a, e) => {
+                    if avanti { a.passo(dt_schermo); }
+                    let (p, sc, sa) = a.disegna(&vista, ritmo);
+                    let (np, nf) = e.n_pass();
+                    let n = a.g.len();
+                    Some((p, vec![], a.raggio, a.righe(&e.nome, &e.simbolo, e.energia, &e.livello, np, nf), None, 0, None, (sc, sa), n))
                 }
                 Mondo::Idrogeno(m) => {
                     m.richiesta(rich);

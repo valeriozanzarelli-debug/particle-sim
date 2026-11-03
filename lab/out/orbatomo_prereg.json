@@ -1,0 +1,14 @@
+{
+ "studio": "ORBITALI VERI nella tavola (lab/tavg_f5_orbitali.py, src/atomo/orbatomo.rs)",
+ "data": "2026-11-03",
+ "cosa": "Ossigeno (e elio) disegnati dagli orbitali calcolati e non da una sfera: per ogni spin-orbitale del determinante di Hund di tavg_radial, palline pescate da |R Y_lm|^2 e portate dalla corrente di Pauli v_phi = m/rho - s (1/2) d ln|psi|^2/d rho, il limite non relativistico della stessa corrente di Dirac dei surfisti di idrogeno. Il flusso e' tutto azimutale: ogni pallina gira su un cerchio e la densita' resta esatta.",
+ "dati": "O: ROHF del livello fine, determinante 2p(+1)^2 2p(0) 2p(-1), componente M_L = 1 del 3P. He: densita' esatta rho1(r) dell'ECG, un orbitale naturale sqrt(rho) per spin (la correlazione resta nella scena calcolata).",
+ "esami": {
+  "O1": {"cosa": "norma di ogni orbitale esportato", "voto": "PASS se entro 1e-3"},
+  "O2": {"cosa": "<r> delle palline di ogni spin-orbitale contro l'integrale dell'orbitale, e r medio totale", "voto": "PASS se entro 2 %"},
+  "O3": {"cosa": "idrogenoide 1s a Z: v_phi = Z sin(theta), la corrente che la scena H trova da Dirac nel limite piccolo", "voto": "PASS se entro 1 %"},
+  "O4": {"cosa": "quadrupolo: <z^2>/<x^2> delle palline dell'ossigeno contro il valore dal determinante", "voto": "PASS se entro 5 %"}
+ },
+ "debiti": "stato a particelle indipendenti (la correlazione e' solo nelle energie), simmetria assiale scelta dal determinante, corrente non relativistica, tempo rallentato (1 unita' atomica = 4 s di schermo), colore = fase m phi dell'orbitale, moto delle palline = interpretazione di Bohm/Pauli come nei surfisti.",
+ "manopole": "fisica: zero."
+}

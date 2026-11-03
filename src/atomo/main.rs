@@ -35,6 +35,7 @@ mod gpu_regola;
 #[allow(dead_code)]
 mod gpu_fotone;
 mod misura;
+mod orbatomo;
 mod orbitali;
 mod render;
 mod render_zz;
