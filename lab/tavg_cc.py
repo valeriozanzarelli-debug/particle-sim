@@ -166,20 +166,39 @@ class Basis:
                         c[p, q] = gaunt(int(ol[p]), int(om[p]), k, int(ol[q]), int(om[q]))
             ck[k] = c
         # chemist (pq|rs) = d(m_p - m_q, m_s - m_r) sum_k c^k[p,q] c^k[s,r] R^k[p q, r s]
-        G = np.zeros((M, M, M, M))
-        dm = om[:, None] - om[None, :]                     # m_p - m_q
-        for p in range(M):
-            mask = (dm[p][:, None, None] == (om[None, None, :] - om[None, :, None]))   # [q, r, s]: m_p-m_q == m_s-m_r
-            acc = np.zeros((M, M, M))
-            for k in range(kmax + 1):
-                if not np.any(ck[k][p]):
-                    continue
-                R = Rk[k][oi[p]][oi][:, oi][:, :, oi]          # [q, r, s]
-                acc += ck[k][p][:, None, None] * ck[k].T[None, :, :] * R
-            G[p] = acc * mask
-        self.G = G
+        self._Rk, self._ck, self.kmax = Rk, ck, kmax
+        self._cache = {}
+        if M <= LOWMEM_M:
+            G = np.zeros((M, M, M, M))
+            for p in range(M):
+                G[p] = self._slice(p)
+            self.G = G
+        else:
+            self.G = LazyG(self)                           # integrals in pieces (one first index at a time)
         self.secondi = time.time() - t0
         log(f"   base X={X}: {Nr} radiali, {M} orbitali spaziali, integrali in {self.secondi:.0f} s")
+
+    def _slice(self, p):
+        """(p q|r s) for all q, r, s"""
+        M, oi, om, ck = self.M, self.oi, self.om, self._ck
+        mask = ((om[p] - om)[:, None, None] == (om[None, None, :] - om[None, :, None]))
+        acc = np.zeros((M, M, M))
+        for k in range(self.kmax + 1):
+            if not np.any(ck[k][p]):
+                continue
+            acc += ck[k][p][:, None, None] * ck[k].T[None, :, :] * self._Rk[k][oi[p]][oi][:, oi][:, :, oi]
+        return acc * mask
+
+    def Gslice(self, p):
+        if isinstance(self.G, np.ndarray):
+            return self.G[p]
+        v = self._cache.get(p)
+        if v is None:
+            v = self._slice(p)
+            if len(self._cache) >= 16:
+                self._cache.pop(next(iter(self._cache)))
+            self._cache[p] = v
+        return v
 
     def reference(self):
         """occupied spatial orbitals of the Hund determinant: (spatial index, spin) with spin 0 = up, 1 = down"""
@@ -201,6 +220,25 @@ class Basis:
         return out
 
 
+LOWMEM_M = 100
+
+
+class LazyG:
+    """G[p] or G[np.ix_(a, b, c, d)] computed slice by slice (memory: a few M^3 arrays)"""
+
+    def __init__(self, B):
+        self.B = B
+
+    def __getitem__(self, key):
+        if isinstance(key, (int, np.integer)):
+            return self.B.Gslice(int(key))
+        k0, k1, k2, k3 = [np.asarray(x).ravel() for x in key]
+        out = np.empty((len(k0), len(k1), len(k2), len(k3)))
+        for n, p in enumerate(k0):
+            out[n] = self.B.Gslice(int(p))[np.ix_(k1, k2, k3)]
+        return out
+
+
 # ------------------------------------------------------------------ spin-orbital machinery
 class SpinOrb:
     def __init__(self, B, occ, frozen=()):
@@ -216,7 +254,10 @@ class SpinOrb:
         hs = B.h[self.sp][:, self.sp] * (self.ss[:, None] == self.ss[None, :])
         o = np.arange(self.no)
         # Fock: f_pq = h_pq + sum_m <pm||qm>
-        J = np.einsum("pmqm->pq", self._phys(np.arange(n), o, np.arange(n), o, diag_mm=True))
+        allp = np.arange(n)
+        J = np.zeros((n, n))
+        for m in o:                                      # <pm||qm> = <mp||mq>: first index occupied
+            J += self.anti([m], allp, [m], allp)[0, :, 0, :]
         self.f = hs + J
         self.E_ref = float(np.trace(hs[:self.no, :self.no]) + 0.5 * np.einsum("ijij->", self.anti(o, o, o, o)))
         if frozen:
@@ -251,7 +292,11 @@ def ccsd(S, maxit=200, tol=1e-9, t_end=None, state=None, log=print):
     f = S.f
     foo, fvv, fov = f[np.ix_(o, o)], f[np.ix_(v, v)], f[np.ix_(o, v)]
     oooo = S.anti(o, o, o, o); ooov = S.anti(o, o, o, v); oovv = S.anti(o, o, v, v)
-    ovov = S.anti(o, v, o, v); ovvv = S.anti(o, v, v, v)
+    ovov = S.anti(o, v, o, v)
+    ovvv = np.empty((no, nv, nv, nv), dtype=np.float32)   # stored in single precision, used in double per m
+    for m in range(no):
+        ovvv[m] = S.anti([m], v, v, v)[0]
+    ov = lambda m: ovvv[m].astype(float)
     ovvo = -ovov.transpose(0, 1, 3, 2)                         # <mb||ej> = -<mb||je>
     Do = np.diag(foo); Dv = np.diag(fvv)
     D1 = Do[:, None] - Dv[None, :]
@@ -261,16 +306,15 @@ def ccsd(S, maxit=200, tol=1e-9, t_end=None, state=None, log=print):
     else:
         t1 = fov / D1; t2 = oovv / D2
     sp, ss = S.sp, S.ss
-    Gs = S.B.G
     vsp, vss = sp[v], ss[v]
 
     def ladder(tau):
         """0.5 sum_ef tau_ij^ef <ab||ef>, batched over a with spatial integrals"""
         out = np.zeros((no, no, nv, nv))
-        for ia in range(nv):
+        for ia in np.argsort(vsp, kind="stable"):
             pa, sa = vsp[ia], vss[ia]
             # <ab||ef> = (ae|bf) d(sa,se) d(sb,sf) - (af|be) d(sa,sf) d(sb,se)
-            A = Gs[pa][np.ix_(vsp, vsp, vsp)]                   # [e, b, f] = (a e|b f)
+            A = S.B.Gslice(pa)[np.ix_(vsp, vsp, vsp)]           # [e, b, f] = (a e|b f)
             m1 = (vss == sa)[:, None, None] & (vss[None, :, None] == vss[None, None, :])
             W = (A * m1).transpose(1, 0, 2)                      # [b, e, f]
             W = W - W.transpose(0, 2, 1)
@@ -282,19 +326,22 @@ def ccsd(S, maxit=200, tol=1e-9, t_end=None, state=None, log=print):
     for it in range(maxit):
         tau = t2 + np.einsum("ia,jb->ijab", t1, t1) - np.einsum("ib,ja->ijab", t1, t1)
         taut = t2 + 0.5 * (np.einsum("ia,jb->ijab", t1, t1) - np.einsum("ib,ja->ijab", t1, t1))
-        Fae = fvv - np.diag(Dv) - 0.5 * np.einsum("me,ma->ae", fov, t1) + np.einsum("mf,mafe->ae", t1, ovvv) \
-            - 0.5 * np.einsum("mnaf,mnef->ae", taut, oovv)
+        Fae = fvv - np.diag(Dv) - 0.5 * np.einsum("me,ma->ae", fov, t1) - 0.5 * np.einsum("mnaf,mnef->ae", taut, oovv)
+        for m in range(no):
+            Fae += np.einsum("f,afe->ae", t1[m], ov(m))
         Fmi = foo - np.diag(Do) + 0.5 * np.einsum("ie,me->mi", t1, fov) + np.einsum("ne,mnie->mi", t1, ooov) \
             + 0.5 * np.einsum("inef,mnef->mi", taut, oovv)
         Fme = fov + np.einsum("nf,mnef->me", t1, oovv)
         Wmnij = oooo + np.einsum("je,mnie->mnij", t1, ooov) - np.einsum("ie,mnje->mnij", t1, ooov) \
             + 0.25 * np.einsum("ijef,mnef->mnij", tau, oovv)
-        Wmbej = ovvo + np.einsum("jf,mbef->mbej", t1, ovvv) + np.einsum("nb,mnje->mbej", t1, ooov) \
+        Wmbej = ovvo + np.stack([np.einsum("jf,bef->bej", t1, ov(m)) for m in range(no)]) + np.einsum("nb,mnje->mbej", t1, ooov) \
             - np.einsum("jnfb,mnef->mbej", 0.5 * t2 + np.einsum("jf,nb->jnfb", t1, t1), oovv)
         # T1
         r1 = fov.copy() + np.einsum("ie,ae->ia", t1, Fae) - np.einsum("ma,mi->ia", t1, Fmi) \
             + np.einsum("imae,me->ia", t2, Fme) - np.einsum("nf,naif->ia", t1, ovov) \
-            - 0.5 * np.einsum("imef,maef->ia", t2, ovvv) + 0.5 * np.einsum("mnae,nmie->ia", t2, ooov)
+            + 0.5 * np.einsum("mnae,nmie->ia", t2, ooov)
+        for m in range(no):
+            r1 -= 0.5 * np.einsum("ief,aef->ia", t2[:, m], ov(m))
         # T2
         r2 = oovv.copy()
         Xe = Fae - 0.5 * np.einsum("mb,me->be", t1, Fme)
@@ -304,14 +351,14 @@ def ccsd(S, maxit=200, tol=1e-9, t_end=None, state=None, log=print):
         r2 += 0.5 * np.einsum("mnab,mnij->ijab", tau, Wmnij)
         # Wabef contribution (see module doc): ladder + t1 piece + oooo piece
         r2 += ladder(tau)
-        Zx = 0.5 * np.einsum("ijef,maef->ijam", tau, ovvv)        # <am||ef> = -<ma||ef>  -> sign below
+        Zx = np.stack([0.5 * np.einsum("ijef,aef->ija", tau, ov(m)) for m in range(no)], -1)   # <am||ef> = -<ma||ef>
         tmp = np.einsum("ijam,mb->ijab", -Zx, t1); r2 -= tmp - tmp.transpose(0, 1, 3, 2)
         Y = np.einsum("mnef,ijef->mnij", oovv, tau)
         r2 += 0.125 * np.einsum("mnab,mnij->ijab", tau, Y)
         tmp = np.einsum("imae,mbej->ijab", t2, Wmbej) - np.einsum("ie,ma,mbej->ijab", t1, t1, ovvo)
         r2 += tmp - tmp.transpose(1, 0, 2, 3) - tmp.transpose(0, 1, 3, 2) + tmp.transpose(1, 0, 3, 2)
         # P(ij) t_i^e <ab||ej>, <ab||ej> = -<je||ab>... = -ovvv[j,e,a,b] -> careful: <ab||ej> = <ej||ab> = -<je||ab>
-        tmp = -np.einsum("ie,jeab->ijab", t1, ovvv); r2 += tmp - tmp.transpose(1, 0, 2, 3)
+        tmp = np.stack([-np.einsum("ie,eab->iab", t1, ov(j)) for j in range(no)], 1); r2 += tmp - tmp.transpose(1, 0, 2, 3)
         # -P(ab) t_m^a <mb||ij>, <mb||ij> = <ij||mb> = ooov[i,j,m,b]
         tmp = np.einsum("ma,ijmb->ijab", t1, ooov); r2 -= tmp - tmp.transpose(0, 1, 3, 2)
         t1n = r1 / D1; t2n = r2 / D2
@@ -354,7 +401,16 @@ def triples(S, t1, t2, log=print, t_end=None, start=None):
     t2 = np.einsum("ijab,iI,jJ,aA,bB->IJAB", t2, Uo, Uo, Uv, Uv, optimize=True)
     fov = Uo.T @ f[np.ix_(o, v)] @ Uv
     oovv = np.einsum("ijab,iI,jJ,aA,bB->IJAB", S.anti(o, o, v, v), Uo, Uo, Uv, Uv, optimize=True)
-    ovvv = np.einsum("iabc,iI,aA,bB,cC->IABC", S.anti(o, v, v, v), Uo, Uv, Uv, Uv, optimize=True)
+    ovvv = np.empty((no, nv, nv, nv), dtype=np.float32)
+    for m in range(no):
+        x = S.anti([m], v, v, v)[0]
+        x = np.einsum("abc,aA->Abc", x, Uv, optimize=True)
+        x = np.einsum("Abc,bB->ABc", x, Uv, optimize=True)
+        ovvv[m] = np.einsum("ABc,cC->ABC", x, Uv, optimize=True)
+    flat = ovvv.reshape(no, -1)
+    for c0 in range(0, flat.shape[1], 1 << 20):
+        sl = slice(c0, c0 + (1 << 20))
+        flat[:, sl] = (Uo.T @ flat[:, sl].astype(float)).astype(np.float32)
     ooov = np.einsum("ijka,iI,jJ,kK,aA->IJKA", S.anti(o, o, o, v), Uo, Uo, Uo, Uv, optimize=True)
     E, i0 = (0.0, 0) if start is None else (float(start[0]), int(start[1]))
     trip = [(i, j, k) for i in range(no) for j in range(i + 1, no) for k in range(j + 1, no)]
@@ -367,7 +423,7 @@ def triples(S, t1, t2, log=print, t_end=None, start=None):
             if True:
                 def conn(i, j, k):
                     # sum_e t_jk^ae <ei||bc> - sum_m t_im^bc <ma||jk>;  <ei||bc> = -<ie||bc>; <ma||jk> = <jk||ma>
-                    return -np.einsum("ae,ebc->abc", t2[j, k], ovvv[i]) - np.einsum("mbc,ma->abc", t2[i], ooov[j, k])
+                    return -np.einsum("ae,ebc->abc", t2[j, k], ovvv[i].astype(float)) - np.einsum("mbc,ma->abc", t2[i], ooov[j, k])
 
                 def disc(i, j, k):
                     return np.einsum("a,bc->abc", t1[i], oovv[j, k]) + np.einsum("a,bc->abc", fov[i], t2[j, k])

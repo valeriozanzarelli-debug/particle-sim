@@ -1,0 +1,9 @@
+{
+ "emendamento": 1,
+ "data": "2026-11-03",
+ "di": "lab/out/tavg_prereg_f5.json (commit c6cf69b)",
+ "cosa": "base di core fino a X = 5 con integrali a pezzi (LazyG: una fetta (p|..) alla volta; ovvv in precisione singola, usato in doppia per indice occupato; controllo: stesso E_c a 3.5e-13 Eh su O X=3). K5 e la parte di core estrapolati da X = 4, 5 invece che 3, 4. Valenza invariata (FC, X = 4, 5). Soglie identiche (K5 0.5 mEh, C1 5 %, C2 3 %, C3-C5).",
+ "perche": "fase 5: K5 mancato di 0.03 mEh (+0.53) con il core estrapolato da X = 3, 4; proposto prima di questo emendamento come 'per chiudere'.",
+ "visto_prima": "tutti i risultati della fase 5 (C1-C5 PASS con il core da 3, 4). Il verdetto resta NON primo cieco, dichiarato.",
+ "export": "solo se K5, C1, C2, C3, C4, C5 passano tutti: lab/out/tavg_dati_ossigeno/ con fonti (HF del livello fine + CCSD(T) a tutti gli elettroni; il blocco NON e' usato)"
+}
