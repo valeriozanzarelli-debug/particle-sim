@@ -2,6 +2,7 @@
 Uso: python tavg_f3_drive.py <g1|g2|g3>   (uno spezzone; stampa TUTTO_FATTO quando il gruppo e' finito)
   g1: controllo di macchina (tavg_pecg2.macchina), poi ECG nel blocco O: 2s2 1S, 2s2p 3P, 2s2p 1P (V1)
   g2: CI di coppia nei blocchi Z = 5..8 (P), poi ioni tipo Li nudi Z = 7, 8 (2S, 2P) per il core-valenza
+  g4: ioni tipo Li Z = 8 (emendamento 1: separati da g2 per girare in parallelo)
   g3: verifica a 3 elettroni 2s2 2p 2P nei blocchi C e O (A1)
 Risultati: lab/out/tavg_f3_<gruppo>.json (tracciati); basi: lab/out/tavg_f3_base/*.json (non tracciate).
 Ciclo non sorvegliato: bash lab/tavg_f3_loop.sh <gruppo>  (log non tracciato in lab/out/tavg_f3_<gruppo>.log)"""
@@ -54,7 +55,7 @@ def ecg_task(g, name, mk, Zs, Kmax, tol, nn, Lmax=30.0, seed=7):
     while left() > 0:
         K = len(sv.A)
         Es = {h[0]: h[1] for h in hist}
-        if K >= Kmax or (K >= 120 and K - 40 in Es and abs(Es[K] - Es[K - 40]) < tol):
+        if K >= Kmax or (K >= 120 and K % 20 == 0 and K - 40 in Es and abs(Es[K] - Es[K - 40]) < tol):
             r["fatto"] = True
             break
         e = sv.add()
@@ -115,15 +116,25 @@ def g2():
             a["barra"] = abs(a["Ec"] - b["Ec"]) + 0.5 * abs(a["E_inf"] - a["E_l"][-1])
             res = load("g2"); res[key] = a; save("g2", res)
             print(f"[{key}] Ec={a['Ec'] * 1e3:.3f} mEh barra={a['barra'] * 1e3:.3f} ({a['secondi']:.0f} s)", flush=True)
-    for Z in (7, 8):
-        for lab, L in (("2S", 0), ("2P", 1)):
-            if left() <= 0:
-                return False
-            ok = ecg_task("g2", f"Li_Z{Z}_{lab}", lambda: T.System(float(Z), "p3", L=L, m_kin=1.0), float(Z),
-                          250, 2e-5, Q.NN_MIN)
-            if not ok:
-                return False
+    return li_runs("g2", 7)
+
+
+K3 = 600      # emendamento 1 (lab/out/tavg_prereg_f3_em1.json): a K = 250 le corse a 3 e- non erano convergiute
+
+
+def li_runs(g, Z):
+    for lab, L in (("2S", 0), ("2P", 1)):
+        if left() <= 0:
+            return False
+        ok = ecg_task(g, f"Li_Z{Z}_{lab}", lambda: T.System(float(Z), "p3", L=L, m_kin=1.0), float(Z),
+                      K3, 2e-5, Q.NN_MIN)
+        if not ok:
+            return False
     return True
+
+
+def g4():
+    return li_runs("g4", 8)
 
 
 def g3():
@@ -131,12 +142,12 @@ def g3():
         if left() <= 0:
             return False
         f = field(Z)
-        ok = ecg_task("g3", f"A3_Z{Z}_2s2_2p", lambda: P.BlockSystem(f, "p3", L=1), f.Zv, 250, 2e-5, 1e-5)
+        ok = ecg_task("g3", f"A3_Z{Z}_2s2_2p", lambda: P.BlockSystem(f, "p3", L=1), f.Zv, K3, 2e-5, 1e-5)
         if not ok:
             return False
     return True
 
 
 if __name__ == "__main__":
-    done = {"g1": g1, "g2": g2, "g3": g3}[sys.argv[1]]()
+    done = {"g1": g1, "g2": g2, "g3": g3, "g4": g4}[sys.argv[1]]()
     print("TUTTO_FATTO" if done else "SPEZZONE_FINITO", flush=True)
