@@ -195,7 +195,7 @@ class Basis:
         v = self._cache.get(p)
         if v is None:
             v = self._slice(p)
-            if len(self._cache) >= 16:
+            if len(self._cache) >= 4:
                 self._cache.pop(next(iter(self._cache)))
             self._cache[p] = v
         return v
@@ -286,7 +286,7 @@ class SpinOrb:
         return a - b
 
 
-def ccsd(S, maxit=200, tol=1e-9, t_end=None, state=None, log=print):
+def ccsd(S, maxit=200, tol=1e-9, t_end=None, state=None, log=print, hist=None):
     no, nv = S.no, S.nv
     o = np.arange(no); v = np.arange(no, no + nv)
     f = S.f
@@ -316,13 +316,14 @@ def ccsd(S, maxit=200, tol=1e-9, t_end=None, state=None, log=print):
             # <ab||ef> = (ae|bf) d(sa,se) d(sb,sf) - (af|be) d(sa,sf) d(sb,se)
             A = S.B.Gslice(pa)[np.ix_(vsp, vsp, vsp)]           # [e, b, f] = (a e|b f)
             m1 = (vss == sa)[:, None, None] & (vss[None, :, None] == vss[None, None, :])
-            W = (A * m1).transpose(1, 0, 2)                      # [b, e, f]
-            W = W - W.transpose(0, 2, 1)
+            A *= m1
+            W = A.transpose(1, 0, 2)                             # [b, e, f] (view)
+            W = W - W.transpose(0, 2, 1); del A
             out[:, :, ia, :] = 0.5 * np.einsum("ijef,bef->ijb", tau, W, optimize=True)
         return out
 
     E_old = 0.0
-    hist = []
+    hist = [] if hist is None else hist
     for it in range(maxit):
         tau = t2 + np.einsum("ia,jb->ijab", t1, t1) - np.einsum("ib,ja->ijab", t1, t1)
         taut = t2 + 0.5 * (np.einsum("ia,jb->ijab", t1, t1) - np.einsum("ib,ja->ijab", t1, t1))
@@ -364,17 +365,17 @@ def ccsd(S, maxit=200, tol=1e-9, t_end=None, state=None, log=print):
         t1n = r1 / D1; t2n = r2 / D2
         dt = max(np.abs(t1n - t1).max(), np.abs(t2n - t2).max())
         vec = np.concatenate([t1n.ravel(), t2n.ravel()]); err = vec - np.concatenate([t1.ravel(), t2.ravel()])
-        hist.append((vec, err)); hist[:] = hist[-8:]
+        hist.append((vec.astype(np.float32), err.astype(np.float32))); hist[:] = hist[-6:]
         if len(hist) >= 3:
             nh = len(hist)
             Bm = -np.ones((nh + 1, nh + 1)); Bm[-1, -1] = 0
             for x in range(nh):
                 for y in range(nh):
-                    Bm[x, y] = hist[x][1] @ hist[y][1]
+                    Bm[x, y] = float(hist[x][1].astype(float) @ hist[y][1].astype(float))
             rhs = np.zeros(nh + 1); rhs[-1] = -1
             try:
                 cc = np.linalg.solve(Bm, rhs)[:nh]
-                vec = sum(c * h[0] for c, h in zip(cc, hist))
+                vec = sum(c * h[0].astype(float) for c, h in zip(cc, hist))
             except np.linalg.LinAlgError:
                 pass
         t1 = vec[:t1.size].reshape(t1.shape); t2 = vec[t1.size:].reshape(t2.shape)
@@ -412,6 +413,10 @@ def triples(S, t1, t2, log=print, t_end=None, start=None):
         sl = slice(c0, c0 + (1 << 20))
         flat[:, sl] = (Uo.T @ flat[:, sl].astype(float)).astype(np.float32)
     ooov = np.einsum("ijka,iI,jJ,kK,aA->IJKA", S.anti(o, o, o, v), Uo, Uo, Uo, Uv, optimize=True)
+    # single precision for the triples arrays (memory); energy accumulated in double
+    f32 = np.float32
+    t1, t2, fov, oovv, ooov = (x.astype(f32) for x in (t1, t2, fov, oovv, ooov))
+    wo32, wv32 = wo.astype(f32), wv.astype(f32)
     E, i0 = (0.0, 0) if start is None else (float(start[0]), int(start[1]))
     trip = [(i, j, k) for i in range(no) for j in range(i + 1, no) for k in range(j + 1, no)]
     for it_, (i, j, k) in enumerate(trip):
@@ -423,7 +428,7 @@ def triples(S, t1, t2, log=print, t_end=None, start=None):
             if True:
                 def conn(i, j, k):
                     # sum_e t_jk^ae <ei||bc> - sum_m t_im^bc <ma||jk>;  <ei||bc> = -<ie||bc>; <ma||jk> = <jk||ma>
-                    return -np.einsum("ae,ebc->abc", t2[j, k], ovvv[i].astype(float)) - np.einsum("mbc,ma->abc", t2[i], ooov[j, k])
+                    return -np.einsum("ae,ebc->abc", t2[j, k], ovvv[i]) - np.einsum("mbc,ma->abc", t2[i], ooov[j, k])
 
                 def disc(i, j, k):
                     return np.einsum("a,bc->abc", t1[i], oovv[j, k]) + np.einsum("a,bc->abc", fov[i], t2[j, k])
@@ -433,9 +438,10 @@ def triples(S, t1, t2, log=print, t_end=None, start=None):
 
                 c = Pabc(conn(i, j, k) - conn(j, i, k) - conn(k, j, i))
                 d = Pabc(disc(i, j, k) - disc(j, i, k) - disc(k, j, i))
-                Dn = wo[i] + wo[j] + wo[k] - wv[:, None, None] - wv[None, :, None] - wv[None, None, :]
-                tc = c / Dn
-                E += np.sum(tc * (c + d)) / 6.0           # i<j<k restricted: 1/36 * 6 ... sum over a,b,c full -> /6
+                d += c
+                c /= (wo32[i] + wo32[j] + wo32[k] - wv32[:, None, None] - wv32[None, :, None] - wv32[None, None, :])
+                E += float(np.sum(c * d, dtype=np.float64)) / 6.0       # (c/D) (c + d)
+                del c, d           # i<j<k restricted: 1/36 * 6 ... sum over a,b,c full -> /6
     return float(E)
 
 
@@ -496,8 +502,15 @@ def run(Z, config, X, name=None, t_budget=540, log=print, ae=False, core=False, 
         Ec = float(np.einsum("ia,ia->", fov, t1) + 0.25 * np.einsum("ijab,ijab->", oovv, t2)
                    + 0.5 * np.einsum("ijab,ia,jb->", oovv, t1, t1))
     else:
-        Ec, (t1, t2), conv = ccsd(S, t_end=t_end, state=st, log=lambda s: None)
+        ckD = ck.replace(".npz", "_diis.npz"); hist = []
+        if st is not None and os.path.exists(ckD):
+            zd = np.load(ckD); hist = [(zd[f"v{i}"], zd[f"e{i}"]) for i in range(int(zd["n"]))]
+        Ec, (t1, t2), conv = ccsd(S, t_end=t_end, state=st, log=lambda s: None, hist=hist)
         np.savez(ck, t1=t1, t2=t2, conv=conv)
+        dd = {"n": len(hist)}
+        for i, (a_, b_) in enumerate(hist):
+            dd[f"v{i}"] = a_; dd[f"e{i}"] = b_
+        np.savez(ckD, **dd)
     ckT = ck.replace(".npz", "_T.npz")
     out = dict(Z=Z, config=config, X=X, M=B.M, no=S.no, nv=S.nv, E_rohf_blocco=B.E_rohf, E_ref=S.E_ref,
                dE_ref=S.E_ref - B.E_rohf, Ec_ccsd=Ec, convergiuto=conv)
