@@ -1,0 +1,10 @@
+{
+ "studio": "ACQUA, dimero (H2O)2 - secondo tentativo DICHIARATO per D2_ROO",
+ "data": "2026-11-04",
+ "motivo": "primo tentativo: D1_De PASS (0.2114 eV, -2.6%), D2_ROO FAIL (2.970 A, +2.07% vs soglia 2%). Il minimo era preso dalla superficie X=2 con counterpoise, che allunga noto il legame (base piccola). Il primo verdetto resta registrato in acqua_dimero_verdetti.json.",
+ "metodo": "stesso motore e stessi parametri del primo tentativo (CCSD(T), Cholesky 1e-6, FNO 1e-6, counterpoise). Angoli fermi al minimo X=2 (td=4.8, ta=-55.3). Scansione 1D in R(O-O) = 2.88, 2.92, 2.97 A; E_int CBS(2,3) in ogni punto come nel primo tentativo; parabola per 3 punti -> R_min.",
+ "esami": {"D2b_ROO": {"rif_A": 2.91, "soglia_rel": 0.02}, "D1b_De": {"rif_eV": 0.217, "soglia_rel": 0.1, "nota": "al minimo della parabola"}},
+ "soglie_invariate": true,
+ "manopole_fittate_su_esperimenti": 0,
+ "debiti": "angoli non riottimizzati a X=3; monomeri rigidi; nuclei classici"
+}
