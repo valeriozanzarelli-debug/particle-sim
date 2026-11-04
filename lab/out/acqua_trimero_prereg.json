@@ -1,0 +1,16 @@
+{
+ "studio": "ACQUA, trimero ciclico (H2O)3",
+ "data": "2026-11-04",
+ "modello": "Born-Oppenheimer, nuclei fermi, niente ZPE; monomeri RIGIDI alla nostra geometria CBS (0.9585 A, 104.26 gradi); simmetria C3 approssimata, schema su-su-giu' degli H liberi; 3 coordinate (R lato O-O, td piegatura dell'O-H legato, ps rotazione del piano del monomero)",
+ "metodo": "stesso motore del dimero (Cholesky nostro 1e-6, RHF, FNO 1e-6 + Delta-MP2, CCSD(T) a tutti gli elettroni); counterpoise a molti corpi: tutti i 7 sottosistemi nella base del trimero",
+ "geometria": "A) angoli: superficie E_int^CP MP2/X=2 su griglia 3x3x3 (0.05 A, 5, 15 gradi), triquadratica, ricentrata (max 6), partenza R=2.92 (nostro dimero), td=0, ps=90. B) R: scansione 1D a MP2/CBS(2,3) con counterpoise, angoli fermi, R = R2-0.12..R2 a passi 0.04, estesa se il minimo e' al bordo (max 3); parabola. Scelta motivata dal dimero: R_min MP2/CBS 2.918 contro CCSD(T)/CBS 2.921 A, mentre la geometria X=2 sbagliava di +2 %.",
+ "energia": "focal point: E = HF(X=3) + MP2 CBS(2,3) [27 c3 - 8 c2]/19 + [CCSD(T) - MP2](X=2). Controllo sul dimero: D_e focal 0.2098 contro CBS completo 0.2125 eV (-1.3 %).",
+ "esami": {
+  "T1_De": {"descrizione": "-E_int = E_A+E_B+E_C-E_ABC", "rif_eV": 0.685, "rif_kcal": 15.8, "soglia_rel": 0.10, "fonte": "CCSD(T)/CBS di letteratura, solo come esame"},
+  "T2_ROO": {"rif_A": 2.80, "soglia_rel": 0.02, "fonte": "geometria ottimizzata MP2/CCSD(T) a base grande di letteratura"},
+  "T3_3corpi": {"descrizione": "E_ABC - E_AB - E_AC - E_BC + E_A + E_B + E_C", "rif_eV": -0.100, "rif_kcal": -2.3, "soglia_rel": 0.25}
+ },
+ "manopole_fittate_su_esperimenti": 0,
+ "debiti": "monomeri rigidi (il riferimento D_e include il rilassamento, ~1 %); simmetria imposta; (T) solo a X=2 (focal point); nuclei classici",
+ "costo_misurato": "MP2 trimero X=2 24 s / 1.2 GB; X=3 294 s / 6.6 GB; CCSD(T) trimero X=2 ~37 min / 3.1 GB"
+}
