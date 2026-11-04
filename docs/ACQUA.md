@@ -52,12 +52,15 @@ Solo Hartree–Fock (senza correlazione) D_e = 0,258 Eh e dipolo 1,99 D: la corr
 
 - **C-INT** integrali contro quadratura a forza bruta (senza Boys e senza ricorrenze): errore massimo 3·10⁻¹²
   (soglia 10⁻⁸), fino a funzioni g. PASS
-- **C-CC** CCSD e (T) a guscio chiuso contro il codice a spin-orbitali: 1,3·10⁻¹⁰ Eh. PASS
+- **C-CC** CCSD e (T) a guscio chiuso contro il codice a spin-orbitali: 3·10⁻¹⁰ Eh. PASS
 - **C-H** atomo H (X=4): E_HF = −0,49984 (esatto −0,5). PASS
 - **C-H2** H₂ CBS(3,4): R_e = 1,4015 bohr (nostro esatto 1,4009), D_e = 4,7476 eV (4,7477). PASS
 - **C-O** atomo O, CCSD(T) CBS(3,4): vedi sotto.
 
-C-O (atomo O a X=4, controllo di macchina più costoso): in corso, il risultato viene aggiunto qui.
+C-O: E_c CCSD(T) dell'atomo O, X = 2, 3, 4: −197,0 / −230,1 / −242,9 mEh, CBS(3,4) −252,2 mEh rispetto al nostro
+ROHF; rispetto all'HF del livello fine −251,3 mEh contro −256,2 della fase 5: **−1,9 %, PASS ma al limite** (soglia
+2 %). Il residuo è la correlazione del guscio interno 1s, che le nostre basi (ottimizzate a X=4 al tetto di 60
+valutazioni) catturano solo in parte; nelle differenze (D_e, geometria) si cancella quasi tutta.
 
 ## Debiti (cose messe a mano o approssimate)
 
