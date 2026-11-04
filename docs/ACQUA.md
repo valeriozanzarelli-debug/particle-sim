@@ -99,3 +99,24 @@ Serve:
   (~1–2 h per punto);
 - geometria a monomeri quasi rigidi + 3–4 coordinate intermolecolari: ~15–20 punti, più la correzione
   counterpoise. Stima: **~200 righe nuove e ~40–60 ore di CPU**.
+
+## Il dimero (H₂O)₂ — fatto il 4/11/2026 (approssimato, 2 tentativi dichiarati)
+
+Due molecole d'acqua legate da un legame a idrogeno, calcolate col nostro motore: Cholesky fatto da noi,
+RHF, orbitali naturali congelati (FNO), CCSD(T) a tutti gli elettroni, counterpoise, estrapolazione CBS(2,3).
+**Zero manopole fittate.** Pre-registrazioni: `lab/out/acqua_dimero_prereg.json` e `lab/out/acqua_dimero2_prereg.json`.
+
+| tentativo | geometria | D_e (rif 0,217 eV, soglia 10 %) | O–O (rif 2,91 Å, soglia 2 %) |
+|---|---|---|---|
+| 1 | minimo della superficie X=2 (332 punti) | 0,2114 eV (−2,6 %) **PASS** | 2,970 Å (+2,07 %) **FAIL** |
+| 2 (dichiarato) | scansione in R a CBS(2,3), angoli fermi al minimo X=2 | 0,2125 eV (−2,1 %) **PASS** | 2,921 Å (+0,38 %) **PASS** |
+
+**Perché il primo è fallito:** la base piccola X=2 con counterpoise allunga il legame. Rifacendo la scansione
+della distanza con la base più grande, il minimo scende a 2,921 Å. Il FAIL del primo tentativo resta registrato
+(`lab/out/acqua_dimero_verdetti.json`); il secondo è in `lab/out/acqua_dimero2_verdetti.json`.
+
+**Debiti:** monomeri rigidi (circa 0,001 eV); angoli non riottimizzati con la base X=3; parabola per soli 3 punti;
+nuclei classici, niente energia di punto zero. È **validazione** (si ritrovano numeri noti), non una scoperta.
+
+**Prossimo:** trimero e forza acqua–acqua imparata da questi punti (le 332 energie X=2 sono il primo set di
+allenamento), poi la goccia.
