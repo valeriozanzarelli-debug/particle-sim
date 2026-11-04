@@ -120,3 +120,26 @@ nuclei classici, niente energia di punto zero. È **validazione** (si ritrovano 
 
 **Prossimo:** trimero e forza acqua–acqua imparata da questi punti (le 332 energie X=2 sono il primo set di
 allenamento), poi la goccia.
+
+## Il trimero ciclico (H₂O)₃ — fatto il 4/11/2026 (approssimato, 1° tentativo, 3/3 PASS)
+
+Tre molecole d'acqua ad anello, ognuna dona un idrogeno alla successiva. Stesso motore del dimero; counterpoise
+a molti corpi (tutti i 7 sottosistemi nella base del trimero). **Zero manopole fittate.** Pre-registrazione:
+`lab/out/acqua_trimero_prereg.json`; verdetti: `lab/out/acqua_trimero_verdetti.json`.
+
+Come: angoli dalla superficie MP2 a X=2 (griglia 3×3×3, 2 ricentraggi), distanza O–O da una scansione MP2/CBS(2,3)
+(scelta controllata sul dimero: lì MP2/CBS dava 2,918 Å contro 2,921 del CCSD(T)/CBS), energie "focal point"
+(HF X=3 + MP2 CBS + correzione CCSD(T) a X=2; sul dimero sottostima dell'1,3 %).
+
+| esame | nostro | riferimento | scarto | soglia | esito |
+|---|---|---|---|---|---|
+| energia di legame D_e | 0,652 eV (15,03 kcal/mol) | 0,685 eV (15,8) | −4,9 % | 10 % | PASS |
+| distanza O–O | 2,810 Å | 2,80 Å | +0,37 % | 2 % | PASS |
+| termine a 3 corpi | −0,0897 eV (−2,07 kcal/mol) | −0,100 eV (−2,3) | −10 % | 25 % | PASS |
+
+Il termine a 3 corpi è il **14 %** del legame: una forza acqua–acqua fatta solo di coppie non basta, la forza
+imparata deve contenere anche i terzetti (o la polarizzazione che li produce). Con la base X=2 la distanza veniva
+2,856 Å (+2 %), lo stesso difetto del dimero, corretto dalla scansione CBS.
+
+**Debiti:** monomeri rigidi (il riferimento include il rilassamento, circa 1 %, che spiega parte del −4,9 %);
+simmetria C3 su-su-giù imposta; (T) solo a X=2; nuclei classici, niente punto zero. Validazione, non scoperta.
