@@ -128,7 +128,7 @@ def mo_ints(B, ints, res):
 
 
 # ------------------------------------------------------------------ closed-shell CCSD(T)
-def rccsd(G, eps, nocc, nfz=0, maxit=100, tol=1e-10, log=None):
+def rccsd(G, eps, nocc, nfz=0, maxit=100, tol=1e-10, log=None, t_init=None, t_end=None):
     """G: MO (pq|rs) full; eps: canonical RHF energies; nfz frozen core orbitals; returns E_ccsd, t1, t2"""
     o = slice(nfz, nocc); v = slice(nocc, G.shape[0]); no = nocc - nfz; nv = G.shape[0] - nocc
     eo, ev = eps[o], eps[v]
@@ -136,6 +136,8 @@ def rccsd(G, eps, nocc, nfz=0, maxit=100, tol=1e-10, log=None):
     ovvv = np.ascontiguousarray(G[o, v, v, v])
     eia = eo[:, None] - ev[None, :]; D2 = eia[:, None, :, None] + eia[None, :, None, :]
     t1 = np.zeros((no, nv)); t2 = (ovov.transpose(0, 2, 1, 3) / D2).copy()
+    if t_init is not None:
+        t1, t2 = t_init
     E = lambda t1, t2: float(2 * np.einsum("ijab,iajb", t2 + np.einsum("ia,jb->ijab", t1, t1), ovov)
                              - np.einsum("ijab,ibja", t2 + np.einsum("ia,jb->ijab", t1, t1), ovov))
     es = lambda *a: np.einsum(*a, optimize=True)
@@ -203,6 +205,8 @@ def rccsd(G, eps, nocc, nfz=0, maxit=100, tol=1e-10, log=None):
         if abs(En - Eold) < tol and d < 1e-8:
             return En, t1, t2, True
         Eold = En
+        if t_end and time.time() > t_end:
+            return En, t1, t2, False
     return En, t1, t2, False
 
 
@@ -215,7 +219,7 @@ class _BMO:
         return self.G[p]
 
 
-def so_ccsd_t(hmo, Gmo, nd, ns, nfz=0, triples=True, ck=None, t_budget=None):
+def so_ccsd_t(hmo, Gmo, nd, ns, nfz=0, triples=True, ck=None, t_budget=None, tol=1e-9):
     """ROHF-CCSD(T) a spin-orbitali (tavg_cc). ck: file .npz di checkpoint (ampiezze, DIIS, triple parziali);
     con t_budget [s] si ferma e salva; ritorna conv=False e 'parziale'=True se non ha finito."""
     import tavg_cc as tc
@@ -237,7 +241,7 @@ def so_ccsd_t(hmo, Gmo, nd, ns, nfz=0, triples=True, ck=None, t_budget=None):
         Ec = float(np.einsum("ia,ia->", fov, t1) + 0.25 * np.einsum("ijab,ijab->", oovv, t2)
                    + 0.5 * np.einsum("ijab,ia,jb->", oovv, t1, t1))
     else:
-        Ec, (t1, t2), conv = tc.ccsd(S, log=lambda s: None, state=st, hist=hist, t_end=t_end)
+        Ec, (t1, t2), conv = tc.ccsd(S, log=lambda s: None, state=st, hist=hist, t_end=t_end, tol=tol)
 
     def save(extra=None):
         if ck:
@@ -258,7 +262,7 @@ def so_ccsd_t(hmo, Gmo, nd, ns, nfz=0, triples=True, ck=None, t_budget=None):
     return dict(E_ref=S.E_ref, Ec_ccsd=Ec, Ec_T=ET, conv=True)
 
 
-def rccsd_t(G, eps, nocc, t1, t2, nfz=0):
+def rccsd_t(G, eps, nocc, t1, t2, nfz=0, start=None, t_end=None):
     """closed-shell (T), loop over i,j,k (Lee-Rendell form): W = P[sum_d (bd|ck) t_ij^ad - sum_l (ck|jl) t_il^ab],
     V = W + (bj|ck) t_i^a + (ai|ck) t_j^b + (ai|bj) t_k^c, E = sum (4W_abc + W_bca + W_cab)(V_abc - V_cba)/(3D)"""
     o = slice(nfz, nocc); v = slice(nocc, G.shape[0]); no = nocc - nfz
@@ -267,13 +271,16 @@ def rccsd_t(G, eps, nocc, t1, t2, nfz=0):
     vooo = np.ascontiguousarray(G[v, o, o, o])        # (ck|jl) -> [c,k,j,l]
     vovo = np.ascontiguousarray(G[v, o, v, o])        # (ai|bj) -> [a,i,b,j]
     Dv = -ev[:, None, None] - ev[None, :, None] - ev[None, None, :]
-    E = 0.0
-    for i in range(no):
+    E, i0 = (0.0, 0) if start is None else (float(start[0]), int(start[1]))
+    for i in range(i0, no):
+        if t_end and time.time() > t_end:
+            return (E, i)
         for j in range(no):
             for k in range(no):
-                def w(i, j, k):        # returns [a,b,c] for (ia)(jb)(kc)
-                    x = np.einsum("bdc,ad->abc", vvvo[:, :, :, k], t2[i, j])
-                    return x - np.einsum("cl,lab->abc", vooo[:, k, j, :], t2[i])
+                def w(i, j, k):
+                    vk = vvvo[:, :, :, k]        # returns [a,b,c] for (ia)(jb)(kc)
+                    x = np.tensordot(t2[i, j], vk, axes=([1], [1])).transpose(0, 1, 2)
+                    return x - np.tensordot(t2[i], vooo[:, k, j, :], axes=([0], [1]))
                 W = (w(i, j, k) + w(i, k, j).transpose(0, 2, 1) + w(j, i, k).transpose(1, 0, 2)
                      + w(j, k, i).transpose(2, 0, 1) + w(k, i, j).transpose(1, 2, 0) + w(k, j, i).transpose(2, 1, 0))
                 V = W + np.einsum("bc,a->abc", vovo[:, j, :, k], t1[i]) + np.einsum("ac,b->abc", vovo[:, i, :, k], t1[j]) \

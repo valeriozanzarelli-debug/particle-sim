@@ -29,7 +29,7 @@ def check_cc():
     B = I.Basis(cen, Z, sh); ints = I.integrals(B); res = Q.scf(B, ints, 5)
     h, G = Q.mo_ints(B, ints, res); G2 = G.copy()
     E, t1, t2, c = Q.rccsd(G, res["eps"], 5); ET = Q.rccsd_t(G, res["eps"], 5, t1, t2)
-    o = Q.so_ccsd_t(h, G2, 5, 0)
+    o = Q.so_ccsd_t(h, G2, 5, 0, tol=1e-12)
     return dict(M=B.M, rccsd=E, so_ccsd=o["Ec_ccsd"], rT=ET, so_T=o["Ec_T"],
                 diff=max(abs(E - o["Ec_ccsd"]), abs(ET - o["Ec_T"])), esito="PASS" if max(abs(E - o["Ec_ccsd"]), abs(ET - o["Ec_T"])) < 1e-9 else "FAIL")
 

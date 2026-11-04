@@ -1,0 +1,32 @@
+{
+ "studio": "ACQUA, dimero (H2O)2",
+ "data": "2026-11-04",
+ "modello": "Born-Oppenheimer, nuclei fermi, niente relativita', niente ZPE; monomeri RIGIDI alla nostra geometria CBS (0.9585 A, 104.26 gradi): rilassamento dei monomeri nel dimero trascurato (debito, ~0.001 eV)",
+ "metodo": "RHF + CCSD(T) a tutti gli elettroni; integrali di Cholesky costruiti da noi (soglia 1e-6 sulla diagonale, nessuna base ausiliaria); orbitali naturali MP2 congelati (FNO, occupazione > 1e-6) + correzione Delta-MP2; basi nostre X=2,3 aug",
+ "counterpoise": "Boys-Bernardi: E_int = E_AB(base AB) - E_A(base AB) - E_B(base AB), D_e = -E_int",
+ "geometria": "simmetria Cs (piano xy): coordinate R(O-O), td (H legato del donatore vs asse O-O), ta (bisettrice dell'accettore vs asse O-O); superficie E_int^CP a X=2 su griglia 3x3x3 (0.05 A, 5, 15 gradi), triquadratica, ricentrata (max 6 volte); centro di partenza neutro R=3.0 A, td=0, ta=0. O-O = minimo di questa superficie (X=2 con counterpoise)",
+ "D_e": "al minimo: E_int CBS = E_int^HF(X=3) + [27 E_int^c(3) - 8 E_int^c(2)]/19 (correlazione = CCSD + (T) + Delta-MP2)",
+ "esami": {
+  "D1_De": {
+   "rif_eV": 0.217,
+   "soglia_rel": 0.1
+  },
+  "D2_ROO": {
+   "rif_A": 2.91,
+   "soglia_rel": 0.02
+  }
+ },
+ "controlli_di_macchina_gia_eseguiti": {
+  "Cholesky+FNO sul monomero X=2": "dE_HF 6.8e-7, dE_c -5.2e-6 Eh (FNO 1e-6); senza FNO dE_c 1.5e-8",
+  "X=3": "dE_HF 6.5e-7, dE_c -1.8e-5 Eh, 89/107 virtuali tenuti",
+  "C-CC": "3.2e-10"
+ },
+ "manopole_fittate_su_esperimenti": 0,
+ "scelte_dichiarate": [
+  "monomeri rigidi",
+  "soglie Cholesky e FNO",
+  "coordinate Cs e passi di griglia",
+  "estrapolazione X^-3",
+  "geometria a X=2 (non a X=3)"
+ ]
+}
