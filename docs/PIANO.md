@@ -133,7 +133,7 @@ Nessun agente attivo. Tutto su master (commit con firma, file grandi .npy/.npz n
 3. **Boro → neon** (`docs/TAVOLA_GRIGLIA.md`, `lab/tavg_*`, PARZIALE): HF fine B, C PASS; fare N–Ne, blocchi-nucleo per
    tutti (serve anche H e N per le molecole), esami di griglia G1–G7, poi fase 2 correlazione imparata dai casi esatti
    (H₂, He, Li, Be) con ionizzazioni alla cieca. Atteso FAIL B3 (promozione 2s→2p) per C, N, O.
-4. **Acqua → goccia** (stella polare, vedi memoria). Fatti: H₂O 5/5 PASS e dimero (D_e 0,2125 eV −2,1 %, O–O 2,921 Å +0,38 %, PASS al 2° tentativo dichiarato; `docs/ACQUA.md`). Piano: H₂O sulla griglia, dimero e trimero (`lab/mol_acqua_geom.py`,
+4. **Acqua → goccia** (stella polare, vedi memoria). Fatti: H₂O 5/5 PASS e dimero (D_e 0,2125 eV −2,1 %, O–O 2,921 Å +0,38 %, PASS al 2° tentativo dichiarato) e trimero 3/3 PASS (D_e 0,652 eV −4,9 %, O–O 2,810 Å, 3 corpi −10 %, cioè 14 % del legame; `docs/ACQUA.md`). Piano: H₂O sulla griglia, dimero e trimero (`lab/mol_acqua_geom.py`,
    scan in `lab/out/mol_acqua_scan.json`), forza acqua–acqua imparata (niente TIP4P), goccia di ~1000 molecole
    con nuclei classici; esami pre-registrati: densità, picco O–O 2,8 Å, ~3,5 legami H, tensione superficiale.
 5. **Ciclo tra livelli fase 3** (PARZIALE, `lab/ciclo_p3_*`): scrivere il codice misto con variabili lisciate (s=3),
