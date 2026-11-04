@@ -43,7 +43,12 @@ def basis(atoms, xyz, X, real):
 def solve(B, nocc, ck, tau_no, t_budget=520):
     """Cholesky -> RHF -> FNO -> CCSD -> (T), resumable through ck (npz); returns dict or None if unfinished"""
     t_end = time.time() + t_budget; t0 = time.time()
-    z = dict(np.load(ck, allow_pickle=False)) if os.path.exists(ck) else {}
+    z = {}
+    if os.path.exists(ck):
+        try:
+            z = dict(np.load(ck, allow_pickle=False))
+        except Exception:                       # truncated checkpoint (e.g. disk full): start again
+            os.remove(ck); z = {}
     if "Bn" not in z:
         ints = I.integrals(B, eri=False)
         L = CH.cholesky(B); nch = len(L)
@@ -90,6 +95,7 @@ def calc(kind, X, R, td, ta, tau_no=TAU_NO):
         return None
     o.update(kind=kind, X=X, R=R, td=td, ta=ta, tau_no=tau_no)
     json.dump(o, open(f, "w"), indent=1)
+    os.remove(os.path.join(AMP, "dim_" + k + ".npz"))          # checkpoint no longer needed (disk)
     return o
 
 
