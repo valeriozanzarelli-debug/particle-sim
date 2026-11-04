@@ -272,9 +272,11 @@ def rccsd_t(G, eps, nocc, t1, t2, nfz=0, start=None, t_end=None):
     vovo = np.ascontiguousarray(G[v, o, v, o])        # (ai|bj) -> [a,i,b,j]
     Dv = -ev[:, None, None] - ev[None, :, None] - ev[None, None, :]
     E, i0 = (0.0, 0) if start is None else (float(start[0]), int(start[1]))
+    dti = 0.0
     for i in range(i0, no):
-        if t_end and time.time() > t_end:
+        if t_end and time.time() + 1.2 * dti > t_end:   # stop before a block that would overrun the timeout
             return (E, i)
+        ti0 = time.time()
         for j in range(no):
             for k in range(no):
                 def w(i, j, k):
@@ -287,4 +289,5 @@ def rccsd_t(G, eps, nocc, t1, t2, nfz=0, start=None, t_end=None):
                     + np.einsum("ab,c->abc", vovo[:, i, :, j], t1[k])
                 D = Dv + eo[i] + eo[j] + eo[k]
                 E += np.sum((4 * W + W.transpose(1, 2, 0) + W.transpose(2, 0, 1)) * (V - V.transpose(2, 1, 0)) / (3 * D))
+        dti = time.time() - ti0
     return float(E)
